@@ -14,6 +14,7 @@ export default function HeroSection() {
         autoPlay
         loop
         muted
+        preload="auto"
         playsInline
         className="absolute inset-0 w-full h-full object-cover object-center brightness-75"
       >
