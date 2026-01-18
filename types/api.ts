@@ -1,15 +1,15 @@
 // API Response Types
 export interface ApiResponse<T> {
-  code: number
-  status: boolean
+  isSuccess: boolean
   message: string
   data: T
+  metadata: unknown
 }
 
 export interface ApiError {
-  code?: number
+  isSuccess: boolean
   message: string
-  status: boolean
-  data?: unknown
+  data: unknown
+  metadata: unknown
 }
 

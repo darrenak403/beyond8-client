@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
 import { Search, ChevronDown } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useLogout } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,6 +23,7 @@ export function Header() {
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [tempCategory, setTempCategory] = useState("Tất cả");
   const [isOpen, setIsOpen] = useState(false);
+  const { mutateLogout } = useLogout();
 
   const categories = [
     { name: "Tất cả", icon: "mdi:view-grid" },
@@ -34,7 +35,7 @@ export function Header() {
   ];
 
   const handleLogout = () => {
-    dispatch(logoutAsync());
+    mutateLogout();
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -83,12 +84,12 @@ export function Header() {
                   <span>Loại khóa học</span>
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="start" 
+                <DropdownMenuContent
+                  align="start"
                   className="p-4 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200"
                   sideOffset={8}
                   alignOffset={-200}
-                  style={{ 
+                  style={{
                     width: '420px'
                   }}
                 >
@@ -99,18 +100,17 @@ export function Header() {
                         <div
                           key={category.name}
                           onClick={() => setTempCategory(category.name)}
-                          className={`p-2.5 border rounded-lg cursor-pointer transition-all flex items-center gap-2 animate-in fade-in-0 slide-in-from-bottom-2 ${
-                            isSelected 
-                              ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/20' 
-                              : 'border-border'
-                          }`}
+                          className={`p-2.5 border rounded-lg cursor-pointer transition-all flex items-center gap-2 animate-in fade-in-0 slide-in-from-bottom-2 ${isSelected
+                            ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/20'
+                            : 'border-border'
+                            }`}
                           style={{
                             animationDelay: `${index * 50}ms`,
                             animationDuration: '300ms'
                           }}
                         >
-                          <Icon 
-                            icon={category.icon} 
+                          <Icon
+                            icon={category.icon}
                             className={`text-lg flex-shrink-0 ${isSelected ? 'text-purple-600' : ''}`}
                           />
                           <span className={`text-xs font-medium ${isSelected ? 'text-purple-600' : ''}`}>
@@ -120,7 +120,7 @@ export function Header() {
                       );
                     })}
                   </div>
-                  <Button 
+                  <Button
                     onClick={handleApplyFilter}
                     className="w-full bg-purple-600 hover:bg-purple-700 animate-in fade-in-0 slide-in-from-bottom-2"
                     size="sm"

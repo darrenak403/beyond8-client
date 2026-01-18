@@ -16,7 +16,7 @@ const getUserRole = (token: string | undefined): string | null => {
 
 export function middleware(request: NextRequest) {
   const {pathname} = request.nextUrl
-  const token = request.cookies.get('auth-token')?.value
+  const token = request.cookies.get('authToken')?.value
   const userRole = getUserRole(token)
 
   // Auth routes

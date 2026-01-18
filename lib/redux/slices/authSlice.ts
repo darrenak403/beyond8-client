@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {createSlice, createAsyncThunk, PayloadAction} from '@reduxjs/toolkit'
-import {setCookie, deleteCookie} from 'cookies-next'
-import {jwtDecode} from 'jwt-decode'
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import { setCookie, deleteCookie } from 'cookies-next'
+import { jwtDecode } from 'jwt-decode'
 import apiService from '@/lib/api/core'
-import type {RootState} from '../store'
+import { fetchAuth } from '@/lib/api/services/fetchAuth'
+import { getAuthCookieConfig } from '@/utils/cookieConfig'
+import type { RootState } from '../store'
 
 // Types
 export interface User {
@@ -30,36 +32,44 @@ const initialState: AuthState = {
   error: null,
 }
 
+// Helper to decode token safely
+export const decodeToken = (token: string): User | null => {
+  try {
+    return jwtDecode<User>(token)
+  } catch (error) {
+    console.error('Failed to decode token:', error)
+    return null
+  }
+}
+
 // Async thunks
 export const loginAsync = createAsyncThunk(
   'auth/login',
-  async (credentials: {email: string; password: string}, {rejectWithValue}) => {
+  async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await apiService.post<{
-        status: boolean
-        data: {accessToken: string; user: User}
-      }>('/auth/login', credentials)
+      const response = await fetchAuth.login(credentials)
 
-      if (response.data.status && response.data.data.accessToken) {
-        const token = response.data.data.accessToken
+      if (response.isSuccess && response.data.accessToken) {
+        const token = response.data.accessToken
+        const user = decodeToken(token)
 
-        setCookie('auth-token', token, {maxAge: 7 * 24 * 60 * 60, path: '/'})
+        setCookie('authToken', token, getAuthCookieConfig())
         apiService.setAuthToken(token)
 
-        return {token, user: response.data.data.user}
+        return { token, user }
       }
 
-      return rejectWithValue('Login failed')
+      return rejectWithValue(response.message || 'Login failed')
     } catch (error: any) {
       return rejectWithValue(error.message || 'Login failed')
     }
   }
 )
 
-export const logoutAsync = createAsyncThunk('auth/logout', async (_, {rejectWithValue}) => {
+export const logoutAsync = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
   try {
     await apiService.post('/auth/logout')
-    deleteCookie('auth-token', {path: '/'})
+    deleteCookie('authToken', { path: '/' })
     apiService.setAuthToken(null)
     return true
   } catch (error: any) {
@@ -69,18 +79,21 @@ export const logoutAsync = createAsyncThunk('auth/logout', async (_, {rejectWith
 
 export const refreshTokenAsync = createAsyncThunk(
   'auth/refreshToken',
-  async (_, {rejectWithValue}) => {
+  async (_, { rejectWithValue }) => {
     try {
       const response = await apiService.post<{
         status: boolean
-        data: {accessToken: string}
+        data: { accessToken: string }
       }>('/auth/refresh')
 
       if (response.data.status && response.data.data.accessToken) {
         const token = response.data.data.accessToken
-        setCookie('auth-token', token, {maxAge: 24 * 60 * 60, path: '/'})
+        const user = decodeToken(token)
+
+        setCookie('authToken', token, getAuthCookieConfig())
         apiService.setAuthToken(token)
-        return token
+
+        return { token, user }
       }
 
       return rejectWithValue('Refresh failed')
@@ -95,7 +108,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<{user: User; token: string}>) => {
+    setCredentials: (state, action: PayloadAction<{ user: User; token: string }>) => {
       state.user = action.payload.user
       state.token = action.payload.token
       state.isAuthenticated = true
@@ -105,12 +118,10 @@ const authSlice = createSlice({
       state.token = action.payload
       apiService.setAuthToken(action.payload)
 
-      try {
-        const decoded = jwtDecode<User>(action.payload)
-        state.user = decoded
+      const user = decodeToken(action.payload)
+      if (user) {
+        state.user = user
         state.isAuthenticated = true
-      } catch (error) {
-        console.error('Failed to decode token:', error)
       }
     },
     logout: (state) => {
@@ -118,7 +129,7 @@ const authSlice = createSlice({
       state.token = null
       state.isAuthenticated = false
       state.error = null
-      deleteCookie('auth-token', {path: '/'})
+      deleteCookie('authToken', { path: '/' })
       apiService.setAuthToken(null)
     },
     clearError: (state) => {
@@ -163,7 +174,9 @@ const authSlice = createSlice({
     // Refresh Token
     builder
       .addCase(refreshTokenAsync.fulfilled, (state, action) => {
-        state.token = action.payload
+        state.token = action.payload.token
+        state.user = action.payload.user
+        state.isAuthenticated = true
       })
       .addCase(refreshTokenAsync.rejected, (state) => {
         state.user = null
@@ -174,7 +187,7 @@ const authSlice = createSlice({
 })
 
 // Actions
-export const {setCredentials, setToken, logout, clearError} = authSlice.actions
+export const { setCredentials, setToken, logout, clearError } = authSlice.actions
 
 // Selectors
 export const selectAuth = (state: RootState) => state.auth
