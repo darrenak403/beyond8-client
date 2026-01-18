@@ -11,7 +11,7 @@ import type { RootState } from '../store'
 export interface User {
   id: string
   email: string
-  name: string
+  userNname: string
   role: string
 }
 

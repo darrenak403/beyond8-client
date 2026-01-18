@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Award, CheckCircle2, BookOpen, Rocket, BrainCircuit, Star } from 'lucide-react';
 
@@ -38,17 +37,7 @@ export default function LearningPathSimulation() {
                 <div className="absolute bottom-[10%] right-[10%] w-[250px] h-[250px] rounded-full bg-brand-pink/20 blur-3xl animate-pulse delay-2000" />
             </div>
 
-            <div className="relative z-10 w-full max-w-xl flex flex-col items-center">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="mb-6 text-center"
-                >
-                    <h2 className="text-2xl font-bold text-slate-800 mb-1">Lộ trình học tập</h2>
-                    <p className="text-sm text-slate-500">Hành trình từ Beginner đến Expert</p>
-                </motion.div>
-
+            <div className="relative z-10 w-full max-w-2xl flex flex-col items-center">
                 <div className="relative w-full py-2">
                     {/* Winding Path SVG - Adjusted coordinates to match tighter spacing */}
                     <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" viewBox="0 0 512 600" preserveAspectRatio="none" style={{ zIndex: 0 }}>
@@ -95,47 +84,47 @@ export default function LearningPathSimulation() {
                                     <div className="w-4 lg:w-16"></div>
 
                                     {/* Icon Bubble */}
-                                    <div className={`relative group ${isLeft ? 'mr-4' : 'ml-4'}`}>
+                                    <div className={`relative group ${isLeft ? 'mr-5' : 'ml-5'}`}>
                                         <motion.div
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
                                             transition={{ delay: 0.5 + (index * 0.4), type: "spring" }}
                                             whileHover={{ scale: 1.05 }}
-                                            className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg border-[4px] border-white relative z-20 ${step.status === "completed"
+                                            className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg border-[4px] border-white relative z-20 ${step.status === "completed"
                                                 ? "bg-gradient-to-br from-primary to-secondary text-white"
                                                 : step.status === "current"
                                                     ? "bg-white text-primary border-primary/20 ring-2 ring-primary/10"
                                                     : "bg-white text-slate-300"
                                                 }`}
                                         >
-                                            <step.icon size={24} />
+                                            <step.icon size={32} />
                                         </motion.div>
 
                                         {/* Status Badge */}
                                         {step.status === "completed" && (
-                                            <div className="absolute -top-1 -right-1 z-30 bg-green-500 text-white rounded-full p-1 shadow border-2 border-white">
-                                                <CheckCircle2 size={10} />
+                                            <div className="absolute -top-1.5 -right-1.5 z-30 bg-green-500 text-white rounded-full p-1 shadow border-2 border-white">
+                                                <CheckCircle2 size={14} />
                                             </div>
                                         )}
                                     </div>
 
                                     {/* Content Card */}
                                     <div className={`flex-1 ${isLeft ? 'text-left' : 'text-right'}`}>
-                                        <div className={`inline-block p-3 rounded-lg border backdrop-blur-sm transition-all duration-300 hover:shadow-md max-w-[200px] ${step.status === "current"
+                                        <div className={`inline-block p-3.5 rounded-xl border backdrop-blur-sm transition-all duration-300 hover:shadow-md max-w-[240px] ${step.status === "current"
                                             ? "bg-white/90 border-primary/30 shadow-lg shadow-primary/10"
                                             : "bg-white/60 border-white/50"
                                             }`}>
-                                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
                                                 {step.level}
                                             </div>
-                                            <div className={`font-bold text-sm leading-tight ${step.status === "current" ? "text-foreground" : "text-muted-foreground"
+                                            <div className={`font-bold text-[15px] leading-tight ${step.status === "current" ? "text-foreground" : "text-muted-foreground"
                                                 }`}>
                                                 {step.label}
                                             </div>
 
                                             {/* Mini Progress Bar for Current Step */}
                                             {step.status === "current" && (
-                                                <div className="mt-2 h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                <div className="mt-2.5 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                                                     <motion.div
                                                         className="h-full bg-gradient-to-r from-primary to-secondary"
                                                         initial={{ width: "0%" }}
@@ -159,24 +148,24 @@ export default function LearningPathSimulation() {
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 2.5, type: "spring" }}
-                        className="relative z-10 flex flex-col items-center mt-8"
+                        className="relative z-10 flex flex-col items-center mt-10"
                     >
                         <div className="relative">
                             <div className="absolute inset-0 bg-yellow-400/30 blur-2xl rounded-full animate-pulse" />
                             <motion.div
                                 animate={{ y: [0, -5, 0] }}
                                 transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                                className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-xl border-4 border-white relative z-20"
+                                className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-xl border-4 border-white relative z-20"
                             >
-                                <Award className="text-white drop-shadow-md" size={32} />
-                                <div className="absolute -top-1 -right-1">
-                                    <Star className="text-yellow-200 fill-yellow-200" size={16} />
+                                <Award className="text-white drop-shadow-md" size={40} />
+                                <div className="absolute -top-1.5 -right-1.5">
+                                    <Star className="text-yellow-200 fill-yellow-200" size={20} />
                                 </div>
                             </motion.div>
                         </div>
 
-                        <div className="mt-3 bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-yellow-200 shadow-sm text-yellow-700 font-bold text-xs flex items-center gap-1.5">
-                            <Award size={14} />
+                        <div className="mt-3.5 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-yellow-200 shadow-sm text-yellow-700 font-bold text-[13px] flex items-center gap-2">
+                            <Award size={16} />
                             <span>Chứng chỉ Expert đang đợi!</span>
                         </div>
                     </motion.div>

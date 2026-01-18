@@ -33,7 +33,7 @@ export function LoginForm() {
             validationSchema={loginSchema}
             onSubmit={handleSubmit}
         >
-            {() => (
+            {({ isValid, dirty }) => (
                 <>
                     <FormikField
                         name="email"
@@ -55,8 +55,8 @@ export function LoginForm() {
 
                     <Button
                         type="submit"
-                        className="w-full h-10 rounded-full text-white text-base font-medium"
-                        disabled={isLoading}
+                        className="w-full h-10 rounded-full text-white text-base font-medium cursor-pointer"
+                        disabled={isLoading || !isValid || !dirty}
                     >
                         {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                     </Button>
@@ -73,7 +73,7 @@ export function LoginForm() {
 
                     <div className="space-y-3">
                         <Link href="/register">
-                            <Button variant="outline" className="w-full h-12 rounded-full border-gray-200 font-normal justify-start px-6 relative hover:bg-gray-100 hover:text-primary mt-3">
+                            <Button variant="outline" className="w-full h-12 rounded-full border-gray-200 font-normal justify-start px-6 relative hover:bg-gray-100 hover:text-primary mt-3 cursor-pointer">
                                 <div className="flex items-center justify-center w-full relative">
                                     <svg className="absolute left-0 w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                                     <span>Đăng ký</span>

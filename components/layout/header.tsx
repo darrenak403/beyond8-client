@@ -3,27 +3,38 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell, Receipt } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAppDispatch } from "@/lib/redux/hooks";
-import { logoutAsync } from "@/lib/redux/slices/authSlice";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 
 export function Header() {
   const { isAuthenticated, user } = useAuth();
-  const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [tempCategory, setTempCategory] = useState("Tất cả");
   const [isOpen, setIsOpen] = useState(false);
   const { mutateLogout } = useLogout();
+
+  // Get first letter of user name for avatar fallback
+  const getAvatarFallback = () => {
+    if (user?.userNname) {
+      return user.userNname.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
 
   const categories = [
     { name: "Tất cả", icon: "mdi:view-grid" },
@@ -134,13 +145,15 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Search Button */}
-              <button
-                type="submit"
-                className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition-colors border border-purple-500"
-              >
-                <Search className="h-4 w-4 text-white cursor-pointer" />
-              </button>
+              {/* Search Button - Routes to /courses */}
+              <Link href="/courses">
+                <button
+                  type="button"
+                  className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition-colors border border-purple-500 cursor-pointer"
+                >
+                  <Search className="h-4 w-4 text-white" />
+                </button>
+              </Link>
             </div>
           </div>
         </form>
@@ -148,23 +161,74 @@ export function Header() {
         <nav className="flex items-center gap-3 flex-shrink-0">
           {isAuthenticated ? (
             <>
-              <Link href="/my-learning" className="hover:text-primary transition-colors">
-                Học của tôi
+              {/* Instructor Registration Button */}
+              <Link href="/instructor-registration">
+                <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
+                  <GraduationCap className="h-4 w-4" />
+                  Đăng ký giảng viên
+                </Button>
               </Link>
-              <Link href="/profile" className="hover:text-primary transition-colors">
-                {user?.name || "Hồ sơ"}
+
+              {/* Avatar - Routes to Profile */}
+              <Link href="/profile" className="cursor-pointer">
+                <Avatar className="h-11 w-11 border-2 border-purple-200 hover:border-purple-400 transition-colors">
+                  <AvatarImage src={undefined} alt={user?.userNname} />
+                  <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold text-base">
+                    {getAvatarFallback()}
+                  </AvatarFallback>
+                </Avatar>
               </Link>
-              <Button className="cursor-pointer" onClick={handleLogout} variant="outline">
-                Đăng xuất
-              </Button>
+
+              {/* Menu Icon with Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                    <Link href="/profile" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Hồ sơ
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                    <Link href="/notifications" className="flex items-center gap-2">
+                      <Bell className="h-4 w-4" />
+                      Thông báo
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                    <Link href="/my-learning" className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Khóa học của tôi
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                    <Link href="/transactions" className="flex items-center gap-2">
+                      <Receipt className="h-4 w-4" />
+                      Lịch sử giao dịch
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    className="cursor-pointer text-red-600 focus:text-red-600 hover:bg-red-100 focus:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Đăng xuất
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
               <Link href="/login">
-                <Button className="cursor-pointer" variant="outline">Đăng nhập</Button>
+                <Button className="cursor-pointer" variant="outline" size="sm">Đăng nhập</Button>
               </Link>
               <Link href="/register">
-                <Button className="cursor-pointer">Đăng ký</Button>
+                <Button className="cursor-pointer" size="sm">Đăng ký</Button>
               </Link>
             </>
           )}
