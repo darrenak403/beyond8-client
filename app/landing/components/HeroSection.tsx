@@ -3,20 +3,49 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from "react";
 
 export default function HeroSection() {
-  const badgeText = "Nền tảng cung cấp khóa học toàn diện";
+  const badgeText = "Nền tảng cung cấp khóa học toàn diện.";
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [displayedText, setDisplayedText] = useState("");
+
+  useEffect(() => {
+    // Force video to play smoothly
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 1.0;
+    }
+
+    // Typing effect
+    let index = 0;
+    const typingInterval = setInterval(() => {
+      if (index < badgeText.length) {
+        setDisplayedText(badgeText.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 80);
+
+    return () => clearInterval(typingInterval);
+  }, []);
 
   return (
     <div className="relative w-full h-[calc(100vh-4rem)]">
       {/* Background Video */}
       <video
+        ref={videoRef}
         autoPlay
         loop
         muted
-        preload="auto"
+        preload="none"
         playsInline
         className="absolute inset-0 w-full h-full object-cover object-center brightness-75"
+        style={{ 
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          perspective: 1000
+        }}
       >
         <source src="/bg-video1.mp4" type="video/mp4" />
         Your browser does not support the video tag.
@@ -27,66 +56,54 @@ export default function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-start justify-center h-full px-6 sm:px-12 lg:px-24 max-w-7xl mx-auto">
-        {/* Animated Badge */}
+        {/* Animated Badge with Typing Effect */}
         <motion.div
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full shadow-lg mb-6"
-          initial={{ opacity: 0, x: -100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="inline-flex items-center gap-2 pr-3 px-1 py-1 rounded-full shadow-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
           style={{
-            background: "rgba(255, 255, 255, 0.1)",
-            backdropFilter: "blur(12px)",
+            background: "rgba(255, 255, 255, 0.15)",
             border: "1px solid rgba(255, 255, 255, 0.2)",
           }}
         >
-          <motion.div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-          <span className="text-white text-sm font-medium">{badgeText}</span>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-600">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            <span className="text-white text-xs font-semibold">Mới</span>
+          </div>
+          
+          <span className="text-white text-sm font-medium">
+            {displayedText}
+          </span>
         </motion.div>
 
         {/* Main Title */}
-        <motion.h1
-          className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-        >
-          Học Vượt Trội Với
+        <h1 className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+          Học Hết Sức
           <br />
-          Giáo Dục Kết Hợp Cùng AI
-        </motion.h1>
+          AI hỗ trợ hết mình
+        </h1>
 
         {/* Description */}
-        <motion.p
-          className="text-white/90 text-lg sm:text-xl md:text-2xl max-w-3xl mb-8 leading-relaxed"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-        >
-          Biến hành trình học tập của bạn thành trải nghiệm thông minh với các khóa học trí tuệ nhân
-          tạo, đánh giá do AI tạo ra và phản hồi theo thời gian thực. Trải nghiệm giáo dục được
-          thiết kế cho tương lai.
-        </motion.p>
+        <p className="text-white/90 text-lg sm:text-xl md:text-2xl max-w-3xl mb-8 leading-relaxed">
+          Beyond 8 - Nơi biến hành trình học tập của bạn thành một trải nghiệm tuyệt vời.
+        </p>
 
         {/* CTA Buttons */}
-        <motion.div
-          className="flex flex-col sm:flex-row gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-        >
+        <div className="flex flex-col sm:flex-row gap-4">
           <Link href="/courses">
-            <Button size="lg" className="text-lg px-8 py-6">
+            <Button size="lg" className="text-lg px-8 py-6 cursor-pointer">
               Khám Phá Khóa Học
             </Button>
           </Link>
           <Button
             size="lg"
             variant="outline"
-            className="text-lg px-8 py-6 bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+            className="text-lg px-8 py-6 bg-white/15 border-white/30 text-white hover:bg-white/20 cursor-pointer"
           >
             Tìm Hiểu Thêm
           </Button>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

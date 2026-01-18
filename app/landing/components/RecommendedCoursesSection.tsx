@@ -139,7 +139,7 @@ export default function RecommendedCoursesSection() {
                     <button
                       key={index}
                       onClick={() => api?.scrollTo(index)}
-                      className={`h-2 rounded-full transition-all ${
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
                         current === index ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"
                       }`}
                       aria-label={`Go to slide ${index + 1}`}
@@ -190,7 +190,7 @@ export default function RecommendedCoursesSection() {
                 size="icon"
                 onClick={() => api?.scrollPrev()}
                 disabled={!canScrollPrev}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full z-10"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full z-10 cursor-pointer"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -199,7 +199,7 @@ export default function RecommendedCoursesSection() {
                 size="icon"
                 onClick={() => api?.scrollNext()}
                 disabled={!canScrollNext}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full z-10"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full z-10 cursor-pointer" 
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>

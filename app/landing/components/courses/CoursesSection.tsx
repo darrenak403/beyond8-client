@@ -83,7 +83,7 @@ function CourseCarousel({title, courses}: {title: string; courses: Course[]}) {
             size="icon"
             onClick={() => api?.scrollPrev()}
             disabled={!canScrollPrev}
-            className="rounded-full"
+            className="rounded-full cursor-pointer"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -92,7 +92,7 @@ function CourseCarousel({title, courses}: {title: string; courses: Course[]}) {
             size="icon"
             onClick={() => api?.scrollNext()}
             disabled={!canScrollNext}
-            className="rounded-full"
+            className="rounded-full cursor-pointer"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>

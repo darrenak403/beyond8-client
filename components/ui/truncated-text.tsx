@@ -63,7 +63,7 @@ export function TruncatedText({
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="inline-flex items-center h-auto p-0 text-xs text-muted-foreground hover:text-foreground font-normal flex-shrink-0 leading-none"
+            className="inline-flex items-center h-auto p-0 text-xs text-muted-foreground hover:text-foreground font-normal flex-shrink-0 leading-none cursor-pointer"
           >
             {isExpanded ? (
               <>
