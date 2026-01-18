@@ -139,7 +139,7 @@ export function Header() {
                 type="submit"
                 className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition-colors border border-purple-500"
               >
-                <Search className="h-4 w-4 text-white" />
+                <Search className="h-4 w-4 text-white cursor-pointer" />
               </button>
             </div>
           </div>
