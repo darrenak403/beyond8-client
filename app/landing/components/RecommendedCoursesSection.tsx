@@ -12,8 +12,10 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/useMobile";
 
 export default function RecommendedCoursesSection() {
+  const isMobile = useIsMobile();
   const [api, setApi] = useState<CarouselApi>();
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
@@ -44,7 +46,7 @@ export default function RecommendedCoursesSection() {
 
     const autoplay = setInterval(() => {
       api.scrollNext();
-    }, 5000); // Chuyển slide mỗi 5 giây
+    }, 5000);
 
     return () => clearInterval(autoplay);
   }, [api]);
@@ -109,11 +111,11 @@ export default function RecommendedCoursesSection() {
   const currentData = carouselData[current];
 
   return (
-    <section className="py-20 bg-muted/30">
-      <div className="px-12 sm:px-16 lg:px-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left: Content - 4 columns */}
-          <div className="lg:col-span-4">
+    <section className={`${isMobile ? 'py-12' : 'py-20'} bg-muted/30`}>
+      <div className={isMobile ? 'px-4' : 'px-12 sm:px-16 lg:px-20'}>
+        <div className={`grid grid-cols-1 ${isMobile ? 'gap-6' : 'lg:grid-cols-12 gap-8'} items-center`}>
+          {/* Left: Content */}
+          <div className={isMobile ? '' : 'lg:col-span-4'}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={current}
@@ -127,9 +129,9 @@ export default function RecommendedCoursesSection() {
                   <span className="text-xs font-medium">{currentData.badge}</span>
                 </div>
 
-                <h2 className="text-2xl md:text-3xl font-bold mb-3">{currentData.title}</h2>
+                <h2 className={`${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold mb-3`}>{currentData.title}</h2>
 
-                <p className="text-muted-foreground text-base mb-6 leading-relaxed">
+                <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-base'} mb-6 leading-relaxed`}>
                   {currentData.description}
                 </p>
 
@@ -150,8 +152,8 @@ export default function RecommendedCoursesSection() {
             </AnimatePresence>
           </div>
 
-          {/* Right: Carousel - 8 columns */}
-          <div className="lg:col-span-8 relative">
+          {/* Right: Carousel */}
+          <div className={`${isMobile ? '' : 'lg:col-span-8'} relative`}>
             <Carousel
               setApi={setApi}
               opts={{
@@ -164,7 +166,7 @@ export default function RecommendedCoursesSection() {
                 {carouselData.map((item) => (
                   <CarouselItem key={item.id} className="relative">
                     <Link href={item.link || "/courses"} className="block">
-                      <div className="relative w-full aspect-[4/1] rounded-2xl overflow-hidden group cursor-pointer">
+                      <div className={`relative w-full ${isMobile ? 'aspect-[16/9]' : 'aspect-[4/1]'} rounded-2xl overflow-hidden group cursor-pointer`}>
                         <Image
                           src={item.src}
                           alt={item.alt}
@@ -174,7 +176,7 @@ export default function RecommendedCoursesSection() {
                         />
                         {/* Overlay with text on hover */}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                          <span className="text-white text-2xl font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className={`text-white ${isMobile ? 'text-lg' : 'text-2xl'} font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
                             Xem chi tiết
                           </span>
                         </div>
@@ -184,25 +186,29 @@ export default function RecommendedCoursesSection() {
                 ))}
               </CarouselContent>
 
-              {/* Navigation Buttons - At the outer edges */}
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => api?.scrollPrev()}
-                disabled={!canScrollPrev}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full z-10 cursor-pointer"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => api?.scrollNext()}
-                disabled={!canScrollNext}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full z-10 cursor-pointer" 
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              {/* Navigation Buttons */}
+              {!isMobile && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => api?.scrollPrev()}
+                    disabled={!canScrollPrev}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full z-10 cursor-pointer"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => api?.scrollNext()}
+                    disabled={!canScrollNext}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full z-10 cursor-pointer" 
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </Carousel>
           </div>
         </div>

@@ -4,8 +4,10 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
+import { useIsMobile } from "@/hooks/useMobile";
 
 export default function HeroSection() {
+  const isMobile = useIsMobile();
   const badgeText = "Nền tảng cung cấp khóa học toàn diện.";
   const videoRef = useRef<HTMLVideoElement>(null);
   const [displayedText, setDisplayedText] = useState("");
@@ -55,10 +57,10 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/40" />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-start justify-center h-full px-6 sm:px-12 lg:px-24 max-w-7xl mx-auto">
+      <div className={`relative z-10 flex flex-col items-start justify-center h-full ${isMobile ? 'px-4' : 'px-6 sm:px-12 lg:px-24'} max-w-7xl mx-auto`}>
         {/* Animated Badge with Typing Effect */}
         <motion.div
-          className="inline-flex items-center gap-2 pr-3 px-1 py-1 rounded-full shadow-lg"
+          className={`inline-flex items-center gap-2 pr-3 px-1 py-1 rounded-full shadow-lg ${isMobile ? 'mb-4' : ''}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -72,34 +74,34 @@ export default function HeroSection() {
             <span className="text-white text-xs font-semibold">Mới</span>
           </div>
           
-          <span className="text-white text-sm font-medium">
+          <span className={`text-white ${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>
             {displayedText}
           </span>
         </motion.div>
 
         {/* Main Title */}
-        <h1 className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+        <h1 className={`text-white ${isMobile ? 'text-3xl' : 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl'} font-bold mb-6 leading-tight`}>
           Học Hết Sức
           <br />
           AI hỗ trợ hết mình
         </h1>
 
         {/* Description */}
-        <p className="text-white/90 text-lg sm:text-xl md:text-2xl max-w-3xl mb-8 leading-relaxed">
+        <p className={`text-white/90 ${isMobile ? 'text-base' : 'text-lg sm:text-xl md:text-2xl'} max-w-3xl mb-8 leading-relaxed`}>
           Beyond 8 - Nơi biến hành trình học tập của bạn thành một trải nghiệm tuyệt vời.
         </p>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link href="/courses">
-            <Button size="lg" className="text-lg px-8 py-6 cursor-pointer">
+        <div className={`flex ${isMobile ? 'flex-col w-full' : 'flex-col sm:flex-row'} gap-4`}>
+          <Link href="/courses" className={isMobile ? 'w-full' : ''}>
+            <Button size={isMobile ? "default" : "lg"} className={`${isMobile ? 'w-full' : 'text-lg px-8 py-6'} cursor-pointer`}>
               Khám Phá Khóa Học
             </Button>
           </Link>
           <Button
-            size="lg"
+            size={isMobile ? "default" : "lg"}
             variant="outline"
-            className="text-lg px-8 py-6 bg-white/15 border-white/30 text-white hover:bg-white/20 cursor-pointer"
+            className={`${isMobile ? 'w-full' : 'text-lg px-8 py-6'} bg-white/15 border-white/30 text-white hover:bg-white/20 cursor-pointer`}
           >
             Tìm Hiểu Thêm
           </Button>
