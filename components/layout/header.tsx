@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Icon } from "@iconify/react";
 import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell, Receipt } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +17,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { formatAvatarUrl } from "@/lib/utils/formatAvatarUrl";
 
 export function Header() {
   const isMobile = useIsMobile();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const { userProfile, isLoading } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [tempCategory, setTempCategory] = useState("Tất cả");
@@ -28,11 +32,11 @@ export function Header() {
   const { mutateLogout } = useLogout();
 
   const getAvatarFallback = () => {
-    if (user?.userNname) {
-      return user.userNname.charAt(0).toUpperCase();
+    if (userProfile?.fullName) {
+      return userProfile.fullName.charAt(0).toUpperCase();
     }
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase();
+    if (userProfile?.email) {
+      return userProfile.email.charAt(0).toUpperCase();
     }
     return 'U';
   };
@@ -169,14 +173,18 @@ export function Header() {
                 </Link>
               )}
 
-              <Link href="/profile" className="cursor-pointer">
-                <Avatar className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} border-2 border-purple-200 hover:border-purple-400 transition-colors`}>
-                  <AvatarImage src={undefined} alt={user?.userNname} />
-                  <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
-                    {getAvatarFallback()}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
+              {isLoading ? (
+                <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
+              ) : (
+                <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
+                  <Avatar className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} border-2 border-purple-200 hover:border-purple-400 transition-colors`}>
+                    <AvatarImage src={formatAvatarUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} />
+                    <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
+                      {getAvatarFallback()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+              )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -185,8 +193,17 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
+                  {userProfile && (
+                    <>
+                      <div className="px-2 py-1.5 text-sm">
+                        <p className="font-medium">{userProfile.fullName}</p>
+                        <p className="text-xs text-muted-foreground truncate">{userProfile.email}</p>
+                      </div>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/profile" className="flex items-center gap-2">
+                    <Link href="/mybeyond?tab=myprofile" className="flex items-center gap-2">
                       <User className="h-4 w-4" />
                       Hồ sơ
                     </Link>
@@ -198,15 +215,15 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/my-learning" className="flex items-center gap-2">
+                    <Link href="/mybeyond?tab=mycourse" className="flex items-center gap-2">
                       <BookOpen className="h-4 w-4" />
                       Khóa học của tôi
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/transactions" className="flex items-center gap-2">
+                    <Link href="/mybeyond?tab=mywallet" className="flex items-center gap-2">
                       <Receipt className="h-4 w-4" />
-                      Lịch sử giao dịch
+                      Ví của tôi
                     </Link>
                   </DropdownMenuItem>
                   {isMobile && (
