@@ -5,17 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Lock, Check } from "lucide-react";
-import { toast } from "sonner";
+import { useChangePassword } from "@/hooks/useAuth";
 
 interface ResetPasswordFormProps {
   onSuccess?: () => void;
 }
 
 export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps) {
+  const { mutateChangePassword, isLoading } = useChangePassword();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
@@ -67,28 +67,23 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      toast.success("Đổi mật khẩu thành công!");
-      
-      // Reset form
-      setFormData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-
-      onSuccess?.();
-    } catch {
-        toast.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
-      setError("Có lỗi xảy ra. Vui lòng thử lại sau.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    mutateChangePassword(
+      {
+        oldPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
+      },
+      {
+        onSuccess: () => {
+          // Reset form
+          setFormData({
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          });
+          onSuccess?.();
+        },
+      }
+    );
   };
 
   return (
@@ -259,20 +254,20 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
               });
               setError("");
             }}
-            disabled={isSubmitting}
+            disabled={isLoading}
           >
             Hủy
           </Button>
           <Button
             type="submit"
             disabled={
-              isSubmitting ||
+              isLoading ||
               !formData.currentPassword ||
               !allRequirementsMet ||
               !passwordsMatch
             }
           >
-            {isSubmitting ? "Đang xử lý..." : "Đổi mật khẩu"}
+            {isLoading ? "Đang xử lý..." : "Đổi mật khẩu"}
           </Button>
         </div>
       </div>

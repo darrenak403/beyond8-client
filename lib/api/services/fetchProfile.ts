@@ -10,6 +10,7 @@ export interface UserProfile {
   avatarUrl: string | null;
   coverUrl: string | null;
   phoneNumber: string | null;
+  dateOfBirth: string | null;
   isActive: boolean;
   isEmailVerified: boolean;
   lastLoginAt: string | null;
@@ -21,6 +22,7 @@ export interface UserProfile {
 export interface UpdateUserProfileRequest {
   fullName?: string;
   phoneNumber?: string;
+  dateOfBirth?: string | null;
   timezone?: string;
   locale?: string;
 }

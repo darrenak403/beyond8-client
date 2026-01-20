@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CheckCircle2, Circle } from "lucide-react";
 import type { UserProfile, UpdateUserProfileRequest } from "@/lib/api/services/fetchProfile";
+import { formatDateForInput } from "@/lib/utils/formatDate";
 
 interface ProfileFormProps {
   userProfile: UserProfile;
@@ -21,17 +22,26 @@ export default function ProfileForm({
   const [formData, setFormData] = useState({
     fullName: userProfile.fullName || "",
     phoneNumber: userProfile.phoneNumber || "",
-    birthDate: "",
+    dateOfBirth: formatDateForInput(userProfile.dateOfBirth),
   });
 
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Update form data when userProfile changes
+  useEffect(() => {
+    setFormData({
+      fullName: userProfile.fullName || "",
+      phoneNumber: userProfile.phoneNumber || "",
+      dateOfBirth: formatDateForInput(userProfile.dateOfBirth),
+    });
+  }, [userProfile]);
 
   // Check if form has changes
   useEffect(() => {
     const changed =
       formData.fullName !== (userProfile.fullName || "") ||
       formData.phoneNumber !== (userProfile.phoneNumber || "") ||
-      formData.birthDate !== "";
+      formData.dateOfBirth !== formatDateForInput(userProfile.dateOfBirth);
     setHasChanges(changed);
   }, [formData, userProfile]);
 
@@ -43,7 +53,7 @@ export default function ProfileForm({
     setFormData({
       fullName: userProfile.fullName || "",
       phoneNumber: userProfile.phoneNumber || "",
-      birthDate: "",
+      dateOfBirth: formatDateForInput(userProfile.dateOfBirth),
     });
   };
 
@@ -53,6 +63,7 @@ export default function ProfileForm({
     const updateData: UpdateUserProfileRequest = {
       fullName: formData.fullName,
       phoneNumber: formData.phoneNumber || undefined,
+      dateOfBirth: formData.dateOfBirth || null,
     };
     
     onProfileUpdate(updateData);
@@ -116,13 +127,13 @@ export default function ProfileForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="birthDate">Ngày sinh</Label>
+          <Label htmlFor="dateOfBirth">Ngày sinh</Label>
           <div className="relative">
             <Input
-              id="birthDate"
+              id="dateOfBirth"
               type="date"
-              value={formData.birthDate}
-              onChange={(e) => handleChange("birthDate", e.target.value)}
+              value={formData.dateOfBirth}
+              onChange={(e) => handleChange("dateOfBirth", e.target.value)}
               placeholder="Chọn ngày sinh"
               className="transition-colors"
               style={{
