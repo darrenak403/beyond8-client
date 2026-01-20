@@ -136,6 +136,16 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/admin/admin-profile"
+                        className="cursor-pointer text-sm flex items-center"
+                      >
+                        <User className="h-3.5 w-3.5 mr-2" />
+                        Hồ sơ
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => mutateLogout()}
                       className="cursor-pointer text-red-600 focus:text-red-600 hover:bg-red-100 focus:bg-red-50 text-sm"

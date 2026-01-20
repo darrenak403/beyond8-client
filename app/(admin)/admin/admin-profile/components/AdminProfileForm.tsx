@@ -12,15 +12,15 @@ import type { UserProfile, UpdateUserProfileRequest } from "@/lib/api/services/f
 import { formatDateForInput } from "@/lib/utils/formatDate";
 import { TIMEZONES, LOCALES } from "@/lib/types/userSettings";
 
-interface ProfileFormProps {
+interface AdminProfileFormProps {
   userProfile: UserProfile;
   onProfileUpdate: (profile: UpdateUserProfileRequest) => void;
 }
 
-export default function ProfileForm({
+export default function AdminProfileForm({
   userProfile,
   onProfileUpdate,
-}: ProfileFormProps) {
+}: AdminProfileFormProps) {
   const [formData, setFormData] = useState({
     fullName: userProfile.fullName || "",
     phoneNumber: userProfile.phoneNumber || "",
@@ -31,7 +31,6 @@ export default function ProfileForm({
 
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Update form data when userProfile changes
   useEffect(() => {
     setFormData({
       fullName: userProfile.fullName || "",
@@ -42,7 +41,6 @@ export default function ProfileForm({
     });
   }, [userProfile]);
 
-  // Check if form has changes
   useEffect(() => {
     const changed =
       formData.fullName !== (userProfile.fullName || "") ||
@@ -83,7 +81,6 @@ export default function ProfileForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Row 1: Họ và tên + Email */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -124,7 +121,6 @@ export default function ProfileForm({
         </div>
       </div>
 
-      {/* Row 2: Số điện thoại + Ngày sinh */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="phoneNumber">Số điện thoại</Label>
@@ -140,23 +136,18 @@ export default function ProfileForm({
 
         <div className="space-y-2">
           <Label htmlFor="dateOfBirth">Ngày sinh</Label>
-          <div className="relative">
-            <Input
-              id="dateOfBirth"
-              type="date"
-              value={formData.dateOfBirth}
-              onChange={(e) => handleChange("dateOfBirth", e.target.value)}
-              placeholder="Chọn ngày sinh"
-              className="transition-colors"
-              style={{
-                colorScheme: 'light'
-              }}
-            />
-          </div>
+          <Input
+            id="dateOfBirth"
+            type="date"
+            value={formData.dateOfBirth}
+            onChange={(e) => handleChange("dateOfBirth", e.target.value)}
+            placeholder="Chọn ngày sinh"
+            className="transition-colors"
+            style={{ colorScheme: 'light' }}
+          />
         </div>
       </div>
 
-      {/* Row 3: Timezone + Locale */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="timezone">Múi giờ</Label>
@@ -191,26 +182,17 @@ export default function ProfileForm({
         </div>
       </div>
 
-      {/* Row 4: Trạng thái */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label>Trạng thái</Label>
-          <RadioGroup 
-            value={userProfile.isActive ? "online" : "offline"} 
-            disabled 
-            className="flex gap-6"
-          >
+          <RadioGroup value={userProfile.isActive ? "online" : "offline"} disabled className="flex gap-6">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="online" id="online" disabled />
-              <Label htmlFor="online" className="font-normal text-gray-500">
-                Trực tuyến
-              </Label>
+              <Label htmlFor="online" className="font-normal text-gray-500">Trực tuyến</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="offline" id="offline" disabled />
-              <Label htmlFor="offline" className="font-normal text-gray-500">
-                Ngoại tuyến
-              </Label>
+              <Label htmlFor="offline" className="font-normal text-gray-500">Ngoại tuyến</Label>
             </div>
           </RadioGroup>
         </div>
@@ -218,18 +200,11 @@ export default function ProfileForm({
 
       <div className="flex justify-end gap-3">
         {hasChanges && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleReset}
-          >
+          <Button type="button" variant="outline" onClick={handleReset}>
             Hủy thay đổi
           </Button>
         )}
-        <Button 
-          type="submit"
-          disabled={!hasChanges}
-        >
+        <Button type="submit" disabled={!hasChanges}>
           Lưu thay đổi
         </Button>
       </div>
