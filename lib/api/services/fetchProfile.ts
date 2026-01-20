@@ -8,6 +8,7 @@ export interface UserProfile {
   roles: string[];
   fullName: string;
   avatarUrl: string | null;
+  coverUrl: string | null;
   phoneNumber: string | null;
   isActive: boolean;
   isEmailVerified: boolean;

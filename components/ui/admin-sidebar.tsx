@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { useLogout } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { cn } from '@/lib/utils';
-import { formatAvatarUrl } from '@/lib/utils/formatAvatarUrl';
+import { formatImageUrl } from '@/lib/utils/formatImageUrl';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
@@ -110,7 +110,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
         <div className="p-3 border-t border-gray-200">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8 rounded-lg flex-shrink-0">
-              <AvatarImage src={formatAvatarUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
+              <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
               <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
                 {getAvatarFallback()}
               </AvatarFallback>

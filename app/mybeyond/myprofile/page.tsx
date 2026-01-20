@@ -30,18 +30,13 @@ export default function MyProfilePage() {
     );
   }
 
-  // Map API data for ProfileHeader (legacy format)
+  // Map API data for ProfileHeader
   const mappedProfileForHeader = {
-    name: userProfile.fullName || "Người dùng",
+    fullName: userProfile.fullName || "Người dùng",
     email: userProfile.email,
-    avatar: userProfile.avatarUrl || undefined,
-    banner: "/bg-web.jpg",
-    phone: userProfile.phoneNumber || "",
-    timezone: userProfile.timezone || "",
-    locale: userProfile.locale || "",
+    avatarUrl: userProfile.avatarUrl,
+    coverUrl: userProfile.coverUrl,
     isActive: userProfile.isActive,
-    isEmailVerified: userProfile.isEmailVerified,
-    status: userProfile.status,
   };
 
   return (

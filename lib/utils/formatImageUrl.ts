@@ -1,9 +1,9 @@
 /**
- * Format avatar URL to ensure it has proper protocol
- * @param url - Avatar URL from API
+ * Format image URL to ensure it has proper protocol
+ * @param url - Image URL from API
  * @returns Formatted URL with https:// protocol
  */
-export function formatAvatarUrl(url: string | null | undefined): string | undefined {
+export function formatImageUrl(url: string | null | undefined): string | undefined {
   if (!url) return undefined;
   
   // If URL already has protocol, return as is

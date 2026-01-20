@@ -19,7 +19,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
-import { formatAvatarUrl } from "@/lib/utils/formatAvatarUrl";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 
 export function Header() {
   const isMobile = useIsMobile();
@@ -178,7 +178,7 @@ export function Header() {
               ) : (
                 <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
                   <Avatar className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} border-2 border-purple-200 hover:border-purple-400 transition-colors`}>
-                    <AvatarImage src={formatAvatarUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} />
+                    <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} />
                     <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
                       {getAvatarFallback()}
                     </AvatarFallback>

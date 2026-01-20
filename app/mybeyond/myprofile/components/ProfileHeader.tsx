@@ -5,15 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Camera, Mail, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
-import { useUploadAvatar } from "@/hooks/useUploadAvatar";
-import { formatAvatarUrl } from "@/lib/utils/formatAvatarUrl";
+import { useUploadImage } from "@/hooks/useUploadImage";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 
 interface ProfileHeaderProps {
   userProfile: {
-    name: string;
+    fullName: string;
     email: string;
-    avatar?: string;
-    banner?: string;
+    avatarUrl?: string | null;
+    coverUrl?: string | null;
     isActive?: boolean;
   };
   onChangePassword: () => void;
@@ -24,10 +24,10 @@ export default function ProfileHeader({
   onChangePassword,
 }: ProfileHeaderProps) {
   const isMobile = useIsMobile();
-  const { uploadAvatar, isUploading } = useUploadAvatar();
+  const { uploadAvatar, isUploadingAvatar, uploadCover, isUploadingCover } = useUploadImage();
 
   const handleAvatarClick = () => {
-    if (isUploading) return;
+    if (isUploadingAvatar) return;
     
     const input = document.createElement("input");
     input.type = "file";
@@ -53,21 +53,70 @@ export default function ProfileHeader({
     input.click();
   };
 
+  const handleCoverClick = () => {
+    if (isUploadingCover) return;
+    
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        // Validate file size (max 10MB for cover)
+        if (file.size > 10 * 1024 * 1024) {
+          alert("Kích thước file không được vượt quá 10MB");
+          return;
+        }
+        
+        // Validate file type
+        if (!file.type.startsWith("image/")) {
+          alert("Vui lòng chọn file ảnh");
+          return;
+        }
+        
+        uploadCover(file);
+      }
+    };
+    input.click();
+  };
+
   return (
     <div className="overflow-hidden">
-      {/* Banner */}
+      {/* Banner with Upload */}
       <div
-        className={`bg-gradient-to-r from-primary to-brand-purple relative rounded-2xl ${
+        className={`bg-gradient-to-r from-primary to-brand-purple relative rounded-2xl overflow-hidden ${
           isMobile ? "h-48" : "h-96"
         }`}
-        style={{
-          backgroundImage: userProfile.banner
-            ? `url(${userProfile.banner})`
-            : undefined,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
+      >
+        {/* Background image with zoom effect */}
+        <img
+          src={formatImageUrl(userProfile.coverUrl) || '/bg-web.jpg'}
+          alt="Cover"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+        />
+        
+        {/* Hover overlay - only on cover area */}
+        <div 
+          className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-all duration-300 cursor-pointer group"
+          onClick={handleCoverClick}
+        >
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {isUploadingCover ? (
+              <div className="flex flex-col items-center gap-2 text-white">
+                <Loader2 className="w-12 h-12 animate-spin" />
+                <span className="text-sm font-medium">Đang tải lên...</span>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-white">
+                <Camera className="w-12 h-12" />
+                <span className="text-sm font-medium">
+                  {formatImageUrl(userProfile.coverUrl) ? "Thay đổi ảnh bìa" : "Thêm ảnh bìa"}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Profile Info */}
       <div
@@ -84,23 +133,23 @@ export default function ProfileHeader({
           }`}
         >
           {/* Avatar */}
-          <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+          <div className="relative group cursor-pointer z-20" onClick={handleAvatarClick}>
             <Avatar
               className={`border-4 border-white shadow-lg ${
                 isMobile ? "w-24 h-24" : "w-40 h-40"
               }`}
             >
-              <AvatarImage src={formatAvatarUrl(userProfile.avatar)} alt={userProfile.name} />
+              <AvatarImage src={formatImageUrl(userProfile.avatarUrl)} alt={userProfile.fullName || 'User'} />
               <AvatarFallback className="text-2xl">
-                {userProfile.name
-                  .split(" ")
+                {userProfile.fullName
+                  ?.split(" ")
                   .map((n) => n[0])
                   .join("")
-                  .toUpperCase()}
+                  .toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              {isUploading ? (
+              {isUploadingAvatar ? (
                 <Loader2 className={`text-white animate-spin ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />
               ) : (
                 <Camera className={`text-white ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />
@@ -116,7 +165,7 @@ export default function ProfileHeader({
                   isMobile ? "text-xl" : "text-2xl"
                 }`}
               >
-                {userProfile.name}
+                {userProfile.fullName || 'User'}
               </h2>
               {userProfile.isActive ? (
                 <Badge className="bg-green-500 hover:bg-green-600">

@@ -50,6 +50,17 @@ export const mediaService = {
     return response.data;
   },
 
+  // Step 1: Get presigned URL for cover upload
+  getCoverPresignedUrl: async (
+    request: PresignedUrlRequest
+  ): Promise<ApiResponse<PresignedUrlResponse>> => {
+    const response = await apiService.post<ApiResponse<PresignedUrlResponse>>(
+      "api/v1/media/cover/presigned-url",
+      request
+    );
+    return response.data;
+  },
+
   // Step 2: Upload file to presigned URL
   uploadToPresignedUrl: async (presignedUrl: string, file: File): Promise<void> => {
     await axios.put(presignedUrl, file, {
@@ -78,10 +89,46 @@ export const mediaService = {
     return response.data;
   },
 
-  // Complete upload flow
+  // Complete avatar upload flow
   uploadAvatar: async (file: File): Promise<MediaFile> => {
     // Step 1: Get presigned URL
     const presignedResponse = await mediaService.getAvatarPresignedUrl({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      metadata: null,
+    });
+
+    if (!presignedResponse.isSuccess || !presignedResponse.data) {
+      throw new Error(presignedResponse.message || "Failed to get presigned URL");
+    }
+
+    const { fileId, presignedUrl } = presignedResponse.data;
+
+    // Step 2: Upload to presigned URL
+    await mediaService.uploadToPresignedUrl(presignedUrl, file);
+
+    // Step 3: Confirm upload
+    const confirmResponse = await mediaService.confirmUpload({ fileId });
+
+    if (!confirmResponse.isSuccess || !confirmResponse.data) {
+      throw new Error(confirmResponse.message || "Failed to confirm upload");
+    }
+
+    // Step 4: Get final media file info
+    const mediaResponse = await mediaService.getMediaFile(fileId);
+
+    if (!mediaResponse.isSuccess || !mediaResponse.data) {
+      throw new Error(mediaResponse.message || "Failed to get media file");
+    }
+
+    return mediaResponse.data;
+  },
+
+  // Complete cover upload flow
+  uploadCover: async (file: File): Promise<MediaFile> => {
+    // Step 1: Get presigned URL for cover
+    const presignedResponse = await mediaService.getCoverPresignedUrl({
       fileName: file.name,
       contentType: file.type,
       size: file.size,
