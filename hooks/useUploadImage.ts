@@ -1,4 +1,4 @@
-﻿import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ImageService } from "@/lib/api/services/fetchUploadImage";
 import { mediaService } from "@/lib/api/services/fetchMedia";
 import type { UserProfile } from "@/lib/api/services/fetchProfile";
@@ -13,9 +13,11 @@ export function useUploadImage() {
       const response = await ImageService.updateAvatar({
         fileUrl: mediaFile.fileUrl,
       });
+
       if (!response.isSuccess) {
         throw new Error(response.message || "Failed to update avatar");
       }
+
       return mediaFile.fileUrl;
     },
     onSuccess: (avatarUrl) => {
@@ -36,9 +38,11 @@ export function useUploadImage() {
       const response = await ImageService.updateCover({
         fileUrl: mediaFile.fileUrl,
       });
+
       if (!response.isSuccess) {
         throw new Error(response.message || "Failed to update cover");
       }
+
       return mediaFile.fileUrl;
     },
     onSuccess: (coverUrl) => {

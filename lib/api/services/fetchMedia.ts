@@ -39,7 +39,6 @@ export interface MediaFile {
 }
 
 export const mediaService = {
-  // Step 1: Get presigned URL for avatar upload
   getAvatarPresignedUrl: async (
     request: PresignedUrlRequest
   ): Promise<ApiResponse<PresignedUrlResponse>> => {
@@ -50,7 +49,6 @@ export const mediaService = {
     return response.data;
   },
 
-  // Step 1: Get presigned URL for cover upload
   getCoverPresignedUrl: async (
     request: PresignedUrlRequest
   ): Promise<ApiResponse<PresignedUrlResponse>> => {
@@ -61,7 +59,6 @@ export const mediaService = {
     return response.data;
   },
 
-  // Step 2: Upload file to presigned URL
   uploadToPresignedUrl: async (presignedUrl: string, file: File): Promise<void> => {
     await axios.put(presignedUrl, file, {
       headers: {
@@ -70,7 +67,6 @@ export const mediaService = {
     });
   },
 
-  // Step 3: Confirm upload
   confirmUpload: async (
     request: ConfirmUploadRequest
   ): Promise<ApiResponse<MediaFile>> => {
@@ -81,7 +77,6 @@ export const mediaService = {
     return response.data;
   },
 
-  // Step 4: Get media file info
   getMediaFile: async (fileId: string): Promise<ApiResponse<MediaFile>> => {
     const response = await apiService.get<ApiResponse<MediaFile>>(
       `api/v1/media/${fileId}`
@@ -89,9 +84,7 @@ export const mediaService = {
     return response.data;
   },
 
-  // Complete avatar upload flow
   uploadAvatar: async (file: File): Promise<MediaFile> => {
-    // Step 1: Get presigned URL
     const presignedResponse = await mediaService.getAvatarPresignedUrl({
       fileName: file.name,
       contentType: file.type,
@@ -105,17 +98,14 @@ export const mediaService = {
 
     const { fileId, presignedUrl } = presignedResponse.data;
 
-    // Step 2: Upload to presigned URL
     await mediaService.uploadToPresignedUrl(presignedUrl, file);
 
-    // Step 3: Confirm upload
     const confirmResponse = await mediaService.confirmUpload({ fileId });
 
     if (!confirmResponse.isSuccess || !confirmResponse.data) {
       throw new Error(confirmResponse.message || "Failed to confirm upload");
     }
 
-    // Step 4: Get final media file info
     const mediaResponse = await mediaService.getMediaFile(fileId);
 
     if (!mediaResponse.isSuccess || !mediaResponse.data) {
@@ -125,9 +115,7 @@ export const mediaService = {
     return mediaResponse.data;
   },
 
-  // Complete cover upload flow
   uploadCover: async (file: File): Promise<MediaFile> => {
-    // Step 1: Get presigned URL for cover
     const presignedResponse = await mediaService.getCoverPresignedUrl({
       fileName: file.name,
       contentType: file.type,
@@ -141,17 +129,14 @@ export const mediaService = {
 
     const { fileId, presignedUrl } = presignedResponse.data;
 
-    // Step 2: Upload to presigned URL
     await mediaService.uploadToPresignedUrl(presignedUrl, file);
 
-    // Step 3: Confirm upload
     const confirmResponse = await mediaService.confirmUpload({ fileId });
 
     if (!confirmResponse.isSuccess || !confirmResponse.data) {
       throw new Error(confirmResponse.message || "Failed to confirm upload");
     }
 
-    // Step 4: Get final media file info
     const mediaResponse = await mediaService.getMediaFile(fileId);
 
     if (!mediaResponse.isSuccess || !mediaResponse.data) {
