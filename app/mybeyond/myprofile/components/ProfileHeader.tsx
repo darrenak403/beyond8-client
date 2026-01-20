@@ -188,7 +188,6 @@ export default function ProfileHeader({
 
         {/* Change Password Button */}
         <Button
-          variant="outline"
           onClick={onChangePassword}
           className={`${
             isMobile ? "mt-4 w-full" : ""
