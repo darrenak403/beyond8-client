@@ -3,10 +3,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
     Star,
-    Users,
-    Clock,
     Trash2,
-    Home
+    Home,
+    CheckCircle2,
+    Clock,
+    Eye
 } from 'lucide-react'
 import type { Course } from '@/lib/data/mockCourses'
 
@@ -51,9 +52,15 @@ export default function CourseListItem({ course }: CourseListItemProps) {
             <div className="flex flex-1 flex-col justify-between py-1">
                 <div className="flex justify-between items-start">
                     <div className="space-y-1.5">
-                        <h3 className="font-bold text-xl text-primary">
-                            {formattedPrice}
-                        </h3>
+                        <div className="flex items-center gap-3">
+                            <h3 className="font-bold text-xl text-primary">
+                                {formattedPrice}
+                            </h3>
+                            <div className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span className="text-xs font-semibold">{course.duration}</span>
+                            </div>
+                        </div>
 
                         <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs font-normal text-slate-500 border-slate-200">
@@ -77,42 +84,23 @@ export default function CourseListItem({ course }: CourseListItemProps) {
                 </div>
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-4 gap-8 mt-4 w-fit">
-                    <div className="flex flex-col">
-                        <span className="text-xs text-slate-400 text-center">-</span>
-                        <span className="text-xs font-medium text-slate-600 text-center">m²</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-800 text-center">{course.students}</span>
-                        <span className="text-xs font-medium text-slate-600 text-center">Học viên</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-800 text-center">1</span>
-                        <span className="text-xs font-medium text-slate-600 text-center">Số tầng</span>
-                    </div>
-                </div>
-
                 <div className="flex items-center gap-6 mt-3 text-xs text-slate-500">
-                    <div className="flex items-center gap-1.5">
-                        <Home className="w-3.5 h-3.5" />
-                        <span>0</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5" />
-                        <span>0</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>0</span>
-                    </div>
-                    {/* <span className="ml-auto">- m²</span> */}
+                    {/* Stats removed */}
                 </div>
             </div>
 
             {/* Action Section (Right) */}
-            <div className="flex bg-transparent flex-col justify-center gap-2 shrink-0 w-auto pl-4 border-l border-border/50 my-1">
-                <Button className="bg-black text-white hover:bg-slate-800 h-8 text-xs px-6 rounded-full">
-                    Xem
+            <div className="flex flex-col justify-center gap-2 shrink-0 w-auto pl-4 border-l border-border/50 my-1">
+                <Button variant="secondary" className="h-8 text-xs px-3 rounded-lg">
+                    <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                    Duyệt
+                </Button>
+                <Button variant="destructive" className="h-8 text-xs px-3 rounded-lg">
+                    <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                    Từ chối
+                </Button>
+                <Button variant="default" className="h-8 text-xs px-3 rounded-lg">
+                    Xem chi tiết
                 </Button>
             </div>
         </div>

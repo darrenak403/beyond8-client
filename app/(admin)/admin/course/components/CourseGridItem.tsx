@@ -3,15 +3,14 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
     Star,
-    Users,
-    Clock,
     MoreHorizontal,
     Edit,
     Trash2,
     Eye,
     MapPin,
     Home,
-    CheckCircle2
+    CheckCircle2,
+    Clock
 } from 'lucide-react'
 import type { Course } from '@/lib/data/mockCourses'
 import {
@@ -66,6 +65,10 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
                         <h3 className="font-bold text-xl text-primary truncate">
                             {formattedPrice}
                         </h3>
+                        <div className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span className="text-xs font-semibold">{course.duration}</span>
+                        </div>
                     </div>
 
                     <div className="space-y-1">
@@ -81,32 +84,20 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
                     </div>
                 </div>
 
-                {/* Stats Divider */}
-                <div className="h-px w-full bg-slate-100" />
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-3 gap-2 py-0.5">
-                    <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 group-hover:bg-primary/5 transition-colors">
-                        <Clock className="w-4 h-4 mb-1 text-slate-400 group-hover:text-primary" />
-                        <span className="text-xs font-semibold text-slate-700">{course.duration}</span>
-                        <span className="text-[10px] text-slate-400">Thời lượng</span>
-                    </div>
-                    <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 group-hover:bg-primary/5 transition-colors">
-                        <Users className="w-4 h-4 mb-1 text-slate-400 group-hover:text-primary" />
-                        <span className="text-xs font-semibold text-slate-700">{course.students}</span>
-                        <span className="text-[10px] text-slate-400">Học viên</span>
-                    </div>
-                    <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 group-hover:bg-primary/5 transition-colors">
-                        <Star className="w-4 h-4 mb-1 text-slate-400 group-hover:text-primary" />
-                        <span className="text-xs font-semibold text-slate-700">{course.rating}</span>
-                        <span className="text-[10px] text-slate-400">Đánh giá</span>
-                    </div>
-                </div>
-
                 {/* Footer Actions */}
-                <div className="mt-auto pt-2 grid grid-cols-1 gap-2 items-center">
-                    <Button className="w-full bg-black hover:bg-slate-800 text-white h-9 rounded-lg">
-                        Xem
+                <div className="mt-auto pt-2 grid grid-cols-2 gap-2 items-center">
+                    <Button variant="secondary" className="w-full h-9 rounded-lg">
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Duyệt
+                    </Button>
+                    <Button variant="destructive" className="w-full h-9 rounded-lg">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Từ chối
+                    </Button>
+                </div>
+                <div className="mt-2">
+                    <Button className="w-full h-9 rounded-lg">
+                        Xem chi tiết
                     </Button>
                 </div>
 
