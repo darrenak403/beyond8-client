@@ -2,7 +2,8 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Mail, Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Camera, Mail } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useUploadImage } from "@/hooks/useUploadImage";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
@@ -80,7 +81,7 @@ export default function AdminProfileHeader({ userProfile }: AdminProfileHeaderPr
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             {isUploadingCover ? (
               <div className="flex flex-col items-center gap-2 text-white">
-                <Loader2 className="w-12 h-12 animate-spin" />
+                <Skeleton className="w-12 h-12 rounded-full bg-white/20" />
                 <span className="text-sm font-medium">Đang tải lên...</span>
               </div>
             ) : (
@@ -106,7 +107,7 @@ export default function AdminProfileHeader({ userProfile }: AdminProfileHeaderPr
             </Avatar>
             <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               {isUploadingAvatar ? (
-                <Loader2 className={`text-white animate-spin ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />
+                <Skeleton className={`rounded-full bg-white/20 ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />
               ) : (
                 <Camera className={`text-white ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />
               )}
