@@ -7,6 +7,7 @@ import { Camera, Mail } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useUploadImage } from "@/hooks/useUploadImage";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
+import SafeImage from "@/components/ui/SafeImage";
 
 interface AdminProfileHeaderProps {
   userProfile: {
@@ -71,7 +72,7 @@ export default function AdminProfileHeader({ userProfile }: AdminProfileHeaderPr
   return (
     <div className="overflow-hidden">
       <div className={`bg-gradient-to-r from-primary to-brand-purple relative rounded-2xl overflow-hidden ${isMobile ? "h-48" : "h-96"}`}>
-        <img
+        <SafeImage
           src={formatImageUrl(userProfile.coverUrl) || '/bg-web.jpg'}
           alt="Cover"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
