@@ -140,11 +140,12 @@ export default function ProfileHeader({
               }`}
             >
               <AvatarImage src={formatImageUrl(userProfile.avatarUrl)} alt={userProfile.fullName || 'User'} />
-              <AvatarFallback className="text-2xl">
+              <AvatarFallback className="text-4xl bg-purple-100 text-purple-700 font-semibold">
                 {userProfile.fullName
                   ?.split(" ")
                   .map((n) => n[0])
                   .join("")
+                  .slice(0,2)
                   .toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
