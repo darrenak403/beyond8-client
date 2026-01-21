@@ -29,10 +29,9 @@ export default function ProfileForm({
     locale: userProfile.locale || "vi-VN",
   });
 
-  const [hasChanges, setHasChanges] = useState(false);
-
   // Update form data when userProfile changes
   useEffect(() => {
+    // eslint-disable-next-line
     setFormData({
       fullName: userProfile.fullName || "",
       phoneNumber: userProfile.phoneNumber || "",
@@ -42,15 +41,12 @@ export default function ProfileForm({
     });
   }, [userProfile]);
 
-  useEffect(() => {
-    const changed =
-      formData.fullName !== (userProfile.fullName || "") ||
-      formData.phoneNumber !== (userProfile.phoneNumber || "") ||
-      formData.dateOfBirth !== formatDateForInput(userProfile.dateOfBirth) ||
-      formData.timezone !== (userProfile.timezone || "Asia/Ho_Chi_Minh") ||
-      formData.locale !== (userProfile.locale || "vi-VN");
-    setHasChanges(changed);
-  }, [formData, userProfile]);
+  const hasChanges =
+    formData.fullName !== (userProfile.fullName || "") ||
+    formData.phoneNumber !== (userProfile.phoneNumber || "") ||
+    formData.dateOfBirth !== formatDateForInput(userProfile.dateOfBirth) ||
+    formData.timezone !== (userProfile.timezone || "Asia/Ho_Chi_Minh") ||
+    formData.locale !== (userProfile.locale || "vi-VN");
 
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
