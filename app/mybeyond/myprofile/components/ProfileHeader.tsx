@@ -7,6 +7,7 @@ import { Camera } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useUploadImage } from "@/hooks/useUploadImage";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
+import SafeImage from "@/components/ui/SafeImage";
 
 interface ProfileHeaderProps {
   userProfile: {
@@ -89,7 +90,7 @@ export default function ProfileHeader({
         }`}
       >
         {/* Background image with zoom effect */}
-        <img
+        <SafeImage
           src={formatImageUrl(userProfile.coverUrl) || '/bg-web.jpg'}
           alt="Cover"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"

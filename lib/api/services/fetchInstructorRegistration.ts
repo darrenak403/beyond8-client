@@ -155,7 +155,7 @@ export const instructorRegistrationService = {
     request: InstructorRegistrationRequest
   ): Promise<ApiResponse<InstructorRegistrationResponse>> => {
     const response = await apiService.post<ApiResponse<InstructorRegistrationResponse>>(
-      "api/v1/instructors/registration",
+      "api/v1/instructors/apply",
       request
     );
     return response.data;

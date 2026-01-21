@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,27 +29,12 @@ export default function AdminProfileForm({
     locale: userProfile.locale || "vi-VN",
   });
 
-  const [hasChanges, setHasChanges] = useState(false);
-
-  useEffect(() => {
-    setFormData({
-      fullName: userProfile.fullName || "",
-      phoneNumber: userProfile.phoneNumber || "",
-      dateOfBirth: formatDateForInput(userProfile.dateOfBirth),
-      timezone: userProfile.timezone || "Asia/Ho_Chi_Minh",
-      locale: userProfile.locale || "vi-VN",
-    });
-  }, [userProfile]);
-
-  useEffect(() => {
-    const changed =
-      formData.fullName !== (userProfile.fullName || "") ||
-      formData.phoneNumber !== (userProfile.phoneNumber || "") ||
-      formData.dateOfBirth !== formatDateForInput(userProfile.dateOfBirth) ||
-      formData.timezone !== (userProfile.timezone || "Asia/Ho_Chi_Minh") ||
-      formData.locale !== (userProfile.locale || "vi-VN");
-    setHasChanges(changed);
-  }, [formData, userProfile]);
+  const hasChanges =
+    formData.fullName !== (userProfile.fullName || "") ||
+    formData.phoneNumber !== (userProfile.phoneNumber || "") ||
+    formData.dateOfBirth !== formatDateForInput(userProfile.dateOfBirth) ||
+    formData.timezone !== (userProfile.timezone || "Asia/Ho_Chi_Minh") ||
+    formData.locale !== (userProfile.locale || "vi-VN");
 
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

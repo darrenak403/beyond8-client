@@ -13,8 +13,8 @@ import Step3Education from "./components/Step3Education";
 import Step4Certificates from "./components/Step4Certificates";
 import Step5WorkExperience from "./components/Step4WorkExperience";
 import Step6AdditionalInfo from "./components/Step5AdditionalInfo";
-import Step7AIVerification from "./components/Step6AIVerification";
 import { toast } from "sonner";
+import Step6AIVerification from "./components/Step6AIVerification";
 
 interface InstructorFormData {
   frontImg: string;
@@ -296,7 +296,7 @@ export default function InstructorRegistrationPage() {
                 variants={pageVariants}
                 transition={pageTransition}
               >
-                <Step7AIVerification
+                <Step6AIVerification
                   onSubmit={handleSubmit}
                   onBack={() => setCurrentStep(6)}
                   formData={{
