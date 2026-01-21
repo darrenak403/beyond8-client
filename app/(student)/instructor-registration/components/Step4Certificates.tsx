@@ -40,9 +40,6 @@ export default function Step4Certificates({ onNext, onBack, initialData }: Step4
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Chứng chỉ chuyên môn</h3>
-        <p className="text-sm text-gray-600">Liệt kê các chứng chỉ liên quan đến lĩnh vực giảng dạy</p>
-        
         <Formik
             initialValues={{
               certificates: initialData?.certificates && initialData.certificates.length > 0

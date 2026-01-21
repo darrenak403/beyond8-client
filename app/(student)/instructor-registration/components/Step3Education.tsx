@@ -40,9 +40,6 @@ export default function Step3Education({ onNext, onBack, initialData }: Step3Pro
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Quá trình học tập</h3>
-        <p className="text-sm text-gray-600">Liệt kê các bằng cấp và chứng chỉ của bạn</p>
-        
         <Formik
             initialValues={{
               education: initialData?.education && initialData.education.length > 0

@@ -33,9 +33,6 @@ export default function Step2BasicInfo({ onNext, onBack, initialData }: Step2Pro
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Thông tin giảng viên</h3>
-        <p className="text-sm text-gray-600">Điền thông tin để học viên hiểu rõ hơn về bạn</p>
-        
         <Formik
             initialValues={{
               headline: initialData?.headline || "",

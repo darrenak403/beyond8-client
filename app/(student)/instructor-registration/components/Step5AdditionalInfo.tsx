@@ -39,9 +39,7 @@ export default function Step6AdditionalInfo({ onNext, onBack, initialData }: Ste
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Thông tin thanh toán</h3>
-        <p className="text-sm text-gray-600">Thông tin để nhận thanh toán từ khóa học</p>
-        
+        <h3 className="text-lg font-semibold">Thông tin thanh toán</h3>        
         <Formik
             initialValues={{
               bankInfo: initialData?.bankInfo || "",

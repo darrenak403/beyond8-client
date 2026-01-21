@@ -40,9 +40,6 @@ export default function Step5WorkExperience({ onNext, onBack, initialData }: Ste
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Quá trình làm việc</h3>
-        <p className="text-sm text-gray-600">Liệt kê các vị trí và công ty bạn đã làm việc</p>
-        
         <Formik
             initialValues={{
               workExperience: initialData?.workExperience && initialData.workExperience.length > 0
