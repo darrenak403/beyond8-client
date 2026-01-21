@@ -1,17 +1,17 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   instructorRegistrationService,
   type InstructorRegistrationRequest,
   type InstructorRegistrationResponse,
   type AIReviewResponse,
-  InstructorRegistrationStatus,
   InstructorRegistrationParams,
   InstructorRegistrationResponseList
 } from "@/lib/api/services/fetchInstructorRegistration";
 import { toast } from "sonner";
-import { ApiResponse } from "@/types/api";
 
 export function useInstructorRegistration() {
+  const queryClient = useQueryClient();
+  
   const reviewMutation = useMutation({
     mutationFn: async (
       request: InstructorRegistrationRequest
@@ -45,6 +45,8 @@ export function useInstructorRegistration() {
       toast.success("Đăng ký giảng viên thành công!", {
         description: `Trạng thái: ${data.verificationStatus}`,
       });
+      queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Đăng ký giảng viên thất bại!");
@@ -93,6 +95,8 @@ export function useGetAllRegistration(filterParams: InstructorRegistrationParams
 }
 
 export function useAproveRegistration() {
+  const queryClient = useQueryClient();
+  
   const mutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await instructorRegistrationService.approveRegistration(id);
@@ -107,6 +111,7 @@ export function useAproveRegistration() {
       toast.success("Duyệt đăng ký thành công!", {
         description: `Trạng thái: ${data.verificationStatus}`,
       });
+      queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Duyệt đăng ký thất bại!");
@@ -123,6 +128,8 @@ export function useAproveRegistration() {
 }
 
 export function useRejectRegistration() {
+  const queryClient = useQueryClient();
+  
   const mutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await instructorRegistrationService.rejectRegistration(id);
@@ -137,6 +144,7 @@ export function useRejectRegistration() {
       toast.success("Từ chối đăng ký thành công!", {
         description: `Trạng thái: ${data.verificationStatus}`,
       });
+      queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Từ chối đăng ký thất bại!");
@@ -149,6 +157,30 @@ export function useRejectRegistration() {
     isRejecting: mutation.isPending,
     error: mutation.error,
     rejectionData: mutation.data,
+  };
+}
+
+export function useGetInstructorProfile() {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["instructor-profile"],
+    queryFn: async () => {
+      const response = await instructorRegistrationService.getMe();
+      
+      if (!response.isSuccess || !response.data) {
+        throw new Error(response.message || "Lấy thông tin giảng viên thất bại");
+      }
+      
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+  });
+
+  return {
+    instructorProfile: data,
+    isLoading,
+    error,
+    refetch,
   };
 }
 

@@ -1,4 +1,3 @@
-import { metadata } from "@/app/layout";
 import { AddUserRequest, fetchUsers, UserParams, UserResponse } from "@/lib/api/services/fetchUsers";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 

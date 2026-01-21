@@ -1,77 +1,85 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { DataTable } from "@/components/ui/data-table";
+import { useState } from "react";
 import { PaginationState } from "@tanstack/react-table";
-import { getColumns } from "./components/columns";
-import { ApplicationTableToolbar } from "./components/ApplicationTableToolbar";
-import { ApplicationDialog } from "./components/ApplicationDialog";
-import { InstructorApplication } from "./data/schema";
-import { toast } from "sonner";
+// import { getColumns } from "./components/columns";
+// import { ApplicationTableToolbar } from "./components/ApplicationTableToolbar";
+// import { ApplicationDialog } from "./components/ApplicationDialog";
 import { RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 import { useIsMobile } from "@/hooks/useMobile";
+import { 
+    useGetAllRegistration, 
+    useAproveRegistration, 
+    useRejectRegistration 
+} from "@/hooks/useInstructorRegistration";
+import { InstructorRegistrationStatus } from "@/lib/api/services/fetchInstructorRegistration";
 
 const InstructorApplicationPage = () => {
     const isMobile = useIsMobile();
-    const [pagination, setPagination] = useState<PaginationState>({
+    const [pagination] = useState<PaginationState>({
         pageIndex: 0,
         pageSize: 10,
     });
 
     const {
-        data: applications,
+        data: applicationsData,
         isLoading,
         refetch,
         isFetching
-    } = useInstructorApplications({
+    } = useGetAllRegistration({
         pageNumber: pagination.pageIndex + 1,
         pageSize: pagination.pageSize,
+        status: InstructorRegistrationStatus.All,
+        IsDescending: false,
     });
 
-    const approveMutation = useApproveApplication();
-    const rejectMutation = useRejectApplication();
+    const applications = applicationsData?.registrations || [];
 
-    // Dialog States
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedApplication, setSelectedApplication] = useState<InstructorApplication | null>(null);
+    const approveMutation = useAproveRegistration();
+    const rejectMutation = useRejectRegistration();
+
+    // Dialog States - Commented out until components are ready
+    // const [isDialogOpen, setIsDialogOpen] = useState(false);
+    // const [selectedApplication, setSelectedApplication] = useState<InstructorRegistrationResponse | null>(null);
 
     // Confirmation Dialog States
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<"approve" | "reject" | null>(null);
     const [targetId, setTargetId] = useState<string | null>(null);
 
-    const handleReview = (application: InstructorApplication) => {
-        setSelectedApplication(application);
-        setIsDialogOpen(true);
-    };
+    // Commented out until components are ready
+    // const handleReview = (application: InstructorRegistrationResponse) => {
+    //     setSelectedApplication(application);
+    //     setIsDialogOpen(true);
+    // };
 
-    const handleApproveClick = (id: string) => {
-        setTargetId(id);
-        setConfirmAction("approve");
-        setIsConfirmOpen(true);
-    };
+    // const handleApproveClick = (id: string) => {
+    //     setTargetId(id);
+    //     setConfirmAction("approve");
+    //     setIsConfirmOpen(true);
+    // };
 
-    const handleRejectClick = (id: string) => {
-        setTargetId(id);
-        setConfirmAction("reject");
-        setIsConfirmOpen(true);
-    };
+    // const handleRejectClick = (id: string) => {
+    //     setTargetId(id);
+    //     setConfirmAction("reject");
+    //     setIsConfirmOpen(true);
+    // };
 
     const handleConfirmAction = async () => {
         if (!targetId || !confirmAction) return;
 
         try {
             if (confirmAction === "approve") {
-                await approveMutation.mutateAsync(targetId);
+                await approveMutation.approveAsync(targetId);
             } else {
-                await rejectMutation.mutateAsync(targetId);
+                await rejectMutation.rejectAsync(targetId);
             }
 
             // Close dialogs
-            setIsDialogOpen(false);
-        } catch (error) {
+            // setIsDialogOpen(false);
+        } catch {
             // Error handling is done in mutation hooks
         } finally {
             setIsConfirmOpen(false);
@@ -80,11 +88,12 @@ const InstructorApplicationPage = () => {
         }
     };
 
-    const columns = useMemo(() => getColumns({
-        onReview: handleReview,
-        onApprove: handleApproveClick,
-        onReject: handleRejectClick,
-    }), []);
+    // Commented out until components are created
+    // const columns = useMemo(() => getColumns({
+    //     onReview: handleReview,
+    //     onApprove: handleApproveClick,
+    //     onReject: handleRejectClick,
+    // }), []);
 
     return (
         <div className={`h-full flex-1 flex-col space-y-8 ${isMobile ? 'p-4' : 'p-8'} flex`}>
@@ -108,8 +117,19 @@ const InstructorApplicationPage = () => {
                 </div>
             </div>
 
-            <DataTable
-                data={applications || []}
+            {/* Temporarily show raw data until components are created */}
+            <div className="rounded-md border p-4">
+                <p className="text-sm text-muted-foreground mb-4">
+                    {isLoading ? "Loading..." : `Found ${applications.length} applications`}
+                </p>
+                <pre className="text-xs overflow-auto">
+                    {JSON.stringify(applications, null, 2)}
+                </pre>
+            </div>
+
+            {/* Uncomment when components are ready */}
+            {/* <DataTable
+                data={applications}
                 columns={columns}
                 pagination={pagination}
                 onPaginationChange={setPagination}
@@ -125,7 +145,7 @@ const InstructorApplicationPage = () => {
                 application={selectedApplication}
                 onApprove={handleApproveClick}
                 onReject={handleRejectClick}
-            />
+            /> */}
 
             <ConfirmDialog
                 open={isConfirmOpen}

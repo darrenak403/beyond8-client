@@ -189,5 +189,12 @@ export const instructorRegistrationService = {
       "/api/v1/instructors/admin", params
     );
     return response.data;
+  },
+
+  getMe: async (): Promise<ApiResponse<InstructorRegistrationResponse>> => {
+    const response = await apiService.get<ApiResponse<InstructorRegistrationResponse>>(
+      "/api/v1/instructors/me"
+    );
+    return response.data;
   }
 };
