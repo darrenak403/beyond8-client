@@ -187,6 +187,32 @@ export function useResetPassword() {
   };
 }
 
+export function useChangePassword() {
+  const queryClient = useQueryClient();
+
+  const { mutate: mutateChangePassword, isPending: isLoading } = useMutation({
+    mutationFn: async (data: { oldPassword: string; newPassword: string }) => {
+      const response = await fetchAuth.changePassword(data);
+      if (!response.isSuccess) {
+        throw new Error(String(response.message));
+      }
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      toast.success('Đổi mật khẩu thành công!');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Đổi mật khẩu thất bại!');
+    },
+  });
+
+  return {
+    mutateChangePassword,
+    isLoading,
+  };
+}
+
 export function useResendOtp() {
   const { mutate: mutateResendOtp, isPending: isLoading } = useMutation({
     mutationFn: async (email: string) => {

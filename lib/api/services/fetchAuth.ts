@@ -18,6 +18,20 @@ export interface ResetPasswordRequest {
   confirmNewPassword: string;
 }
 
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  id: string;
+  email: string;
+  fullName: string;
+  dateOfBirth: string | null;
+  avatarUrl: string | null;
+  coverUrl: string | null;
+}
+
 export interface LoginResponse {
   isSuccess: boolean;
   message: string;
@@ -74,6 +88,11 @@ export const fetchAuth = {
 
   resetPassword: async (data: ResetPasswordRequest): Promise<ApiResponse<unknown>> => {
     const response = await apiService.post<ApiResponse<unknown>>("api/v1/auth/reset-password", data);
+    return response.data;
+  },
+
+  changePassword: async (data: ChangePasswordRequest): Promise<ApiResponse<ChangePasswordResponse>> => {
+    const response = await apiService.put<ApiResponse<ChangePasswordResponse>>("api/v1/auth/change-password", data);
     return response.data;
   },
 
