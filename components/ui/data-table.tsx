@@ -14,6 +14,8 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
+    PaginationState,
+    OnChangeFn,
 } from "@tanstack/react-table"
 
 import {
@@ -32,6 +34,10 @@ interface DataTableProps<TData, TValue> {
     data: TData[]
     children?: (table: any) => React.ReactNode
     onRowClick?: (row: TData) => void
+    pageCount?: number
+    rowCount?: number
+    pagination?: PaginationState
+    onPaginationChange?: OnChangeFn<PaginationState>
 }
 
 export function DataTable<TData, TValue>({
@@ -39,6 +45,10 @@ export function DataTable<TData, TValue>({
     data,
     children,
     onRowClick,
+    pageCount,
+    rowCount,
+    pagination,
+    onPaginationChange,
 }: DataTableProps<TData, TValue>) {
     const [rowSelection, setRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] =
@@ -51,17 +61,22 @@ export function DataTable<TData, TValue>({
     const table = useReactTable({
         data,
         columns,
+        pageCount,
+        rowCount,
         state: {
             sorting,
             columnVisibility,
             rowSelection,
             columnFilters,
+            pagination,
         },
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
+        onPaginationChange,
+        manualPagination: !!pageCount,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),

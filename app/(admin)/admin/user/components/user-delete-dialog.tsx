@@ -1,5 +1,7 @@
 "use client"
 
+import { User } from "@/lib/api/services/fetchUsers"
+
 import {
     AlertDialog,
     AlertDialogAction,

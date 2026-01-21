@@ -1,7 +1,6 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { AdminUser } from "@/types/admin-user"
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"
 import { Badge } from "@/components/ui/badge"
 
@@ -17,16 +16,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { User } from "@/lib/api/services/fetchUsers"
 
 interface GetColumnsProps {
-    onEdit: (user: AdminUser) => void
-    onDelete: (user: AdminUser) => void
+    onEdit: (user: User) => void
+    onDelete: (user: User) => void
 }
 
 export const getColumns = ({
     onEdit,
     onDelete,
-}: GetColumnsProps): ColumnDef<AdminUser>[] => [
+}: GetColumnsProps): ColumnDef<User>[] => [
 
         {
             accessorKey: "fullName",
@@ -55,12 +55,14 @@ export const getColumns = ({
                 <DataTableColumnHeader column={column} title="Vai trò" />
             ),
             cell: ({ row }) => {
-                const role = row.original.role
+                const roles = row.original.role || []
                 return (
                     <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline" className="capitalize">
-                            {role}
-                        </Badge>
+                        {roles.map((role) => (
+                            <Badge key={role} variant="outline" className="capitalize">
+                                {role}
+                            </Badge>
+                        ))}
                     </div>
                 )
             },

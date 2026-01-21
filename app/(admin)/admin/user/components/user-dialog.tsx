@@ -24,12 +24,12 @@ import { Label } from "@/components/ui/label"
 import { FormikForm, FormikField } from "@/components/ui/formik-form"
 
 import { getUserValidationSchema, UserFormValues } from "./user-validation"
-import { AdminUser } from "@/types/admin-user"
+import { User } from "@/lib/api/services/fetchUsers"
 
 interface UserDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    user?: AdminUser | null
+    user?: User | null
     mode: "add" | "edit"
     onSubmit: (data: UserFormValues) => void
 }
@@ -48,8 +48,8 @@ export function UserDialog({
             return {
                 fullName: user.fullName,
                 email: user.email,
-                role: user.role,
-                status: user.status,
+                role: user.role && user.role.length > 0 ? user.role[0] : "user",
+                status: user.status as any,
                 password: "",
             }
         }
@@ -76,16 +76,10 @@ export function UserDialog({
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>
-                        {mode === "add"
-                            ? "Thêm người dùng"
-                            : mode === "edit"
-                                ? "Chỉnh sửa người dùng"
-                                : "Chi tiết người dùng"}
+                        {mode === "add" ? "Thêm người dùng" : "Chỉnh sửa người dùng"}
                     </DialogTitle>
                     <DialogDescription>
-                        {mode === "view"
-                            ? "Xem thông tin chi tiết của người dùng."
-                            : "Nhập thông tin người dùng ở đây. Nhấn lưu khi hoàn tất."}
+                        Nhập thông tin người dùng ở đây. Nhấn lưu khi hoàn tất.
                     </DialogDescription>
                 </DialogHeader>
 

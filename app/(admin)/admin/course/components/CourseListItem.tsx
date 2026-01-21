@@ -1,0 +1,120 @@
+import Image from 'next/image'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+    Star,
+    Users,
+    Clock,
+    Trash2,
+    Home
+} from 'lucide-react'
+import type { Course } from '@/lib/data/mockCourses'
+
+interface CourseListItemProps {
+    course: Course
+}
+
+export default function CourseListItem({ course }: CourseListItemProps) {
+    // Format currency
+    const formattedPrice = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+    }).format(course.price)
+
+    return (
+        <div className="group flex bg-white rounded-xl overflow-hidden border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all duration-300 p-3 gap-4">
+            {/* Image Section */}
+            <div className="relative w-72 shrink-0 aspect-[16/9] rounded-lg overflow-hidden">
+                <Image
+                    src={course.image}
+                    alt={course.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+
+                {/* Overlay Badges */}
+                <div className="absolute top-2 left-2 flex gap-2">
+                    <Badge className="bg-emerald-500/90 hover:bg-emerald-500 text-white border-0 backdrop-blur-sm text-[10px] h-5 px-1.5">
+                        Đang hoạt động
+                    </Badge>
+                </div>
+
+                {/* Date/Time overlay example (from reference) */}
+                <div className="absolute bottom-2 right-2">
+                    <Badge variant="secondary" className="backdrop-blur-md bg-black/60 text-white border-0 text-[10px] h-5 px-1.5 font-normal">
+                        19/01/2026 lúc 09:00
+                    </Badge>
+                </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="flex flex-1 flex-col justify-between py-1">
+                <div className="flex justify-between items-start">
+                    <div className="space-y-1.5">
+                        <h3 className="font-bold text-xl text-primary">
+                            {formattedPrice}
+                        </h3>
+
+                        <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs font-normal text-slate-500 border-slate-200">
+                                <Home className="w-3 h-3 mr-1" />
+                                {course.category}
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs font-normal bg-slate-100 text-slate-600 hover:bg-slate-200">
+                                Bán
+                            </Badge>
+                        </div>
+
+                        <div className="space-y-1">
+                            <h3 className="font-semibold text-base text-slate-800 group-hover:text-primary transition-colors">
+                                {course.title}
+                            </h3>
+                            <p className="text-sm text-slate-500">
+                                {course.instructor}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-4 gap-8 mt-4 w-fit">
+                    <div className="flex flex-col">
+                        <span className="text-xs text-slate-400 text-center">-</span>
+                        <span className="text-xs font-medium text-slate-600 text-center">m²</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-800 text-center">{course.students}</span>
+                        <span className="text-xs font-medium text-slate-600 text-center">Học viên</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-800 text-center">1</span>
+                        <span className="text-xs font-medium text-slate-600 text-center">Số tầng</span>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-6 mt-3 text-xs text-slate-500">
+                    <div className="flex items-center gap-1.5">
+                        <Home className="w-3.5 h-3.5" />
+                        <span>0</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>0</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>0</span>
+                    </div>
+                    {/* <span className="ml-auto">- m²</span> */}
+                </div>
+            </div>
+
+            {/* Action Section (Right) */}
+            <div className="flex bg-transparent flex-col justify-center gap-2 shrink-0 w-auto pl-4 border-l border-border/50 my-1">
+                <Button className="bg-black text-white hover:bg-slate-800 h-8 text-xs px-6 rounded-full">
+                    Xem
+                </Button>
+            </div>
+        </div>
+    )
+}
