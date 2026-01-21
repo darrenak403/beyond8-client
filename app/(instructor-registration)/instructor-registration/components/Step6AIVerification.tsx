@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, XCircle, Loader2, AlertCircle } from "lucide-react";
@@ -9,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useInstructorRegistration } from "@/hooks/useInstructorRegistration";
 import type { InstructorRegistrationRequest } from "@/lib/api/services/fetchInstructorRegistration";
 
-interface Step7Props {
+interface Step6Props {
   onSubmit: () => void;
   onBack: () => void;
   formData: InstructorRegistrationRequest;
@@ -17,7 +16,7 @@ interface Step7Props {
   onReviewComplete?: (result: { isAccepted: boolean }) => void;
 }
 
-export default function Step7AIVerification({ onSubmit, onBack, formData, isSubmitting = false, onReviewComplete }: Step7Props) {
+export default function Step6AIVerification({  formData, onReviewComplete }: Step6Props) {
   const { reviewApplicationAsync, isReviewing, reviewData } = useInstructorRegistration();
   const [hasReviewed, setHasReviewed] = useState(false);
 
