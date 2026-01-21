@@ -2,7 +2,8 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { MonthYearPicker } from "@/components/ui/calendar";
+import { Plus, Trash2, Building, Briefcase, Calendar as CalendarIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 
 interface WorkExperience {
@@ -64,45 +65,61 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Công ty</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-md"
-                    placeholder="VD: FPT Software"
-                    value={work.company}
-                    onChange={(e) => handleChange(index, 'company', e.target.value)}
-                  />
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Building className="w-4 h-4 text-purple-600" />
+                    Công ty
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-3 py-2 border rounded-md"
+                      placeholder="VD: FPT Software"
+                      value={work.company}
+                      onChange={(e) => handleChange(index, 'company', e.target.value)}
+                    />
+                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Vị trí</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-md"
-                    placeholder="VD: Senior Full-stack Developer"
-                    value={work.role}
-                    onChange={(e) => handleChange(index, 'role', e.target.value)}
-                  />
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-purple-600" />
+                    Vị trí
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-3 py-2 border rounded-md"
+                      placeholder="VD: Senior Full-stack Developer"
+                      value={work.role}
+                      onChange={(e) => handleChange(index, 'role', e.target.value)}
+                    />
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Từ</label>
-                    <input
-                      type="month"
-                      className="w-full px-3 py-2 border rounded-md"
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <CalendarIcon className="w-4 h-4 text-purple-600" />
+                      Từ
+                    </label>
+                    <MonthYearPicker
                       value={work.from}
-                      onChange={(e) => handleChange(index, 'from', e.target.value)}
+                      onChange={(value) => handleChange(index, 'from', value)}
+                      placeholder="Chọn tháng/năm"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Đến</label>
-                    <input
-                      type="month"
-                      className="w-full px-3 py-2 border rounded-md"
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <CalendarIcon className="w-4 h-4 text-purple-600" />
+                      Đến
+                    </label>
+                    <MonthYearPicker
                       value={work.to}
-                      onChange={(e) => handleChange(index, 'to', e.target.value)}
+                      onChange={(value) => handleChange(index, 'to', value)}
+                      placeholder="Chọn tháng/năm"
                     />
                   </div>
                 </div>
