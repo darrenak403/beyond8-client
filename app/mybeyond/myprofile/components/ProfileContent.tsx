@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { User, Shield, Lock } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
-import { useAuth } from "@/hooks/useAuth";
+import { Roles } from "@/lib/types/roles";
 import ProfileForm from "./ProfileForm";
 import ProfileInstructorForm from "./ProfileInstructorForm";
 import ResetPasswordForm from "./ResetPasswordForm";
@@ -31,7 +31,7 @@ export default function ProfileContent({
 }: ProfileContentProps) {
   const [internalActiveTab, setInternalActiveTab] = useState("personal");
   const isMobile = useIsMobile();
-  const { isInstructor } = useAuth();
+  const isInstructor = userProfile.roles?.includes(Roles.Instructor) ?? false;
 
   const activeTab = externalActiveTab || internalActiveTab;
 
