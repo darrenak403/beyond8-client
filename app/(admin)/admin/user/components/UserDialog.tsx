@@ -22,7 +22,7 @@ import {
 import { Label } from "@/components/ui/label"
 
 import { TIMEZONES, LOCALES } from "@/lib/types/userSettings"
-import { User } from "@/lib/api/services/fetchUsers"
+import { User, Role } from "@/lib/api/services/fetchUsers"
 import { useAddUser, useUpdateUser } from "@/hooks/useUsers"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Camera, Loader2 } from "lucide-react"
@@ -67,15 +67,17 @@ const getUserValidationSchema = (mode: string) => Yup.object().shape({
         .min(10, "Số điện thoại phải có ít nhất 10 số")
         .max(11, "Số điện thoại không được quá 11 số")
         .optional(),
-    dateOfBirth: Yup.string().optional(),
+    dateOfBirth: Yup.date()
+        .max(new Date(), "Ngày sinh không được lớn hơn hiện tại")
+        .optional(),
     locale: Yup.string().optional(),
     timezone: Yup.string().optional(),
 })
 
-const ROLES = ["Student", "Instructor", "Admin"]
 const ROLE_VALUES: Record<string, number> = {
     "Student": 0,
     "Instructor": 1,
+    "Staff": 2,
     "Admin": 99
 }
 
@@ -286,6 +288,7 @@ export function UserDialog({
                                                 name="dateOfBirth"
                                                 label="Ngày sinh"
                                                 type="date"
+                                                max={new Date().toISOString().split("T")[0]}
                                             />
                                         </div>
 
@@ -310,9 +313,9 @@ export function UserDialog({
                                                         <SelectValue placeholder="Chọn vai trò" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {ROLES.map((role) => (
-                                                            <SelectItem key={role} value={role} className="capitalize">
-                                                                {role === "Admin" ? "Quản trị viên" : role === "Manager" || role === "Instructor" ? "Giảng viên" : "Học viên"}
+                                                        {(Object.keys(Role) as Array<keyof typeof Role>).map((key) => (
+                                                            <SelectItem key={key} value={key} className="capitalize">
+                                                                {Role[key]}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>

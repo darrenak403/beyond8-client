@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Edit, BanIcon, CircleCheckBig } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { User } from "@/lib/api/services/fetchUsers"
+import { User, Role } from "@/lib/api/services/fetchUsers"
 
 interface GetColumnsProps {
     onEdit: (user: User) => void
@@ -58,8 +58,8 @@ export const getColumns = ({
                 return (
                     <div className="flex flex-wrap gap-1">
                         {roles.map((role) => (
-                            <Badge key={role} variant="outline" className="capitalize">
-                                {role}
+                            <Badge key={role} variant="outline" className="capitalize whitespace-nowrap">
+                                {Role[role as keyof typeof Role] || role}
                             </Badge>
                         ))}
                     </div>
@@ -80,10 +80,10 @@ export const getColumns = ({
                     <Badge
                         className={
                             status === "Active"
-                                ? "bg-green-600 hover:bg-green-700"
+                                ? "bg-green-600 hover:bg-green-700 whitespace-nowrap"
                                 : status === "Inactive"
-                                    ? "bg-red-600 hover:bg-red-700"
-                                    : "bg-gray-500"
+                                    ? "bg-red-600 hover:bg-red-700 whitespace-nowrap"
+                                    : "bg-gray-500 whitespace-nowrap"
                         }
                     >
                         {status === "Active" ? "Hoạt động" : status === "Inactive" ? "Ngừng hoạt động" : status}
