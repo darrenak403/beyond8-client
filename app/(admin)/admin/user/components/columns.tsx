@@ -1,30 +1,25 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
+import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"
 import { Badge } from "@/components/ui/badge"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { MoreHorizontal, Trash, Pencil, Edit } from "lucide-react"
+import { Edit, BanIcon, CircleCheckBig } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { User } from "@/lib/api/services/fetchUsers"
 
 interface GetColumnsProps {
     onEdit: (user: User) => void
+    onChangeStatus: (user: User) => void
     onDelete: (user: User) => void
 }
 
 export const getColumns = ({
     onEdit,
+    onChangeStatus,
     onDelete,
 }: GetColumnsProps): ColumnDef<User>[] => [
 
@@ -38,8 +33,12 @@ export const getColumns = ({
                 return (
                     <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.avatarUrl || ""} alt={user.fullName} />
-                            <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
+                            <AvatarImage
+                                src={formatImageUrl(user.avatarUrl)}
+                                alt={user.fullName}
+                                referrerPolicy="no-referrer"
+                            />
+                            <AvatarFallback>{user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
                             <span className="font-medium">{user.fullName}</span>
@@ -55,7 +54,7 @@ export const getColumns = ({
                 <DataTableColumnHeader column={column} title="Vai trò" />
             ),
             cell: ({ row }) => {
-                const roles = row.original.role || []
+                const roles = row.original.roles || []
                 return (
                     <div className="flex flex-wrap gap-1">
                         {roles.map((role) => (
@@ -79,12 +78,12 @@ export const getColumns = ({
                 const status = row.original.status
                 return (
                     <Badge
-                        variant={
+                        className={
                             status === "Active"
-                                ? "default"
+                                ? "bg-green-600 hover:bg-green-700"
                                 : status === "Inactive"
-                                    ? "secondary"
-                                    : "destructive"
+                                    ? "bg-red-600 hover:bg-red-700"
+                                    : "bg-gray-500"
                         }
                     >
                         {status === "Active" ? "Hoạt động" : status === "Inactive" ? "Ngừng hoạt động" : status}
@@ -109,6 +108,7 @@ export const getColumns = ({
         {
             id: "actions",
             cell: ({ row }) => {
+                const isActive = row.original.status === "Active"
                 return (
                     <div className="flex items-center">
                         <Button
@@ -122,10 +122,15 @@ export const getColumns = ({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => onDelete(row.original)}
+                            className={isActive ? "text-destructive hover:bg-destructive/10 hover:text-destructive" : "text-green-600 hover:bg-green-100 hover:text-green-700"}
+                            onClick={() => isActive ? onDelete(row.original) : onChangeStatus(row.original)}
+                            title={isActive ? "Xóa tài khoản" : "Kích hoạt tài khoản"}
                         >
-                            <Trash className="h-4 w-4" />
+                            {isActive ? (
+                                <BanIcon className="h-4 w-4" />
+                            ) : (
+                                <CircleCheckBig className="h-4 w-4" />
+                            )}
                         </Button>
                     </div>
                 )

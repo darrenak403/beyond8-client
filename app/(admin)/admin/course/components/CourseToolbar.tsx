@@ -39,20 +39,20 @@ export default function CourseToolbar({
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Tìm môi giới (theo tên, email, số điện thoại)..."
-                    className="pl-10 h-11 bg-white border-slate-200 rounded-full shadow-sm"
+                    className="pl-10 h-9 bg-white border-slate-200 rounded-full shadow-sm"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
 
             {/* Filter Button */}
-            <Button variant="outline" className="h-11 px-4 gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-full shadow-sm">
+            <Button variant="outline" className="h-9 px-4 gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-full shadow-sm">
                 <SlidersHorizontal className="w-4 h-4" />
                 Bộ lọc
             </Button>
 
             {/* View Toggle */}
-            <div className="flex items-center p-1 bg-white rounded-full border border-slate-200 h-11 shadow-sm px-1 gap-1">
+            <div className="flex items-center p-1 bg-white rounded-full border border-slate-200 h-9 shadow-sm px-1 gap-1">
                 <button
                     onClick={() => setViewMode('grid')}
                     className={`relative p-2 rounded-full transition-colors duration-200 ${viewMode === 'grid'
@@ -99,7 +99,7 @@ export default function CourseToolbar({
 
             {/* Sort */}
             <Select defaultValue="newest">
-                <SelectTrigger className="w-[150px] h-11 bg-white border-slate-200 rounded-full shadow-sm">
+                <SelectTrigger className="w-[150px] h-9 bg-white border-slate-200 rounded-full shadow-sm">
                     <SelectValue placeholder="Sắp xếp" />
                 </SelectTrigger>
                 <SelectContent>

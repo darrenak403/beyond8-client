@@ -2,29 +2,31 @@
 
 import { DataTable } from "@/components/ui/data-table"
 import { PaginationState } from "@tanstack/react-table"
-import { getColumns } from "./components/columns"
-import { UserTableToolbar } from "./components/user-table-toolbar"
+import { getColumns } from "./components/Columns"
+import { UserTableToolbar } from "./components/UserTableToolbar"
 import { useState } from "react"
-import { UserDialog } from "./components/user-dialog"
-import { UserDeleteDialog } from "./components/user-delete-dialog"
-import { UserFormValues } from "./components/user-schema"
+import { UserDialog } from "./components/UserDialog"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, RotateCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
 
-import { useGetAllUsers } from "@/hooks/useUsers"
-import { useEffect } from "react"
+import { useGetAllUsers, useUpdateUserStatus, useDeleteUser } from "@/hooks/useUsers"
 import { User } from "@/lib/api/services/fetchUsers"
+import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/widget/confirm-dialog"
+import { useIsMobile } from "@/hooks/useMobile"
 
 const UserManagementPage = () => {
-  const [users, setUsers] = useState<User[]>([])
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const isMobile = useIsMobile()
   const [dialogMode, setDialogMode] = useState<"add" | "edit">("add")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const [pagination, setPagination] = useState<PaginationState>({
@@ -39,11 +41,8 @@ const UserManagementPage = () => {
     isDescending: true,
   })
 
-  useEffect(() => {
-    if (data) {
-      setUsers(data.users || [])
-    }
-  }, [data])
+  const { mutateAsync: updateUserStatus } = useUpdateUserStatus()
+  const { mutateAsync: deleteUser } = useDeleteUser()
 
   const handleAdd = () => {
     setSelectedUser(null)
@@ -62,53 +61,58 @@ const UserManagementPage = () => {
     setIsDeleteDialogOpen(true)
   }
 
-  const onSubmitUser = (data: UserFormValues) => {
-    if (dialogMode === "add") {
-      const newUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...data,
-        avatarUrl: "",
-        phoneNumber: "",
-        isActive: data.status === "Active",
-        isEmailVerified: false,
-        lastLoginAt: new Date().toISOString(),
-        timezone: "UTC",
-        locale: "en-US",
-        status: data.status as any,
-        role: [data.role],
-        passwordHash: "hash"
+  const handleChangeStatus = (user: User) => {
+    setSelectedUser(user)
+    setIsStatusDialogOpen(true)
+  }
+
+  const onConfirmStatusChange = async () => {
+    if (selectedUser) {
+      try {
+        const newStatus = "Active"
+        await updateUserStatus({ id: selectedUser.id, status: newStatus })
+        toast.success("Kích hoạt tài khoản thành công")
+        setIsStatusDialogOpen(false)
+      } catch (error: any) {
+        toast.error(error.message || "Kích hoạt tài khoản thất bại")
       }
-      setUsers([...users, newUser])
-    } else if (dialogMode === "edit" && selectedUser) {
-      const updatedUsers = users.map((u) =>
-        u.id === selectedUser.id
-          ? { ...u, ...data, isActive: data.status === "Active", status: data.status as any, role: [data.role] }
-          : u
-      )
-      setUsers(updatedUsers)
     }
   }
 
-  const onConfirmDelete = () => {
+  const onConfirmDelete = async () => {
     if (selectedUser) {
-      setUsers(users.filter((u) => u.id !== selectedUser.id))
-      setIsDeleteDialogOpen(false)
+      try {
+        await deleteUser(selectedUser.id)
+        toast.success("Xóa người dùng thành công")
+        setIsDeleteDialogOpen(false)
+      } catch (error: any) {
+        toast.error(error.message || "Xóa người dùng thất bại")
+      }
     }
   }
 
   const columns = getColumns({
     onEdit: handleEdit,
+    onChangeStatus: handleChangeStatus,
     onDelete: handleDelete,
   })
 
   return (
-    <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
+    <div className={`h-full flex-1 flex-col space-y-8 ${isMobile ? 'p-4' : 'p-8'} flex`}>
       <div className="flex items-center justify-between space-y-2">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h2>
-          <p className="text-muted-foreground">
-            Dưới đây là danh sách người dùng trong hệ thống!
-          </p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 rounded-xl"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RotateCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          </Button>
         </div>
       </div>
 
@@ -149,14 +153,19 @@ const UserManagementPage = () => {
         </div>
       ) : (
         <DataTable
-          data={users}
+          data={data?.users || []}
           columns={columns}
           pageCount={data?.totalPages}
           rowCount={data?.count}
           pagination={pagination}
           onPaginationChange={setPagination}
         >
-          {(table) => <UserTableToolbar table={table} onAdd={handleAdd} />}
+          {(table) => (
+            <UserTableToolbar
+              table={table}
+              onAdd={handleAdd}
+            />
+          )}
         </DataTable>
       )}
 
@@ -165,13 +174,28 @@ const UserManagementPage = () => {
         onOpenChange={setIsDialogOpen}
         user={selectedUser}
         mode={dialogMode}
-        onSubmit={onSubmitUser}
       />
 
-      <UserDeleteDialog
+      {/* Activation Dialog */}
+      <ConfirmDialog
+        open={isStatusDialogOpen}
+        onOpenChange={setIsStatusDialogOpen}
+        onConfirm={onConfirmStatusChange}
+        title="Kích hoạt tài khoản?"
+        description="Người dùng này sẽ có thể truy cập lại vào hệ thống."
+        confirmText="Kích hoạt"
+        variant="success"
+      />
+
+      {/* Delete Dialog */}
+      <ConfirmDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={onConfirmDelete}
+        title="Bạn có chắc chắn không?"
+        description="Hành động này không thể hoàn tác. Điều này sẽ ngưng hoạt động tài khoản người dùng."
+        confirmText="Ngưng hoạt động"
+        variant="destructive"
       />
     </div>
   )

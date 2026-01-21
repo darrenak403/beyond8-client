@@ -1,6 +1,6 @@
 import { metadata } from "@/app/layout";
-import { fetchUsers, UserParams, UserResponse } from "@/lib/api/services/fetchUsers";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AddUserRequest, fetchUsers, UserParams, UserResponse } from "@/lib/api/services/fetchUsers";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 export function useGetAllUsers(filterParams?: UserParams) {
@@ -25,4 +25,48 @@ export function useGetAllUsers(filterParams?: UserParams) {
         refetch,
         isFetching
     }
+}
+
+export function useAddUser() {
+    const queryClient = useQueryClient()
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: (user: AddUserRequest) => fetchUsers.addUser(user),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users', 'getAll'] })
+        }
+    })
+    return { mutateAsync, isPending }
+}
+
+export function useUpdateUser() {
+    const queryClient = useQueryClient()
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: ({ id, user }: { id: string; user: any }) => fetchUsers.updateUser(id, user),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users', 'getAll'] })
+        }
+    })
+    return { mutateAsync, isPending }
+}
+
+export function useDeleteUser() {
+    const queryClient = useQueryClient()
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: (id: string) => fetchUsers.deleteUser(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users', 'getAll'] })
+        }
+    })
+    return { mutateAsync, isPending }
+}
+
+export function useUpdateUserStatus() {
+    const queryClient = useQueryClient()
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: ({ id, status }: { id: string; status: string }) => fetchUsers.updateUserStatus(id, status),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users', 'getAll'] })
+        }
+    })
+    return { mutateAsync, isPending }
 }

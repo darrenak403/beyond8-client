@@ -1,5 +1,33 @@
 import apiService, { RequestParams } from "../core";
 
+export enum Role {
+    Admin = "Admin",
+    Instructor = "Giảng viên",
+    Student = "Học sinh",
+    Staff = "Nhân viên"
+}
+
+export interface AddUserRequest {
+    avatarUrl: string;
+    coverUrl: string;
+    dateOfBirth: string;
+    email: string;
+    fullName: string;
+    locale: string;
+    password: string;
+    phoneNumber: string;
+    roles: string[];
+    timezone: string;
+}
+
+export interface UpdateUserRequest {
+    dateOfBirth: string;
+    fullName: string;
+    locale: string;
+    phoneNumber: string;
+    timezone: string;
+}
+
 export interface UserResponse {
     isSuccess: boolean;
     message: string;
@@ -11,10 +39,12 @@ export interface User {
     id: string;
     email: string;
     passwordHash: string;
-    role: string[];
+    roles: string[];
     fullName: string;
     avatarUrl: string;
+    coverUrl?: string;
     phoneNumber: string;
+    dateOfBirth?: string;
     isActive: boolean;
     isEmailVerified: boolean;
     lastLoginAt: string;
@@ -51,6 +81,26 @@ export const fetchUsers = {
     getAll: async (filterParams?: UserParams): Promise<UserResponse> => {
         const params = convertUserParamsToQuery(filterParams);
         const response = await apiService.get<UserResponse>("/api/v1/users", params);
+        return response.data;
+    },
+
+    addUser: async (user: AddUserRequest): Promise<UserResponse> => {
+        const response = await apiService.post<UserResponse>("/api/v1/users", user);
+        return response.data;
+    },
+
+    updateUser: async (id: string, user: UpdateUserRequest): Promise<UserResponse> => {
+        const response = await apiService.put<UserResponse>(`/api/v1/users/${id}`, user);
+        return response.data;
+    },
+
+    deleteUser: async (id: string): Promise<any> => {
+        const response = await apiService.delete<any>(`/api/v1/users/${id}`);
+        return response.data;
+    },
+
+    updateUserStatus: async (id: string, status: string): Promise<UserResponse> => {
+        const response = await apiService.put<UserResponse>(`/api/v1/users/${id}/status`, { status });
         return response.data;
     }
 }
