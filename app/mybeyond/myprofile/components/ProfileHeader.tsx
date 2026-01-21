@@ -1,10 +1,9 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Camera, Mail } from "lucide-react";
+import { Camera } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useUploadImage } from "@/hooks/useUploadImage";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
@@ -150,6 +149,12 @@ export default function ProfileHeader({
                   .toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
+            
+            {/* Green dot indicator - bottom right of avatar */}
+            {userProfile.isActive && (
+              <span className={`absolute bottom-1 right-1 ${isMobile ? 'w-5 h-5' : 'w-7 h-7'} bg-green-500 rounded-full border-4 border-white shadow-lg`} />
+            )}
+            
             <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               {isUploadingAvatar ? (
                 <Skeleton className={`rounded-full bg-white/20 ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />
@@ -169,20 +174,8 @@ export default function ProfileHeader({
               >
                 {userProfile.fullName || 'User'}
               </h2>
-              {userProfile.isActive ? (
-                <Badge className="bg-green-500 hover:bg-green-600">
-                  <span className="w-2 h-2 bg-white rounded-full mr-1.5" />
-                  Trực tuyến
-                </Badge>
-              ) : (
-                <Badge className="bg-gray-500 hover:bg-gray-600">
-                  <span className="w-2 h-2 bg-white rounded-full mr-1.5" />
-                  Ngoại tuyến
-                </Badge>
-              )}
             </div>
             <div className="flex items-center gap-2 text-gray-600">
-              <Mail className="w-4 h-4" />
               <span className="text-sm">{userProfile.email}</span>
             </div>
           </div>
