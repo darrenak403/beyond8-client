@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/useMobile";
+import { useInstructorRegistration } from "@/hooks/useInstructorRegistration";
 import Step1UploadDocuments from "./components/Step1UploadDocuments";
 import Step2BasicInfo from "./components/Step2BasicInfo";
 import Step3Education from "./components/Step3Education";
@@ -16,6 +17,8 @@ import { toast } from "sonner";
 interface InstructorFormData {
   frontImg: string;
   backImg: string;
+  frontFileId: string;
+  backFileId: string;
   bio: string;
   headline: string;
   expertiseAreas: string[];
@@ -61,10 +64,11 @@ const pageTransition = {
 export default function InstructorRegistrationPage() {
   const router = useRouter();
   const isMobile = useIsMobile();
+  const { registerAsync, isRegistering } = useInstructorRegistration();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<InstructorFormData>>({});
 
-  const handleStep1Next = (data: { frontImg: string; backImg: string }) => {
+  const handleStep1Next = (data: { frontImg: string; backImg: string; frontFileId: string; backFileId: string }) => {
     setFormData(prev => ({ ...prev, ...data }));
     setCurrentStep(2);
   };
@@ -96,19 +100,37 @@ export default function InstructorRegistrationPage() {
 
   const handleSubmit = async () => {
     try {
-      // TODO: Call API to submit instructor registration
-      console.log("Submitting form data:", formData);
-      
-      toast.success("Nộp hồ sơ thành công!", {
-        description: "Chúng tôi sẽ xem xét và phản hồi trong vòng 24-48 giờ.",
+      if (!formData.frontImg || !formData.backImg || !formData.bio || !formData.headline) {
+        toast.error("Vui lòng điền đầy đủ thông tin");
+        return;
+      }
+
+      await registerAsync({
+        bio: formData.bio,
+        headline: formData.headline,
+        expertiseAreas: formData.expertiseAreas || [],
+        education: formData.education || [],
+        workExperience: formData.workExperience || [],
+        socialLinks: formData.socialLinks || { facebook: null, linkedIn: null, website: null },
+        bankInfo: formData.bankInfo || "",
+        taxId: formData.taxId || null,
+        identityDocuments: [
+          {
+            type: "CCCD",
+            number: "", // TODO: Extract from OCR if available
+            issuedDate: "", // TODO: Extract from OCR if available
+            frontImg: formData.frontImg,
+            backImg: formData.backImg,
+          },
+        ],
+        certificates: formData.certificates || [],
       });
 
       // Redirect to success page or dashboard
-      router.push("/courses");
+      router.push("/mybeyond?tab=myprofile");
     } catch (error) {
-      toast.error("Có lỗi xảy ra", {
-        description: "Vui lòng thử lại sau.",
-      });
+      // Error handled by hook
+      console.error("Registration error:", error);
     }
   };
 
@@ -218,7 +240,12 @@ export default function InstructorRegistrationPage() {
               >
                 <Step1UploadDocuments
                   onNext={handleStep1Next}
-                  initialData={{ frontImg: formData.frontImg || "", backImg: formData.backImg || "" }}
+                  initialData={{ 
+                    frontImg: formData.frontImg || "", 
+                    backImg: formData.backImg || "",
+                    frontFileId: formData.frontFileId || "",
+                    backFileId: formData.backFileId || "",
+                  }}
                 />
               </motion.div>
             )}
@@ -329,6 +356,7 @@ export default function InstructorRegistrationPage() {
                   onSubmit={handleSubmit}
                   onBack={() => setCurrentStep(6)}
                   formData={formData}
+                  isSubmitting={isRegistering}
                 />
               </motion.div>
             )}

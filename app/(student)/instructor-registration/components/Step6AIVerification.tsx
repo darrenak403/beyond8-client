@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, XCircle, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -11,9 +11,10 @@ interface Step7Props {
   onSubmit: () => void;
   onBack: () => void;
   formData: any;
+  isSubmitting?: boolean;
 }
 
-export default function Step7AIVerification({ onSubmit, onBack, formData }: Step7Props) {
+export default function Step7AIVerification({ onSubmit, onBack, formData, isSubmitting = false }: Step7Props) {
   const [isChecking, setIsChecking] = useState(false);
   const [progress, setProgress] = useState(0);
   const [score, setScore] = useState<number | null>(null);
@@ -138,21 +139,28 @@ export default function Step7AIVerification({ onSubmit, onBack, formData }: Step
           )}
 
           <div className="flex justify-between pt-4">
-            <Button type="button" variant="outline" onClick={onBack} disabled={isChecking}>
+            <Button type="button" variant="outline" onClick={onBack} disabled={isChecking || isSubmitting}>
               Quay lại
             </Button>
             {canSubmit ? (
               <Button
                 onClick={onSubmit}
-                disabled={isChecking}
-                className="bg-green-600 hover:bg-green-700"
+                disabled={isChecking || isSubmitting}
+                className="bg-green-600 hover:bg-green-700 min-w-[140px]"
               >
-                Nộp hồ sơ
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="w-4 h-4 rounded-full bg-white/20" />
+                    <span>Đang nộp...</span>
+                  </div>
+                ) : (
+                  "Nộp hồ sơ"
+                )}
               </Button>
             ) : (
               <Button
                 onClick={onBack}
-                disabled={isChecking}
+                disabled={isChecking || isSubmitting}
                 variant="outline"
               >
                 Kiểm tra lại thông tin
