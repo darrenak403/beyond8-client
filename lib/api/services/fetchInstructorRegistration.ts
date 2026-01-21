@@ -86,7 +86,33 @@ export interface InstructorRegistrationResponse {
   updatedAt: string | null;
 }
 
+export interface AIReviewDetail {
+  sectionName: string;
+  status: "Valid" | "Invalid" | "Warning";
+  score: number;
+  issues: string[];
+  suggestions: string[];
+}
+
+export interface AIReviewResponse {
+  isAccepted: boolean;
+  totalScore: number;
+  feedbackSummary: string | null;
+  details: AIReviewDetail[];
+  additionalFeedback: string | null;
+}
+
 export const instructorRegistrationService = {
+  reviewApplication: async (
+    request: InstructorRegistrationRequest
+  ): Promise<ApiResponse<AIReviewResponse>> => {
+    const response = await apiService.post<ApiResponse<AIReviewResponse>>(
+      "api/v1/ai/instructor-application-review",
+      request
+    );
+    return response.data;
+  },
+
   register: async (
     request: InstructorRegistrationRequest
   ): Promise<ApiResponse<InstructorRegistrationResponse>> => {

@@ -2,11 +2,29 @@ import { useMutation } from "@tanstack/react-query";
 import { 
   instructorRegistrationService, 
   type InstructorRegistrationRequest,
-  type InstructorRegistrationResponse 
+  type InstructorRegistrationResponse,
+  type AIReviewResponse
 } from "@/lib/api/services/fetchInstructorRegistration";
 import { toast } from "sonner";
 
 export function useInstructorRegistration() {
+  const reviewMutation = useMutation({
+    mutationFn: async (
+      request: InstructorRegistrationRequest
+    ): Promise<AIReviewResponse> => {
+      const response = await instructorRegistrationService.reviewApplication(request);
+      
+      if (!response.isSuccess || !response.data) {
+        throw new Error(response.message || "Đánh giá hồ sơ thất bại");
+      }
+      
+      return response.data;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Đánh giá hồ sơ thất bại!");
+    },
+  });
+
   const registerMutation = useMutation({
     mutationFn: async (
       request: InstructorRegistrationRequest
@@ -30,6 +48,14 @@ export function useInstructorRegistration() {
   });
 
   return {
+    // Review
+    reviewApplication: reviewMutation.mutate,
+    reviewApplicationAsync: reviewMutation.mutateAsync,
+    isReviewing: reviewMutation.isPending,
+    reviewError: reviewMutation.error,
+    reviewData: reviewMutation.data,
+    
+    // Register
     register: registerMutation.mutate,
     registerAsync: registerMutation.mutateAsync,
     isRegistering: registerMutation.isPending,

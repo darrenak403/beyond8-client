@@ -1,26 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Upload, X, CheckCircle2 } from "lucide-react";
 import { useIdentity } from "@/hooks/useIdentity";
-import Image from "next/image";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
+import { useIsMobile } from "@/hooks/useMobile";
 
 interface Step1Props {
-  onNext: (data: { frontImg: string; backImg: string; frontFileId: string; backFileId: string }) => void;
-  initialData?: { frontImg: string; backImg: string; frontFileId?: string; backFileId?: string };
+  data: { 
+    frontImg: string; 
+    backImg: string; 
+    frontFileId: string; 
+    backFileId: string;
+    frontClassifyResult?: { type: number; name: string };
+    backClassifyResult?: { type: number; name: string };
+  };
+  onChange: (data: { 
+    frontImg: string; 
+    backImg: string; 
+    frontFileId: string; 
+    backFileId: string;
+    frontClassifyResult?: { type: number; name: string };
+    backClassifyResult?: { type: number; name: string };
+  }) => void;
 }
 
-export default function Step1UploadDocuments({ onNext, initialData }: Step1Props) {
+export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
   const { uploadFrontAsync, uploadBackAsync, isUploadingFront, isUploadingBack } = useIdentity();
+  const isMobile = useIsMobile();
   
-  const [frontImg, setFrontImg] = useState<string>(initialData?.frontImg || "");
-  const [backImg, setBackImg] = useState<string>(initialData?.backImg || "");
-  const [frontFileId, setFrontFileId] = useState<string>(initialData?.frontFileId || "");
-  const [backFileId, setBackFileId] = useState<string>(initialData?.backFileId || "");
-  const [frontPreview, setFrontPreview] = useState<string>(initialData?.frontImg || "");
-  const [backPreview, setBackPreview] = useState<string>(initialData?.backImg || "");
+  const [frontPreview, setFrontPreview] = useState<string>("");
+  const [backPreview, setBackPreview] = useState<string>("");
+
+  // Initialize preview from data when component mounts or data changes
+  useEffect(() => {
+    if (data.frontImg) {
+      // If it's a data URL (from FileReader), use it directly
+      // Otherwise, format it as server URL
+      if (data.frontImg.startsWith('data:')) {
+        setFrontPreview(data.frontImg);
+      } else {
+        const formattedUrl = formatImageUrl(data.frontImg);
+        setFrontPreview(formattedUrl || data.frontImg);
+      }
+    } else {
+      setFrontPreview("");
+    }
+  }, [data.frontImg]);
+
+  useEffect(() => {
+    if (data.backImg) {
+      if (data.backImg.startsWith('data:')) {
+        setBackPreview(data.backImg);
+      } else {
+        const formattedUrl = formatImageUrl(data.backImg);
+        setBackPreview(formattedUrl || data.backImg);
+      }
+    } else {
+      setBackPreview("");
+    }
+  }, [data.backImg]);
 
   const handleFileSelect = async (file: File, type: 'front' | 'back') => {
     // Show preview immediately
@@ -42,11 +83,19 @@ export default function Step1UploadDocuments({ onNext, initialData }: Step1Props
         : await uploadBackAsync(file);
 
       if (type === 'front') {
-        setFrontImg(result.fileUrl);
-        setFrontFileId(result.fileId);
+        onChange({ 
+          ...data, 
+          frontImg: result.fileUrl, 
+          frontFileId: result.fileId,
+          frontClassifyResult: result.classifyResult
+        });
       } else {
-        setBackImg(result.fileUrl);
-        setBackFileId(result.fileId);
+        onChange({ 
+          ...data, 
+          backImg: result.fileUrl, 
+          backFileId: result.fileId,
+          backClassifyResult: result.classifyResult
+        });
       }
     } catch (error) {
       // Error handled by hook, clear preview
@@ -60,42 +109,38 @@ export default function Step1UploadDocuments({ onNext, initialData }: Step1Props
 
   const handleRemove = (type: 'front' | 'back') => {
     if (type === 'front') {
-      setFrontImg("");
-      setFrontFileId("");
+      onChange({ ...data, frontImg: "", frontFileId: "", frontClassifyResult: undefined });
       setFrontPreview("");
     } else {
-      setBackImg("");
-      setBackFileId("");
+      onChange({ ...data, backImg: "", backFileId: "", backClassifyResult: undefined });
       setBackPreview("");
     }
   };
 
-  const canProceed = frontImg && backImg && frontFileId && backFileId && !isUploadingFront && !isUploadingBack;
-
   return (
     <div className="w-full space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold">Tải lên CCCD</h2>
-        <p className="text-gray-600">Vui lòng tải lên ảnh chụp rõ ràng mặt trước và mặt sau của CCCD</p>
+        <h2 className={`font-bold ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Tải lên CCCD</h2>
+        <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>Vui lòng tải lên ảnh chụp rõ ràng mặt trước và mặt sau của CCCD</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
         {/* Front Image */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Mặt trước</h3>
-            {frontImg && !isUploadingFront && <CheckCircle2 className="w-5 h-5 text-green-600" />}
+            <h3 className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>Mặt trước</h3>
+            {data.frontImg && !isUploadingFront && <CheckCircle2 className="w-5 h-5 text-green-600" />}
           </div>
           <p className="text-sm text-gray-600">Tải lên ảnh mặt trước CCCD</p>
           
           {isUploadingFront ? (
-            <div className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-purple-300 rounded-lg bg-purple-50">
+            <div className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-purple-300 rounded-lg bg-purple-50 ${isMobile ? 'h-48' : 'h-64'}`}>
               <Skeleton className="w-12 h-12 rounded-full mb-2" />
               <span className="text-sm text-purple-600 font-medium">Đang xử lý ảnh CCCD...</span>
               <span className="text-xs text-gray-500 mt-1">Kiểm tra tính hợp lệ</span>
             </div>
           ) : !frontPreview ? (
-            <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+            <label className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition ${isMobile ? 'h-48' : 'h-64'}`}>
               <Upload className="w-12 h-12 text-gray-400 mb-2" />
               <span className="text-sm text-gray-600">Click để tải ảnh lên</span>
               <span className="text-xs text-gray-500 mt-1">Sẽ tự động kiểm tra</span>
@@ -111,12 +156,10 @@ export default function Step1UploadDocuments({ onNext, initialData }: Step1Props
             </label>
           ) : (
             <div className="relative">
-              <Image
+              <img
                 src={frontPreview}
                 alt="CCCD mặt trước"
-                width={400}
-                height={250}
-                className="w-full h-64 object-cover rounded-lg"
+                className={`w-full object-cover rounded-lg ${isMobile ? 'h-48' : 'h-64'}`}
               />
               <Button
                 size="icon"
@@ -127,7 +170,7 @@ export default function Step1UploadDocuments({ onNext, initialData }: Step1Props
               >
                 <X className="w-4 h-4" />
               </Button>
-              {frontImg && (
+              {data.frontImg && (
                 <div className="absolute bottom-2 left-2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
                   Đã xác thực
@@ -140,19 +183,19 @@ export default function Step1UploadDocuments({ onNext, initialData }: Step1Props
         {/* Back Image */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Mặt sau</h3>
-            {backImg && !isUploadingBack && <CheckCircle2 className="w-5 h-5 text-green-600" />}
+            <h3 className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>Mặt sau</h3>
+            {data.backImg && !isUploadingBack && <CheckCircle2 className="w-5 h-5 text-green-600" />}
           </div>
           <p className="text-sm text-gray-600">Tải lên ảnh mặt sau CCCD</p>
           
           {isUploadingBack ? (
-            <div className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-purple-300 rounded-lg bg-purple-50">
+            <div className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-purple-300 rounded-lg bg-purple-50 ${isMobile ? 'h-48' : 'h-64'}`}>
               <Skeleton className="w-12 h-12 rounded-full mb-2" />
               <span className="text-sm text-purple-600 font-medium">Đang xử lý ảnh CCCD...</span>
               <span className="text-xs text-gray-500 mt-1">Kiểm tra tính hợp lệ</span>
             </div>
           ) : !backPreview ? (
-            <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition">
+            <label className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition ${isMobile ? 'h-48' : 'h-64'}`}>
               <Upload className="w-12 h-12 text-gray-400 mb-2" />
               <span className="text-sm text-gray-600">Click để tải ảnh lên</span>
               <span className="text-xs text-gray-500 mt-1">Sẽ tự động kiểm tra</span>
@@ -168,12 +211,10 @@ export default function Step1UploadDocuments({ onNext, initialData }: Step1Props
             </label>
           ) : (
             <div className="relative">
-              <Image
+              <img
                 src={backPreview}
                 alt="CCCD mặt sau"
-                width={400}
-                height={250}
-                className="w-full h-64 object-cover rounded-lg"
+                className={`w-full object-cover rounded-lg ${isMobile ? 'h-48' : 'h-64'}`}
               />
               <Button
                 size="icon"
@@ -184,7 +225,7 @@ export default function Step1UploadDocuments({ onNext, initialData }: Step1Props
               >
                 <X className="w-4 h-4" />
               </Button>
-              {backImg && (
+              {data.backImg && (
                 <div className="absolute bottom-2 left-2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
                   Đã xác thực
@@ -193,17 +234,6 @@ export default function Step1UploadDocuments({ onNext, initialData }: Step1Props
             </div>
           )}
         </div>
-      </div>
-
-      <div className="flex justify-end pt-4">
-        <Button
-          size="lg"
-          disabled={!canProceed}
-          onClick={() => onNext({ frontImg, backImg, frontFileId, backFileId })}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          {isUploadingFront || isUploadingBack ? "Đang xử lý..." : "Tiếp theo"}
-        </Button>
       </div>
     </div>
   );
