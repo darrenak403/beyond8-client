@@ -42,7 +42,6 @@ export default function ProfileForm({
     });
   }, [userProfile]);
 
-  // Check if form has changes
   useEffect(() => {
     const changed =
       formData.fullName !== (userProfile.fullName || "") ||
