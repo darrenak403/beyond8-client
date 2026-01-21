@@ -6,7 +6,7 @@ import { FormikForm, FormikField, Yup } from '@/components/ui/formik-form';
 import { useForgotPassword, useRegister, useResendOtp, useVerifyOtpRegister } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { OtpDialog } from '@/components/auth/OtpDialog';
+import { OtpDialog } from '@/components/widget/auth/OtpDialog';
 import { toast } from 'sonner';
 import { describe } from 'node:test';
 
