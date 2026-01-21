@@ -135,7 +135,7 @@ export default function ProfileHeader({
           {/* Avatar */}
           <div className="relative group cursor-pointer z-20" onClick={handleAvatarClick}>
             <Avatar
-              className={`border-4 border-white shadow-lg ${
+              className={`border-4 border-purple-400 shadow-lg ${
                 isMobile ? "w-24 h-24" : "w-40 h-40"
               }`}
             >
