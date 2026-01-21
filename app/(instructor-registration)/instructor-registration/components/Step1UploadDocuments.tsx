@@ -83,19 +83,23 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
         : await uploadBackAsync(file);
 
       if (type === 'front') {
-        onChange({ 
+        const updatedData = { 
           ...data, 
           frontImg: result.fileUrl, 
           frontFileId: result.fileId,
           frontClassifyResult: result.classifyResult
-        });
+        };
+        console.log('Step1 - Updated front data:', updatedData);
+        onChange(updatedData);
       } else {
-        onChange({ 
+        const updatedData = { 
           ...data, 
           backImg: result.fileUrl, 
           backFileId: result.fileId,
           backClassifyResult: result.classifyResult
-        });
+        };
+        console.log('Step1 - Updated back data:', updatedData);
+        onChange(updatedData);
       }
     } catch (error) {
       // Error handled by hook, clear preview

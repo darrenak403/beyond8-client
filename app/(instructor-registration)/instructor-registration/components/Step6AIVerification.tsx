@@ -14,17 +14,21 @@ interface Step7Props {
   onBack: () => void;
   formData: InstructorRegistrationRequest;
   isSubmitting?: boolean;
+  onReviewComplete?: (result: { isAccepted: boolean }) => void;
 }
 
-export default function Step7AIVerification({ onSubmit, onBack, formData, isSubmitting = false }: Step7Props) {
+export default function Step7AIVerification({ onSubmit, onBack, formData, isSubmitting = false, onReviewComplete }: Step7Props) {
   const { reviewApplicationAsync, isReviewing, reviewData } = useInstructorRegistration();
   const [hasReviewed, setHasReviewed] = useState(false);
 
   useEffect(() => {
     const runAIReview = async () => {
       try {
-        await reviewApplicationAsync(formData);
+        const result = await reviewApplicationAsync(formData);
         setHasReviewed(true);
+        if (onReviewComplete && result) {
+          onReviewComplete({ isAccepted: result.isAccepted });
+        }
       } catch (error) {
         console.error("AI Review error:", error);
         setHasReviewed(true);
@@ -34,7 +38,7 @@ export default function Step7AIVerification({ onSubmit, onBack, formData, isSubm
     if (!hasReviewed && !isReviewing) {
       runAIReview();
     }
-  }, [formData, reviewApplicationAsync, hasReviewed, isReviewing]);
+  }, [formData, reviewApplicationAsync, hasReviewed, isReviewing, onReviewComplete]);
 
   const getStatusIcon = (status: string) => {
     if (status === 'Valid') return <CheckCircle2 className="w-5 h-5 text-green-600" />;

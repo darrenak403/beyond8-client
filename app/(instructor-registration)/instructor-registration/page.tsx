@@ -23,8 +23,6 @@ interface InstructorFormData {
   backFileId: string;
   frontClassifyResult?: { type: number; name: string };
   backClassifyResult?: { type: number; name: string };
-  identityNumber: string;
-  issuedDate: string;
   bio: string;
   headline: string;
   expertiseAreas: string[];
@@ -70,8 +68,9 @@ const pageTransition = {
 export default function InstructorRegistrationPage() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const { registerAsync, isRegistering, reviewData } = useInstructorRegistration();
+  const { registerAsync, isRegistering } = useInstructorRegistration();
   const [currentStep, setCurrentStep] = useState(1);
+  const [reviewResult, setReviewResult] = useState<{ isAccepted: boolean } | null>(null);
   
   // Form data state
   const [formData, setFormData] = useState<InstructorFormData>({
@@ -79,8 +78,6 @@ export default function InstructorRegistrationPage() {
     backImg: "",
     frontFileId: "",
     backFileId: "",
-    identityNumber: "",
-    issuedDate: "",
     bio: "",
     headline: "",
     expertiseAreas: [],
@@ -93,38 +90,29 @@ export default function InstructorRegistrationPage() {
   });
 
   const handleSubmit = async () => {
-    try {
-      if (!formData.frontImg || !formData.backImg || !formData.bio || !formData.headline) {
-        toast.error("Vui lòng điền đầy đủ thông tin");
-        return;
-      }
-
-      await registerAsync({
-        bio: formData.bio,
-        headline: formData.headline,
-        expertiseAreas: formData.expertiseAreas,
-        education: formData.education,
-        workExperience: formData.workExperience,
-        socialLinks: formData.socialLinks,
-        bankInfo: formData.bankInfo,
-        taxId: formData.taxId,
-        identityDocuments: [
-          {
-            type: "CCCD",
-            number: formData.identityNumber || "N/A",
-            issuedDate: formData.issuedDate || new Date().toISOString().split('T')[0],
-            frontImg: formData.frontImg,
-            backImg: formData.backImg,
-          },
-        ],
-        certificates: formData.certificates,
-      });
-
-      toast.success("Đăng ký thành công!");
-      router.push("/mybeyond?tab=myprofile");
-    } catch (error) {
-      console.error("Registration error:", error);
+    if (!formData.frontImg || !formData.backImg || !formData.bio || !formData.headline) {
+      return;
     }
+
+    await registerAsync({
+      bio: formData.bio,
+      headline: formData.headline,
+      expertiseAreas: formData.expertiseAreas,
+      education: formData.education,
+      workExperience: formData.workExperience,
+      socialLinks: formData.socialLinks,
+      bankInfo: formData.bankInfo,
+      taxId: formData.taxId,
+      identityDocuments: [
+        {
+          frontImg: formData.frontImg,
+          backImg: formData.backImg,
+        },
+      ],
+      certificates: formData.certificates,
+    });
+
+    router.push("/mybeyond?tab=myprofile");
   };
 
   const steps = [
@@ -144,7 +132,7 @@ export default function InstructorRegistrationPage() {
   const canProceedStep4 = formData.certificates.length > 0 && formData.certificates.every(c => c.name && c.url && c.issuer);
   const canProceedStep5 = formData.workExperience.length > 0 && formData.workExperience.every(w => w.company && w.role && w.from && w.to);
   const canProceedStep6 = formData.bankInfo;
-  const canProceedStep7 = reviewData?.isAccepted === true;
+  const canProceedStep7 = reviewResult?.isAccepted === true;
 
   const getCanProceed = () => {
     switch (currentStep) {
@@ -201,7 +189,12 @@ export default function InstructorRegistrationPage() {
                     frontClassifyResult: formData.frontClassifyResult,
                     backClassifyResult: formData.backClassifyResult,
                   }}
-                  onChange={(data) => setFormData({ ...formData, ...data })}
+                  onChange={(data) => {
+                    console.log('Page - Step1 onChange received:', data);
+                    const newFormData = { ...formData, ...data };
+                    console.log('Page - Updated formData:', newFormData);
+                    setFormData(newFormData);
+                  }}
                 />
               </motion.div>
             )}
@@ -317,9 +310,6 @@ export default function InstructorRegistrationPage() {
                     taxId: formData.taxId,
                     identityDocuments: [
                       {
-                        type: "CCCD",
-                        number: formData.identityNumber || "N/A",
-                        issuedDate: formData.issuedDate || new Date().toISOString().split('T')[0],
                         frontImg: formData.frontImg,
                         backImg: formData.backImg,
                       },
@@ -327,6 +317,7 @@ export default function InstructorRegistrationPage() {
                     certificates: formData.certificates,
                   }}
                   isSubmitting={isRegistering}
+                  onReviewComplete={(result) => setReviewResult(result)}
                 />
               </motion.div>
             )}

@@ -25,9 +25,6 @@ export interface InstructorRegistrationRequest {
   bankInfo: string;
   taxId: string | null;
   identityDocuments: Array<{
-    type: string;
-    number: string;
-    issuedDate: string;
     frontImg: string;
     backImg: string;
   }>;
