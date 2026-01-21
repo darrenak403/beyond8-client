@@ -13,21 +13,21 @@ const sidebarMenuItems = [
     label: "Khóa học của tôi",
     icon: BookOpen,
     value: "mycourse",
-    roles: ["Student", "Instructor"], // Chỉ Student và Instructor
+    roles: ["Student", "Instructor"],
   },
   {
     id: "myprofile",
     label: "Cài đặt tài khoản",
     icon: Settings,
     value: "myprofile",
-    roles: ["Student", "Instructor", "Admin"], // Tất cả roles
+    roles: ["Student", "Instructor", "Admin"],
   },
   {
     id: "mywallet",
     label: "Ví của tôi",
     icon: Wallet,
     value: "mywallet",
-    roles: ["Instructor"], // Chỉ Instructor
+    roles: ["Instructor"],
   },
 ];
 
@@ -41,12 +41,21 @@ export default function SidebarProfile({ currentTab, onTabChange }: SidebarProfi
   const { role } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Filter menu items based on user role
+  const userRoles = useMemo(() => {
+    if (!role) return [];
+    if (Array.isArray(role)) return role;
+    if (typeof role === 'string') {
+      return role.includes(',') ? role.split(',').map(r => r.trim()) : [role];
+    }
+    return [];
+  }, [role]);
+
+  // Filter menu items based on user roles
   const visibleMenuItems = useMemo(() => {
     return sidebarMenuItems.filter((item) => 
-      item.roles.includes(role || "")
+      item.roles.some(requiredRole => userRoles.includes(requiredRole))
     );
-  }, [role]);
+  }, [userRoles]);
 
   const handleMenuClick = (value: string) => {
     onTabChange(value);

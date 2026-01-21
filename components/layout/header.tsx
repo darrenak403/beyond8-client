@@ -41,6 +41,12 @@ export function Header() {
     return 'U';
   };
 
+  const isInstructor = () => {
+    if (!userProfile?.roles) return false;
+    const roles = Array.isArray(userProfile.roles) ? userProfile.roles : [userProfile.roles];
+    return roles.includes("Instructor");
+  };
+
   const categories = [
     { name: "Tất cả", icon: "mdi:view-grid" },
     { name: "Lập trình", icon: "mdi:code-tags" },
@@ -165,12 +171,21 @@ export function Header() {
           {isAuthenticated ? (
             <>
               {!isMobile && (
-                <Link href="/instructor-registration">
-                  <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
-                    <GraduationCap className="h-4 w-4" />
-                    Đăng ký giảng viên
-                  </Button>
-                </Link>
+                isInstructor() ? (
+                  <Link href="/instructor/dashboard">
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
+                      <GraduationCap className="h-4 w-4" />
+                      Trang giảng viên
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link href="/instructor-registration">
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
+                      <GraduationCap className="h-4 w-4" />
+                      Đăng ký giảng viên
+                    </Button>
+                  </Link>
+                )
               )}
 
               {isLoading ? (
@@ -229,12 +244,21 @@ export function Header() {
                   {isMobile && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                        <Link href="/instructor-registration" className="flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4" />
-                          Đăng ký giảng viên
-                        </Link>
-                      </DropdownMenuItem>
+                      {isInstructor() ? (
+                        <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                          <Link href="/instructor/dashboard" className="flex items-center gap-2">
+                            <GraduationCap className="h-4 w-4" />
+                            Trang giảng viên
+                          </Link>
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                          <Link href="/instructor-registration" className="flex items-center gap-2">
+                            <GraduationCap className="h-4 w-4" />
+                            Đăng ký giảng viên
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                     </>
                   )}
                   <DropdownMenuSeparator />
