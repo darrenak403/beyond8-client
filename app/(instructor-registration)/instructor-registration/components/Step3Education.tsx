@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, School, Award, Calendar } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 
 interface Education {
@@ -64,48 +64,72 @@ export default function Step3Education({ data, onChange }: Step3Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Tên trường</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-md"
-                    placeholder="VD: Đại học Bách Khoa Hà Nội"
-                    value={edu.school}
-                    onChange={(e) => handleChange(index, 'school', e.target.value)}
-                  />
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <School className="w-4 h-4 text-purple-600" />
+                    Tên trường
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-3 py-2 border rounded-md"
+                      placeholder="VD: Đại học Bách Khoa Hà Nội"
+                      value={edu.school}
+                      onChange={(e) => handleChange(index, 'school', e.target.value)}
+                    />
+                    <School className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Bằng cấp</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-md"
-                    placeholder="VD: Cử nhân Khoa học Máy tính"
-                    value={edu.degree}
-                    onChange={(e) => handleChange(index, 'degree', e.target.value)}
-                  />
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Award className="w-4 h-4 text-purple-600" />
+                    Bằng cấp
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-3 py-2 border rounded-md"
+                      placeholder="VD: Cử nhân Khoa học Máy tính"
+                      value={edu.degree}
+                      onChange={(e) => handleChange(index, 'degree', e.target.value)}
+                    />
+                    <Award className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Năm bắt đầu</label>
-                    <input
-                      type="number"
-                      className="w-full px-3 py-2 border rounded-md"
-                      placeholder="2015"
-                      value={edu.start}
-                      onChange={(e) => handleChange(index, 'start', parseInt(e.target.value) || new Date().getFullYear())}
-                    />
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-purple-600" />
+                      Năm bắt đầu
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        className="w-full pl-10 pr-3 py-2 border rounded-md"
+                        placeholder="2015"
+                        value={edu.start}
+                        onChange={(e) => handleChange(index, 'start', parseInt(e.target.value) || new Date().getFullYear())}
+                      />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Năm kết thúc</label>
-                    <input
-                      type="number"
-                      className="w-full px-3 py-2 border rounded-md"
-                      placeholder="2019"
-                      value={edu.end}
-                      onChange={(e) => handleChange(index, 'end', parseInt(e.target.value) || new Date().getFullYear())}
-                    />
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-purple-600" />
+                      Năm kết thúc
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        className="w-full pl-10 pr-3 py-2 border rounded-md"
+                        placeholder="2019"
+                        value={edu.end}
+                        onChange={(e) => handleChange(index, 'end', parseInt(e.target.value) || new Date().getFullYear())}
+                      />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
                   </div>
                 </div>
               </div>

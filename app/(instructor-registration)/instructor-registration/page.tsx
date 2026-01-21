@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { useInstructorRegistration } from "@/hooks/useInstructorRegistration";
 import InstructorRegisHeader from "./components/InstructorRegisHeader";
 import InstructorRegisFooter from "./components/InstructorRegisFooter";
+import InstructorRegisSidebar from "./components/InstructorRegisSidebar";
 import Step1UploadDocuments from "./components/Step1UploadDocuments";
 import Step2BasicInfo from "./components/Step2BasicInfo";
 import Step3Education from "./components/Step3Education";
@@ -15,6 +16,17 @@ import Step5WorkExperience from "./components/Step4WorkExperience";
 import Step6AdditionalInfo from "./components/Step5AdditionalInfo";
 import { toast } from "sonner";
 import Step6AIVerification from "./components/Step6AIVerification";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface InstructorFormData {
   frontImg: string;
@@ -71,7 +83,8 @@ export default function InstructorRegistrationPage() {
   const { registerAsync, isRegistering } = useInstructorRegistration();
   const [currentStep, setCurrentStep] = useState(1);
   const [reviewResult, setReviewResult] = useState<{ isAccepted: boolean } | null>(null);
-  
+  const [showAIDialog, setShowAIDialog] = useState(false);
+
   // Form data state
   const [formData, setFormData] = useState<InstructorFormData>({
     frontImg: "",
@@ -81,7 +94,9 @@ export default function InstructorRegistrationPage() {
     bio: "",
     headline: "",
     expertiseAreas: [],
-    education: [{ school: "", degree: "", start: new Date().getFullYear(), end: new Date().getFullYear() }],
+    education: [
+      { school: "", degree: "", start: new Date().getFullYear(), end: new Date().getFullYear() },
+    ],
     certificates: [{ name: "", url: "", issuer: "", year: new Date().getFullYear() }],
     workExperience: [{ company: "", role: "", from: "", to: "" }],
     socialLinks: { facebook: null, linkedIn: null, website: null },
@@ -105,8 +120,8 @@ export default function InstructorRegistrationPage() {
       taxId: formData.taxId,
       identityDocuments: [
         {
-          frontImg: formData.frontImg,
-          backImg: formData.backImg,
+          frontImg: formatImageUrl(formData.frontImg) || formData.frontImg,
+          backImg: formatImageUrl(formData.backImg) || formData.backImg,
         },
       ],
       certificates: formData.certificates,
@@ -115,41 +130,62 @@ export default function InstructorRegistrationPage() {
     router.push("/mybeyond?tab=myprofile");
   };
 
-  const steps = [
-    { number: 1, title: "Giấy tờ" },
-    { number: 2, title: "Thông tin" },
-    { number: 3, title: "Học vấn" },
-    { number: 4, title: "Chứng chỉ" },
-    { number: 5, title: "Kinh nghiệm" },
-    { number: 6, title: "Bổ sung" },
-    { number: 7, title: "Xác minh" },
-  ];
-
   // Validation for each step
-  const canProceedStep1 = formData.frontImg && formData.backImg && formData.frontFileId && formData.backFileId;
-  const canProceedStep2 = formData.bio && formData.headline && formData.expertiseAreas.length > 0;
-  const canProceedStep3 = formData.education.length > 0 && formData.education.every(e => e.school && e.degree);
-  const canProceedStep4 = formData.certificates.length > 0 && formData.certificates.every(c => c.name && c.url && c.issuer);
-  const canProceedStep5 = formData.workExperience.length > 0 && formData.workExperience.every(w => w.company && w.role && w.from && w.to);
-  const canProceedStep6 = formData.bankInfo;
+  const canProceedStep1 = !!(
+    formData.frontImg &&
+    formData.backImg &&
+    formData.frontFileId &&
+    formData.backFileId
+  );
+  const canProceedStep2 = !!(
+    formData.bio &&
+    formData.headline &&
+    formData.expertiseAreas.length > 0
+  );
+  const canProceedStep3 = !!(
+    formData.education.length > 0 && formData.education.every((e) => e.school && e.degree)
+  );
+  const canProceedStep4 = !!(
+    formData.certificates.length > 0 &&
+    formData.certificates.every((c) => c.name && c.url && c.issuer)
+  );
+  const canProceedStep5 = !!(
+    formData.workExperience.length > 0 &&
+    formData.workExperience.every((w) => w.company && w.role && w.from && w.to)
+  );
+  const canProceedStep6 = !!formData.bankInfo;
   const canProceedStep7 = reviewResult?.isAccepted === true;
 
   const getCanProceed = () => {
     switch (currentStep) {
-      case 1: return canProceedStep1;
-      case 2: return canProceedStep2;
-      case 3: return canProceedStep3;
-      case 4: return canProceedStep4;
-      case 5: return canProceedStep5;
-      case 6: return canProceedStep6;
-      case 7: return canProceedStep7;
-      default: return false;
+      case 1:
+        return canProceedStep1;
+      case 2:
+        return canProceedStep2;
+      case 3:
+        return canProceedStep3;
+      case 4:
+        return canProceedStep4;
+      case 5:
+        return canProceedStep5;
+      case 6:
+        return canProceedStep6;
+      case 7:
+        return canProceedStep7;
+      default:
+        return false;
     }
   };
 
   const handleFooterNext = () => {
     if (currentStep === 7) {
       handleSubmit();
+    } else if (currentStep === 6) {
+      if (!getCanProceed()) {
+        toast.error("Vui lòng điền đầy đủ thông tin");
+        return;
+      }
+      setShowAIDialog(true);
     } else {
       if (!getCanProceed()) {
         toast.error("Vui lòng điền đầy đủ thông tin");
@@ -157,6 +193,16 @@ export default function InstructorRegistrationPage() {
       }
       setCurrentStep(currentStep + 1);
     }
+  };
+
+  const handleUseAI = () => {
+    setShowAIDialog(false);
+    setCurrentStep(7);
+  };
+
+  const handleSkipAI = async () => {
+    setShowAIDialog(false);
+    await handleSubmit();
   };
 
   const getNextButtonLabel = () => {
@@ -167,167 +213,186 @@ export default function InstructorRegistrationPage() {
   return (
     <>
       <InstructorRegisHeader />
-      
-      <main className="flex-1 overflow-y-auto">
-        <div className={`container mx-auto ${isMobile ? 'px-4 py-6' : 'px-8 py-12'}`}>
-          <AnimatePresence mode="wait">
-            {currentStep === 1 && (
-              <motion.div
-                key="step1"
-                initial="initial"
-                animate="in"
-                exit="out"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
-                <Step1UploadDocuments
-                  data={{
-                    frontImg: formData.frontImg,
-                    backImg: formData.backImg,
-                    frontFileId: formData.frontFileId,
-                    backFileId: formData.backFileId,
-                    frontClassifyResult: formData.frontClassifyResult,
-                    backClassifyResult: formData.backClassifyResult,
-                  }}
-                  onChange={(data) => {
-                    console.log('Page - Step1 onChange received:', data);
-                    const newFormData = { ...formData, ...data };
-                    console.log('Page - Updated formData:', newFormData);
-                    setFormData(newFormData);
-                  }}
-                />
-              </motion.div>
-            )}
 
-            {currentStep === 2 && (
-              <motion.div
-                key="step2"
-                initial="initial"
-                animate="in"
-                exit="out"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
-                <Step2BasicInfo
-                  data={{
-                    bio: formData.bio,
-                    headline: formData.headline,
-                    expertiseAreas: formData.expertiseAreas,
-                  }}
-                  onChange={(data) => setFormData({ ...formData, ...data })}
-                />
-              </motion.div>
-            )}
+      <main className="flex-1">
+        <div className="flex flex-row px-4 md:px-6 lg:px-8 py-6 md:py-10">
+          {/* Sidebar Navigation - Desktop Only */}
+          {!isMobile && (
+            <InstructorRegisSidebar
+              currentStep={currentStep}
+              onStepClick={setCurrentStep}
+              canProceedStep1={canProceedStep1}
+              canProceedStep2={canProceedStep2}
+              canProceedStep3={canProceedStep3}
+              canProceedStep4={canProceedStep4}
+              canProceedStep5={canProceedStep5}
+              canProceedStep6={canProceedStep6}
+            />
+          )}
 
-            {currentStep === 3 && (
-              <motion.div
-                key="step3"
-                initial="initial"
-                animate="in"
-                exit="out"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
-                <Step3Education
-                  data={{ education: formData.education }}
-                  onChange={(data) => setFormData({ ...formData, ...data })}
-                />
-              </motion.div>
-            )}
-
-            {currentStep === 4 && (
-              <motion.div
-                key="step4"
-                initial="initial"
-                animate="in"
-                exit="out"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
-                <Step4Certificates
-                  data={{ certificates: formData.certificates }}
-                  onChange={(data) => setFormData({ ...formData, ...data })}
-                />
-              </motion.div>
-            )}
-
-            {currentStep === 5 && (
-              <motion.div
-                key="step5"
-                initial="initial"
-                animate="in"
-                exit="out"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
-                <Step5WorkExperience
-                  data={{ workExperience: formData.workExperience }}
-                  onChange={(data) => setFormData({ ...formData, ...data })}
-                />
-              </motion.div>
-            )}
-
-            {currentStep === 6 && (
-              <motion.div
-                key="step6"
-                initial="initial"
-                animate="in"
-                exit="out"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
-                <Step6AdditionalInfo
-                  data={{
-                    socialLinks: formData.socialLinks,
-                    bankInfo: formData.bankInfo,
-                    taxId: formData.taxId,
-                  }}
-                  onChange={(data) => setFormData({ ...formData, ...data })}
-                />
-              </motion.div>
-            )}
-
-            {currentStep === 7 && (
-              <motion.div
-                key="step7"
-                initial="initial"
-                animate="in"
-                exit="out"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
-                <Step6AIVerification
-                  onSubmit={handleSubmit}
-                  onBack={() => setCurrentStep(6)}
-                  formData={{
-                    bio: formData.bio,
-                    headline: formData.headline,
-                    expertiseAreas: formData.expertiseAreas,
-                    education: formData.education,
-                    workExperience: formData.workExperience,
-                    socialLinks: formData.socialLinks,
-                    bankInfo: formData.bankInfo,
-                    taxId: formData.taxId,
-                    identityDocuments: [
-                      {
+          {/* Main Content */}
+          <div className={`flex-1 ${isMobile ? "" : "pl-8"} min-h-0`}>
+            <div className="max-w-4xl mx-auto px-4">
+              <AnimatePresence mode="wait">
+                {currentStep === 1 && (
+                  <motion.div
+                    key="step1"
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <Step1UploadDocuments
+                      data={{
                         frontImg: formData.frontImg,
                         backImg: formData.backImg,
-                      },
-                    ],
-                    certificates: formData.certificates,
-                  }}
-                  isSubmitting={isRegistering}
-                  onReviewComplete={(result) => setReviewResult(result)}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                        frontFileId: formData.frontFileId,
+                        backFileId: formData.backFileId,
+                        frontClassifyResult: formData.frontClassifyResult,
+                        backClassifyResult: formData.backClassifyResult,
+                      }}
+                      onChange={(data) => {
+                        console.log("Page - Step1 onChange received:", data);
+                        const newFormData = { ...formData, ...data };
+                        console.log("Page - Updated formData:", newFormData);
+                        setFormData(newFormData);
+                      }}
+                    />
+                  </motion.div>
+                )}
+
+                {currentStep === 2 && (
+                  <motion.div
+                    key="step2"
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <Step2BasicInfo
+                      data={{
+                        bio: formData.bio,
+                        headline: formData.headline,
+                        expertiseAreas: formData.expertiseAreas,
+                      }}
+                      onChange={(data) => setFormData({ ...formData, ...data })}
+                    />
+                  </motion.div>
+                )}
+
+                {currentStep === 3 && (
+                  <motion.div
+                    key="step3"
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <Step3Education
+                      data={{ education: formData.education }}
+                      onChange={(data) => setFormData({ ...formData, ...data })}
+                    />
+                  </motion.div>
+                )}
+
+                {currentStep === 4 && (
+                  <motion.div
+                    key="step4"
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <Step4Certificates
+                      data={{ certificates: formData.certificates }}
+                      onChange={(data) => setFormData({ ...formData, ...data })}
+                    />
+                  </motion.div>
+                )}
+
+                {currentStep === 5 && (
+                  <motion.div
+                    key="step5"
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <Step5WorkExperience
+                      data={{ workExperience: formData.workExperience }}
+                      onChange={(data) => setFormData({ ...formData, ...data })}
+                    />
+                  </motion.div>
+                )}
+
+                {currentStep === 6 && (
+                  <motion.div
+                    key="step6"
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <Step6AdditionalInfo
+                      data={{
+                        socialLinks: formData.socialLinks,
+                        bankInfo: formData.bankInfo,
+                        taxId: formData.taxId,
+                      }}
+                      onChange={(data) => setFormData({ ...formData, ...data })}
+                    />
+                  </motion.div>
+                )}
+
+                {currentStep === 7 && (
+                  <motion.div
+                    key="step7"
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <Step6AIVerification
+                      onSubmit={handleSubmit}
+                      onBack={() => setCurrentStep(6)}
+                      formData={{
+                        bio: formData.bio,
+                        headline: formData.headline,
+                        expertiseAreas: formData.expertiseAreas,
+                        education: formData.education,
+                        workExperience: formData.workExperience,
+                        socialLinks: formData.socialLinks,
+                        bankInfo: formData.bankInfo,
+                        taxId: formData.taxId,
+                        identityDocuments: [
+                          {
+                            frontImg: formData.frontImg,
+                            backImg: formData.backImg,
+                          },
+                        ],
+                        certificates: formData.certificates,
+                      }}
+                      isSubmitting={isRegistering}
+                      onReviewComplete={(result) => setReviewResult(result)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
       </main>
 
       <InstructorRegisFooter
         currentStep={currentStep}
-        totalSteps={steps.length}
+        totalSteps={7}
         onBack={currentStep > 1 ? () => setCurrentStep(currentStep - 1) : undefined}
         onNext={handleFooterNext}
         nextLabel={getNextButtonLabel()}
@@ -335,6 +400,27 @@ export default function InstructorRegistrationPage() {
         showBack={currentStep > 1}
         isLastStep={currentStep === 7}
       />
+
+      {/* AI Review Dialog */}
+      <AlertDialog open={showAIDialog} onOpenChange={setShowAIDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác thực hồ sơ bằng AI</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có muốn sử dụng AI để xác thực và đánh giá hồ sơ của mình không? Điều này sẽ giúp bạn
+              kiểm tra tính hợp lệ và chất lượng hồ sơ trước khi nộp.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleSkipAI} disabled={isRegistering}>
+              Không, nộp hồ sơ ngay
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleUseAI} className="bg-purple-600 hover:bg-purple-700">
+              Có, sử dụng AI
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

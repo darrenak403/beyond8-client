@@ -35,7 +35,7 @@ export default function InstructorRegisFooter({
       </div>
 
       {/* Navigation */}
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="px-4 md:px-8 lg:px-16 py-4 flex items-center justify-between">
         {/* Back Button */}
         <div className="flex-1">
           {showBack && onBack && (

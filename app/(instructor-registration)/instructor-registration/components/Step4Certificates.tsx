@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Award, Building, Link, Calendar } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 
 interface Certificate {
@@ -64,47 +64,71 @@ export default function Step4Certificates({ data, onChange }: Step4Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Tên chứng chỉ</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-md"
-                    placeholder="VD: AWS Certified Solutions Architect"
-                    value={cert.name}
-                    onChange={(e) => handleChange(index, 'name', e.target.value)}
-                  />
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Award className="w-4 h-4 text-purple-600" />
+                    Tên chứng chỉ
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-3 py-2 border rounded-md"
+                      placeholder="VD: AWS Certified Solutions Architect"
+                      value={cert.name}
+                      onChange={(e) => handleChange(index, 'name', e.target.value)}
+                    />
+                    <Award className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Tổ chức cấp</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-md"
-                    placeholder="VD: Amazon Web Services"
-                    value={cert.issuer}
-                    onChange={(e) => handleChange(index, 'issuer', e.target.value)}
-                  />
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Building className="w-4 h-4 text-purple-600" />
+                    Tổ chức cấp
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-3 py-2 border rounded-md"
+                      placeholder="VD: Amazon Web Services"
+                      value={cert.issuer}
+                      onChange={(e) => handleChange(index, 'issuer', e.target.value)}
+                    />
+                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Link chứng chỉ</label>
-                  <input
-                    type="url"
-                    className="w-full px-3 py-2 border rounded-md"
-                    placeholder="https://..."
-                    value={cert.url}
-                    onChange={(e) => handleChange(index, 'url', e.target.value)}
-                  />
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Link className="w-4 h-4 text-purple-600" />
+                    Link chứng chỉ
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="url"
+                      className="w-full pl-10 pr-3 py-2 border rounded-md"
+                      placeholder="https://..."
+                      value={cert.url}
+                      onChange={(e) => handleChange(index, 'url', e.target.value)}
+                    />
+                    <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Năm cấp</label>
-                  <input
-                    type="number"
-                    className="w-full px-3 py-2 border rounded-md"
-                    placeholder="2023"
-                    value={cert.year}
-                    onChange={(e) => handleChange(index, 'year', parseInt(e.target.value) || new Date().getFullYear())}
-                  />
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-purple-600" />
+                    Năm cấp
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      className="w-full pl-10 pr-3 py-2 border rounded-md"
+                      placeholder="2023"
+                      value={cert.year}
+                      onChange={(e) => handleChange(index, 'year', parseInt(e.target.value) || new Date().getFullYear())}
+                    />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
                 </div>
               </div>
             </CardContent>

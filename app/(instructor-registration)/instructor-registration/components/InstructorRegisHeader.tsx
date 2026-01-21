@@ -26,7 +26,7 @@ export default function InstructorRegisHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-white">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="px-4 md:px-8 lg:px-16 py-4 flex items-center justify-between">
         {/* Logo - Clickable */}
         <Link href="/" className="flex items-center cursor-pointer">
           <Image
