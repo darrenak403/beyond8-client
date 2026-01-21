@@ -130,7 +130,7 @@ export function UserDialog({
                 const addData: any = {
                     ...values,
                     roles: [ROLE_VALUES[values.role]],
-                    avatarUrl: values.avatarUrl, // Already updated by handleFileChange
+                    avatarUrl: formatImageUrl(values.avatarUrl), // Already updated by handleFileChange
                     locale: values.locale || "vi-VN",
                     timezone: values.timezone || "Asia/Ho_Chi_Minh",
                     coverUrl: "",

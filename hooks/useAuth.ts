@@ -61,12 +61,10 @@ export function useLogin() {
 
 export function useRegister() {
   const queryClient = useQueryClient();
-  const dispatch = useAppDispatch();
-  const router = useRouter();
-
   const { mutate: mutateRegister, isPending: isLoading } = useMutation({
     mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
       const response = await fetchAuth.register(credentials);
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
       if (!response.isSuccess) {
         throw new Error(response.message);
       }
@@ -88,8 +86,6 @@ export function useRegister() {
 
 export function useVerifyOtpRegister() {
   const queryClient = useQueryClient();
-  const dispatch = useAppDispatch();
-  const router = useRouter();
 
   const { mutate: mutateVerifyOtpRegister, isPending: isLoading } = useMutation({
     mutationFn: async (data: VerifyOtpRequest): Promise<LoginResponse> => {
@@ -100,6 +96,7 @@ export function useVerifyOtpRegister() {
       return response;
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
     },
     onError: (error: LoginResponse) => {
       toast.error(error.message || 'Xác thực thất bại!');
@@ -114,8 +111,6 @@ export function useVerifyOtpRegister() {
 
 export function useVerifyOtpForgotPassword() {
   const queryClient = useQueryClient();
-  const dispatch = useAppDispatch();
-  const router = useRouter();
 
   const { mutate: mutateVerifyOtpForgotPassword, isPending: isLoading } = useMutation({
     mutationFn: async (data: VerifyOtpRequest): Promise<LoginResponse> => {
@@ -126,6 +121,7 @@ export function useVerifyOtpForgotPassword() {
       return response;
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Xác thực OTP thành công!');
     },
     onError: (error: LoginResponse) => {
@@ -140,6 +136,7 @@ export function useVerifyOtpForgotPassword() {
 }
 
 export function useForgotPassword() {
+  const queryClient = useQueryClient();
   const { mutate: mutateForgotPassword, isPending: isLoading } = useMutation({
     mutationFn: async (email: string) => {
       const response = await fetchAuth.forgotPassword(email);
@@ -149,6 +146,7 @@ export function useForgotPassword() {
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Mã OTP đã được gửi đến email của bạn!');
     },
     onError: (error: any) => {
@@ -163,6 +161,7 @@ export function useForgotPassword() {
 }
 
 export function useResetPassword() {
+  const queryClient = useQueryClient();
   const { mutate: mutateResetPassword, isPending: isLoading } = useMutation({
     mutationFn: async (data: ResetPasswordRequest) => {
       const response = await fetchAuth.resetPassword(data);
@@ -172,6 +171,7 @@ export function useResetPassword() {
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Đặt lại mật khẩu thành công!', {
         description: 'Vui lòng đăng nhập lại với mật khẩu mới.',
       });
@@ -214,6 +214,7 @@ export function useChangePassword() {
 }
 
 export function useResendOtp() {
+  const queryClient = useQueryClient();
   const { mutate: mutateResendOtp, isPending: isLoading } = useMutation({
     mutationFn: async (email: string) => {
       const response = await fetchAuth.resendOtp(email);
@@ -223,6 +224,7 @@ export function useResendOtp() {
       return response;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Mã OTP đã được gửi lại đến email của bạn!');
     },
     onError: (error: any) => {

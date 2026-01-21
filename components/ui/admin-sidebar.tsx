@@ -11,6 +11,7 @@ import {
   MoreVertical,
   LogOut,
   User,
+  FileCheck,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -29,6 +30,7 @@ import { formatImageUrl } from '@/lib/utils/formatImageUrl';
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: Users, label: 'Quản lý người dùng', href: '/admin/user' },
+  { icon: FileCheck, label: 'Duyệt đơn giảng viên', href: '/admin/instructor-registration' },
   { icon: BookOpen, label: 'Khóa học', href: '/admin/course' },
   { icon: BarChart3, label: 'Báo cáo', href: '/admin/report' },
 ];
