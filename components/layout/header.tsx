@@ -33,10 +33,10 @@ export function Header() {
 
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
-      return userProfile.fullName.charAt(0).toUpperCase();
+      return userProfile.fullName?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || 'U';
     }
     if (userProfile?.email) {
-      return userProfile.email.charAt(0).toUpperCase();
+      return userProfile.email.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
     }
     return 'U';
   };

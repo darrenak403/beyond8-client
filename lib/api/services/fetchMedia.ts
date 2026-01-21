@@ -59,6 +59,27 @@ export const mediaService = {
     return response.data;
   },
 
+  // Identity Card presigned URLs
+  getIdentityCardFrontPresignedUrl: async (
+    request: PresignedUrlRequest
+  ): Promise<ApiResponse<PresignedUrlResponse>> => {
+    const response = await apiService.post<ApiResponse<PresignedUrlResponse>>(
+      "api/v1/media/identity-card/front/presigned-url",
+      request
+    );
+    return response.data;
+  },
+
+  getIdentityCardBackPresignedUrl: async (
+    request: PresignedUrlRequest
+  ): Promise<ApiResponse<PresignedUrlResponse>> => {
+    const response = await apiService.post<ApiResponse<PresignedUrlResponse>>(
+      "api/v1/media/identity-card/back/presigned-url",
+      request
+    );
+    return response.data;
+  },
+
   uploadToPresignedUrl: async (presignedUrl: string, file: File): Promise<void> => {
     await axios.put(presignedUrl, file, {
       headers: {
@@ -141,6 +162,69 @@ export const mediaService = {
 
     if (!mediaResponse.isSuccess || !mediaResponse.data) {
       throw new Error(mediaResponse.message || "Failed to get media file");
+    }
+
+    return mediaResponse.data;
+  },
+
+  // Upload identity card with full flow
+  uploadIdentityCardFront: async (file: File): Promise<MediaFile> => {
+    const presignedResponse = await mediaService.getIdentityCardFrontPresignedUrl({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      metadata: null,
+    });
+
+    if (!presignedResponse.isSuccess || !presignedResponse.data) {
+      throw new Error(presignedResponse.message || "Không thể lấy URL tải lên");
+    }
+
+    const { fileId, presignedUrl } = presignedResponse.data;
+
+    await mediaService.uploadToPresignedUrl(presignedUrl, file);
+
+    const confirmResponse = await mediaService.confirmUpload({ fileId });
+
+    if (!confirmResponse.isSuccess || !confirmResponse.data) {
+      throw new Error(confirmResponse.message || "Không thể xác nhận tải lên");
+    }
+
+    const mediaResponse = await mediaService.getMediaFile(fileId);
+
+    if (!mediaResponse.isSuccess || !mediaResponse.data) {
+      throw new Error(mediaResponse.message || "Không thể lấy thông tin file");
+    }
+
+    return mediaResponse.data;
+  },
+
+  uploadIdentityCardBack: async (file: File): Promise<MediaFile> => {
+    const presignedResponse = await mediaService.getIdentityCardBackPresignedUrl({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      metadata: null,
+    });
+
+    if (!presignedResponse.isSuccess || !presignedResponse.data) {
+      throw new Error(presignedResponse.message || "Không thể lấy URL tải lên");
+    }
+
+    const { fileId, presignedUrl } = presignedResponse.data;
+
+    await mediaService.uploadToPresignedUrl(presignedUrl, file);
+
+    const confirmResponse = await mediaService.confirmUpload({ fileId });
+
+    if (!confirmResponse.isSuccess || !confirmResponse.data) {
+      throw new Error(confirmResponse.message || "Không thể xác nhận tải lên");
+    }
+
+    const mediaResponse = await mediaService.getMediaFile(fileId);
+
+    if (!mediaResponse.isSuccess || !mediaResponse.data) {
+      throw new Error(mediaResponse.message || "Không thể lấy thông tin file");
     }
 
     return mediaResponse.data;

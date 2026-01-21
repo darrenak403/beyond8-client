@@ -1,6 +1,7 @@
 "use client";
 
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { Skeleton } from "@/components/ui/skeleton";
 import ProfileHeader from "./components/ProfileHeader";
 import ProfileContent from "./components/ProfileContent";
 import { useState } from "react";
@@ -11,10 +12,26 @@ export default function MyProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-500">Đang tải thông tin...</p>
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="overflow-hidden">
+          <Skeleton className="h-96 w-full rounded-2xl" />
+          <div className="flex items-end justify-between px-8 pb-3">
+            <div className="flex items-end gap-4 -mt-20">
+              <Skeleton className="w-40 h-40 rounded-full" />
+              <div className="mb-4 space-y-2">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+        
+        {/* Content Skeleton */}
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-64 w-full" />
         </div>
       </div>
     );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Lock, Check } from "lucide-react";
@@ -209,8 +210,16 @@ export default function AdminProfileChangePassword() {
           <Button
             type="submit"
             disabled={isLoading || !formData.currentPassword || !allRequirementsMet || !passwordsMatch}
+            className="min-w-[140px]"
           >
-            {isLoading ? "Đang xử lý..." : "Đổi mật khẩu"}
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <Skeleton className="w-4 h-4 rounded-full bg-white/20" />
+                <span>Đang xử lý...</span>
+              </div>
+            ) : (
+              "Đổi mật khẩu"
+            )}
           </Button>
         </div>
       </div>
