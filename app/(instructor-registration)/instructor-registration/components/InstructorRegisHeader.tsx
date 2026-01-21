@@ -34,7 +34,7 @@ export default function InstructorRegisHeader() {
             alt="Beyond 8"
             width={60}
             height={60}
-            className="h-14 w-auto"
+            className="h-20 w-auto"
           />
         </Link>
 
