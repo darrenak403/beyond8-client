@@ -93,6 +93,8 @@ export default function ProfileHeader({
         <SafeImage
           src={formatImageUrl(userProfile.coverUrl) || '/bg-web.jpg'}
           alt="Cover"
+          width={1920}
+          height={400}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
         

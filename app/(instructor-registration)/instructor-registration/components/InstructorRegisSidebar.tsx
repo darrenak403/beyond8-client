@@ -35,20 +35,7 @@ export default function InstructorRegisSidebar({
     { number: 7, title: "Xác minh", icon: CheckCircle },
   ];
 
-  const handleStepClick = (stepNumber: number) => {
-    // Allow navigation to completed steps or current step
-    if (stepNumber < currentStep) {
-      onStepClick(stepNumber);
-    } else if (stepNumber === currentStep) {
-      return; // Already on this step
-    } else {
-      toast.error("Vui lòng hoàn thành các bước trước");
-    }
-  };
-
   const isStepCompleted = (stepNumber: number) => {
-    if (stepNumber >= currentStep) return false;
-    
     switch (stepNumber) {
       case 1: return canProceedStep1;
       case 2: return canProceedStep2;
@@ -57,6 +44,43 @@ export default function InstructorRegisSidebar({
       case 5: return canProceedStep5;
       case 6: return canProceedStep6;
       default: return false;
+    }
+  };
+
+  const canAccessStep = (stepNumber: number) => {
+    if (stepNumber < currentStep) {
+      return true;
+    }
+    
+    if (stepNumber === currentStep) {
+      return true;
+    }
+    
+    if (stepNumber === currentStep + 1) {
+      return isStepCompleted(currentStep);
+    }
+    
+    if (stepNumber > currentStep + 1) {
+      for (let i = currentStep; i < stepNumber; i++) {
+        if (!isStepCompleted(i)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    return false;
+  };
+
+  const handleStepClick = (stepNumber: number) => {
+    if (stepNumber === currentStep) {
+      return;
+    }
+    
+    if (canAccessStep(stepNumber)) {
+      onStepClick(stepNumber);
+    } else {
+      toast.error("Vui lòng hoàn thành bước hiện tại trước khi tiếp tục");
     }
   };
 
@@ -70,7 +94,7 @@ export default function InstructorRegisSidebar({
           const Icon = step.icon;
           const isActive = currentStep === step.number;
           const isCompleted = isStepCompleted(step.number);
-          const isAccessible = step.number <= currentStep;
+          const isAccessible = canAccessStep(step.number);
 
           return (
             <button

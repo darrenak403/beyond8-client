@@ -17,16 +17,7 @@ import Step6AdditionalInfo from "./components/Step5AdditionalInfo";
 import { toast } from "sonner";
 import Step6AIVerification from "./components/Step6AIVerification";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 
 interface InstructorFormData {
   frontImg: string;
@@ -231,7 +222,7 @@ export default function InstructorRegistrationPage() {
           )}
 
           {/* Main Content */}
-          <div className={`flex-1 ${isMobile ? "" : "pl-8"} min-h-0`}>
+          <div className={`flex-1 ${isMobile ? "" : ""} min-h-0`}>
             <div className="max-w-4xl mx-auto px-4">
               <AnimatePresence mode="wait">
                 {currentStep === 1 && (
@@ -402,25 +393,17 @@ export default function InstructorRegistrationPage() {
       />
 
       {/* AI Review Dialog */}
-      <AlertDialog open={showAIDialog} onOpenChange={setShowAIDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xác thực hồ sơ bằng AI</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có muốn sử dụng AI để xác thực và đánh giá hồ sơ của mình không? Điều này sẽ giúp bạn
-              kiểm tra tính hợp lệ và chất lượng hồ sơ trước khi nộp.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleSkipAI} disabled={isRegistering}>
-              Không, nộp hồ sơ ngay
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleUseAI} className="bg-purple-600 hover:bg-purple-700">
-              Có, sử dụng AI
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={showAIDialog}
+        onOpenChange={setShowAIDialog}
+        onConfirm={handleUseAI}
+        onCancel={handleSkipAI}
+        title="Xác thực hồ sơ bằng AI"
+        description="Sử dụng AI để có thể dễ dàng kiểm tra tính hợp lệ của hồ sơ. Bạn có muốn sử dụng AI review không?"
+        confirmText="Review cùng AI"
+        cancelText="Nộp hồ sơ ngay"
+        variant="default"
+      />
     </>
   );
 }
