@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/useMobile";
-import { CreditCard, Hash, Facebook, Linkedin, Globe, Languages, Video, Building2, User } from "lucide-react";
+import { CreditCard, Hash, Facebook, Linkedin, Globe, Languages, Video, Building2, User, X, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 interface AdditionalInfoData {
   socialLinks: {
@@ -62,234 +63,255 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
   );
 
   return (
-    <div className="w-full space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className={`font-bold text-primary ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Thông tin bổ sung</h2>
-        <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>Thông tin thanh toán và mạng xã hội</p>
+    <div className="w-full h-full flex flex-col">
+      {/* Header */}
+      <div className="text-center space-y-3 flex-shrink-0">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
+          <Info className="w-8 h-8 text-white" />
+        </div>
+        <h2 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+          Thông tin bổ sung
+        </h2>
+        <p className={`text-gray-600 max-w-2xl mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
+          Hoàn tất hồ sơ với thông tin thanh toán và liên hệ
+        </p>
       </div>
 
-      <div className="space-y-6">
-        <div>
-          <h3 className={`font-semibold mb-4 ${isMobile ? 'text-base' : 'text-lg'}`}>Thông tin thanh toán</h3>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className={`font-medium flex items-center gap-2 ${isMobile ? 'text-sm' : ''}`}>
-                <Building2 className="w-4 h-4 text-purple-600" />
-                Tên ngân hàng
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
-                  placeholder="VD: Vietcombank"
-                  value={data.bankInfo.bankName}
-                  onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, bankName: e.target.value } })}
-                />
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      <div className="space-y-6 max-w-3xl mx-auto overflow-y-auto scrollbar-hide flex-1 mt-8">
+        {/* Bank Information Card */}
+        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-3 border-b">
+                <div className="p-2 rounded-lg bg-purple-50">
+                  <CreditCard className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-800">Thông tin thanh toán</h3>
+                <span className="text-red-500">*</span>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-purple-600" />
+                    Tên ngân hàng <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="VD: Vietcombank, BIDV, Techcombank..."
+                    value={data.bankInfo.bankName}
+                    onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, bankName: e.target.value } })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-purple-600" />
+                    Số tài khoản <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="VD: 1234567890"
+                    value={data.bankInfo.accountNumber}
+                    onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountNumber: e.target.value } })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <User className="w-4 h-4 text-purple-600" />
+                    Tên chủ tài khoản <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="VD: NGUYEN VAN A"
+                    value={data.bankInfo.accountHolderName}
+                    onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountHolderName: e.target.value } })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Hash className="w-4 h-4 text-purple-600" />
+                    Mã số thuế (không bắt buộc)
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="VD: 0123456789"
+                    value={data.taxId || ""}
+                    onChange={(e) => onChange({ ...data, taxId: e.target.value || null })}
+                  />
+                </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="space-y-2">
-              <label className={`font-medium flex items-center gap-2 ${isMobile ? 'text-sm' : ''}`}>
-                <CreditCard className="w-4 h-4 text-purple-600" />
-                Số tài khoản
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
-                  placeholder="VD: 1234567890"
-                  value={data.bankInfo.accountNumber}
-                  onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountNumber: e.target.value } })}
-                />
-                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        {/* Teaching Languages Card */}
+        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-3 border-b">
+                <div className="p-2 rounded-lg bg-purple-50">
+                  <Languages className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-800">Ngôn ngữ giảng dạy</h3>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className={`font-medium flex items-center gap-2 ${isMobile ? 'text-sm' : ''}`}>
-                <User className="w-4 h-4 text-purple-600" />
-                Tên chủ tài khoản
-              </label>
-              <div className="relative">
+              <div className="space-y-2">
                 <input
                   type="text"
-                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
-                  placeholder="VD: Nguyễn Văn A"
-                  value={data.bankInfo.accountHolderName}
-                  onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountHolderName: e.target.value } })}
-                />
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className={`font-medium flex items-center gap-2 ${isMobile ? 'text-sm' : ''}`}>
-                <Hash className="w-4 h-4 text-purple-600" />
-                Mã số thuế
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
-                  placeholder="VD: 0123456789"
-                  value={data.taxId || ""}
-                  onChange={(e) => onChange({ ...data, taxId: e.target.value || null })}
-                />
-                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t pt-6">
-          <h3 className={`font-semibold mb-4 ${isMobile ? 'text-base' : 'text-lg'}`}>Ngôn ngữ giảng dạy</h3>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className={`font-medium flex items-center gap-2 ${isMobile ? 'text-sm' : ''}`}>
-                <Languages className="w-4 h-4 text-purple-600" />
-                Ngôn ngữ giảng dạy
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
-                  placeholder="Nhập và nhấn Enter để thêm ngôn ngữ"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  placeholder="Nhập ngôn ngữ và nhấn Enter"
                   value={languageInput}
                   onChange={(e) => setLanguageInput(e.target.value)}
                   onKeyDown={handleLanguageInputKeyDown}
                 />
-                <Languages className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               </div>
 
-              {/* Selected Languages */}
               {data.teachingLanguages.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {data.teachingLanguages.map((lang) => (
-                    <Badge
-                      key={lang}
-                      variant="secondary"
-                      className="bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1 flex items-center gap-2"
-                    >
-                      {lang}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveLanguage(lang)}
-                        className="ml-1 hover:bg-purple-300 rounded-full p-0.5"
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <p className="text-sm font-medium text-gray-700 mb-3">
+                    Đã chọn ({data.teachingLanguages.length}):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {data.teachingLanguages.map((lang, index) => (
+                      <motion.div
+                        key={lang}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        transition={{ delay: index * 0.05 }}
                       >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
+                        <Badge
+                          variant="secondary"
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-3 py-1.5 flex items-center gap-1.5 text-xs font-medium"
+                        >
+                          {lang}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLanguage(lang)}
+                            className="ml-0.5 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Suggested Languages */}
               {availableSuggestedLanguages.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-sm text-gray-500 mb-2">Gợi ý:</p>
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-700">
+                     Gợi ý:
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {availableSuggestedLanguages.slice(0, 8).map((lang) => (
                       <Badge
                         key={lang}
                         variant="outline"
-                        className="cursor-pointer hover:bg-gray-100 px-3 py-1"
+                        className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-2.5 py-1 transition-colors border-2 text-xs"
                         onClick={() => handleAddLanguage(lang)}
                       >
-                        {lang}
+                        + {lang}
                       </Badge>
                     ))}
                   </div>
                 </div>
               )}
-            </div>
 
-            <div className="space-y-2">
-              <label className={`font-medium flex items-center gap-2 ${isMobile ? 'text-sm' : ''}`}>
-                <Video className="w-4 h-4 text-purple-600" />
-                Link video giới thiệu
-              </label>
-              <div className="relative">
+              <div className="space-y-2 pt-4 border-t">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <Video className="w-4 h-4 text-purple-600" />
+                  Link video giới thiệu (không bắt buộc)
+                </label>
                 <input
                   type="url"
-                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="https://youtube.com/watch?v=..."
                   value={data.introVideoUrl || ""}
                   onChange={(e) => onChange({ ...data, introVideoUrl: e.target.value || null })}
                 />
-                <Video className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <p className="text-xs text-gray-500">
+                  Một video ngắn giới thiệu về bản thân sẽ giúp học viên hiểu rõ hơn về bạn
+                </p>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="border-t pt-6">
-          <h3 className={`font-semibold mb-4 ${isMobile ? 'text-base' : 'text-lg'}`}>Liên kết mạng xã hội</h3>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className={`font-medium flex items-center gap-2 ${isMobile ? 'text-sm' : ''}`}>
-                <Facebook className="w-4 h-4 text-purple-600" />
-                Facebook
-              </label>
-              <div className="relative">
-                <input
-                  type="url"
-                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
-                  placeholder="https://facebook.com/yourprofile"
-                  value={data.socialLinks.facebook || ""}
-                  onChange={(e) => onChange({ 
-                    ...data, 
-                    socialLinks: { ...data.socialLinks, facebook: e.target.value || null }
-                  })}
-                />
-                <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        {/* Social Links Card */}
+        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-3 border-b">
+                <div className="p-2 rounded-lg bg-purple-50">
+                  <Globe className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-800">Liên kết mạng xã hội</h3>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className={`font-medium flex items-center gap-2 ${isMobile ? 'text-sm' : ''}`}>
-                <Linkedin className="w-4 h-4 text-purple-600" />
-                LinkedIn
-              </label>
-              <div className="relative">
-                <input
-                  type="url"
-                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
-                  placeholder="https://linkedin.com/in/yourprofile"
-                  value={data.socialLinks.linkedIn || ""}
-                  onChange={(e) => onChange({ 
-                    ...data, 
-                    socialLinks: { ...data.socialLinks, linkedIn: e.target.value || null }
-                  })}
-                />
-                <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              </div>
-            </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Facebook className="w-4 h-4 text-purple-600" />
+                    Facebook
+                  </label>
+                  <input
+                    type="url"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="https://facebook.com/yourprofile"
+                    value={data.socialLinks.facebook || ""}
+                    onChange={(e) => onChange({
+                      ...data,
+                      socialLinks: { ...data.socialLinks, facebook: e.target.value || null }
+                    })}
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <label className={`font-medium flex items-center gap-2 ${isMobile ? 'text-sm' : ''}`}>
-                <Globe className="w-4 h-4 text-purple-600" />
-                Website cá nhân
-              </label>
-              <div className="relative">
-                <input
-                  type="url"
-                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
-                  placeholder="https://yourwebsite.com"
-                  value={data.socialLinks.website || ""}
-                  onChange={(e) => onChange({ 
-                    ...data, 
-                    socialLinks: { ...data.socialLinks, website: e.target.value || null }
-                  })}
-                />
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Linkedin className="w-4 h-4 text-purple-600" />
+                    LinkedIn
+                  </label>
+                  <input
+                    type="url"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="https://linkedin.com/in/yourprofile"
+                    value={data.socialLinks.linkedIn || ""}
+                    onChange={(e) => onChange({
+                      ...data,
+                      socialLinks: { ...data.socialLinks, linkedIn: e.target.value || null }
+                    })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-purple-600" />
+                    Website cá nhân
+                  </label>
+                  <input
+                    type="url"
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="https://yourwebsite.com"
+                    value={data.socialLinks.website || ""}
+                    onChange={(e) => onChange({
+                      ...data,
+                      socialLinks: { ...data.socialLinks, website: e.target.value || null }
+                    })}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

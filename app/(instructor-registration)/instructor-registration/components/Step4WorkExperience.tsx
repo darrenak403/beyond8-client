@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Building, Briefcase, Calendar as CalendarIcon, Edit2, FileText } from "lucide-react";
+import { Plus, Trash2, Building, Briefcase, Calendar as CalendarIcon, FileText, Target } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useIsMobile } from "@/hooks/useMobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDateForInput } from "@/lib/utils/formatDate";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface WorkExperience {
   company: string;
@@ -49,199 +50,251 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
 
   const handleChange = (index: number, field: keyof WorkExperience, value: string | boolean | null) => {
     const newWorkExperience = [...data.workExperience];
-    newWorkExperience[index] = { ...newWorkExperience[index], [field]: value };
+
+    // Nếu đang bật "Đang làm việc tại đây", tự động set ngày hiện tại vào trường "to"
+    if (field === 'isCurrentJob' && value === true) {
+      newWorkExperience[index] = {
+        ...newWorkExperience[index],
+        [field]: value,
+        to: new Date().toISOString()
+      };
+    } else {
+      newWorkExperience[index] = { ...newWorkExperience[index], [field]: value };
+    }
+
     onChange({ workExperience: newWorkExperience });
   };
 
-  const handleSave = () => {
-    setEditingIndex(null);
+  const formatDisplayDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("vi-VN", { month: "2-digit", year: "numeric" });
   };
 
   return (
-    <div className="w-full space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className={`font-bold text-primary ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Kinh nghiệm làm việc</h2>
-        <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>Chia sẻ kinh nghiệm làm việc của bạn</p>
+    <div className="w-full h-full flex flex-col">
+      {/* Header */}
+      <div className="text-center space-y-3 flex-shrink-0">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
+          <Target className="w-8 h-8 text-white" />
+        </div>
+        <h2 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+          Kinh nghiệm làm việc
+        </h2>
+        <p className={`text-gray-600 max-w-2xl mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
+          Chia sẻ hành trình sự nghiệp và kinh nghiệm thực tế của bạn
+        </p>
       </div>
 
-      <div className={`space-y-3 pr-2 scrollbar-hide ${isMobile ? 'max-h-[50vh]' : 'max-h-[60vh]'} overflow-y-auto relative`}>
-        <button
+      {/* Add Button */}
+      <div className="flex justify-center mt-8 flex-shrink-0">
+        <Button
           type="button"
-          className="absolute top-0 right-0 z-10 w-8 h-8 flex items-center justify-center bg-white border border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors shadow-sm"
           onClick={handleAdd}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all"
         >
-          <Plus className="w-4 h-4 text-gray-400 hover:text-purple-600" />
-        </button>
-        {data.workExperience.map((work, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-lg p-4 transition-colors cursor-pointer"
-            onClick={() => !editingIndex && setEditingIndex(index)}
-          >
-            <AnimatePresence mode="wait">
-              {editingIndex === index ? (
-                <motion.div
-                  key={`edit-${index}`}
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="space-y-4 overflow-hidden p-4"
-                >
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="font-semibold">Kinh nghiệm #{index + 1}</h4>
-                  {data.workExperience.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="hover:bg-red-50"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemove(index);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-600" />
-                    </Button>
-                  )}
-                </div>
+          <Plus className="w-4 h-4 mr-2" />
+          Thêm kinh nghiệm
+        </Button>
+      </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Building className="w-4 h-4 text-purple-600" />
-                    Công ty
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="VD: FPT Software"
-                      value={work.company}
-                      onChange={(e) => handleChange(index, 'company', e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  </div>
-                </div>
+      {/* Work Experience List - Fixed Scroll Container */}
+      <div className="overflow-y-auto pr-2 scrollbar-hide flex-1 mt-8">
+        <div className="space-y-4">
+          <AnimatePresence mode="popLayout">
+            {data.workExperience.map((work, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ duration: 0.3 }}
+                layout
+              >
+                <Card className="border-2 border-purple-100 hover:border-purple-300 transition-all hover:shadow-lg">
+                  <CardContent className="pt-6">
+                    {editingIndex === index ? (
+                      // Edit Mode
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center pb-3 border-b">
+                          <div className="flex items-center gap-2">
+                            <div className="p-2 rounded-lg bg-purple-50">
+                              <Briefcase className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <h4 className="font-semibold text-gray-800">Kinh nghiệm #{index + 1}</h4>
+                          </div>
+                          {data.workExperience.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="hover:bg-red-50 hover:text-red-600"
+                              onClick={() => handleRemove(index)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-purple-600" />
-                    Vị trí
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="VD: Senior Full-stack Developer"
-                      value={work.role}
-                      onChange={(e) => handleChange(index, 'role', e.target.value)}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  </div>
-                </div>
+                        <div className="space-y-4">
+                          {/* Company */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                              <Building className="w-4 h-4 text-purple-600" />
+                              Công ty <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              placeholder="VD: FPT Software"
+                              value={work.company}
+                              onChange={(e) => handleChange(index, 'company', e.target.value)}
+                            />
+                          </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4 text-purple-600" />
-                      Từ
-                    </label>
-                    <div className="relative" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="date"
-                        className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        value={formatDateForInput(work.from)}
-                        onChange={(e) => handleChange(index, "from", toISOFromDateInput(e.target.value))}
-                      />
-                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    </div>
-                  </div>
+                          {/* Role */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                              <Briefcase className="w-4 h-4 text-purple-600" />
+                              Vị trí <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              placeholder="VD: Senior Full-stack Developer"
+                              value={work.role}
+                              onChange={(e) => handleChange(index, 'role', e.target.value)}
+                            />
+                          </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4 text-purple-600" />
-                      Đến
-                    </label>
-                    <div className="relative" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="date"
-                        className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        value={formatDateForInput(work.to)}
-                        onChange={(e) => handleChange(index, "to", toISOFromDateInput(e.target.value))}
-                        disabled={work.isCurrentJob}
-                      />
-                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
+                          {/* From & To Dates */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <CalendarIcon className="w-4 h-4 text-purple-600" />
+                                Từ <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="date"
+                                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                value={formatDateForInput(work.from)}
+                                onChange={(e) => handleChange(index, "from", toISOFromDateInput(e.target.value))}
+                              />
+                            </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-purple-600" />
-                    Đang làm việc tại đây
-                  </label>
-                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Switch
-                      checked={work.isCurrentJob}
-                      onCheckedChange={(checked) => handleChange(index, 'isCurrentJob', checked)}
-                    />
-                    <span className="text-sm text-gray-600">
-                      {work.isCurrentJob ? "Có" : "Không"}
-                    </span>
-                  </div>
-                </div>
+                            <div className="space-y-2">
+                              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <CalendarIcon className="w-4 h-4 text-purple-600" />
+                                Đến {!work.isCurrentJob && <span className="text-red-500">*</span>}
+                              </label>
+                              <input
+                                type="date"
+                                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                value={formatDateForInput(work.to)}
+                                onChange={(e) => handleChange(index, "to", toISOFromDateInput(e.target.value))}
+                                disabled={work.isCurrentJob}
+                              />
+                            </div>
+                          </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-purple-600" />
-                    Mô tả công việc
-                  </label>
-                  <Textarea
-                    className="w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Mô tả về công việc, trách nhiệm, thành tựu..."
-                    rows={3}
-                    value={work.description || ""}
-                    onChange={(e) => handleChange(index, 'description', e.target.value || null)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
+                          {/* Current Job Toggle */}
+                          <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+                            <label className="text-sm font-semibold text-gray-700">
+                              Đang làm việc tại đây
+                            </label>
+                            <Switch
+                              checked={work.isCurrentJob}
+                              onCheckedChange={(checked) => handleChange(index, 'isCurrentJob', checked)}
+                            />
+                          </div>
 
-                <Button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSave();
-                  }}
-                  className="w-full mt-4"
-                >
-                  Lưu
-                </Button>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key={`view-${index}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center justify-between"
-                >
-                  <div className="flex-1">
-                    <div className="font-semibold text-lg">{work.company || "Chưa có công ty"}</div>
-                    <div className="text-sm text-gray-600 mt-1">{work.role || "Chưa có vị trí"}</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {work.from
-                        ? `${formatDateForInput(work.from)} - ${work.isCurrentJob ? "Hiện tại" : formatDateForInput(work.to)}`
-                        : "Chưa có thời gian"}
-                    </div>
-                  </div>
-                  <Edit2 className="w-4 h-4 text-gray-400" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ))}
+                          {/* Description */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-purple-600" />
+                              Mô tả công việc
+                            </label>
+                            <Textarea
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+                              placeholder="Mô tả về công việc, trách nhiệm, dự án và thành tựu của bạn..."
+                              rows={4}
+                              value={work.description || ""}
+                              onChange={(e) => handleChange(index, 'description', e.target.value || null)}
+                            />
+                          </div>
+                        </div>
+
+                        <Button
+                          type="button"
+                          onClick={() => setEditingIndex(null)}
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                        >
+                          ✓ Lưu thông tin
+                        </Button>
+                      </div>
+                    ) : (
+                      // View Mode
+                      <div
+                        className="cursor-pointer"
+                        onClick={() => setEditingIndex(index)}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                            <Building className="w-6 h-6 text-purple-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-lg text-gray-800">
+                              {work.role || "Chưa có vị trí"}
+                            </h3>
+                            <p className="text-purple-600 font-medium mt-1">
+                              {work.company || "Chưa có công ty"}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                              <CalendarIcon className="w-4 h-4" />
+                              <span>
+                                {work.from
+                                  ? `${formatDisplayDate(work.from)} - ${work.isCurrentJob ? "Hiện tại" : formatDisplayDate(work.to) || "N/A"}`
+                                  : "Chưa có thời gian"}
+                              </span>
+                            </div>
+                            {work.description && (
+                              <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                                {work.description}
+                              </p>
+                            )}
+                            {work.isCurrentJob && (
+                              <div className="inline-block mt-2">
+                                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                                  Đang làm việc
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-shrink-0">
+                            <div className="text-purple-600 hover:text-purple-700 transition-colors">
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {data.workExperience.length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <Briefcase className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg">Chưa có kinh nghiệm làm việc</p>
+              <p className="text-sm mt-2">Nhấn nút &ldquo;Thêm kinh nghiệm&rdquo; để bắt đầu</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
