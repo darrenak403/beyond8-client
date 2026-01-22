@@ -8,6 +8,7 @@ export interface InstructorRegistrationRequest {
   education: Array<{
     school: string;
     degree: string;
+    fieldOfStudy: string;
     start: number;
     end: number;
   }>;
@@ -16,15 +17,26 @@ export interface InstructorRegistrationRequest {
     role: string;
     from: string;
     to: string;
+    isCurrentJob: boolean;
+    description: string | null;
   }>;
   socialLinks: {
     facebook: string | null;
     linkedIn: string | null;
     website: string | null;
   };
-  bankInfo: string;
+  bankInfo: {
+    bankName: string;
+    accountNumber: string;
+    accountHolderName: string;
+  };
   taxId: string | null;
+  teachingLanguages: string[];
+  introVideoUrl: string | null;
   identityDocuments: Array<{
+    type: string;
+    number: string;
+    issuerDate: string | null;
     frontImg: string;
     backImg: string;
   }>;
@@ -48,6 +60,7 @@ export interface InstructorUser {
 export interface InstructorEducation {
   school: string;
   degree: string;
+  fieldOfStudy: string;
   start: number;
   end: number;
 }
@@ -57,6 +70,8 @@ export interface InstructorWorkExperience {
   role: string;
   from: string;
   to: string;
+  isCurrentJob: boolean;
+  description: string | null;
 }
 
 export interface InstructorSocialLinks {
@@ -86,6 +101,14 @@ export interface InstructorRegistrationResponse {
   education: InstructorEducation[];
   workExperience: InstructorWorkExperience[];
   socialLinks: InstructorSocialLinks;
+  certificates: Array<{
+    name: string;
+    url: string;
+    issuer: string;
+    year: number;
+  }>;
+  teachingLanguages: string[];
+  introVideoUrl: string | null;
   totalStudents: number;
   totalCourses: number;
   avgRating: number | null;
@@ -218,6 +241,13 @@ export const instructorRegistrationService = {
 
     const response = await apiService.get<InstructorRegistrationResponseList>(
       "api/v1/instructors/admin", params
+    );
+    return response.data;
+  },
+
+  getMe: async (): Promise<ApiResponse<InstructorRegistrationResponse>> => {
+    const response = await apiService.get<ApiResponse<InstructorRegistrationResponse>>(
+      "/api/v1/instructors/me"
     );
     return response.data;
   }

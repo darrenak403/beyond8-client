@@ -15,3 +15,25 @@ export function formatDateForInput(dateStr: string | null | undefined): string {
     return "";
   }
 }
+
+/**
+ * Convert dd/MM/yyyy (VN) or ISO date string to ISO 8601 string.
+ * - Returns null if input is empty or cannot be parsed.
+ * - For dd/MM/yyyy, output is midnight UTC.
+ */
+export function toISOFromDDMMYYYY(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  // pass-through ISO-like values
+  if (value.includes("T")) {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  }
+
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
+  if (!m) return null;
+
+  const [, dd, mm, yyyy] = m;
+  const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}

@@ -1,8 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { mediaService, type MediaFile } from "@/lib/api/services/fetchMedia";
 import { toast } from "sonner";
 
 export function useMedia() {
+  const queryClient = useQueryClient();
+  
   // Upload avatar mutation
   const uploadAvatarMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -10,6 +12,7 @@ export function useMedia() {
     },
     onSuccess: (data: MediaFile) => {
       toast.success("Upload ảnh thành công!");
+      queryClient.invalidateQueries({ queryKey: ["media"] });
       return data;
     },
     onError: (error: Error) => {

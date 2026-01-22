@@ -90,7 +90,7 @@ export default function ProfileForm({
             value={formData.fullName}
             onChange={(e) => handleChange("fullName", e.target.value)}
             placeholder="Nhập họ và tên"
-            className="transition-colors"
+            className="transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
 
@@ -114,7 +114,7 @@ export default function ProfileForm({
             type="email"
             value={userProfile.email}
             disabled
-            className="transition-colors"
+            className="transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
       </div>
@@ -129,7 +129,7 @@ export default function ProfileForm({
             value={formData.phoneNumber || ""}
             onChange={(e) => handleChange("phoneNumber", e.target.value)}
             placeholder="Chưa có số điện thoại"
-            className="transition-colors"
+            className="transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function ProfileForm({
               value={formData.dateOfBirth}
               onChange={(e) => handleChange("dateOfBirth", e.target.value)}
               placeholder="Chọn ngày sinh"
-              className="transition-colors"
+              className="transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               style={{
                 colorScheme: 'light'
               }}

@@ -101,7 +101,7 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
             value={formData.currentPassword}
             onChange={(e) => handleChange("currentPassword", e.target.value)}
             placeholder="Nhập mật khẩu hiện tại"
-            className={`pr-20 transition-colors ${
+            className={`pr-20 transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${
               isCurrentPasswordValid
                 ? "border-green-500 focus-visible:ring-green-500"
                 : ""
@@ -137,7 +137,7 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
             value={formData.newPassword}
             onChange={(e) => handleChange("newPassword", e.target.value)}
             placeholder="Nhập mật khẩu mới"
-            className={`pr-20 transition-colors ${
+            className={`pr-20 transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${
               isNewPasswordValid
                 ? "border-green-500 focus-visible:ring-green-500"
                 : ""
@@ -173,7 +173,7 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
             value={formData.confirmPassword}
             onChange={(e) => handleChange("confirmPassword", e.target.value)}
             placeholder="Nhập lại mật khẩu mới"
-            className={`pr-20 transition-colors ${
+            className={`pr-20 transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${
               isConfirmPasswordValid
                 ? "border-green-500 focus-visible:ring-green-500"
                 : formData.confirmPassword && !isConfirmPasswordValid

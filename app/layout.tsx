@@ -21,6 +21,7 @@ export default function RootLayout({
     <html lang="vi">
       <body>
         <Providers>{children}</Providers>
+        {/* Toast notifications */}
         <Toaster position="bottom-center" expand={true} closeButton={true} />
       </body>
     </html>
