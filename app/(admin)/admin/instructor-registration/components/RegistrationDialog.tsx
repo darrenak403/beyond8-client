@@ -303,7 +303,17 @@ export function RegistrationDialog({
                                     </CardHeader>
                                     <CardContent>
                                         <p className="text-sm">
-                                            {registration.bankInfo || <span className="text-muted-foreground">Chưa cập nhật thông tin ngân hàng</span>}
+                                            {
+                                                registration.bankInfo ? (
+                                                    <>
+                                                        <span className="font-medium">Tên ngân hàng:</span> {registration.bankInfo.bankName}<br />
+                                                        <span className="font-medium">Số tài khoản:</span> {registration.bankInfo.accountNumber}<br />
+                                                        <span className="font-medium">Tên chủ tài khoản:</span> {registration.bankInfo.accountHolderName}
+                                                    </>
+                                                ) : (
+                                                    <span className="text-muted-foreground">Chưa cập nhật thông tin ngân hàng</span>
+                                                )
+                                            }
                                         </p>
                                     </CardContent>
                                 </Card>
@@ -327,7 +337,7 @@ export function RegistrationDialog({
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-base">
-                                            Căn cước công dân / Hộ chiếu
+                                            Căn cước công dân
                                         </CardTitle>
                                         <CardDescription>
                                             Hình ảnh hai mặt của giấy tờ tùy thân

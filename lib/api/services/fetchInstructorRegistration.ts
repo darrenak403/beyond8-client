@@ -101,12 +101,6 @@ export interface InstructorRegistrationResponse {
   education: InstructorEducation[];
   workExperience: InstructorWorkExperience[];
   socialLinks: InstructorSocialLinks;
-  certificates: Array<{
-    name: string;
-    url: string;
-    issuer: string;
-    year: number;
-  }>;
   teachingLanguages: string[];
   introVideoUrl: string | null;
   totalStudents: number;
@@ -116,13 +110,22 @@ export interface InstructorRegistrationResponse {
   verifiedAt: string | null;
   createdAt: string;
   updatedAt: string | null;
-  bankInfo: string;
+  bankInfo: BankInfo;
   taxId: string | null;
   identityDocuments: IdentityDocuments[];
   certificates: Certificates[];
 }
 
+export interface BankInfo {
+  bankName: string;
+  accountNumber: string;
+  accountHolderName: string;
+}
+
 export interface IdentityDocuments {
+  type: string;
+  number: string;
+  issuerDate: string | null;
   frontImg: string;
   backImg: string;
 }
