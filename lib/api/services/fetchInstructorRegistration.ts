@@ -65,6 +65,18 @@ export interface InstructorSocialLinks {
   website: string | null;
 }
 
+export enum VerificationStatus {
+  Pending = "Pending",
+  Verified = "Verified",
+  Rejected = "Rejected",
+  RequestUpdate = "RequestUpdate"
+}
+
+export interface RejectRegistrationRequest {
+  notApproveReason: string,
+  verificationStatus: VerificationStatus.Rejected | VerificationStatus.RequestUpdate
+}
+
 export interface InstructorRegistrationResponse {
   id: string;
   user: InstructorUser;
@@ -77,10 +89,26 @@ export interface InstructorRegistrationResponse {
   totalStudents: number;
   totalCourses: number;
   avgRating: number | null;
-  verificationStatus: "Pending" | "Approved" | "Rejected";
+  verificationStatus: VerificationStatus;
   verifiedAt: string | null;
   createdAt: string;
   updatedAt: string | null;
+  bankInfo: string;
+  taxId: string | null;
+  identityDocuments: IdentityDocuments[];
+  certificates: Certificates[];
+}
+
+export interface IdentityDocuments {
+  frontImg: string;
+  backImg: string;
+}
+
+export interface Certificates {
+  name: string;
+  url: string;
+  issuer: string;
+  year: number;
 }
 
 export interface InstructorRegistrationResponseList {
@@ -115,7 +143,7 @@ export interface AIReviewResponse {
   additionalFeedback: string | null;
 }
 
-export enum InstructorRegistrationStatus {
+export enum InstructorRegistrationParamsStatus {
   All = "All",
   Pending = "Pending",
   Verified = "Verified",
@@ -124,7 +152,8 @@ export enum InstructorRegistrationStatus {
 }
 
 export interface InstructorRegistrationParams {
-  status: InstructorRegistrationStatus;
+  status: InstructorRegistrationParamsStatus;
+  fullName: string;
   pageNumber: number;
   pageSize: number;
   IsDescending: boolean;
@@ -134,6 +163,7 @@ const convertParamsToQuery = (params: InstructorRegistrationParams): RequestPara
   if (!params) return {};
   const query: RequestParams = {};
   if (params.status) query.status = params.status;
+  if (params.fullName) query.fullName = params.fullName;
   if (params.pageNumber) query.pageNumber = params.pageNumber;
   if (params.pageSize) query.pageSize = params.pageSize;
   if (params.IsDescending) query.isDescending = params.IsDescending;
@@ -164,17 +194,18 @@ export const instructorRegistrationService = {
   approveRegistration: async (
     profileId: string
   ): Promise<ApiResponse<InstructorRegistrationResponse>> => {
-    const response = await apiService.put<ApiResponse<InstructorRegistrationResponse>>(
-      `/api/v1/instructors/${profileId}/approve`
+    const response = await apiService.post<ApiResponse<InstructorRegistrationResponse>>(
+      `api/v1/instructors/${profileId}/approve`
     );
     return response.data;
   },
 
   rejectRegistration: async (
-    profileId: string
+    profileId: string,
+    data: RejectRegistrationRequest
   ): Promise<ApiResponse<InstructorRegistrationResponse>> => {
-    const response = await apiService.put<ApiResponse<InstructorRegistrationResponse>>(
-      `/api/v1/instructors/${profileId}/reject`
+    const response = await apiService.post<ApiResponse<InstructorRegistrationResponse>>(
+      `api/v1/instructors/${profileId}/not-approve`, data
     );
     return response.data;
   },
@@ -186,7 +217,7 @@ export const instructorRegistrationService = {
     const params = convertParamsToQuery(filters);
 
     const response = await apiService.get<InstructorRegistrationResponseList>(
-      "/api/v1/instructors/admin", params
+      "api/v1/instructors/admin", params
     );
     return response.data;
   }

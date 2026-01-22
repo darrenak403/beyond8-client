@@ -29,6 +29,7 @@ import { Camera, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { mediaService } from "@/lib/api/services/fetchMedia"
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
+import { useIsMobile } from "@/hooks/useMobile"
 
 interface UserDialogProps {
     open: boolean
@@ -87,6 +88,7 @@ export function UserDialog({
     user,
     mode,
 }: UserDialogProps) {
+    const isMobile = useIsMobile()
     const { mutateAsync: addUser, isPending: isAdding } = useAddUser()
 
     const { mutateAsync: updateUser, isPending: isUpdating } = useUpdateUser()
@@ -165,7 +167,7 @@ export function UserDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[800px]">
+            <DialogContent className={isMobile ? "max-w-full w-full h-[100dvh] rounded-none p-4 flex flex-col overflow-y-auto" : "sm:max-w-[800px]"}>
                 <DialogHeader>
                     <DialogTitle>
                         {mode === "add" ? "Thêm người dùng" : "Chỉnh sửa người dùng"}

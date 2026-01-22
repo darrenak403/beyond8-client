@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { InstructorRegistrationResponse } from "@/lib/api/services/fetchInstructorRegistration";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 
 interface GetColumnsProps {
     onReview: (registration: InstructorRegistrationResponse) => void;
@@ -24,14 +25,14 @@ export const getColumns = ({
             accessorKey: "user.fullName",
             id: "user_fullName", // Custom ID for filtering
             header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Ứng viên" />
+                <DataTableColumnHeader column={column} title="Giảng viên" />
             ),
             cell: ({ row }) => {
                 const user = row.original.user;
                 return (
                     <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.avatarUrl || ""} alt={user.fullName} />
+                            <AvatarImage src={formatImageUrl(user.avatarUrl) || ""} alt={user.fullName} />
                             <AvatarFallback>
                                 {user.fullName.charAt(0).toUpperCase()}
                             </AvatarFallback>
@@ -43,10 +44,6 @@ export const getColumns = ({
                     </div>
                 );
             },
-            // We need a custom filter function because we're accessing a nested property "user.fullName"
-            // However, since we provided "user_fullName" as ID and accessorKey is "user.fullName",
-            // TanStack table might handle dot notation if configured, but safe way is custom accessor or filter.
-            // Actually accessorKey "user.fullName" works for displaying, but for filtering we might need to ensure the value is string.
         },
         {
             accessorKey: "expertiseAreas",
@@ -56,7 +53,7 @@ export const getColumns = ({
             cell: ({ row }) => {
                 const areas = row.original.expertiseAreas || [];
                 return (
-                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                    <div className="flex flex-wrap gap-1 max-w-50">
                         {areas.slice(0, 2).map((area, index) => (
                             <Badge key={index} variant="outline" className="text-xs">
                                 {area}
@@ -94,14 +91,14 @@ export const getColumns = ({
                 return (
                     <Badge
                         className={
-                            status === "Approved"
+                            status === "Verified"
                                 ? "bg-green-600 hover:bg-green-700 whitespace-nowrap"
                                 : status === "Rejected"
                                     ? "bg-red-600 hover:bg-red-700 whitespace-nowrap"
                                     : "bg-orange-500 hover:bg-orange-600 whitespace-nowrap"
                         }
                     >
-                        {status === "Approved"
+                        {status === "Verified"
                             ? "Đã duyệt"
                             : status === "Rejected"
                                 ? "Đã từ chối"

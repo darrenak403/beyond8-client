@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { PaginationState } from "@tanstack/react-table";
 import { getColumns } from "./components/Columns";
@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useGetAllRegistration, useAproveRegistration, useRejectRegistration } from "@/hooks/useInstructorRegistration";
-import { InstructorRegistrationResponse, InstructorRegistrationStatus } from "@/lib/api/services/fetchInstructorRegistration";
+import { InstructorRegistrationResponse, InstructorRegistrationParamsStatus, VerificationStatus } from "@/lib/api/services/fetchInstructorRegistration";
+import { RejectDialog } from "./components/RejectDialog";
 
 import { RegistrationTableSkeleton } from "./components/RegistrationTableSkeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -24,6 +25,19 @@ const InstructorRegistrationPage = () => {
         pageSize: 10,
     });
 
+    const [status, setStatus] = useState<InstructorRegistrationParamsStatus>(InstructorRegistrationParamsStatus.All);
+    const [fullName, setFullName] = useState("");
+    const [debouncedFullName, setDebouncedFullName] = useState("");
+
+    // Debounce effect
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedFullName(fullName);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [fullName]);
+
     const {
         data,
         isLoading,
@@ -33,7 +47,8 @@ const InstructorRegistrationPage = () => {
     } = useGetAllRegistration({
         pageNumber: pagination.pageIndex + 1,
         pageSize: pagination.pageSize,
-        status: InstructorRegistrationStatus.All,
+        status: status,
+        fullName: debouncedFullName,
         IsDescending: true
     });
 
@@ -46,9 +61,11 @@ const InstructorRegistrationPage = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedRegistration, setSelectedRegistration] = useState<InstructorRegistrationResponse | null>(null);
 
+    const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+
     // Confirmation Dialog States
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-    const [confirmAction, setConfirmAction] = useState<"approve" | "reject" | null>(null);
+    const [confirmAction, setConfirmAction] = useState<"approve" | null>(null);
     const [targetId, setTargetId] = useState<string | null>(null);
 
     const handleReview = (registration: InstructorRegistrationResponse) => {
@@ -64,31 +81,42 @@ const InstructorRegistrationPage = () => {
 
     const handleRejectClick = (id: string) => {
         setTargetId(id);
-        setConfirmAction("reject");
-        setIsConfirmOpen(true);
+        setIsRejectDialogOpen(true);
     };
 
-    const handleConfirmAction = async () => {
-        if (!targetId || !confirmAction) return;
+    const handleConfirmApprove = async () => {
+        if (!targetId || confirmAction !== "approve") return;
 
         try {
-            if (confirmAction === "approve") {
-                await approveMutation.approveAsync(targetId);
-            } else {
-                await rejectMutation.rejectAsync(targetId);
-            }
-
-            // Close dialogs
+            await approveMutation.approveAsync(targetId);
             setIsDialogOpen(false);
-            // Verify if we should verify refetch here, usually mutation hooks invalidate queries.
-            // If not, we might need to call refetch().
-            // Assuming optimistic updates or query invalidation is handled in mutation hooks.
             refetch();
         } catch (error) {
             // Error handling is done in mutation hooks
         } finally {
             setIsConfirmOpen(false);
             setConfirmAction(null);
+            setTargetId(null);
+        }
+    };
+
+    const handleConfirmReject = async (reason: string, status: VerificationStatus.Rejected | VerificationStatus.RequestUpdate) => {
+        if (!targetId) return;
+
+        try {
+            await rejectMutation.rejectAsync({
+                id: targetId,
+                data: {
+                    notApproveReason: reason,
+                    verificationStatus: status
+                }
+            });
+            setIsDialogOpen(false);
+            setIsRejectDialogOpen(false);
+            refetch();
+        } catch (error) {
+            // Error handling is done in mutation hooks
+        } finally {
             setTargetId(null);
         }
     };
@@ -144,7 +172,12 @@ const InstructorRegistrationPage = () => {
                     pageCount={data?.totalPages}
                 >
                     {(table) => (
-                        <RegistrationTableToolbar table={table} />
+                        <RegistrationTableToolbar
+                            searchValue={fullName}
+                            onSearchChange={setFullName}
+                            statusFilter={status}
+                            onStatusChange={(value) => setStatus(value as InstructorRegistrationParamsStatus)}
+                        />
                     )}
                 </DataTable>
             )}
@@ -160,15 +193,18 @@ const InstructorRegistrationPage = () => {
             <ConfirmDialog
                 open={isConfirmOpen}
                 onOpenChange={setIsConfirmOpen}
-                onConfirm={handleConfirmAction}
-                title={confirmAction === "approve" ? "Duyệt đơn đăng ký?" : "Từ chối đơn đăng ký?"}
-                description={
-                    confirmAction === "approve"
-                        ? "Giảng viên sẽ được kích hoạt và có thể tạo khóa học."
-                        : "Đơn đăng ký sẽ bị từ chối. Hành động này không thể hoàn tác."
-                }
-                confirmText={confirmAction === "approve" ? "Duyệt" : "Từ chối"}
-                variant={confirmAction === "approve" ? "success" : "destructive"}
+                onConfirm={handleConfirmApprove}
+                title="Duyệt đơn đăng ký?"
+                description="Giảng viên sẽ được kích hoạt và có thể tạo khóa học."
+                confirmText="Duyệt"
+                variant="success"
+            />
+
+            <RejectDialog
+                open={isRejectDialogOpen}
+                onOpenChange={setIsRejectDialogOpen}
+                onSubmit={handleConfirmReject}
+                isSubmitting={rejectMutation.isRejecting}
             />
         </div>
     );

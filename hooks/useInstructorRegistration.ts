@@ -4,7 +4,8 @@ import {
   type InstructorRegistrationRequest,
   type InstructorRegistrationResponse,
   type AIReviewResponse,
-  InstructorRegistrationStatus,
+  type RejectRegistrationRequest,
+  InstructorRegistrationParamsStatus,
   InstructorRegistrationParams,
   InstructorRegistrationResponseList
 } from "@/lib/api/services/fetchInstructorRegistration";
@@ -70,7 +71,7 @@ export function useInstructorRegistration() {
 
 export function useGetAllRegistration(filterParams: InstructorRegistrationParams) {
   const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ['instructor-registration', 'getAll'],
+    queryKey: ['instructor-registration', 'getAll', filterParams],
     queryFn: () => instructorRegistrationService.getAll(filterParams),
     select: (data: InstructorRegistrationResponseList) => ({
       registrations: data.data,
@@ -124,8 +125,8 @@ export function useAproveRegistration() {
 
 export function useRejectRegistration() {
   const mutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await instructorRegistrationService.rejectRegistration(id);
+    mutationFn: async (args: { id: string; data: RejectRegistrationRequest }) => {
+      const response = await instructorRegistrationService.rejectRegistration(args.id, args.data);
 
       if (!response.isSuccess || !response.data) {
         throw new Error(response.message || "Từ chối đăng ký thất bại");
