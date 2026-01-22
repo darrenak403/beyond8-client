@@ -37,11 +37,11 @@ export function useLogin() {
 
       toast.success('Đăng nhập thành công!');
 
-      if (user?.role === Roles.Admin) {
+      if (user?.role?.includes(Roles.Admin)) {
         router.push('/admin/dashboard');
-      } else if (user?.role === Roles.Instructor) {
+      } else if (user?.role?.includes(Roles.Instructor)) {
         router.push('/instructor/dashboard');
-      } else if (user?.role === Roles.Student) {
+      } else if (user?.role?.includes(Roles.Student)) {
         router.push('/courses');
       }
     },
@@ -279,8 +279,8 @@ export function useAuth() {
     user,
     isAuthenticated,
     role: user?.role,
-    isAdmin: user?.role === Roles.Admin,
-    isInstructor: user?.role === Roles.Instructor,
-    isStudent: user?.role === Roles.Student,
+    isAdmin: user?.role?.includes(Roles.Admin),
+    isInstructor: user?.role?.includes(Roles.Instructor),
+    isStudent: user?.role?.includes(Roles.Student),
   }
 }
