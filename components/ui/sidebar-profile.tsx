@@ -50,11 +50,13 @@ export default function SidebarProfile({ currentTab, onTabChange }: SidebarProfi
     return [];
   }, [role]);
 
-  // Filter menu items based on user roles
   const visibleMenuItems = useMemo(() => {
-    return sidebarMenuItems.filter((item) => 
-      item.roles.some(requiredRole => userRoles.includes(requiredRole))
-    );
+    return sidebarMenuItems.filter((item) => {
+      if (item.id === "mywallet" && userRoles.includes("Student")) {
+        return false;
+      }
+      return item.roles.some(requiredRole => userRoles.includes(requiredRole));
+    });
   }, [userRoles]);
 
   const handleMenuClick = (value: string) => {
