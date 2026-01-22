@@ -2,7 +2,7 @@
 
 import { FileText, User, GraduationCap, Award, Briefcase, CreditCard, CheckCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+// import { toast } from "sonner"; // Tạm thời comment để test UI
 
 interface InstructorRegisSidebarProps {
   currentStep: number;
@@ -47,29 +47,34 @@ export default function InstructorRegisSidebar({
     }
   };
 
-  const canAccessStep = (stepNumber: number) => {
-    if (stepNumber < currentStep) {
-      return true;
-    }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const canAccessStep = (_stepNumber: number) => {
+    // Tạm thời cho phép di chuyển tự do để test UI
+    return true;
     
-    if (stepNumber === currentStep) {
-      return true;
-    }
-    
-    if (stepNumber === currentStep + 1) {
-      return isStepCompleted(currentStep);
-    }
-    
-    if (stepNumber > currentStep + 1) {
-      for (let i = currentStep; i < stepNumber; i++) {
-        if (!isStepCompleted(i)) {
-          return false;
-        }
-      }
-      return true;
-    }
-    
-    return false;
+    // Code gốc (đã comment để dễ restore):
+    // if (stepNumber < currentStep) {
+    //   return true;
+    // }
+    // 
+    // if (stepNumber === currentStep) {
+    //   return true;
+    // }
+    // 
+    // if (stepNumber === currentStep + 1) {
+    //   return isStepCompleted(currentStep);
+    // }
+    // 
+    // if (stepNumber > currentStep + 1) {
+    //   for (let i = currentStep; i < stepNumber; i++) {
+    //     if (!isStepCompleted(i)) {
+    //       return false;
+    //     }
+    //   }
+    //   return true;
+    // }
+    // 
+    // return false;
   };
 
   const handleStepClick = (stepNumber: number) => {
@@ -77,11 +82,15 @@ export default function InstructorRegisSidebar({
       return;
     }
     
-    if (canAccessStep(stepNumber)) {
-      onStepClick(stepNumber);
-    } else {
-      toast.error("Vui lòng hoàn thành bước hiện tại trước khi tiếp tục");
-    }
+    // Tạm thời bỏ qua validation để test UI
+    onStepClick(stepNumber);
+    
+    // Code gốc (đã comment để dễ restore):
+    // if (canAccessStep(stepNumber)) {
+    //   onStepClick(stepNumber);
+    // } else {
+    //   toast.error("Vui lòng hoàn thành bước hiện tại trước khi tiếp tục");
+    // }
   };
 
   return (

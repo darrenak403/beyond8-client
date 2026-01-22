@@ -7,6 +7,7 @@ import { Upload, X, CheckCircle2 } from "lucide-react";
 import { useIdentity } from "@/hooks/useIdentity";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import { useIsMobile } from "@/hooks/useMobile";
+import SafeImage from "@/components/ui/SafeImage";
 
 interface Step1Props {
   data: { 
@@ -14,16 +15,16 @@ interface Step1Props {
     backImg: string; 
     frontFileId: string; 
     backFileId: string;
-    frontClassifyResult?: { type: number; name: string };
-    backClassifyResult?: { type: number; name: string };
+    frontClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
+    backClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
   };
   onChange: (data: { 
     frontImg: string; 
     backImg: string; 
     frontFileId: string; 
     backFileId: string;
-    frontClassifyResult?: { type: number; name: string };
-    backClassifyResult?: { type: number; name: string };
+    frontClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
+    backClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
   }) => void;
 }
 
@@ -91,7 +92,6 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
           frontFileId: result.fileId,
           frontClassifyResult: result.classifyResult
         };
-        console.log('Step1 - Updated front data:', updatedData);
         onChange(updatedData);
       } else {
         const updatedData = { 
@@ -100,10 +100,11 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
           backFileId: result.fileId,
           backClassifyResult: result.classifyResult
         };
+        console.log('Step1 - Back classifyResult:', result.classifyResult);
         console.log('Step1 - Updated back data:', updatedData);
         onChange(updatedData);
       }
-    } catch (error) {
+    } catch {
       // Error handled by hook, clear preview
       if (type === 'front') {
         setFrontPreview("");
@@ -162,9 +163,11 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
             </label>
           ) : (
             <div className="relative">
-              <img
+              <SafeImage
                 src={frontPreview}
                 alt="CCCD mặt trước"
+                width={100}
+                height={100100}
                 className={`w-full object-cover rounded-lg ${isMobile ? 'h-48' : 'h-64'}`}
               />
               <Button
@@ -217,9 +220,11 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
             </label>
           ) : (
             <div className="relative">
-              <img
+              <SafeImage
                 src={backPreview}
                 alt="CCCD mặt sau"
+                width={100}
+                height={100}
                 className={`w-full object-cover rounded-lg ${isMobile ? 'h-48' : 'h-64'}`}
               />
               <Button

@@ -7,11 +7,11 @@ export function useIdentity() {
   
   const uploadFrontMutation = useMutation({
     mutationFn: async (file: File): Promise<IdentityCardUploadResult> => {
-      return await identityService.uploadIdentityCard(file, 2); // 2 = front
+      return await identityService.uploadIdentityCard(file, true); // true = front
     },
     onSuccess: (data) => {
       toast.success("Upload CCCD mặt trước thành công!");
-      queryClient.invalidateQueries({ queryKey: ["identity", , data] });
+      queryClient.invalidateQueries({ queryKey: ["identity", data] });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Upload CCCD mặt trước thất bại!");
@@ -20,7 +20,7 @@ export function useIdentity() {
 
   const uploadBackMutation = useMutation({
     mutationFn: async (file: File): Promise<IdentityCardUploadResult> => {
-      return await identityService.uploadIdentityCard(file, 3); // 3 = back
+      return await identityService.uploadIdentityCard(file, false); // false = back
     },
     onSuccess: (data) => {
       toast.success("Upload CCCD mặt sau thành công!");

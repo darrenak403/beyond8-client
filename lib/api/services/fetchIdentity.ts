@@ -13,18 +13,21 @@ export interface IsIdentityCardResponse {
 
 export interface ClassifyRequest {
   img: string;
-  card_type: 1 | 2 | 3;
+  is_front: boolean;
 }
 
 export interface ClassifyResponse {
-  type: number;
-  name: string;
+  type_name: string;
+  card_name: string;
+  id_number: string | null;
+  issue_date: string | null;
 }
 
 export interface IdentityCardUploadResult {
   fileUrl: string;
   fileId: string;
   classifyResult: ClassifyResponse;
+  isFront: boolean;
 }
 
 export const identityService = {
@@ -51,7 +54,7 @@ export const identityService = {
 
   uploadIdentityCard: async (
     file: File,
-    cardType: 2 | 3 
+    isFront: boolean
   ): Promise<IdentityCardUploadResult> => {
     const isIdentityResponse = await identityService.isIdentityCard(file);
 
@@ -67,14 +70,14 @@ export const identityService = {
 
     const classifyResponse = await identityService.classifyIdentityCard({
       img,
-      card_type: cardType,
+      is_front: isFront,
     });
 
     if (!classifyResponse.isSuccess || !classifyResponse.data) {
       throw new Error(classifyResponse.message || "Không thể phân loại ảnh CCCD");
     }
 
-    const mediaFile: MediaFile = cardType === 2
+    const mediaFile: MediaFile = isFront
       ? await mediaService.uploadIdentityCardFront(file)
       : await mediaService.uploadIdentityCardBack(file);
 
@@ -82,6 +85,7 @@ export const identityService = {
       fileUrl: mediaFile.fileUrl,
       fileId: mediaFile.id,
       classifyResult: classifyResponse.data,
+      isFront,
     };
   },
 };

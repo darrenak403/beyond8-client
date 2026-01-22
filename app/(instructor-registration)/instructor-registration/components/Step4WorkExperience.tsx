@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MonthYearPicker } from "@/components/ui/calendar";
-import { Plus, Trash2, Building, Briefcase, Calendar as CalendarIcon, Edit2 } from "lucide-react";
+import { Plus, Trash2, Building, Briefcase, Calendar as CalendarIcon, Edit2, FileText } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useIsMobile } from "@/hooks/useMobile";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatDateForInput } from "@/lib/utils/formatDate";
 
 interface WorkExperience {
   company: string;
   role: string;
   from: string;
   to: string;
+  isCurrentJob: boolean;
+  description: string | null;
 }
 
 interface Step5Props {
@@ -23,8 +27,15 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
   const isMobile = useIsMobile();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
+  const toISOFromDateInput = (value: string) => {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toISOString();
+  };
+
   const handleAdd = () => {
-    const newWorkExperience = [...data.workExperience, { company: "", role: "", from: "", to: "" }];
+    const newWorkExperience = [...data.workExperience, { company: "", role: "", from: "", to: "", isCurrentJob: false, description: null }];
     onChange({ workExperience: newWorkExperience });
     setEditingIndex(newWorkExperience.length - 1);
   };
@@ -36,7 +47,7 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
     if (editingIndex === index) setEditingIndex(null);
   };
 
-  const handleChange = (index: number, field: keyof WorkExperience, value: string) => {
+  const handleChange = (index: number, field: keyof WorkExperience, value: string | boolean | null) => {
     const newWorkExperience = [...data.workExperience];
     newWorkExperience[index] = { ...newWorkExperience[index], [field]: value };
     onChange({ workExperience: newWorkExperience });
@@ -137,12 +148,14 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                       <CalendarIcon className="w-4 h-4 text-purple-600" />
                       Từ
                     </label>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <MonthYearPicker
-                        value={work.from}
-                        onChange={(value) => handleChange(index, 'from', value)}
-                        placeholder="Chọn tháng/năm"
+                    <div className="relative" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="date"
+                        className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={formatDateForInput(work.from)}
+                        onChange={(e) => handleChange(index, "from", toISOFromDateInput(e.target.value))}
                       />
+                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     </div>
                   </div>
 
@@ -151,14 +164,48 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                       <CalendarIcon className="w-4 h-4 text-purple-600" />
                       Đến
                     </label>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <MonthYearPicker
-                        value={work.to}
-                        onChange={(value) => handleChange(index, 'to', value)}
-                        placeholder="Chọn tháng/năm"
+                    <div className="relative" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="date"
+                        className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        value={formatDateForInput(work.to)}
+                        onChange={(e) => handleChange(index, "to", toISOFromDateInput(e.target.value))}
+                        disabled={work.isCurrentJob}
                       />
+                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     </div>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-purple-600" />
+                    Đang làm việc tại đây
+                  </label>
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Switch
+                      checked={work.isCurrentJob}
+                      onCheckedChange={(checked) => handleChange(index, 'isCurrentJob', checked)}
+                    />
+                    <span className="text-sm text-gray-600">
+                      {work.isCurrentJob ? "Có" : "Không"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-purple-600" />
+                    Mô tả công việc
+                  </label>
+                  <Textarea
+                    className="w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Mô tả về công việc, trách nhiệm, thành tựu..."
+                    rows={3}
+                    value={work.description || ""}
+                    onChange={(e) => handleChange(index, 'description', e.target.value || null)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 </div>
 
                 <Button
@@ -184,7 +231,9 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                     <div className="font-semibold text-lg">{work.company || "Chưa có công ty"}</div>
                     <div className="text-sm text-gray-600 mt-1">{work.role || "Chưa có vị trí"}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      {work.from && work.to ? `${work.from} - ${work.to}` : "Chưa có thời gian"}
+                      {work.from
+                        ? `${formatDateForInput(work.from)} - ${work.isCurrentJob ? "Hiện tại" : formatDateForInput(work.to)}`
+                        : "Chưa có thời gian"}
                     </div>
                   </div>
                   <Edit2 className="w-4 h-4 text-gray-400" />

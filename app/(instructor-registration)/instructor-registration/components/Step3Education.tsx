@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface Education {
   school: string;
   degree: string;
+  fieldOfStudy: string;
   start: number;
   end: number;
 }
@@ -23,7 +24,7 @@ export default function Step3Education({ data, onChange }: Step3Props) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const handleAdd = () => {
-    const newEducation = [...data.education, { school: "", degree: "", start: new Date().getFullYear(), end: new Date().getFullYear() }];
+    const newEducation = [...data.education, { school: "", degree: "", fieldOfStudy: "", start: new Date().getFullYear(), end: new Date().getFullYear() }];
     onChange({ education: newEducation });
     setEditingIndex(newEducation.length - 1);
   };
@@ -130,6 +131,24 @@ export default function Step3Education({ data, onChange }: Step3Props) {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <School className="w-4 h-4 text-purple-600" />
+                    Chuyên ngành
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="VD: Khoa học Máy tính"
+                      value={edu.fieldOfStudy}
+                      onChange={(e) => handleChange(index, 'fieldOfStudy', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <School className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium flex items-center gap-2">
@@ -190,6 +209,9 @@ export default function Step3Education({ data, onChange }: Step3Props) {
                   <div className="flex-1">
                     <div className="font-semibold text-lg">{edu.school || "Chưa có tên trường"}</div>
                     <div className="text-sm text-gray-600 mt-1">{edu.degree || "Chưa có bằng cấp"}</div>
+                    {edu.fieldOfStudy && (
+                      <div className="text-sm text-gray-500 mt-1">{edu.fieldOfStudy}</div>
+                    )}
                     <div className="text-xs text-gray-500 mt-1">
                       {edu.start} - {edu.end}
                     </div>
