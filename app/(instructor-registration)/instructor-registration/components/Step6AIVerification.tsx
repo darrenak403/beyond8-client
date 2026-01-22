@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, XCircle, Loader2, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle2, XCircle, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { useInstructorRegistration } from "@/hooks/useInstructorRegistration";
-import type { InstructorRegistrationRequest } from "@/lib/api/services/fetchInstructorRegistration";
+import { useIsMobile } from "@/hooks/useMobile";
+import type { InstructorRegistrationRequest, AIProfileReviewRequest } from "@/lib/api/services/fetchInstructorRegistration";
 
 interface Step6Props {
   onSubmit: () => void;
@@ -19,11 +20,23 @@ interface Step6Props {
 export default function Step6AIVerification({  formData, onReviewComplete }: Step6Props) {
   const { reviewApplicationAsync, isReviewing, reviewData } = useInstructorRegistration();
   const [hasReviewed, setHasReviewed] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const runAIReview = async () => {
       try {
-        const result = await reviewApplicationAsync(formData);
+        // Chỉ truyền các field cần thiết cho AI review
+        const reviewRequest: AIProfileReviewRequest = {
+          bio: formData.bio,
+          headline: formData.headline,
+          expertiseAreas: formData.expertiseAreas,
+          education: formData.education,
+          workExperience: formData.workExperience,
+          certificates: formData.certificates,
+          teachingLanguages: formData.teachingLanguages,
+        };
+        
+        const result = await reviewApplicationAsync(reviewRequest);
         setHasReviewed(true);
         if (onReviewComplete && result) {
           onReviewComplete({ isAccepted: result.isAccepted });
@@ -39,122 +52,165 @@ export default function Step6AIVerification({  formData, onReviewComplete }: Ste
     }
   }, [formData, reviewApplicationAsync, hasReviewed, isReviewing, onReviewComplete]);
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | null) => {
     if (status === 'Valid') return <CheckCircle2 className="w-5 h-5 text-green-600" />;
     if (status === 'Warning') return <AlertCircle className="w-5 h-5 text-yellow-600" />;
-    return <XCircle className="w-5 h-5 text-red-600" />;
+    if (status === 'Invalid') return <XCircle className="w-5 h-5 text-red-600" />;
+    return <AlertCircle className="w-5 h-5 text-gray-400" />;
   };
 
   const canSubmit = reviewData?.isAccepted === true;
   const progress = reviewData ? reviewData.totalScore : 0;
 
   return (
-    <div className="w-full space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-primary">Xác minh hồ sơ</h2>
-        <p className="text-gray-600">AI đang kiểm tra tính hợp lệ của hồ sơ</p>
+    <div className="w-full h-full flex flex-col">
+      {/* Header */}
+      <div className="text-center space-y-3 flex-shrink-0">
+        <h2 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+          Xác minh hồ sơ bằng AI
+        </h2>
+        <p className={`text-gray-600 max-w-2xl mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
+          AI đang kiểm tra tính hợp lệ và chất lượng của hồ sơ
+        </p>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Kết quả kiểm tra</h3>
-        <p className="text-sm text-gray-600">
-          {isReviewing ? "Đang xử lý..." : `Điểm số: ${progress}%`}
-        </p>
-        
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Tiến độ kiểm tra</span>
-              <span className="font-semibold">{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-3" />
-          </div>
-
-          {isReviewing ? (
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
-                  <Skeleton className="h-4 w-full" />
+      {/* Scrollable Content */}
+      <div className="overflow-y-auto pr-2 scrollbar-hide flex-1 mt-8 space-y-6">
+        {/* Progress Card */}
+        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-purple-50">
+                    <Sparkles className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h3 className="font-semibold text-gray-800">Điểm số tổng thể</h3>
                 </div>
-              ))}
+                <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  {Math.round(progress)}%
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Tiến độ kiểm tra</span>
+                  <span className="font-medium">{isReviewing ? "Đang xử lý..." : "Hoàn thành"}</span>
+                </div>
+                <Progress value={progress} className="h-3" />
+              </div>
             </div>
-          ) : reviewData ? (
-            <div className="space-y-3">
-              {reviewData.details.map((detail, index) => (
-                <div key={index} className="p-3 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      {getStatusIcon(detail.status)}
-                      <div>
-                        <p className="font-medium">{detail.sectionName}</p>
-                        <p className="text-sm text-gray-600">Điểm: {detail.score}%</p>
+          </CardContent>
+        </Card>
+
+        {/* Review Results */}
+        {isReviewing ? (
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Card key={i} className="border-2 border-gray-100 rounded-4xl">
+                <CardContent className="pt-4 px-4 pb-4">
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : reviewData ? (
+          <div className="space-y-3">
+            {reviewData.details.map((detail, index) => (
+              <Card key={index} className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
+                <CardContent className="pt-4 px-4 pb-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-purple-50">
+                          {getStatusIcon(detail.status)}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800">{detail.sectionName}</p>
+                          <p className="text-sm text-gray-600">Điểm: {detail.score}%</p>
+                        </div>
                       </div>
                     </div>
+                    
+                    {detail.issues.length > 0 && (
+                      <div className="p-3 bg-red-50 rounded-lg border border-red-100">
+                        <p className="font-medium text-red-700 text-sm mb-2">⚠️ Vấn đề:</p>
+                        <ul className="list-disc list-inside text-sm text-red-600 space-y-1">
+                          {detail.issues.map((issue, i) => (
+                            <li key={i}>{issue}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {detail.suggestions.length > 0 && (
+                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <p className="font-medium text-blue-700 text-sm mb-2">💡 Gợi ý:</p>
+                        <ul className="list-disc list-inside text-sm text-blue-600 space-y-1">
+                          {detail.suggestions.map((suggestion, i) => (
+                            <li key={i}>{suggestion}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                  
-                  {detail.issues.length > 0 && (
-                    <div className="mt-2 text-sm">
-                      <p className="font-medium text-red-600">Vấn đề:</p>
-                      <ul className="list-disc list-inside text-gray-600">
-                        {detail.issues.map((issue, i) => (
-                          <li key={i}>{issue}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {detail.suggestions.length > 0 && (
-                    <div className="mt-2 text-sm">
-                      <p className="font-medium text-blue-600">Gợi ý:</p>
-                      <ul className="list-disc list-inside text-gray-600">
-                        {detail.suggestions.map((suggestion, i) => (
-                          <li key={i}>{suggestion}</li>
-                        ))}
-                      </ul>
-                    </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : null}
+
+        {/* Final Result Card */}
+        {reviewData && (
+          <Card className={`border-2 ${canSubmit ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'} rounded-4xl`}>
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className={`p-3 rounded-full ${canSubmit ? 'bg-green-100' : 'bg-red-100'}`}>
+                  {canSubmit ? (
+                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                  ) : (
+                    <XCircle className="w-6 h-6 text-red-600" />
                   )}
                 </div>
-              ))}
-            </div>
-          ) : null}
+                <div className="flex-1">
+                  <h3 className={`font-bold text-lg ${canSubmit ? 'text-green-800' : 'text-red-800'}`}>
+                    {canSubmit ? 'Hồ sơ của bạn đạt yêu cầu!' : 'Hồ sơ chưa đạt yêu cầu'}
+                  </h3>
+                  {reviewData.feedbackSummary && (
+                    <p className={`text-sm mt-2 ${canSubmit ? 'text-green-700' : 'text-red-700'}`}>
+                      {reviewData.feedbackSummary}
+                    </p>
+                  )}
+                  {!canSubmit && (
+                    <p className="text-sm mt-2 text-red-700">
+                      Vui lòng quay lại và bổ sung thêm thông tin theo gợi ý.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          {reviewData && (
-            <Alert variant={canSubmit ? "default" : "destructive"}>
-              <AlertDescription>
-                {canSubmit ? (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
-                    <div>
-                      <p className="font-semibold">Hồ sơ của bạn đạt yêu cầu!</p>
-                      {reviewData.feedbackSummary && (
-                        <p className="text-sm mt-1">{reviewData.feedbackSummary}</p>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <XCircle className="w-5 h-5" />
-                    <div>
-                      <p className="font-semibold">Hồ sơ chưa đạt yêu cầu</p>
-                      {reviewData.feedbackSummary && (
-                        <p className="text-sm mt-1">{reviewData.feedbackSummary}</p>
-                      )}
-                      <p className="text-sm mt-1">Vui lòng quay lại và bổ sung thêm thông tin theo gợi ý.</p>
-                    </div>
-                  </div>
-                )}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {reviewData?.additionalFeedback && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="font-medium text-blue-900 mb-2">Phản hồi bổ sung:</p>
-              <p className="text-sm text-blue-800">{reviewData.additionalFeedback}</p>
-            </div>
-          )}
-        </div>
+        {/* Additional Feedback */}
+        {reviewData?.additionalFeedback && (
+          <Card className="border-2 border-purple-100 rounded-4xl">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-purple-50">
+                  <AlertCircle className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800 mb-2">Phản hồi bổ sung:</p>
+                  <p className="text-sm text-gray-600">{reviewData.additionalFeedback}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

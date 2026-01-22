@@ -46,9 +46,9 @@ export default function Step4Certificates({ data, onChange }: Step4Props) {
     <div className="w-full h-full flex flex-col">
       {/* Header */}
       <div className="text-center space-y-3 flex-shrink-0">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
+        {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
           <Medal className="w-8 h-8 text-white" />
-        </div>
+        </div> */}
         <h2 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
           Chứng chỉ
         </h2>
@@ -82,8 +82,8 @@ export default function Step4Certificates({ data, onChange }: Step4Props) {
                 transition={{ duration: 0.3 }}
                 layout
               >
-                <Card className="border-2 border-purple-100 hover:border-purple-300 transition-all hover:shadow-lg">
-                  <CardContent className="pt-6">
+                <Card className="border-2 border-purple-100 hover:border-purple-300 transition-all hover:shadow-lg rounded-4xl">
+                  <CardContent className="pt-4 px-4 pb-4">
                     {editingIndex === index ? (
                       // Edit Mode
                       <div className="space-y-4">
@@ -116,7 +116,7 @@ export default function Step4Certificates({ data, onChange }: Step4Props) {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                               placeholder="VD: AWS Certified Solutions Architect"
                               value={cert.name}
                               onChange={(e) => handleChange(index, 'name', e.target.value)}
@@ -131,7 +131,7 @@ export default function Step4Certificates({ data, onChange }: Step4Props) {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                               placeholder="VD: Amazon Web Services"
                               value={cert.issuer}
                               onChange={(e) => handleChange(index, 'issuer', e.target.value)}
@@ -146,7 +146,7 @@ export default function Step4Certificates({ data, onChange }: Step4Props) {
                             </label>
                             <input
                               type="url"
-                              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                               placeholder="https://www.credential.net/..."
                               value={cert.url}
                               onChange={(e) => handleChange(index, 'url', e.target.value)}
@@ -161,7 +161,7 @@ export default function Step4Certificates({ data, onChange }: Step4Props) {
                             </label>
                             <input
                               type="number"
-                              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                               placeholder="2023"
                               min="1950"
                               max={new Date().getFullYear()}

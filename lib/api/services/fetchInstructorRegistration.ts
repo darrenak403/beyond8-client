@@ -116,6 +116,27 @@ export interface InstructorRegistrationResponse {
   certificates: Certificates[];
 }
 
+export interface InstructorProfileResponse {
+  id: string;
+  user: InstructorUser;
+  bio: string | null;
+  headline: string | null;
+  expertiseAreas: string[];
+  education: InstructorEducation[];
+  workExperience: InstructorWorkExperience[];
+  socialLinks: InstructorSocialLinks;
+  certificates: Certificates[];
+  teachingLanguages: string[];
+  introVideoUrl: string | null;
+  totalStudents: number;
+  totalCourses: number;
+  avgRating: number | null;
+  verificationStatus: VerificationStatus;
+  verifiedAt: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
 export interface BankInfo {
   bankName: string;
   accountNumber: string;
@@ -155,7 +176,7 @@ export interface Metadata {
 
 export interface AIReviewDetail {
   sectionName: string;
-  status: "Valid" | "Invalid" | "Warning";
+  status: string | null;
   score: number;
   issues: string[];
   suggestions: string[];
@@ -167,6 +188,34 @@ export interface AIReviewResponse {
   feedbackSummary: string | null;
   details: AIReviewDetail[];
   additionalFeedback: string | null;
+}
+
+export interface AIProfileReviewRequest {
+  bio: string;
+  headline: string;
+  expertiseAreas: string[];
+  education: Array<{
+    school: string;
+    degree: string;
+    fieldOfStudy: string;
+    start: number;
+    end: number;
+  }>;
+  workExperience: Array<{
+    company: string;
+    role: string;
+    from: string;
+    to: string;
+    isCurrentJob: boolean;
+    description: string | null;
+  }>;
+  certificates: Array<{
+    name: string;
+    url: string;
+    issuer: string;
+    year: number;
+  }>;
+  teachingLanguages: string[];
 }
 
 export enum InstructorRegistrationParamsStatus {
@@ -198,10 +247,10 @@ const convertParamsToQuery = (params: InstructorRegistrationParams): RequestPara
 
 export const instructorRegistrationService = {
   reviewApplication: async (
-    request: InstructorRegistrationRequest
+    request: AIProfileReviewRequest
   ): Promise<ApiResponse<AIReviewResponse>> => {
     const response = await apiService.post<ApiResponse<AIReviewResponse>>(
-      "api/v1/ai/instructor-application-review",
+      "api/v1/ai/profile-review",
       request
     );
     return response.data;
@@ -248,9 +297,16 @@ export const instructorRegistrationService = {
     return response.data;
   },
 
-  getMe: async (): Promise<ApiResponse<InstructorRegistrationResponse>> => {
-    const response = await apiService.get<ApiResponse<InstructorRegistrationResponse>>(
+  getMe: async (): Promise<ApiResponse<InstructorProfileResponse>> => {
+    const response = await apiService.get<ApiResponse<InstructorProfileResponse>>(
       "/api/v1/instructors/me"
+    );
+    return response.data;
+  },
+
+  checkApply: async (): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.get<ApiResponse<boolean>>(
+      "/api/v1/instructors/check-apply"
     );
     return response.data;
   }

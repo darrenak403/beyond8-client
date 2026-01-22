@@ -253,7 +253,7 @@ export default function InstructorRegistrationPage() {
 
           {/* Main Content */}
           <div className={`flex-1 ${isMobile ? "" : ""} min-h-0 overflow-hidden`}>
-            <div className="max-w-4xl mx-auto px-4 h-full">
+            <div className="max-w-5xl mx-auto px-4 h-full">
               <AnimatePresence mode="wait">
                 {currentStep === 1 && (
                   <motion.div
@@ -388,6 +388,7 @@ export default function InstructorRegistrationPage() {
                     exit="out"
                     variants={pageVariants}
                     transition={pageTransition}
+                    className="h-full"
                   >
                     <Step6AIVerification
                       onSubmit={handleSubmit}

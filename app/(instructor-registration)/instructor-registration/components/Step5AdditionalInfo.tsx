@@ -66,9 +66,9 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
     <div className="w-full h-full flex flex-col">
       {/* Header */}
       <div className="text-center space-y-3 flex-shrink-0">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
+        {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
           <Info className="w-8 h-8 text-white" />
-        </div>
+        </div> */}
         <h2 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
           Thông tin bổ sung
         </h2>
@@ -77,9 +77,9 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
         </p>
       </div>
 
-      <div className="space-y-6 max-w-3xl mx-auto overflow-y-auto scrollbar-hide flex-1 mt-8">
+      <div className="overflow-y-auto pr-2 scrollbar-hide flex-1 mt-8 space-y-6">
         {/* Bank Information Card */}
-        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors">
+        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b">
@@ -98,7 +98,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                     placeholder="VD: Vietcombank, BIDV, Techcombank..."
                     value={data.bankInfo.bankName}
                     onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, bankName: e.target.value } })}
@@ -112,7 +112,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                     placeholder="VD: 1234567890"
                     value={data.bankInfo.accountNumber}
                     onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountNumber: e.target.value } })}
@@ -126,7 +126,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                     placeholder="VD: NGUYEN VAN A"
                     value={data.bankInfo.accountHolderName}
                     onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountHolderName: e.target.value } })}
@@ -140,7 +140,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                     placeholder="VD: 0123456789"
                     value={data.taxId || ""}
                     onChange={(e) => onChange({ ...data, taxId: e.target.value || null })}
@@ -152,7 +152,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
         </Card>
 
         {/* Teaching Languages Card */}
-        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors">
+        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b">
@@ -165,7 +165,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
               <div className="space-y-2">
                 <input
                   type="text"
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                   placeholder="Nhập ngôn ngữ và nhấn Enter"
                   value={languageInput}
                   onChange={(e) => setLanguageInput(e.target.value)}
@@ -189,7 +189,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                       >
                         <Badge
                           variant="secondary"
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-3 py-1.5 flex items-center gap-1.5 text-xs font-medium"
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-1.5 py-0.5 flex items-center gap-0.5 text-[10px] font-medium"
                         >
                           {lang}
                           <button
@@ -197,7 +197,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                             onClick={() => handleRemoveLanguage(lang)}
                             className="ml-0.5 hover:bg-white/20 rounded-full p-0.5 transition-colors"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-2.5 h-2.5" />
                           </button>
                         </Badge>
                       </motion.div>
@@ -216,7 +216,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                       <Badge
                         key={lang}
                         variant="outline"
-                        className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-2.5 py-1 transition-colors border-2 text-xs"
+                        className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-[10px]"
                         onClick={() => handleAddLanguage(lang)}
                       >
                         + {lang}
@@ -233,7 +233,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                 </label>
                 <input
                   type="url"
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                   placeholder="https://youtube.com/watch?v=..."
                   value={data.introVideoUrl || ""}
                   onChange={(e) => onChange({ ...data, introVideoUrl: e.target.value || null })}
@@ -247,7 +247,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
         </Card>
 
         {/* Social Links Card */}
-        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors">
+        <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b">
@@ -265,7 +265,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                   </label>
                   <input
                     type="url"
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                     placeholder="https://facebook.com/yourprofile"
                     value={data.socialLinks.facebook || ""}
                     onChange={(e) => onChange({
@@ -282,7 +282,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                   </label>
                   <input
                     type="url"
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                     placeholder="https://linkedin.com/in/yourprofile"
                     value={data.socialLinks.linkedIn || ""}
                     onChange={(e) => onChange({
@@ -299,7 +299,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
                   </label>
                   <input
                     type="url"
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                     placeholder="https://yourwebsite.com"
                     value={data.socialLinks.website || ""}
                     onChange={(e) => onChange({

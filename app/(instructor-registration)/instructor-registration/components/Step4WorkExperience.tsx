@@ -76,9 +76,9 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
     <div className="w-full h-full flex flex-col">
       {/* Header */}
       <div className="text-center space-y-3 flex-shrink-0">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
+        {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
           <Target className="w-8 h-8 text-white" />
-        </div>
+        </div> */}
         <h2 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
           Kinh nghiệm làm việc
         </h2>
@@ -112,8 +112,8 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                 transition={{ duration: 0.3 }}
                 layout
               >
-                <Card className="border-2 border-purple-100 hover:border-purple-300 transition-all hover:shadow-lg">
-                  <CardContent className="pt-6">
+                <Card className="border-2 border-purple-100 hover:border-purple-300 transition-all hover:shadow-lg rounded-4xl">
+                  <CardContent className="pt-4 px-4 pb-4">
                     {editingIndex === index ? (
                       // Edit Mode
                       <div className="space-y-4">
@@ -146,7 +146,7 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                               placeholder="VD: FPT Software"
                               value={work.company}
                               onChange={(e) => handleChange(index, 'company', e.target.value)}
@@ -161,7 +161,7 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                               placeholder="VD: Senior Full-stack Developer"
                               value={work.role}
                               onChange={(e) => handleChange(index, 'role', e.target.value)}
@@ -177,7 +177,7 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                               </label>
                               <input
                                 type="date"
-                                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
                                 value={formatDateForInput(work.from)}
                                 onChange={(e) => handleChange(index, "from", toISOFromDateInput(e.target.value))}
                               />
@@ -190,7 +190,7 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                               </label>
                               <input
                                 type="date"
-                                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
                                 value={formatDateForInput(work.to)}
                                 onChange={(e) => handleChange(index, "to", toISOFromDateInput(e.target.value))}
                                 disabled={work.isCurrentJob}
@@ -216,7 +216,7 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                               Mô tả công việc
                             </label>
                             <Textarea
-                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none text-sm"
                               placeholder="Mô tả về công việc, trách nhiệm, dự án và thành tựu của bạn..."
                               rows={4}
                               value={work.description || ""}
@@ -250,23 +250,24 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                             <p className="text-purple-600 font-medium mt-1">
                               {work.company || "Chưa có công ty"}
                             </p>
-                            <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-                              <CalendarIcon className="w-4 h-4" />
-                              <span>
-                                {work.from
-                                  ? `${formatDisplayDate(work.from)} - ${work.isCurrentJob ? "Hiện tại" : formatDisplayDate(work.to) || "N/A"}`
-                                  : "Chưa có thời gian"}
-                              </span>
-                            </div>
                             {work.description && (
                               <p className="text-gray-600 text-sm mt-2 line-clamp-2">
                                 {work.description}
                               </p>
                             )}
-                            {work.isCurrentJob && (
+                            {work.isCurrentJob ? (
                               <div className="inline-block mt-2">
                                 <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                                   Đang làm việc
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                                <CalendarIcon className="w-4 h-4" />
+                                <span>
+                                  {work.from
+                                    ? `${formatDisplayDate(work.from)} - ${formatDisplayDate(work.to) || "N/A"}`
+                                    : "Chưa có thời gian"}
                                 </span>
                               </div>
                             )}

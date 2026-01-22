@@ -31,7 +31,6 @@ export default function ProfileContent({
 }: ProfileContentProps) {
   const [internalActiveTab, setInternalActiveTab] = useState("personal");
   const isMobile = useIsMobile();
-  const isInstructor = userProfile.roles?.includes(Roles.Instructor) ?? false;
 
   const activeTab = externalActiveTab || internalActiveTab;
 
@@ -43,9 +42,7 @@ export default function ProfileContent({
     }
   };
 
-  const visibleTabs = tabs.filter(tab => 
-    tab.value !== "instructor" || isInstructor
-  );
+  const visibleTabs = tabs;
 
   return (
     <div className="bg-white">
@@ -96,7 +93,7 @@ export default function ProfileContent({
             onProfileUpdate={onProfileUpdate}
           />
         )}
-        {activeTab === "instructor" && isInstructor && <ProfileInstructorForm />}
+        {activeTab === "instructor" && <ProfileInstructorForm />}
         {activeTab === "security" && <ResetPasswordForm />}
       </div>
     </div>

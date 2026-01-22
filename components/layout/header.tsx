@@ -7,6 +7,8 @@ import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell,
 import { useAuth, useLogout } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
+import { useQuery } from "@tanstack/react-query";
+import { instructorRegistrationService } from "@/lib/api/services/fetchInstructorRegistration";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,6 +33,24 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { mutateLogout } = useLogout();
 
+  const isInstructor = () => {
+    if (!userProfile?.roles) return false;
+    const roles = Array.isArray(userProfile.roles) ? userProfile.roles : [userProfile.roles];
+    return roles.includes("Instructor");
+  };
+
+  const isStudent = () => {
+    if (!userProfile?.roles) return false;
+    const roles = Array.isArray(userProfile.roles) ? userProfile.roles : [userProfile.roles];
+    return roles.length === 1 && roles.includes("Student");
+  };
+
+  const { data: checkApplyData } = useQuery({
+    queryKey: ["instructor-check-apply"],
+    queryFn: () => instructorRegistrationService.checkApply(),
+    enabled: isAuthenticated && isStudent(),
+  });
+
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
       return userProfile.fullName?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || 'U';
@@ -39,12 +59,6 @@ export function Header() {
       return userProfile.email.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
     }
     return 'U';
-  };
-
-  const isInstructor = () => {
-    if (!userProfile?.roles) return false;
-    const roles = Array.isArray(userProfile.roles) ? userProfile.roles : [userProfile.roles];
-    return roles.includes("Instructor");
   };
 
   const categories = [
@@ -178,14 +192,14 @@ export function Header() {
                       Trang giảng viên
                     </Button>
                   </Link>
-                ) : (
+                ) : isStudent() && checkApplyData?.data === false ? (
                   <Link href="/instructor-registration">
                     <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
                       <GraduationCap className="h-4 w-4" />
                       Đăng ký giảng viên
                     </Button>
                   </Link>
-                )
+                ) : null
               )}
 
               {isLoading ? (
@@ -241,7 +255,7 @@ export function Header() {
                       Ví của tôi
                     </Link>
                   </DropdownMenuItem>
-                  {isMobile && (
+                  {isMobile && (isInstructor() || (isStudent() && checkApplyData?.data === false)) && (
                     <>
                       <DropdownMenuSeparator />
                       {isInstructor() ? (
@@ -251,14 +265,14 @@ export function Header() {
                             Trang giảng viên
                           </Link>
                         </DropdownMenuItem>
-                      ) : (
+                      ) : isStudent() && checkApplyData?.data === false ? (
                         <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
                           <Link href="/instructor-registration" className="flex items-center gap-2">
                             <GraduationCap className="h-4 w-4" />
                             Đăng ký giảng viên
                           </Link>
                         </DropdownMenuItem>
-                      )}
+                      ) : null}
                     </>
                   )}
                   <DropdownMenuSeparator />

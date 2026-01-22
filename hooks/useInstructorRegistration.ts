@@ -3,7 +3,9 @@ import {
   instructorRegistrationService,
   type InstructorRegistrationRequest,
   type InstructorRegistrationResponse,
+  type InstructorProfileResponse,
   type AIReviewResponse,
+  type AIProfileReviewRequest,
   type RejectRegistrationRequest,
   InstructorRegistrationParamsStatus,
   InstructorRegistrationParams,
@@ -16,7 +18,7 @@ export function useInstructorRegistration() {
 
   const reviewMutation = useMutation({
     mutationFn: async (
-      request: InstructorRegistrationRequest
+      request: AIProfileReviewRequest
     ): Promise<AIReviewResponse> => {
       const response = await instructorRegistrationService.reviewApplication(request);
 
