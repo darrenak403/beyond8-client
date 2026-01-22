@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/useMobile";
-import { CreditCard, Hash, Facebook, Linkedin, Globe, Languages, Video, Building2, User, X, Info } from "lucide-react";
+import { CreditCard, Hash, Facebook, Linkedin, Globe, Languages, Video, Building2, User, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";

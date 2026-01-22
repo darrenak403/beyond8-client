@@ -35,7 +35,7 @@ import type {
 import { Switch } from "@/components/ui/switch";
 
 export default function ProfileInstructorForm() {
-  const { instructorProfile, isLoading, error, refetch } = useGetInstructorProfile();
+  const { instructorProfile, isLoading, error } = useGetInstructorProfile();
   
   const [editingEducation, setEditingEducation] = useState<number | null>(null);
   const [editingWork, setEditingWork] = useState<number | null>(null);
@@ -463,7 +463,7 @@ export default function ProfileInstructorForm() {
                               value={edu.school}
                               onChange={(e) => handleChangeEducation(index, "school", e.target.value)}
                               placeholder="VD: Đại học Bách Khoa Hà Nội"
-                              className="border-2 border-gray-200 rounded-xl"
+                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
 
@@ -476,7 +476,7 @@ export default function ProfileInstructorForm() {
                               value={edu.degree}
                               onChange={(e) => handleChangeEducation(index, "degree", e.target.value)}
                               placeholder="VD: Cử nhân Khoa học Máy tính"
-                              className="border-2 border-gray-200 rounded-xl"
+                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
 
@@ -489,7 +489,7 @@ export default function ProfileInstructorForm() {
                               value={edu.fieldOfStudy}
                               onChange={(e) => handleChangeEducation(index, "fieldOfStudy", e.target.value)}
                               placeholder="VD: Khoa học Máy tính"
-                              className="border-2 border-gray-200 rounded-xl"
+                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
 
@@ -505,7 +505,7 @@ export default function ProfileInstructorForm() {
                                 onChange={(e) => handleChangeEducation(index, "start", parseInt(e.target.value) || new Date().getFullYear())}
                                 min="1950"
                                 max={new Date().getFullYear() + 10}
-                                className="border-2 border-gray-200 rounded-xl"
+                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               />
                             </div>
 
@@ -520,7 +520,7 @@ export default function ProfileInstructorForm() {
                                 onChange={(e) => handleChangeEducation(index, "end", parseInt(e.target.value) || new Date().getFullYear())}
                                 min="1950"
                                 max={new Date().getFullYear() + 10}
-                                className="border-2 border-gray-200 rounded-xl"
+                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               />
                             </div>
                           </div>
@@ -628,7 +628,7 @@ export default function ProfileInstructorForm() {
                               value={work.company}
                               onChange={(e) => handleChangeWork(index, "company", e.target.value)}
                               placeholder="VD: Google Vietnam"
-                              className="border-2 border-gray-200 rounded-xl"
+                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
 
@@ -641,7 +641,7 @@ export default function ProfileInstructorForm() {
                               value={work.role}
                               onChange={(e) => handleChangeWork(index, "role", e.target.value)}
                               placeholder="VD: Senior Software Engineer"
-                              className="border-2 border-gray-200 rounded-xl"
+                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
 
@@ -655,7 +655,7 @@ export default function ProfileInstructorForm() {
                                 type="date"
                                 value={work.from}
                                 onChange={(e) => handleChangeWork(index, "from", e.target.value)}
-                                className="border-2 border-gray-200 rounded-xl"
+                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               />
                             </div>
 
@@ -669,7 +669,7 @@ export default function ProfileInstructorForm() {
                                 value={work.to || ""}
                                 onChange={(e) => handleChangeWork(index, "to", e.target.value)}
                                 disabled={work.isCurrentJob}
-                                className="border-2 border-gray-200 rounded-xl disabled:opacity-50"
+                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50"
                               />
                             </div>
                           </div>
@@ -702,7 +702,7 @@ export default function ProfileInstructorForm() {
                               onChange={(e) => handleChangeWork(index, "description", e.target.value)}
                               placeholder="Mô tả ngắn gọn về công việc và trách nhiệm..."
                               rows={3}
-                              className="border-2 border-gray-200 rounded-xl"
+                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                           </div>
                         </div>
@@ -845,7 +845,7 @@ export default function ProfileInstructorForm() {
                                 value={cert.name}
                                 onChange={(e) => handleChangeCertificate(index, "name", e.target.value)}
                                 placeholder="VD: AWS Certified Solutions Architect"
-                                className="border-2 border-gray-200 rounded-xl"
+                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               />
                             </div>
 
@@ -858,7 +858,7 @@ export default function ProfileInstructorForm() {
                                 value={cert.issuer}
                                 onChange={(e) => handleChangeCertificate(index, "issuer", e.target.value)}
                                 placeholder="VD: Amazon Web Services"
-                                className="border-2 border-gray-200 rounded-xl"
+                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               />
                             </div>
 
@@ -873,7 +873,7 @@ export default function ProfileInstructorForm() {
                                 onChange={(e) => handleChangeCertificate(index, "year", parseInt(e.target.value) || new Date().getFullYear())}
                                 min="1950"
                                 max={new Date().getFullYear()}
-                                className="border-2 border-gray-200 rounded-xl"
+                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               />
                             </div>
 
@@ -886,7 +886,7 @@ export default function ProfileInstructorForm() {
                                 value={cert.url}
                                 onChange={(e) => handleChangeCertificate(index, "url", e.target.value)}
                                 placeholder="https://..."
-                                className="border-2 border-gray-200 rounded-xl"
+                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                               />
                             </div>
                           </div>
