@@ -89,7 +89,7 @@ export default function AdminProfileChangePassword() {
             value={formData.currentPassword}
             onChange={(e) => handleChange("currentPassword", e.target.value)}
             placeholder="Nhập mật khẩu hiện tại"
-            className={`pr-20 transition-colors ${isCurrentPasswordValid ? "border-green-500 focus-visible:ring-green-500" : ""}`}
+            className={`pr-20 transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isCurrentPasswordValid ? "border-green-500 focus-visible:ring-green-500" : ""}`}
           />
           {isCurrentPasswordValid && (
             <Check className="absolute right-12 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
@@ -116,7 +116,7 @@ export default function AdminProfileChangePassword() {
             value={formData.newPassword}
             onChange={(e) => handleChange("newPassword", e.target.value)}
             placeholder="Nhập mật khẩu mới"
-            className={`pr-20 transition-colors ${isNewPasswordValid ? "border-green-500 focus-visible:ring-green-500" : ""}`}
+            className={`pr-20 transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isNewPasswordValid ? "border-green-500 focus-visible:ring-green-500" : ""}`}
           />
           {isNewPasswordValid && (
             <Check className="absolute right-12 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
@@ -143,7 +143,7 @@ export default function AdminProfileChangePassword() {
             value={formData.confirmPassword}
             onChange={(e) => handleChange("confirmPassword", e.target.value)}
             placeholder="Nhập lại mật khẩu mới"
-            className={`pr-20 transition-colors ${
+            className={`pr-20 transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${
               isConfirmPasswordValid
                 ? "border-green-500 focus-visible:ring-green-500"
                 : formData.confirmPassword && !isConfirmPasswordValid

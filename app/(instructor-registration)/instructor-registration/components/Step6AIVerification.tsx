@@ -51,7 +51,7 @@ export default function Step6AIVerification({  formData, onReviewComplete }: Ste
   return (
     <div className="w-full space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold">Xác minh hồ sơ</h2>
+        <h2 className="text-3xl font-bold text-primary">Xác minh hồ sơ</h2>
         <p className="text-gray-600">AI đang kiểm tra tính hợp lệ của hồ sơ</p>
       </div>
 

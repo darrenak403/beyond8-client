@@ -24,7 +24,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
   return (
     <div className="w-full space-y-6">
       <div className="text-center space-y-2">
-        <h2 className={`font-bold ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Thông tin bổ sung</h2>
+        <h2 className={`font-bold text-primary ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Thông tin bổ sung</h2>
         <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>Thông tin thanh toán và mạng xã hội</p>
       </div>
 
@@ -41,7 +41,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
               <div className="relative">
                 <input
                   type="text"
-                  className={`w-full pl-10 pr-3 border rounded-md ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
+                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
                   placeholder="VD: Vietcombank - 1234567890 - Nguyễn Văn A"
                   value={data.bankInfo}
                   onChange={(e) => onChange({ ...data, bankInfo: e.target.value })}
@@ -58,7 +58,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
               <div className="relative">
                 <input
                   type="text"
-                  className={`w-full pl-10 pr-3 border rounded-md ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
+                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
                   placeholder="VD: 0123456789"
                   value={data.taxId || ""}
                   onChange={(e) => onChange({ ...data, taxId: e.target.value || null })}
@@ -81,7 +81,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
               <div className="relative">
                 <input
                   type="url"
-                  className={`w-full pl-10 pr-3 border rounded-md ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
+                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
                   placeholder="https://facebook.com/yourprofile"
                   value={data.socialLinks.facebook || ""}
                   onChange={(e) => onChange({ 
@@ -101,7 +101,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
               <div className="relative">
                 <input
                   type="url"
-                  className={`w-full pl-10 pr-3 border rounded-md ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
+                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
                   placeholder="https://linkedin.com/in/yourprofile"
                   value={data.socialLinks.linkedIn || ""}
                   onChange={(e) => onChange({ 
@@ -121,7 +121,7 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
               <div className="relative">
                 <input
                   type="url"
-                  className={`w-full pl-10 pr-3 border rounded-md ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
+                  className={`w-full pl-10 pr-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${isMobile ? 'py-2 text-sm' : 'py-2'}`}
                   placeholder="https://yourwebsite.com"
                   value={data.socialLinks.website || ""}
                   onChange={(e) => onChange({ 

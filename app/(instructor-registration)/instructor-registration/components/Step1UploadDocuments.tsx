@@ -40,6 +40,7 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
       // If it's a data URL (from FileReader), use it directly
       // Otherwise, format it as server URL
       if (data.frontImg.startsWith('data:')) {
+      // eslint-disable-next-line
         setFrontPreview(data.frontImg);
       } else {
         const formattedUrl = formatImageUrl(data.frontImg);
@@ -53,6 +54,7 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
   useEffect(() => {
     if (data.backImg) {
       if (data.backImg.startsWith('data:')) {
+        // eslint-disable-next-line
         setBackPreview(data.backImg);
       } else {
         const formattedUrl = formatImageUrl(data.backImg);
@@ -124,7 +126,7 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
   return (
     <div className="w-full space-y-6">
       <div className="text-center space-y-2">
-        <h2 className={`font-bold ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Tải lên CCCD</h2>
+        <h2 className={`font-bold text-primary ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Tải lên CCCD</h2>
         <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>Vui lòng tải lên ảnh chụp rõ ràng mặt trước và mặt sau của CCCD</p>
       </div>
 

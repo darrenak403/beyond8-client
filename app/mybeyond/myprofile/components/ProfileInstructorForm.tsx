@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,13 +61,19 @@ export default function ProfileInstructorForm() {
 
   const [formData, setFormData] = useState(initialFormData);
 
+  useEffect(() => {
+    if (instructorProfile) {
+      // eslint-disable-next-line
+      setFormData(initialFormData);
+    }
+  }, [initialFormData, instructorProfile]);
+
   const handleChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 
   const handleSubmit = () => {
     console.log("Instructor profile updated:", formData);
-    // TODO: Call API to update profile
   };
 
   if (isLoading) {
@@ -123,6 +129,7 @@ export default function ProfileInstructorForm() {
               value={formData.headline}
               onChange={(e) => handleChange("headline", e.target.value)}
               placeholder="VD: Senior Full-stack Developer & Instructor"
+              className="border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -136,6 +143,7 @@ export default function ProfileInstructorForm() {
               onChange={(e) => handleChange("bio", e.target.value)}
               rows={4}
               placeholder="Giới thiệu ngắn gọn về bản thân và kinh nghiệm..."
+              className="border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
@@ -148,6 +156,7 @@ export default function ProfileInstructorForm() {
               value={formData.expertise}
               onChange={(e) => handleChange("expertise", e.target.value)}
               placeholder="VD: Web Development, React, Node.js"
+              className="border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             {formData.expertise && (
               <div className="flex flex-wrap gap-2 mt-2">
@@ -182,6 +191,7 @@ export default function ProfileInstructorForm() {
             onChange={(e) => handleChange("education", e.target.value)}
             rows={5}
             placeholder="Bằng cấp, trường học, năm tốt nghiệp..."
+            className="border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </CardContent>
       </Card>
@@ -206,6 +216,7 @@ export default function ProfileInstructorForm() {
             onChange={(e) => handleChange("workExperience", e.target.value)}
             rows={5}
             placeholder="Vị trí, công ty, thời gian làm việc..."
+            className="border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </CardContent>
       </Card>
@@ -232,7 +243,7 @@ export default function ProfileInstructorForm() {
                   socialLinks: { ...formData.socialLinks, facebook: e.target.value },
                 })
               }
-              className="pl-10"
+              className="pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
           <div className="relative">
@@ -246,7 +257,7 @@ export default function ProfileInstructorForm() {
                   socialLinks: { ...formData.socialLinks, linkedIn: e.target.value },
                 })
               }
-              className="pl-10"
+              className="pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
           <div className="relative">
@@ -260,7 +271,7 @@ export default function ProfileInstructorForm() {
                   socialLinks: { ...formData.socialLinks, website: e.target.value },
                 })
               }
-              className="pl-10"
+              className="pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
         </CardContent>
