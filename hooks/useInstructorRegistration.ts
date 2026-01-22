@@ -3,11 +3,9 @@ import {
   instructorRegistrationService,
   type InstructorRegistrationRequest,
   type InstructorRegistrationResponse,
-  type InstructorProfileResponse,
   type AIReviewResponse,
   type AIProfileReviewRequest,
   type RejectRegistrationRequest,
-  InstructorRegistrationParamsStatus,
   InstructorRegistrationParams,
   InstructorRegistrationResponseList
 } from "@/lib/api/services/fetchInstructorRegistration";

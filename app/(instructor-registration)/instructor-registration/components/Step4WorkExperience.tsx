@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Building, Briefcase, Calendar as CalendarIcon, FileText, Target } from "lucide-react";
+import { Plus, Trash2, Building, Briefcase, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useIsMobile } from "@/hooks/useMobile";

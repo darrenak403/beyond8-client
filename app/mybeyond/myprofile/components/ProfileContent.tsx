@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { User, Shield, Lock } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
-import { Roles } from "@/lib/types/roles";
 import ProfileForm from "./ProfileForm";
 import ProfileInstructorForm from "./ProfileInstructorForm";
 import ResetPasswordForm from "./ResetPasswordForm";
