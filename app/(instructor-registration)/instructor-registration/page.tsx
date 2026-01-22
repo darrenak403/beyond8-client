@@ -232,11 +232,11 @@ export default function InstructorRegistrationPage() {
   };
 
   return (
-    <>
+    <div className="flex flex-col h-screen overflow-hidden">
       <InstructorRegisHeader />
 
-      <main className="flex-1">
-        <div className="flex flex-row px-4 md:px-6 lg:px-8 py-6 md:py-10">
+      <main className="flex-1 min-h-0">
+        <div className="flex flex-row px-4 md:px-6 lg:px-8 py-6 md:py-10 h-full">
           {/* Sidebar Navigation - Desktop Only */}
           {!isMobile && (
             <InstructorRegisSidebar
@@ -252,8 +252,8 @@ export default function InstructorRegistrationPage() {
           )}
 
           {/* Main Content */}
-          <div className={`flex-1 ${isMobile ? "" : ""} min-h-0`}>
-            <div className="max-w-4xl mx-auto px-4">
+          <div className={`flex-1 ${isMobile ? "" : ""} min-h-0 overflow-hidden`}>
+            <div className="max-w-4xl mx-auto px-4 h-full">
               <AnimatePresence mode="wait">
                 {currentStep === 1 && (
                   <motion.div
@@ -293,6 +293,7 @@ export default function InstructorRegistrationPage() {
                     exit="out"
                     variants={pageVariants}
                     transition={pageTransition}
+                    className="h-full"
                   >
                     <Step2BasicInfo
                       data={{
@@ -313,6 +314,7 @@ export default function InstructorRegistrationPage() {
                     exit="out"
                     variants={pageVariants}
                     transition={pageTransition}
+                    className="h-full"
                   >
                     <Step3Education
                       data={{ education: formData.education }}
@@ -329,6 +331,7 @@ export default function InstructorRegistrationPage() {
                     exit="out"
                     variants={pageVariants}
                     transition={pageTransition}
+                    className="h-full"
                   >
                     <Step4Certificates
                       data={{ certificates: formData.certificates }}
@@ -345,6 +348,7 @@ export default function InstructorRegistrationPage() {
                     exit="out"
                     variants={pageVariants}
                     transition={pageTransition}
+                    className="h-full"
                   >
                     <Step5WorkExperience
                       data={{ workExperience: formData.workExperience }}
@@ -361,6 +365,7 @@ export default function InstructorRegistrationPage() {
                     exit="out"
                     variants={pageVariants}
                     transition={pageTransition}
+                    className="h-full"
                   >
                     <Step6AdditionalInfo
                       data={{
@@ -443,6 +448,6 @@ export default function InstructorRegistrationPage() {
         cancelText="Nộp hồ sơ ngay"
         variant="default"
       />
-    </>
+    </div>
   );
 }
