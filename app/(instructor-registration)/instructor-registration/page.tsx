@@ -143,7 +143,6 @@ export default function InstructorRegistrationPage() {
       ],
       certificates: formData.certificates,
     });
-
     router.push("/mybeyond?tab=myprofile");
   };
 
@@ -171,8 +170,8 @@ export default function InstructorRegistrationPage() {
     formData.workExperience.every((w) => w.company && w.role && w.from && (w.isCurrentJob || w.to))
   );
   const canProceedStep6 = !!(
-    formData.bankInfo.bankName && 
-    formData.bankInfo.accountNumber && 
+    formData.bankInfo.bankName &&
+    formData.bankInfo.accountNumber &&
     formData.bankInfo.accountHolderName
   );
   const canProceedStep7 = reviewResult?.isAccepted === true;
