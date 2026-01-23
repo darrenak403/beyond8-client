@@ -187,18 +187,18 @@ export default function ProfileHeader({
               </AvatarFallback>
             </Avatar>
             
-            {/* Green dot indicator - bottom right of avatar */}
-            {userProfile.isActive && (
-              <span className={`absolute bottom-1 right-1 ${isMobile ? 'w-5 h-5' : 'w-7 h-7'} bg-green-500 rounded-full border-4 border-white shadow-lg`} />
-            )}
-            
-            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
               {isUploadingAvatar ? (
                 <Skeleton className={`rounded-full bg-white/20 ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />
               ) : (
                 <Camera className={`text-white ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />
               )}
             </div>
+            
+            {/* Green dot indicator - bottom right of avatar */}
+            {userProfile.isActive && (
+              <span className={`absolute bottom-1 right-1 ${isMobile ? 'w-5 h-5' : 'w-7 h-7'} bg-green-500 rounded-full border-4 border-white shadow-lg z-20`} />
+            )}
           </div>
 
           {/* Name & Email */}
@@ -226,7 +226,7 @@ export default function ProfileHeader({
               size={isMobile ? "sm" : "default"}
               onClick={() => setShowHideDialog(true)}
               disabled={isUnhiding}
-              className="gap-2"
+              className="gap-2 rounded-2xl cursor-pointer"
             >
               <EyeOff className="w-4 h-4" />
               {isUnhiding ? "Đang xử lý..." : "Ẩn hồ sơ giảng viên"}

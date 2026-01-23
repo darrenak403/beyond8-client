@@ -1160,7 +1160,7 @@ export default function ProfileInstructorForm() {
       </Card>
       {/* Header with Save Button */}
       <div className="flex justify-end gap-3">
-        {!isHidden && (
+        {instructorProfile?.verificationStatus === "Verified" && (
           <>
             <Button
               type="button"
