@@ -187,3 +187,58 @@ export function useGetInstructorProfile() {
   };
 }
 
+  export function useUnHiddenProfile() {
+    const queryClient = useQueryClient();
+    const mutation = useMutation({
+      mutationFn: async (profileId: string) => {
+        const response = await instructorRegistrationService.unhidden(profileId);   
+        if (!response.isSuccess || !response.data) {
+          throw new Error(response.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại");
+        }
+        return response.data;
+      },
+      onSuccess: (data) => {
+        toast.success("Khôi phục hiển thị hồ sơ giảng viên thành công!");
+        queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+      },
+      onError: (error: any) => {
+        toast.error(error.data.value.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại!");
+      },
+    }); 
+
+  return {
+    unhideProfile: mutation.mutate,
+    unhideProfileAsync: mutation.mutateAsync,
+    isUnhiding: mutation.isPending,
+    error: mutation.error,
+    unhideProfileData: mutation.data,
+  };
+}
+
+  export function useHiddenProfile() {
+    const queryClient = useQueryClient();
+    const mutation = useMutation({
+      mutationFn: async (profileId: string) => {
+        const response = await instructorRegistrationService.hidden(profileId);   
+        if (!response.isSuccess || !response.data) {
+          throw new Error(response.message || "Ẩn hồ sơ giảng viên thất bại");
+        }
+        return response.data;
+      },
+      onSuccess: () => {
+        toast.success("Ẩn hồ sơ giảng viên thành công!");
+        queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+      },
+      onError: (error: any) => {
+        toast.error(error.data.value.message || "Ẩn hồ sơ giảng viên thất bại!");
+      },
+    }); 
+
+  return {
+    unhideProfile: mutation.mutate,
+    unhideProfileAsync: mutation.mutateAsync,
+    isUnhiding: mutation.isPending,
+    error: mutation.error,
+    unhideProfileData: mutation.data,
+  };
+}

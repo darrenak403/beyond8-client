@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, X, CheckCircle2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Upload, X, CheckCircle2, CreditCard, Hash, Calendar } from "lucide-react";
 import { useIdentity } from "@/hooks/useIdentity";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -246,6 +247,95 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
           )}
         </div>
       </div>
+
+      {/* Information Cards */}
+      {(data.frontClassifyResult || data.backClassifyResult) && (
+        <div className={`grid gap-6 mt-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+          {/* Front Card Info */}
+          {data.frontClassifyResult && (
+            <Card className="border-2 border-green-100 bg-green-50/50">
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-3 border-b border-green-200">
+                    <CreditCard className="w-5 h-5 text-green-600" />
+                    <h3 className="font-semibold text-green-900">Thông tin mặt trước</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm font-medium text-gray-600 min-w-[100px]">Loại:</span>
+                      <span className="text-sm text-gray-900">{data.frontClassifyResult.type_name || "-"}</span>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm font-medium text-gray-600 min-w-[100px]">Tên thẻ:</span>
+                      <span className="text-sm text-gray-900">{data.frontClassifyResult.card_name || "-"}</span>
+                    </div>
+                    
+                    {data.frontClassifyResult.id_number && (
+                      <div className="flex items-start gap-2">
+                        <Hash className="w-4 h-4 text-gray-600 mt-0.5" />
+                        <span className="text-sm font-medium text-gray-600 min-w-[100px]">Số CCCD:</span>
+                        <span className="text-sm font-mono text-gray-900">{data.frontClassifyResult.id_number}</span>
+                      </div>
+                    )}
+                    
+                    {data.frontClassifyResult.issue_date && (
+                      <div className="flex items-start gap-2">
+                        <Calendar className="w-4 h-4 text-gray-600 mt-0.5" />
+                        <span className="text-sm font-medium text-gray-600 min-w-[100px]">Ngày cấp:</span>
+                        <span className="text-sm text-gray-900">{data.frontClassifyResult.issue_date}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Back Card Info */}
+          {data.backClassifyResult && (
+            <Card className="border-2 border-blue-100 bg-blue-50/50">
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-3 border-b border-blue-200">
+                    <CreditCard className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-semibold text-blue-900">Thông tin mặt sau</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm font-medium text-gray-600 min-w-[100px]">Loại:</span>
+                      <span className="text-sm text-gray-900">{data.backClassifyResult.type_name || "-"}</span>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm font-medium text-gray-600 min-w-[100px]">Tên thẻ:</span>
+                      <span className="text-sm text-gray-900">{data.backClassifyResult.card_name || "-"}</span>
+                    </div>
+                    
+                    {data.backClassifyResult.id_number && (
+                      <div className="flex items-start gap-2">
+                        <Hash className="w-4 h-4 text-gray-600 mt-0.5" />
+                        <span className="text-sm font-medium text-gray-600 min-w-[100px]">Số CCCD:</span>
+                        <span className="text-sm font-mono text-gray-900">{data.backClassifyResult.id_number}</span>
+                      </div>
+                    )}
+                    
+                    {data.backClassifyResult.issue_date && (
+                      <div className="flex items-start gap-2">
+                        <Calendar className="w-4 h-4 text-gray-600 mt-0.5" />
+                        <span className="text-sm font-medium text-gray-600 min-w-[100px]">Ngày cấp:</span>
+                        <span className="text-sm text-gray-900">{data.backClassifyResult.issue_date}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 }

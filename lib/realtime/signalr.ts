@@ -102,3 +102,21 @@ export async function stopHubConnection(): Promise<void> {
   }
 }
 
+export async function reconnectHubConnection(): Promise<HubConnection> {
+  console.info('[SignalR] Reconnecting...')
+  
+  // Stop existing connection if any
+  if (connection) {
+    try {
+      await connection.stop()
+    } catch (err) {
+      console.warn('[SignalR] Error stopping connection during reconnect', err)
+    }
+    connection = null
+    startPromise = null
+  }
+  
+  // Create and start new connection
+  return startHubConnection()
+}
+

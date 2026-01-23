@@ -11,6 +11,9 @@ export interface UserProfile {
   coverUrl: string | null;
   phoneNumber: string | null;
   dateOfBirth: string | null;
+  specialization: string | null;
+  address: string | null;
+  bio: string | null;
   isActive: boolean;
   isEmailVerified: boolean;
   lastLoginAt: string | null;
@@ -23,6 +26,9 @@ export interface UpdateUserProfileRequest {
   fullName?: string;
   phoneNumber?: string;
   dateOfBirth?: string | null;
+  specialization?: string | null;
+  address?: string | null;
+  bio?: string | null;
   timezone?: string;
   locale?: string;
 }

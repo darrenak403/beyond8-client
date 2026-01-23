@@ -60,7 +60,6 @@ export default function MyProfilePage() {
     <div className="space-y-6">
       <ProfileHeader
         userProfile={mappedProfileForHeader}
-        onChangePassword={() => setActiveTab("security")}
       />
 
       <ProfileContent
