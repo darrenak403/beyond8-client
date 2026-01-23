@@ -1003,7 +1003,7 @@ export default function ProfileInstructorForm() {
         <Button
           type="button"
           variant="outline"
-          className="border-2 border-purple-200 hover:bg-purple-50 hover:text-purple-700"
+          className="border-2 border-purple-200 hover:bg-purple-50 hover:text-purple-700 rounded-2xl"
           // onClick={handleReset}
         >
           Hủy thay đổi
@@ -1012,6 +1012,7 @@ export default function ProfileInstructorForm() {
           type="button"
           size="sm"
           onClick={handleSubmit}
+          className="rounded-2xl"
         >
           Lưu thay đổi
         </Button>

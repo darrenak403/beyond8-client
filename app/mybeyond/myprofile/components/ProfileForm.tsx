@@ -217,7 +217,7 @@ export default function ProfileForm({
             type="button"
             variant="outline"
             onClick={handleReset}
-            className="border-2 border-purple-200 hover:bg-purple-50 hover:text-purple-700"
+            className="border-2 border-purple-200 hover:bg-purple-50 hover:text-purple-700 rounded-2xl"
 
           >
             Hủy thay đổi
@@ -226,6 +226,7 @@ export default function ProfileForm({
         <Button 
           type="submit"
           disabled={!hasChanges}
+          className="rounded-2xl"
         >
           Lưu thay đổi
         </Button>

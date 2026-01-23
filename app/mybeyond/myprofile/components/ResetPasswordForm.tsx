@@ -89,8 +89,8 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Current Password */}
-      <div className="space-y-2">
-        <Label htmlFor="currentPassword">
+      <div className="space-y-2 flex flex-col gap-2">
+        <Label htmlFor="currentPassword" className="m-0">
           <Lock className="w-4 h-4 inline mr-2" />
           Mật khẩu hiện tại
         </Label>
@@ -125,8 +125,8 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
       </div>
 
       {/* New Password */}
-      <div className="space-y-2">
-        <Label htmlFor="newPassword">
+      <div className="space-y-2 flex flex-col gap-2">
+        <Label htmlFor="newPassword" className="m-0">
           <Lock className="w-4 h-4 inline mr-2" />
           Mật khẩu mới
         </Label>
@@ -161,8 +161,8 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
       </div>
 
       {/* Confirm Password */}
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">
+      <div className="space-y-2 flex flex-col gap-2">
+        <Label htmlFor="confirmPassword" className="m-0">
           <Lock className="w-4 h-4 inline mr-2" />
           Xác nhận mật khẩu mới
         </Label>
@@ -255,6 +255,7 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
               setError("");
             }}
             disabled={isLoading}
+            className="rounded-2xl"
           >
             Hủy
           </Button>
@@ -266,6 +267,7 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
               !allRequirementsMet ||
               !passwordsMatch
             }
+            className="rounded-2xl"
           >
             {isLoading ? "Đang xử lý..." : "Đổi mật khẩu"}
           </Button>

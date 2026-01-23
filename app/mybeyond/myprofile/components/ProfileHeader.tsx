@@ -188,8 +188,8 @@ export default function ProfileHeader({
         <Button
           onClick={onChangePassword}
           className={`${
-            isMobile ? "mt-4 w-full" : ""
-          }`}
+            isMobile ? "mt-4 w-full" : "" 
+          } rounded-2xl`}
         >
           Đổi mật khẩu
         </Button>
