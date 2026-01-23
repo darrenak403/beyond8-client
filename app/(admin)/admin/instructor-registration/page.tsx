@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { PaginationState } from "@tanstack/react-table";
-import { getColumns } from "./components/columns";
+import { getColumns } from "./components/Columns";
 import { RegistrationTableToolbar } from "./components/RegistrationTableToolbar";
 import { RegistrationDialog } from "./components/RegistrationDialog";
 import { RotateCw } from "lucide-react";

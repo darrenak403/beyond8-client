@@ -1,6 +1,6 @@
 'use client';
 
-import { LoginForm } from "../components/loginForm";
+import { LoginForm } from "../components/LoginForm";
 import { motion } from "framer-motion";
 
 

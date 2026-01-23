@@ -133,7 +133,7 @@ export const getColumns = ({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                    className="text-green-600 hover:text-green-700 hover:bg-green-200"
                                     onClick={() => onApprove(registration.id)}
                                     title="Chấp nhận"
                                 >
@@ -142,7 +142,7 @@ export const getColumns = ({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-200"
                                     onClick={() => onReject(registration.id)}
                                     title="Từ chối"
                                 >
