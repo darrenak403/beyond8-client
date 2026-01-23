@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LoginForm } from '@/app/(auth)/components/LoginForm';
+import { LoginForm } from '@/app/(auth)/components/loginForm';
 import { cn } from '@/lib/utils';
 
 interface LoginDialogProps {

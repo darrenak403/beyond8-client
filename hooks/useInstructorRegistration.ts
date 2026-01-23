@@ -27,8 +27,8 @@ export function useInstructorRegistration() {
 
       return response.data;
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Đánh giá hồ sơ thất bại!");
+    onError: (error: any) => {
+      toast.error(error.data.value.message || "Đánh giá hồ sơ thất bại!");
     },
   });
 

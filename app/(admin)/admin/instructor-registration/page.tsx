@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { PaginationState } from "@tanstack/react-table";
-import { getColumns } from "./components/Columns";
+import { getColumns } from "./components/columns";
 import { RegistrationTableToolbar } from "./components/RegistrationTableToolbar";
 import { RegistrationDialog } from "./components/RegistrationDialog";
 import { RotateCw } from "lucide-react";
@@ -100,7 +100,7 @@ const InstructorRegistrationPage = () => {
         }
     };
 
-    const handleConfirmReject = async (reason: string, status: VerificationStatus.Rejected | VerificationStatus.RequestUpdate) => {
+    const handleConfirmReject = async (reason: string, status: VerificationStatus.Hidden | VerificationStatus.RequestUpdate) => {
         if (!targetId) return;
 
         try {
