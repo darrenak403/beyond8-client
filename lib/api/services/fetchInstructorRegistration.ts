@@ -309,5 +309,23 @@ export const instructorRegistrationService = {
       "/api/v1/instructors/check-apply"
     );
     return response.data;
+  },
+
+  unhidden: async (
+    profileId: string
+  ): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.put<ApiResponse<boolean>>(
+      `api/v1/instructors/${profileId}/unhidden`
+    );
+    return response.data;
+  },
+
+  hidden: async (
+    profileId: string
+  ): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.delete<ApiResponse<boolean>>(
+      `api/v1/instructors/${profileId}/hidden`
+    );
+    return response.data;
   }
 };
