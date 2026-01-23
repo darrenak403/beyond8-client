@@ -221,16 +221,16 @@ export function useGetInstructorProfile() {
       mutationFn: async (profileId: string) => {
         const response = await instructorRegistrationService.hidden(profileId);   
         if (!response.isSuccess || !response.data) {
-          throw new Error(response.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại");
+          throw new Error(response.message || "Ẩn hồ sơ giảng viên thất bại");
         }
         return response.data;
       },
       onSuccess: () => {
-        toast.success("Khôi phục hiển thị hồ sơ giảng viên thành công!");
+        toast.success("Ẩn hồ sơ giảng viên thành công!");
         queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
       },
       onError: (error: any) => {
-        toast.error(error.data.value.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại!");
+        toast.error(error.data.value.message || "Ẩn hồ sơ giảng viên thất bại!");
       },
     }); 
 

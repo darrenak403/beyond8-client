@@ -3,11 +3,25 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Camera } from "lucide-react";
+import { Camera, EyeOff } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useUploadImage } from "@/hooks/useUploadImage";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import SafeImage from "@/components/ui/SafeImage";
+import { useHiddenProfile } from "@/hooks/useInstructorRegistration";
+import { useQuery } from "@tanstack/react-query";
+import { instructorRegistrationService } from "@/lib/api/services/fetchInstructorRegistration";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 interface ProfileHeaderProps {
   userProfile: {
@@ -22,8 +36,23 @@ interface ProfileHeaderProps {
 export default function ProfileHeader({
   userProfile,
 }: ProfileHeaderProps) {
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile();  
   const { uploadAvatar, isUploadingAvatar, uploadCover, isUploadingCover } = useUploadImage();
+  const { unhideProfile, isUnhiding } = useHiddenProfile();
+  const [showHideDialog, setShowHideDialog] = useState(false);
+
+  // Fetch instructor profile to get the ID
+  const { data: instructorProfile } = useQuery({
+    queryKey: ["instructor-profile"],
+    queryFn: async () => {
+      const response = await instructorRegistrationService.getMe();
+      return response.isSuccess ? response.data : null;
+    },
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+  const isApprove = instructorProfile?.verificationStatus === "Verified";
+
 
   const handleAvatarClick = () => {
     if (isUploadingAvatar) return;
@@ -77,6 +106,13 @@ export default function ProfileHeader({
       }
     };
     input.click();
+  };
+
+  const handleHideProfile = () => {
+    if (instructorProfile?.id) {
+      unhideProfile(instructorProfile.id);
+      setShowHideDialog(false);
+    }
   };
 
   return (
@@ -182,7 +218,46 @@ export default function ProfileHeader({
           </div>
         </div>
 
+        {/* Hide Instructor Profile Button */}
+        {instructorProfile && isApprove && (
+          <div className={`${isMobile ? "mt-4" : "mb-4"}`}>
+            <Button
+              variant="destructive"
+              size={isMobile ? "sm" : "default"}
+              onClick={() => setShowHideDialog(true)}
+              disabled={isUnhiding}
+              className="gap-2"
+            >
+              <EyeOff className="w-4 h-4" />
+              {isUnhiding ? "Đang xử lý..." : "Ẩn hồ sơ giảng viên"}
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showHideDialog} onOpenChange={setShowHideDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận ẩn hồ sơ giảng viên</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 border border-gray-200 p-4 rounded-md mt-4 bg-gray-50">
+              <p>Bạn có chắc là muốn ẩn hồ sơ giảng viên của mình không?</p>
+              <p className="font-semibold text-destructive">
+                Bạn sẽ không còn là giảng viên sau khi thực hiện hành động này nữa.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleHideProfile}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Xác nhận ẩn
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
