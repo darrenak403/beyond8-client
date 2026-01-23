@@ -36,11 +36,14 @@ import { Switch } from "@/components/ui/switch";
 
 export default function ProfileInstructorForm() {
   const { instructorProfile, isLoading, error } = useGetInstructorProfile();
-  
+
   const [editingEducation, setEditingEducation] = useState<number | null>(null);
   const [editingWork, setEditingWork] = useState<number | null>(null);
   const [editingCertificate, setEditingCertificate] = useState<number | null>(null);
-  
+
+  // Check if profile is hidden
+  const isHidden = instructorProfile?.verificationStatus === "Hidden";
+
   const [educationList, setEducationList] = useState<InstructorEducation[]>([]);
   const [workList, setWorkList] = useState<InstructorWorkExperience[]>([]);
   const [certificateList, setCertificateList] = useState<Certificates[]>([]);
@@ -75,9 +78,13 @@ export default function ProfileInstructorForm() {
       workExperience:
         instructorProfile.workExperience
           .map((work) => {
-            const toDate = work.isCurrentJob ? "Hiện tại" : (work.to ? new Date(work.to).getFullYear() : "");
+            const toDate = work.isCurrentJob
+              ? "Hiện tại"
+              : work.to
+                ? new Date(work.to).getFullYear()
+                : "";
             const fromDate = work.from ? new Date(work.from).getFullYear() : "";
-            return `${work.role} tại ${work.company} (${fromDate} - ${toDate})${work.description ? '\n' + work.description : ''}`;
+            return `${work.role} tại ${work.company} (${fromDate} - ${toDate})${work.description ? "\n" + work.description : ""}`;
           })
           .join("\n\n") || "",
       socialLinks: {
@@ -118,6 +125,11 @@ export default function ProfileInstructorForm() {
     });
   };
 
+  const handleRequestReopen = () => {
+    console.log("Request to reopen instructor profile");
+    // TODO: Implement API call to request reopening
+  };
+
   // Education handlers
   const handleAddEducation = () => {
     const newEdu: InstructorEducation = {
@@ -136,7 +148,11 @@ export default function ProfileInstructorForm() {
     if (editingEducation === index) setEditingEducation(null);
   };
 
-  const handleChangeEducation = (index: number, field: keyof InstructorEducation, value: string | number) => {
+  const handleChangeEducation = (
+    index: number,
+    field: keyof InstructorEducation,
+    value: string | number
+  ) => {
     const newList = [...educationList];
     newList[index] = { ...newList[index], [field]: value };
     setEducationList(newList);
@@ -161,7 +177,11 @@ export default function ProfileInstructorForm() {
     if (editingWork === index) setEditingWork(null);
   };
 
-  const handleChangeWork = (index: number, field: keyof InstructorWorkExperience, value: string | boolean) => {
+  const handleChangeWork = (
+    index: number,
+    field: keyof InstructorWorkExperience,
+    value: string | boolean
+  ) => {
     const newList = [...workList];
     newList[index] = { ...newList[index], [field]: value };
     setWorkList(newList);
@@ -184,7 +204,11 @@ export default function ProfileInstructorForm() {
     if (editingCertificate === index) setEditingCertificate(null);
   };
 
-  const handleChangeCertificate = (index: number, field: keyof Certificates, value: string | number) => {
+  const handleChangeCertificate = (
+    index: number,
+    field: keyof Certificates,
+    value: string | number
+  ) => {
     const newList = [...certificateList];
     newList[index] = { ...newList[index], [field]: value };
     setCertificateList(newList);
@@ -319,11 +343,12 @@ export default function ProfileInstructorForm() {
             <div className="text-center space-y-2">
               <p className="font-semibold text-gray-900 text-lg">Chưa có hồ sơ giảng viên</p>
               <p className="text-sm text-gray-500 max-w-md">
-                Bạn chưa đăng ký trở thành giảng viên. Đăng ký ngay để bắt đầu chia sẻ kiến thức và kiếm thêm thu nhập.
+                Bạn chưa đăng ký trở thành giảng viên. Đăng ký ngay để bắt đầu chia sẻ kiến thức và
+                kiếm thêm thu nhập.
               </p>
             </div>
-            <Button 
-              onClick={() => window.location.href = '/instructor-registration'}
+            <Button
+              onClick={() => (window.location.href = "/instructor-registration")}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all mt-4 cursor-pointer"
               size="lg"
             >
@@ -338,12 +363,31 @@ export default function ProfileInstructorForm() {
 
   return (
     <div className="space-y-6">
+      {isHidden && (
+        <div className="flex flex-row items-center justify-between gap-5 p-3 bg-white border-2 border-red-500 rounded-3xl">
+          <p className="flex-1 text-sm text-red-700 font-medium text-center">
+            Hồ sơ của bạn đang ở trạng thái ẩn. Vui lòng yêu cầu mở lại để chỉnh sửa.
+          </p>
+
+          <Button
+            type="button"
+            onClick={handleRequestReopen}
+            className="bg-red-600 hover:bg-red-700 text-white rounded-2xl px-6 cursor-pointer"
+          >
+            Yêu cầu mở lại
+          </Button>
+        </div>
+      )}
       {/* Card 1: Headline, Bio, Expertise */}
-      <Card className="flex flex-col gap-2 border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-4xl">
+      <Card
+        className={`flex flex-col gap-2 border-2 transition-colors rounded-4xl ${isHidden ? "border-gray-300 bg-gray-50" : "border-purple-100 hover:border-purple-300"}`}
+      >
+        <CardHeader
+          className={`rounded-t-4xl ${isHidden ? "bg-gray-200" : "bg-gradient-to-r from-purple-50 to-pink-50"}`}
+        >
           <CardTitle className="text-lg flex items-center gap-2">
-            <div className="p-2 bg-white rounded-lg shadow-sm">
-              <User className="w-5 h-5 text-purple-600" />
+            <div className={`p-2 bg-white rounded-lg shadow-sm ${isHidden ? "opacity-50" : ""}`}>
+              <User className={`w-5 h-5 ${isHidden ? "text-gray-500" : "text-purple-600"}`} />
             </div>
             Thông tin cơ bản
           </CardTitle>
@@ -358,7 +402,8 @@ export default function ProfileInstructorForm() {
               value={formData.headline}
               onChange={(e) => handleChange("headline", e.target.value)}
               placeholder="VD: Senior Full-stack Developer & Instructor"
-              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              disabled={isHidden}
+              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
             />
           </div>
 
@@ -372,7 +417,8 @@ export default function ProfileInstructorForm() {
               onChange={(e) => handleChange("bio", e.target.value)}
               rows={4}
               placeholder="Giới thiệu ngắn gọn về bản thân và kinh nghiệm..."
-              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              disabled={isHidden}
+              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
             />
           </div>
 
@@ -385,12 +431,17 @@ export default function ProfileInstructorForm() {
               value={formData.expertise}
               onChange={(e) => handleChange("expertise", e.target.value)}
               placeholder="VD: Web Development, React, Node.js"
-              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              disabled={isHidden}
+              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
             />
             {formData.expertise && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {formData.expertise.split(",").map((skill, index) => (
-                  <Badge key={index} variant="secondary" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-3 py-1 shadow-sm">
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className={`${isHidden ? "bg-gray-200 text-gray-500 cursor-not-allowed hover:bg-gray-200" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-3 py-1 shadow-sm`}
+                  >
                     {skill.trim()}
                   </Badge>
                 ))}
@@ -401,12 +452,18 @@ export default function ProfileInstructorForm() {
       </Card>
 
       {/* Card 2: Education */}
-      <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-4xl">
+      <Card
+        className={`border-2 transition-colors rounded-4xl ${isHidden ? "border-gray-300 bg-gray-50" : "border-purple-100 hover:border-purple-300"}`}
+      >
+        <CardHeader
+          className={`rounded-t-4xl ${isHidden ? "bg-gray-200" : "bg-gradient-to-r from-purple-50 to-pink-50"}`}
+        >
           <CardTitle className="text-lg flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-white rounded-lg shadow-sm">
-                <GraduationCap className="w-5 h-5 text-purple-600" />
+              <div className={`p-2 bg-white rounded-lg shadow-sm ${isHidden ? "opacity-50" : ""}`}>
+                <GraduationCap
+                  className={`w-5 h-5 ${isHidden ? "text-gray-500" : "text-purple-600"}`}
+                />
               </div>
               Học vấn
             </div>
@@ -414,7 +471,8 @@ export default function ProfileInstructorForm() {
               type="button"
               onClick={handleAddEducation}
               size="icon"
-              className="border border-purple-300 bg text-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 hover:bg-purple-50 hover:text-purple-700 shadow-sm h-8 w-8"
+              disabled={isHidden}
+              className={`border h-8 w-8 ${isHidden ? "border-gray-300 bg-gray-200 text-gray-400 cursor-not-allowed" : "border-purple-300 bg text-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 hover:bg-purple-50 hover:text-purple-700 shadow-sm"}`}
             >
               <Plus className="w-4 h-4" />
             </Button>
@@ -446,7 +504,8 @@ export default function ProfileInstructorForm() {
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="hover:bg-red-50 hover:text-red-600"
+                            disabled={isHidden}
+                            className={`${isHidden ? "cursor-not-allowed opacity-50" : "hover:bg-red-50 hover:text-red-600"}`}
                             onClick={() => handleRemoveEducation(index)}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -461,9 +520,12 @@ export default function ProfileInstructorForm() {
                             </label>
                             <Input
                               value={edu.school}
-                              onChange={(e) => handleChangeEducation(index, "school", e.target.value)}
+                              onChange={(e) =>
+                                handleChangeEducation(index, "school", e.target.value)
+                              }
                               placeholder="VD: Đại học Bách Khoa Hà Nội"
-                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              disabled={isHidden}
+                              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                             />
                           </div>
 
@@ -474,9 +536,12 @@ export default function ProfileInstructorForm() {
                             </label>
                             <Input
                               value={edu.degree}
-                              onChange={(e) => handleChangeEducation(index, "degree", e.target.value)}
+                              onChange={(e) =>
+                                handleChangeEducation(index, "degree", e.target.value)
+                              }
                               placeholder="VD: Cử nhân Khoa học Máy tính"
-                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              disabled={isHidden}
+                              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                             />
                           </div>
 
@@ -487,9 +552,12 @@ export default function ProfileInstructorForm() {
                             </label>
                             <Input
                               value={edu.fieldOfStudy}
-                              onChange={(e) => handleChangeEducation(index, "fieldOfStudy", e.target.value)}
+                              onChange={(e) =>
+                                handleChangeEducation(index, "fieldOfStudy", e.target.value)
+                              }
                               placeholder="VD: Khoa học Máy tính"
-                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              disabled={isHidden}
+                              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                             />
                           </div>
 
@@ -502,10 +570,17 @@ export default function ProfileInstructorForm() {
                               <Input
                                 type="number"
                                 value={edu.start}
-                                onChange={(e) => handleChangeEducation(index, "start", parseInt(e.target.value) || new Date().getFullYear())}
+                                onChange={(e) =>
+                                  handleChangeEducation(
+                                    index,
+                                    "start",
+                                    parseInt(e.target.value) || new Date().getFullYear()
+                                  )
+                                }
                                 min="1950"
                                 max={new Date().getFullYear() + 10}
-                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                disabled={isHidden}
+                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                               />
                             </div>
 
@@ -517,10 +592,17 @@ export default function ProfileInstructorForm() {
                               <Input
                                 type="number"
                                 value={edu.end}
-                                onChange={(e) => handleChangeEducation(index, "end", parseInt(e.target.value) || new Date().getFullYear())}
+                                onChange={(e) =>
+                                  handleChangeEducation(
+                                    index,
+                                    "end",
+                                    parseInt(e.target.value) || new Date().getFullYear()
+                                  )
+                                }
                                 min="1950"
                                 max={new Date().getFullYear() + 10}
-                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                disabled={isHidden}
+                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                               />
                             </div>
                           </div>
@@ -529,7 +611,8 @@ export default function ProfileInstructorForm() {
                         <Button
                           type="button"
                           onClick={() => setEditingEducation(null)}
-                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-3xl cursor-pointer"
+                          disabled={isHidden}
+                          className={`w-full rounded-3xl ${isHidden ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white cursor-pointer"}`}
                         >
                           <Check className="w-4 h-4 mr-2" />
                           Lưu thông tin
@@ -537,8 +620,8 @@ export default function ProfileInstructorForm() {
                       </div>
                     ) : (
                       <div
-                        className="p-4 rounded-xl border border-purple-100 cursor-pointer hover:border-purple-300 transition-all group"
-                        onClick={() => setEditingEducation(index)}
+                        className={`p-4 rounded-xl border border-purple-100 transition-all group ${isHidden ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-purple-300"}`}
+                        onClick={() => !isHidden && setEditingEducation(index)}
                       >
                         <div className="space-y-2">
                           <div className="flex items-start justify-between">
@@ -566,12 +649,18 @@ export default function ProfileInstructorForm() {
       </Card>
 
       {/* Card 3: Work Experience */}
-      <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-4xl">
+      <Card
+        className={`border-2 transition-colors rounded-4xl ${isHidden ? "border-gray-300 bg-gray-50" : "border-purple-100 hover:border-purple-300"}`}
+      >
+        <CardHeader
+          className={`rounded-t-4xl ${isHidden ? "bg-gray-200" : "bg-gradient-to-r from-purple-50 to-pink-50"}`}
+        >
           <CardTitle className="text-lg flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-white rounded-lg shadow-sm">
-                <Briefcase className="w-5 h-5 text-purple-600" />
+              <div className={`p-2 bg-white rounded-lg shadow-sm ${isHidden ? "opacity-50" : ""}`}>
+                <Briefcase
+                  className={`w-5 h-5 ${isHidden ? "text-gray-500" : "text-purple-600"}`}
+                />
               </div>
               Kinh nghiệm làm việc
             </div>
@@ -579,7 +668,8 @@ export default function ProfileInstructorForm() {
               type="button"
               onClick={handleAddWork}
               size="icon"
-              className="border border-purple-300 bg text-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 hover:bg-purple-50 hover:text-purple-700 shadow-sm h-8 w-8"
+              disabled={isHidden}
+              className={`border h-8 w-8 ${isHidden ? "border-gray-300 bg-gray-200 text-gray-400 cursor-not-allowed" : "border-purple-300 bg text-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 hover:bg-purple-50 hover:text-purple-700 shadow-sm"}`}
             >
               <Plus className="w-4 h-4" />
             </Button>
@@ -605,13 +695,16 @@ export default function ProfileInstructorForm() {
                             <div className="p-2 rounded-lg bg-purple-50">
                               <Briefcase className="w-5 h-5 text-purple-600" />
                             </div>
-                            <h4 className="font-semibold text-gray-800">Kinh nghiệm #{index + 1}</h4>
+                            <h4 className="font-semibold text-gray-800">
+                              Kinh nghiệm #{index + 1}
+                            </h4>
                           </div>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="hover:bg-red-50 hover:text-red-600"
+                            disabled={isHidden}
+                            className={`${isHidden ? "cursor-not-allowed opacity-50" : "hover:bg-red-50 hover:text-red-600"}`}
                             onClick={() => handleRemoveWork(index)}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -628,7 +721,8 @@ export default function ProfileInstructorForm() {
                               value={work.company}
                               onChange={(e) => handleChangeWork(index, "company", e.target.value)}
                               placeholder="VD: Google Vietnam"
-                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              disabled={isHidden}
+                              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                             />
                           </div>
 
@@ -641,7 +735,8 @@ export default function ProfileInstructorForm() {
                               value={work.role}
                               onChange={(e) => handleChangeWork(index, "role", e.target.value)}
                               placeholder="VD: Senior Software Engineer"
-                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              disabled={isHidden}
+                              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                             />
                           </div>
 
@@ -655,7 +750,8 @@ export default function ProfileInstructorForm() {
                                 type="date"
                                 value={work.from}
                                 onChange={(e) => handleChangeWork(index, "from", e.target.value)}
-                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                disabled={isHidden}
+                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                               />
                             </div>
 
@@ -668,24 +764,27 @@ export default function ProfileInstructorForm() {
                                 type="date"
                                 value={work.to || ""}
                                 onChange={(e) => handleChangeWork(index, "to", e.target.value)}
-                                disabled={work.isCurrentJob}
-                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50"
+                                disabled={work.isCurrentJob || isHidden}
+                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 disabled:opacity-50 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                               />
                             </div>
                           </div>
 
-                           <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+                          <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
                             <label className="text-sm font-semibold text-gray-700">
                               Đang làm việc tại đây
                             </label>
                             <Switch
                               checked={work.isCurrentJob}
+                              disabled={isHidden}
                               onCheckedChange={(checked) => {
                                 const newList = [...workList];
-                                newList[index] = { 
-                                  ...newList[index], 
+                                newList[index] = {
+                                  ...newList[index],
                                   isCurrentJob: checked,
-                                  to: checked ? new Date().toISOString().split('T')[0] : newList[index].to
+                                  to: checked
+                                    ? new Date().toISOString().split("T")[0]
+                                    : newList[index].to,
                                 };
                                 setWorkList(newList);
                               }}
@@ -699,10 +798,13 @@ export default function ProfileInstructorForm() {
                             </label>
                             <Textarea
                               value={work.description || ""}
-                              onChange={(e) => handleChangeWork(index, "description", e.target.value)}
+                              onChange={(e) =>
+                                handleChangeWork(index, "description", e.target.value)
+                              }
                               placeholder="Mô tả ngắn gọn về công việc và trách nhiệm..."
                               rows={3}
-                              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              disabled={isHidden}
+                              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                             />
                           </div>
                         </div>
@@ -710,7 +812,8 @@ export default function ProfileInstructorForm() {
                         <Button
                           type="button"
                           onClick={() => setEditingWork(null)}
-                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-3xl cursor-pointer"
+                          disabled={isHidden}
+                          className={`w-full rounded-3xl ${isHidden ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white cursor-pointer"}`}
                         >
                           <Check className="w-4 h-4 mr-2" />
                           Lưu thông tin
@@ -718,8 +821,8 @@ export default function ProfileInstructorForm() {
                       </div>
                     ) : (
                       <div
-                        className="p-4 rounded-xl border border-purple-100 cursor-pointer hover:border-purple-300 transition-all group"
-                        onClick={() => setEditingWork(index)}
+                        className={`p-4 rounded-xl border border-purple-100 transition-all group ${isHidden ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-purple-300"}`}
+                        onClick={() => !isHidden && setEditingWork(index)}
                       >
                         <div className="space-y-2">
                           <div className="flex items-start justify-between">
@@ -735,8 +838,21 @@ export default function ProfileInstructorForm() {
                           </div>
                           <p className="text-sm text-gray-700 font-medium">{work.company}</p>
                           <p className="text-sm text-gray-600">
-                            {work.from ? new Date(work.from).toLocaleDateString("vi-VN", { month: "long", year: "numeric" }) : ""} - {" "}
-                            {work.isCurrentJob ? "Hiện tại" : work.to ? new Date(work.to).toLocaleDateString("vi-VN", { month: "long", year: "numeric" }) : ""}
+                            {work.from
+                              ? new Date(work.from).toLocaleDateString("vi-VN", {
+                                  month: "long",
+                                  year: "numeric",
+                                })
+                              : ""}{" "}
+                            -{" "}
+                            {work.isCurrentJob
+                              ? "Hiện tại"
+                              : work.to
+                                ? new Date(work.to).toLocaleDateString("vi-VN", {
+                                    month: "long",
+                                    year: "numeric",
+                                  })
+                                : ""}
                           </p>
                           {work.description && (
                             <p className="text-sm text-gray-600 mt-2 pt-2 border-t border-purple-100">
@@ -751,17 +867,25 @@ export default function ProfileInstructorForm() {
               </AnimatePresence>
             </div>
           ) : (
-            <p className="text-sm text-gray-500 text-center py-4">Chưa có thông tin kinh nghiệm làm việc</p>
+            <p className="text-sm text-gray-500 text-center py-4">
+              Chưa có thông tin kinh nghiệm làm việc
+            </p>
           )}
         </CardContent>
       </Card>
 
       {/* Card 4: Teaching Languages & Certificates */}
-      <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-4xl">
+      <Card
+        className={`border-2 transition-colors rounded-4xl ${isHidden ? "border-gray-300 bg-gray-50" : "border-purple-100 hover:border-purple-300"}`}
+      >
+        <CardHeader
+          className={`rounded-t-4xl ${isHidden ? "bg-gray-200" : "bg-gradient-to-r from-purple-50 to-pink-50"}`}
+        >
           <CardTitle className="text-lg flex items-center gap-2">
-            <div className="p-2 bg-white rounded-lg shadow-sm">
-              <GraduationCap className="w-5 h-5 text-purple-600" />
+            <div className={`p-2 bg-white rounded-lg shadow-sm ${isHidden ? "opacity-50" : ""}`}>
+              <GraduationCap
+                className={`w-5 h-5 ${isHidden ? "text-gray-500" : "text-purple-600"}`}
+              />
             </div>
             Ngôn ngữ giảng dạy & Chứng chỉ
           </CardTitle>
@@ -776,12 +900,17 @@ export default function ProfileInstructorForm() {
               value={formData.teachingLanguages}
               onChange={(e) => handleChange("teachingLanguages", e.target.value)}
               placeholder="VD: Tiếng Việt, English"
-              className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              disabled={isHidden}
+              className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
             />
             {formData.teachingLanguages && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {formData.teachingLanguages.split(",").map((lang, index) => (
-                  <Badge key={index} variant="secondary" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-3 py-1 shadow-sm">
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className={`${isHidden ? "bg-gray-200 text-gray-500 cursor-not-allowed hover:bg-gray-200" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-3 py-1 shadow-sm`}
+                  >
                     {lang.trim()}
                   </Badge>
                 ))}
@@ -798,7 +927,8 @@ export default function ProfileInstructorForm() {
                 type="button"
                 onClick={handleAddCertificate}
                 size="icon"
-              className="border border-purple-300 bg text-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 hover:bg-purple-50 hover:text-purple-700 shadow-sm h-8 w-8"
+                disabled={isHidden}
+                className={`border h-8 w-8 ${isHidden ? "border-gray-300 bg-gray-200 text-gray-400 cursor-not-allowed" : "border-purple-300 bg text-purple-600 bg-gradient-to-r from-purple-50 to-pink-50 hover:bg-purple-50 hover:text-purple-700 shadow-sm"}`}
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -822,13 +952,16 @@ export default function ProfileInstructorForm() {
                               <div className="p-2 rounded-lg bg-purple-50">
                                 <Award className="w-5 h-5 text-purple-600" />
                               </div>
-                              <h4 className="font-semibold text-gray-800">Chứng chỉ #{index + 1}</h4>
+                              <h4 className="font-semibold text-gray-800">
+                                Chứng chỉ #{index + 1}
+                              </h4>
                             </div>
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
-                              className="hover:bg-red-50 hover:text-red-600"
+                              disabled={isHidden}
+                              className={`${isHidden ? "cursor-not-allowed opacity-50" : "hover:bg-red-50 hover:text-red-600"}`}
                               onClick={() => handleRemoveCertificate(index)}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -843,9 +976,12 @@ export default function ProfileInstructorForm() {
                               </label>
                               <Input
                                 value={cert.name}
-                                onChange={(e) => handleChangeCertificate(index, "name", e.target.value)}
+                                onChange={(e) =>
+                                  handleChangeCertificate(index, "name", e.target.value)
+                                }
                                 placeholder="VD: AWS Certified Solutions Architect"
-                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                disabled={isHidden}
+                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                               />
                             </div>
 
@@ -856,9 +992,12 @@ export default function ProfileInstructorForm() {
                               </label>
                               <Input
                                 value={cert.issuer}
-                                onChange={(e) => handleChangeCertificate(index, "issuer", e.target.value)}
+                                onChange={(e) =>
+                                  handleChangeCertificate(index, "issuer", e.target.value)
+                                }
                                 placeholder="VD: Amazon Web Services"
-                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                disabled={isHidden}
+                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                               />
                             </div>
 
@@ -870,10 +1009,17 @@ export default function ProfileInstructorForm() {
                               <Input
                                 type="number"
                                 value={cert.year}
-                                onChange={(e) => handleChangeCertificate(index, "year", parseInt(e.target.value) || new Date().getFullYear())}
+                                onChange={(e) =>
+                                  handleChangeCertificate(
+                                    index,
+                                    "year",
+                                    parseInt(e.target.value) || new Date().getFullYear()
+                                  )
+                                }
                                 min="1950"
                                 max={new Date().getFullYear()}
-                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                disabled={isHidden}
+                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                               />
                             </div>
 
@@ -884,9 +1030,12 @@ export default function ProfileInstructorForm() {
                               </label>
                               <Input
                                 value={cert.url}
-                                onChange={(e) => handleChangeCertificate(index, "url", e.target.value)}
+                                onChange={(e) =>
+                                  handleChangeCertificate(index, "url", e.target.value)
+                                }
                                 placeholder="https://..."
-                                className="border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                disabled={isHidden}
+                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
                               />
                             </div>
                           </div>
@@ -894,7 +1043,8 @@ export default function ProfileInstructorForm() {
                           <Button
                             type="button"
                             onClick={() => setEditingCertificate(null)}
-                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-3xl cursor-pointer"
+                            disabled={isHidden}
+                            className={`w-full rounded-3xl ${isHidden ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white cursor-pointer"}`}
                           >
                             <Check className="w-4 h-4 mr-2" />
                             Lưu thông tin
@@ -902,8 +1052,8 @@ export default function ProfileInstructorForm() {
                         </div>
                       ) : (
                         <div
-                          className="p-4 rounded-xl border border-purple-100 cursor-pointer hover:border-purple-300 transition-all group"
-                          onClick={() => setEditingCertificate(index)}
+                          className={`p-4 rounded-xl border border-purple-100 transition-all group ${isHidden ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-purple-300"}`}
+                          onClick={() => !isHidden && setEditingCertificate(index)}
                         >
                           <div className="space-y-2">
                             <div className="flex items-start justify-between">
@@ -944,11 +1094,15 @@ export default function ProfileInstructorForm() {
       </Card>
 
       {/* Card 5: Social Links */}
-      <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-4xl">
+      <Card
+        className={`border-2 transition-colors rounded-4xl ${isHidden ? "border-gray-300 bg-gray-50" : "border-purple-100 hover:border-purple-300"}`}
+      >
+        <CardHeader
+          className={`rounded-t-4xl ${isHidden ? "bg-gray-200" : "bg-gradient-to-r from-purple-50 to-pink-50"}`}
+        >
           <CardTitle className="text-lg flex items-center gap-2">
-            <div className="p-2 bg-white rounded-lg shadow-sm">
-              <Globe className="w-5 h-5 text-purple-600" />
+            <div className={`p-2 bg-white rounded-lg shadow-sm ${isHidden ? "opacity-50" : ""}`}>
+              <Globe className={`w-5 h-5 ${isHidden ? "text-gray-500" : "text-purple-600"}`} />
             </div>
             Liên kết mạng xã hội
           </CardTitle>
@@ -965,7 +1119,8 @@ export default function ProfileInstructorForm() {
                   socialLinks: { ...formData.socialLinks, facebook: e.target.value },
                 })
               }
-              className="pl-10 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              disabled={isHidden}
+              className={`pl-10 border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
             />
           </div>
           <div className="relative">
@@ -979,7 +1134,8 @@ export default function ProfileInstructorForm() {
                   socialLinks: { ...formData.socialLinks, linkedIn: e.target.value },
                 })
               }
-              className="pl-10 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              disabled={isHidden}
+              className={`pl-10 border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
             />
           </div>
           <div className="relative">
@@ -993,29 +1149,28 @@ export default function ProfileInstructorForm() {
                   socialLinks: { ...formData.socialLinks, website: e.target.value },
                 })
               }
-              className="pl-10 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              disabled={isHidden}
+              className={`pl-10 border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
             />
           </div>
         </CardContent>
       </Card>
       {/* Header with Save Button */}
       <div className="flex justify-end gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          className="border-2 border-purple-200 hover:bg-purple-50 hover:text-purple-700 rounded-2xl"
-          // onClick={handleReset}
-        >
-          Hủy thay đổi
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          onClick={handleSubmit}
-          className="rounded-2xl"
-        >
-          Lưu thay đổi
-        </Button>
+        {!isHidden && (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-2 border-purple-200 hover:bg-purple-50 hover:text-purple-700 rounded-2xl"
+            >
+              Hủy thay đổi
+            </Button>
+            <Button type="button" size="sm" onClick={handleSubmit} className="rounded-2xl">
+              Lưu thay đổi
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
