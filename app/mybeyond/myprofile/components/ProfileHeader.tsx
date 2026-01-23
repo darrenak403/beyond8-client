@@ -17,12 +17,10 @@ interface ProfileHeaderProps {
     coverUrl?: string | null;
     isActive?: boolean;
   };
-  onChangePassword: () => void;
 }
 
 export default function ProfileHeader({
   userProfile,
-  onChangePassword,
 }: ProfileHeaderProps) {
   const isMobile = useIsMobile();
   const { uploadAvatar, isUploadingAvatar, uploadCover, isUploadingCover } = useUploadImage();
@@ -184,15 +182,6 @@ export default function ProfileHeader({
           </div>
         </div>
 
-        {/* Change Password Button */}
-        <Button
-          onClick={onChangePassword}
-          className={`${
-            isMobile ? "mt-4 w-full" : "" 
-          } rounded-2xl`}
-        >
-          Đổi mật khẩu
-        </Button>
       </div>
     </div>
   );
