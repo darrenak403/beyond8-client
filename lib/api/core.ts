@@ -1,14 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios, {AxiosInstance, AxiosRequestConfig, AxiosResponse} from 'axios'
-import {deleteCookie} from 'cookies-next'
-import {store} from '@/lib/redux/store'
-import {logout} from '@/lib/redux/slices/authSlice'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { deleteCookie } from 'cookies-next'
+import { store } from '@/lib/redux/store'
+import { logout } from '@/lib/redux/slices/authSlice'
 
 export interface ApiError {
   code?: number
   message: string
   status: boolean
   data?: unknown
+}
+
+export interface RequestParams {
+  [key: string]: string | number | boolean | undefined | null | string[];
 }
 
 class ApiService {
@@ -53,7 +57,7 @@ class ApiService {
       async (error) => {
         // Handle 401 Unauthorized
         if (error.response?.status === 401) {
-          deleteCookie('authToken', {path: '/'})
+          deleteCookie('authToken', { path: '/' })
           store.dispatch(logout())
 
           // Dispatch logout event for other tabs/windows

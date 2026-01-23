@@ -5,7 +5,10 @@ import Image from "next/image";
 import { Icon } from "@iconify/react";
 import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell, Receipt } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
+import { useQuery } from "@tanstack/react-query";
+import { instructorRegistrationService } from "@/lib/api/services/fetchInstructorRegistration";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,23 +19,44 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 
 export function Header() {
   const isMobile = useIsMobile();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const { userProfile, isLoading } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [tempCategory, setTempCategory] = useState("Tất cả");
   const [isOpen, setIsOpen] = useState(false);
   const { mutateLogout } = useLogout();
 
+  const isInstructor = () => {
+    if (!userProfile?.roles) return false;
+    const roles = Array.isArray(userProfile.roles) ? userProfile.roles : [userProfile.roles];
+    return roles.includes("Instructor");
+  };
+
+  const isStudent = () => {
+    if (!userProfile?.roles) return false;
+    const roles = Array.isArray(userProfile.roles) ? userProfile.roles : [userProfile.roles];
+    return roles.length === 1 && roles.includes("Student");
+  };
+
+  const { data: checkApplyData } = useQuery({
+    queryKey: ["instructor-check-apply"],
+    queryFn: () => instructorRegistrationService.checkApply(),
+    enabled: isAuthenticated && isStudent(),
+  });
+
   const getAvatarFallback = () => {
-    if (user?.userNname) {
-      return user.userNname.charAt(0).toUpperCase();
+    if (userProfile?.fullName) {
+      return userProfile.fullName?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || 'U';
     }
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase();
+    if (userProfile?.email) {
+      return userProfile.email.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
     }
     return 'U';
   };
@@ -161,22 +185,35 @@ export function Header() {
           {isAuthenticated ? (
             <>
               {!isMobile && (
-                <Link href="/instructor-registration">
-                  <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
-                    <GraduationCap className="h-4 w-4" />
-                    Đăng ký giảng viên
-                  </Button>
-                </Link>
+                isInstructor() ? (
+                  <Link href="/instructor/dashboard">
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
+                      <GraduationCap className="h-4 w-4" />
+                      Trang giảng viên
+                    </Button>
+                  </Link>
+                ) : isStudent() && checkApplyData?.data === false ? (
+                  <Link href="/instructor-registration">
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
+                      <GraduationCap className="h-4 w-4" />
+                      Đăng ký giảng viên
+                    </Button>
+                  </Link>
+                ) : null
               )}
 
-              <Link href="/profile" className="cursor-pointer">
-                <Avatar className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} border-2 border-purple-200 hover:border-purple-400 transition-colors`}>
-                  <AvatarImage src={undefined} alt={user?.userNname} />
-                  <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
-                    {getAvatarFallback()}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
+              {isLoading ? (
+                <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
+              ) : (
+                <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
+                  <Avatar className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} border-2 border-purple-200 hover:border-purple-400 transition-colors`}>
+                    <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} />
+                    <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
+                      {getAvatarFallback()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+              )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -185,8 +222,17 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
+                  {userProfile && (
+                    <>
+                      <div className="px-2 py-1.5 text-sm">
+                        <p className="font-medium">{userProfile.fullName}</p>
+                        <p className="text-xs text-muted-foreground truncate">{userProfile.email}</p>
+                      </div>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/profile" className="flex items-center gap-2">
+                    <Link href="/mybeyond?tab=myprofile" className="flex items-center gap-2">
                       <User className="h-4 w-4" />
                       Hồ sơ
                     </Link>
@@ -198,26 +244,35 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/my-learning" className="flex items-center gap-2">
+                    <Link href="/mybeyond?tab=mycourse" className="flex items-center gap-2">
                       <BookOpen className="h-4 w-4" />
                       Khóa học của tôi
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/transactions" className="flex items-center gap-2">
+                    <Link href="/mybeyond?tab=mywallet" className="flex items-center gap-2">
                       <Receipt className="h-4 w-4" />
-                      Lịch sử giao dịch
+                      Ví của tôi
                     </Link>
                   </DropdownMenuItem>
-                  {isMobile && (
+                  {isMobile && (isInstructor() || (isStudent() && checkApplyData?.data === false)) && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                        <Link href="/instructor-registration" className="flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4" />
-                          Đăng ký giảng viên
-                        </Link>
-                      </DropdownMenuItem>
+                      {isInstructor() ? (
+                        <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                          <Link href="/instructor/dashboard" className="flex items-center gap-2">
+                            <GraduationCap className="h-4 w-4" />
+                            Trang giảng viên
+                          </Link>
+                        </DropdownMenuItem>
+                      ) : isStudent() && checkApplyData?.data === false ? (
+                        <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                          <Link href="/instructor-registration" className="flex items-center gap-2">
+                            <GraduationCap className="h-4 w-4" />
+                            Đăng ký giảng viên
+                          </Link>
+                        </DropdownMenuItem>
+                      ) : null}
                     </>
                   )}
                   <DropdownMenuSeparator />

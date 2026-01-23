@@ -18,6 +18,7 @@ interface FormFieldProps {
   className?: string;
   rows?: number;
   disabled?: boolean;
+  max?: string;
 }
 
 export function FormikField({
@@ -29,6 +30,7 @@ export function FormikField({
   className,
   rows,
   disabled,
+  max,
 }: FormFieldProps) {
   return (
     <div className="space-y-2">
@@ -59,6 +61,7 @@ export function FormikField({
                   className
                 )}
                 disabled={disabled}
+                max={max}
               />
             )}
           </>

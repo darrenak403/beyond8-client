@@ -11,6 +11,7 @@ import {
   MoreVertical,
   LogOut,
   User,
+  FileCheck,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -21,12 +22,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { useAuth, useLogout } from '@/hooks/useAuth';
+import { useLogout } from '@/hooks/useAuth';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { cn } from '@/lib/utils';
+import { formatImageUrl } from '@/lib/utils/formatImageUrl';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: Users, label: 'Quản lý người dùng', href: '/admin/user' },
+  { icon: FileCheck, label: 'Duyệt đơn giảng viên', href: '/admin/instructor-registration' },
   { icon: BookOpen, label: 'Khóa học', href: '/admin/course' },
   { icon: BarChart3, label: 'Báo cáo', href: '/admin/report' },
 ];
@@ -37,12 +41,19 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { userProfile } = useUserProfile();
   const { mutateLogout } = useLogout();
 
   const getAvatarFallback = () => {
-    if (user?.userNname) return user.userNname.charAt(0).toUpperCase();
-    if (user?.email) return user.email.charAt(0).toUpperCase();
+    if (userProfile?.fullName) {
+      return userProfile.fullName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    if (userProfile?.email) return userProfile.email.charAt(0).toUpperCase();
     return 'A';
   };
 
@@ -101,7 +112,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
         <div className="p-3 border-t border-gray-200">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8 rounded-lg flex-shrink-0">
-              <AvatarImage src={undefined} alt={user?.userNname} />
+              <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
               <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
                 {getAvatarFallback()}
               </AvatarFallback>
@@ -111,9 +122,9 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
               <>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-gray-900 truncate">
-                    {user?.userNname || 'Admin'}
+                    {userProfile?.fullName || 'Admin'}
                   </p>
-                  <p className="text-[10px] text-gray-500 truncate">{user?.email}</p>
+                  <p className="text-[10px] text-gray-500 truncate">{userProfile?.email}</p>
                 </div>
 
                 <DropdownMenu>
@@ -127,16 +138,19 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-44">
-                    <DropdownMenuItem asChild className="cursor-pointer text-sm">
-                      <Link href="/profile" className="flex items-center gap-2">
-                        <User className="h-3.5 w-3.5" />
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/admin/admin-profile"
+                        className="cursor-pointer text-sm flex items-center"
+                      >
+                        <User className="h-3.5 w-3.5 mr-2" />
                         Hồ sơ
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => mutateLogout()}
-                      className="cursor-pointer text-red-600 focus:text-white-600 text-sm"
+                      className="cursor-pointer text-red-600 focus:text-red-600 hover:bg-red-100 focus:bg-red-50 text-sm"
                     >
                       <LogOut className="h-3.5 w-3.5 mr-2" />
                       Đăng xuất

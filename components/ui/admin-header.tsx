@@ -13,6 +13,7 @@ const pageTitles: Record<string, string> = {
   '/admin/user': 'Quản lý người dùng',
   '/admin/course': 'Khóa học',
   '/admin/report': 'Báo cáo',
+  '/admin/admin-profile': 'Hồ sơ',
 };
 
 export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {

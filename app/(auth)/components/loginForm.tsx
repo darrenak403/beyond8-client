@@ -6,8 +6,8 @@ import { FormikForm, FormikField, Yup } from '@/components/ui/formik-form';
 import { useLogin, useForgotPassword, useVerifyOtpForgotPassword, useResendOtp } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog';
-import { OtpDialog } from '@/components/auth/OtpDialog';
+import { ForgotPasswordDialog } from '@/components/widget/auth/ForgotPasswordDialog';
+import { OtpDialog } from '@/components/widget/auth/OtpDialog';
 
 const loginSchema = Yup.object({
     email: Yup.string()
