@@ -42,19 +42,12 @@ export default function InstructorRegisFooter({
             <Button
               variant="outline"
               onClick={onBack}
-              className="gap-2"
+              className="gap-2 rounded-2xl cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
               Quay lại
             </Button>
           )}
-        </div>
-
-        {/* Step Indicator */}
-        <div className="flex-1 text-center">
-          <span className="text-sm font-medium text-gray-600">
-            Bước {currentStep} / {totalSteps}
-          </span>
         </div>
 
         {/* Next Button */}
@@ -63,7 +56,7 @@ export default function InstructorRegisFooter({
             <Button
               onClick={onNext}
               disabled={nextDisabled}
-              className={`gap-2 ${isLastStep ? 'bg-green-600 hover:bg-green-700' : 'bg-purple-600 hover:bg-purple-700'}`}
+              className={`gap-2 rounded-2xl cursor-pointer ${isLastStep ? 'bg-green-600 hover:bg-green-700' : 'bg-purple-600 hover:bg-purple-700'}`}
             >
               {nextLabel}
               {!isLastStep && <ChevronRight className="w-4 h-4" />}

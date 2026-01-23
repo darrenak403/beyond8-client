@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, Circle } from "lucide-react";
@@ -25,6 +26,9 @@ export default function AdminProfileForm({
     fullName: userProfile.fullName || "",
     phoneNumber: userProfile.phoneNumber || "",
     dateOfBirth: formatDateForInput(userProfile.dateOfBirth),
+    specialization: userProfile.specialization || "",
+    address: userProfile.address || "",
+    bio: userProfile.bio || "",
     timezone: userProfile.timezone || "Asia/Ho_Chi_Minh",
     locale: userProfile.locale || "vi-VN",
   });
@@ -33,6 +37,9 @@ export default function AdminProfileForm({
     formData.fullName !== (userProfile.fullName || "") ||
     formData.phoneNumber !== (userProfile.phoneNumber || "") ||
     formData.dateOfBirth !== formatDateForInput(userProfile.dateOfBirth) ||
+    formData.specialization !== (userProfile.specialization || "") ||
+    formData.address !== (userProfile.address || "") ||
+    formData.bio !== (userProfile.bio || "") ||
     formData.timezone !== (userProfile.timezone || "Asia/Ho_Chi_Minh") ||
     formData.locale !== (userProfile.locale || "vi-VN");
 
@@ -45,6 +52,9 @@ export default function AdminProfileForm({
       fullName: userProfile.fullName || "",
       phoneNumber: userProfile.phoneNumber || "",
       dateOfBirth: formatDateForInput(userProfile.dateOfBirth),
+      specialization: userProfile.specialization || "",
+      address: userProfile.address || "",
+      bio: userProfile.bio || "",
       timezone: userProfile.timezone || "Asia/Ho_Chi_Minh",
       locale: userProfile.locale || "vi-VN",
     });
@@ -57,6 +67,9 @@ export default function AdminProfileForm({
       fullName: formData.fullName,
       phoneNumber: formData.phoneNumber || undefined,
       dateOfBirth: formData.dateOfBirth || null,
+      specialization: formData.specialization || null,
+      address: formData.address || null,
+      bio: formData.bio || null,
       timezone: formData.timezone,
       locale: formData.locale,
     };
@@ -135,6 +148,30 @@ export default function AdminProfileForm({
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="space-y-2">
+          <Label htmlFor="specialization">Chuyên môn</Label>
+          <Input
+            id="specialization"
+            value={formData.specialization || ""}
+            onChange={(e) => handleChange("specialization", e.target.value)}
+            placeholder="VD: Lập trình Web, Thiết kế UI/UX"
+            className="transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="address">Địa chỉ</Label>
+          <Input
+            id="address"
+            value={formData.address || ""}
+            onChange={(e) => handleChange("address", e.target.value)}
+            placeholder="VD: Hà Nội, Việt Nam"
+            className="transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="space-y-2">
           <Label htmlFor="timezone">Múi giờ</Label>
           <Select value={formData.timezone} onValueChange={(value) => handleChange("timezone", value)}>
             <SelectTrigger>
@@ -167,20 +204,15 @@ export default function AdminProfileForm({
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <Label>Trạng thái</Label>
-          <RadioGroup value={userProfile.isActive ? "online" : "offline"} disabled className="flex gap-6">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="online" id="online" disabled />
-              <Label htmlFor="online" className="font-normal text-gray-500">Trực tuyến</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="offline" id="offline" disabled />
-              <Label htmlFor="offline" className="font-normal text-gray-500">Ngoại tuyến</Label>
-            </div>
-          </RadioGroup>
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="bio">Tiểu sử</Label>
+        <Textarea
+          id="bio"
+          value={formData.bio || ""}
+          onChange={(e) => handleChange("bio", e.target.value)}
+          placeholder="Viết vài dòng về bản thân..."
+          className="transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[100px]"
+        />
       </div>
 
       <div className="flex justify-end gap-3">

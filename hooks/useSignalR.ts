@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { HubConnection, HubConnectionState } from '@microsoft/signalr'
-import { getHubConnection, startHubConnection, stopHubConnection } from '@/lib/realtime/signalr'
+import { getHubConnection, startHubConnection, stopHubConnection, reconnectHubConnection } from '@/lib/realtime/signalr'
 
 export function useSignalR(autoConnect = true) {
   const connection = useMemo<HubConnection>(() => getHubConnection(), [])
@@ -45,6 +45,7 @@ export function useSignalR(autoConnect = true) {
     error,
     start: startHubConnection,
     stop: stopHubConnection,
+    reconnect: reconnectHubConnection,
   }
 }
 

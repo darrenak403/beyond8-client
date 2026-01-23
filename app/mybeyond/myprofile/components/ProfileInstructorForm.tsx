@@ -35,14 +35,13 @@ import type {
 import { Switch } from "@/components/ui/switch";
 import { useUnHiddenProfile } from "@/hooks/useInstructorRegistration";
 
-
 export default function ProfileInstructorForm() {
   const { instructorProfile, isLoading, error } = useGetInstructorProfile();
-  const { unhideProfile, isUnhiding } = useUnHiddenProfile(); 
+  const { unhideProfile, isUnhiding } = useUnHiddenProfile();
   const [editingEducation, setEditingEducation] = useState<number | null>(null);
   const [editingWork, setEditingWork] = useState<number | null>(null);
   const [editingCertificate, setEditingCertificate] = useState<number | null>(null);
-// Check if profile is hidden
+  // Check if profile is hidden
   const isHidden = instructorProfile?.verificationStatus === "Hidden";
   const [educationList, setEducationList] = useState<InstructorEducation[]>([]);
   const [workList, setWorkList] = useState<InstructorWorkExperience[]>([]);
@@ -125,12 +124,16 @@ export default function ProfileInstructorForm() {
     });
   };
 
-  const handleRequestReopen = () => {
+  const handleRequestReopen = async () => {
     if (!instructorProfile) return;
-    unhideProfile(instructorProfile!.id);
+    try {
+      await unhideProfile(instructorProfile.id);
+    } catch (error) {
+      console.error("Error requesting profile reopen:", error);
+    }
   };
 
-  // Education handlers 
+  // Education handlers
   const handleAddEducation = () => {
     const newEdu: InstructorEducation = {
       school: "",
@@ -374,7 +377,7 @@ export default function ProfileInstructorForm() {
             onClick={handleRequestReopen}
             className="bg-red-600 hover:bg-red-700 text-white rounded-2xl px-6 cursor-pointer"
           >
-            Yêu cầu mở lại
+            {isUnhiding ? "Đang xử lý..." : "Yêu cầu mở lại"}
           </Button>
         </div>
       )}
@@ -1157,7 +1160,7 @@ export default function ProfileInstructorForm() {
       </Card>
       {/* Header with Save Button */}
       <div className="flex justify-end gap-3">
-        {!isHidden && (
+        {instructorProfile?.verificationStatus === "Verified" && (
           <>
             <Button
               type="button"

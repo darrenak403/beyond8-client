@@ -9,6 +9,7 @@ import { getAuthCookieConfig } from '@/utils/cookieConfig';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { reconnectHubConnection, stopHubConnection } from '@/lib/realtime/signalr';
 
 
 export function useLogin() {
@@ -35,14 +36,19 @@ export function useLogin() {
 
       const user = decodeToken(data.data.accessToken);
 
+      // Reconnect SignalR with new token
+      reconnectHubConnection().catch(err => {
+        console.error('[SignalR] Failed to reconnect after login:', err);
+      });
+
       toast.success('Đăng nhập thành công!');
 
       if (user?.role?.includes(Roles.Admin)) {
-        router.push('/admin/dashboard');
+        window.location.href = '/admin/dashboard';
       } else if (user?.role?.includes(Roles.Instructor)) {
-        router.push('/instructor/dashboard');
+        window.location.href = '/instructor/dashboard';
       } else if (user?.role?.includes(Roles.Student)) {
-        router.push('/courses');
+        window.location.href = '/courses';
       }
     },
     onError: (error: LoginResponse) => {
@@ -252,6 +258,11 @@ export function useLogout() {
       return response;
     },
     onSuccess: () => {
+      // Stop SignalR connection on logout
+      stopHubConnection().catch(err => {
+        console.error('[SignalR] Failed to stop connection on logout:', err);
+      });
+      
       dispatch(logout());
       deleteCookie('authToken');
       queryClient.invalidateQueries({ queryKey: ['auth'] });
