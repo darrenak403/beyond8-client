@@ -12,6 +12,7 @@ const pageTitles: Record<string, string> = {
   '/admin/dashboard': 'Dashboard',
   '/admin/user': 'Quản lý người dùng',
   '/admin/course': 'Khóa học',
+  '/admin/instructor-registration': 'Duyệt giảng viên',
   '/admin/report': 'Báo cáo',
   '/admin/admin-profile': 'Hồ sơ',
 };

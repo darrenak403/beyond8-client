@@ -6,6 +6,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -54,7 +55,7 @@ export function RegistrationDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={`${isMobile ? "max-w-full w-full h-[100dvh] rounded-none p-0 flex flex-col" : "max-w-4xl max-h-[90vh] flex flex-col p-0"}`}>
+            <DialogContent className={`${isMobile ? "max-w-full w-full h-[100dvh] rounded-none p-0 flex flex-col" : "max-w-4xl h-[90vh] flex flex-col p-0"}`}>
                 <DialogHeader className="p-6 pb-2">
                     <DialogTitle>Chi tiết đơn đăng ký giảng viên</DialogTitle>
                     <DialogDescription>
@@ -62,21 +63,21 @@ export function RegistrationDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto px-6">
+                <ScrollArea className={`flex-1 ${isMobile ? "px-4" : "px-6"}`}>
                     <div className="space-y-6 pb-6">
                         {/* User Profile Header */}
-                        <div className="flex items-start gap-4 p-4 border rounded-lg bg-muted/20">
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-4 p-4 border rounded-lg bg-muted/20">
                             <Avatar className="h-16 w-16">
                                 <AvatarImage src={user.avatarUrl || ""} />
                                 <AvatarFallback>
                                     {user.fullName.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="flex-1">
+                            <div className="flex-1 text-center md:text-left bg-transparent">
                                 <h3 className="font-semibold text-lg">{user.fullName}</h3>
                                 <p className="text-sm text-muted-foreground">{user.email}</p>
                                 {user.dateOfBirth && (
-                                    <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                                    <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-1 mt-1">
                                         <Calendar className="h-3 w-3" />
                                         Ngày sinh: {format(new Date(user.dateOfBirth), "dd/MM/yyyy")}
                                     </p>
@@ -86,7 +87,7 @@ export function RegistrationDialog({
                                         {registration.headline}
                                     </p>
                                 )}
-                                <div className="flex gap-2 mt-2">
+                                <div className="flex gap-2 mt-2 justify-center md:justify-start">
                                     {registration.socialLinks.facebook && (
                                         <a
                                             href={registration.socialLinks.facebook}
@@ -119,19 +120,21 @@ export function RegistrationDialog({
                                     )}
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end gap-1">
+                            <div className="flex flex-col items-center md:items-end gap-1 w-full md:w-auto mt-2 md:mt-0">
                                 <Badge
-                                    variant={
+                                    className={
                                         registration.verificationStatus === VerificationStatus.Verified
-                                            ? "default"
+                                            ? "bg-green-600 hover:bg-green-700 whitespace-nowrap"
                                             : registration.verificationStatus === VerificationStatus.Hidden
-                                                ? "destructive"
-                                                : "secondary"
+                                                ? "bg-red-600 hover:bg-red-700 whitespace-nowrap"
+                                                : registration.verificationStatus === VerificationStatus.Pending
+                                                    ? "bg-orange-500 hover:bg-orange-600 whitespace-nowrap"
+                                                    : "bg-yellow-500 hover:bg-yellow-600 whitespace-nowrap"
                                     }
                                 >
                                     {
                                         registration.verificationStatus === VerificationStatus.Pending
-                                            ? "Đang chờ"
+                                            ? "Chờ duyệt"
                                             : registration.verificationStatus === VerificationStatus.Verified
                                                 ? "Đã duyệt"
                                                 : registration.verificationStatus === VerificationStatus.Hidden
@@ -156,10 +159,10 @@ export function RegistrationDialog({
                         </div>
 
                         <Tabs defaultValue="info" className="w-full">
-                            <TabsList className="grid w-full grid-cols-3">
-                                <TabsTrigger value="info">Thông tin chung</TabsTrigger>
-                                <TabsTrigger value="financial">Tài chính</TabsTrigger>
-                                <TabsTrigger value="documents">Tài liệu xác minh</TabsTrigger>
+                            <TabsList className="grid w-full grid-cols-3 h-auto">
+                                <TabsTrigger value="info" className="h-auto whitespace-normal py-2">Thông tin chung</TabsTrigger>
+                                <TabsTrigger value="financial" className="h-auto whitespace-normal py-2">Tài chính</TabsTrigger>
+                                <TabsTrigger value="documents" className="h-auto whitespace-normal py-2">Tài liệu xác minh</TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="info" className="space-y-4 mt-4">
@@ -220,7 +223,7 @@ export function RegistrationDialog({
                                                             </p>
                                                         </div>
                                                         <span className="text-sm text-muted-foreground">
-                                                            {exp.from} - {exp.to}
+                                                            {format(new Date(exp.from), "dd/MM/yyyy")} - {format(new Date(exp.to), "dd/MM/yyyy")}
                                                         </span>
                                                     </div>
                                                 ))
@@ -421,7 +424,7 @@ export function RegistrationDialog({
                             </TabsContent>
                         </Tabs>
                     </div>
-                </div>
+                </ScrollArea>
 
                 <DialogFooter className="p-6 border-t gap-2">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -430,10 +433,10 @@ export function RegistrationDialog({
                     {registration.verificationStatus === VerificationStatus.Pending && (
                         <>
                             <Button
-                                variant="destructive"
+                                className="bg-yellow-500 hover:bg-yellow-600 text-white"
                                 onClick={() => onReject(registration.id)}
                             >
-                                Từ chối
+                                Yêu cầu cập nhật
                             </Button>
                             <Button
                                 className="bg-green-600 hover:bg-green-700 text-white"
