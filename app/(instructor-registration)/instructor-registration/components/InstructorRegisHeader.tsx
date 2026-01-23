@@ -34,14 +34,14 @@ export default function InstructorRegisHeader() {
             alt="Beyond 8"
             width={60}
             height={60}
-            className="h-20 w-auto"
+            className="h-15 w-auto"
           />
         </Link>
 
         {/* Exit Button */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2 rounded-2xl cursor-pointer hover:bg-gray-100 hover:text-black">
               <LogOut className="w-4 h-4" />
               Thoát
             </Button>
@@ -54,8 +54,8 @@ export default function InstructorRegisHeader() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Hủy</AlertDialogCancel>
-              <AlertDialogAction onClick={handleExit} className="bg-red-600 hover:bg-red-700">
+              <AlertDialogCancel className="rounded-2xl cursor-pointer hover:bg-gray-100 hover:text-black">Hủy</AlertDialogCancel>
+              <AlertDialogAction onClick={handleExit} className="bg-red-600 hover:bg-red-700 rounded-2xl cursor-pointer">
                 Thoát
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -333,7 +333,7 @@ export default function InstructorRegistrationPage() {
                     className="h-full"
                   >
                     <Step4Certificates
-                      data={{ certificates: formData.certificates }}
+                      data={{ certificates: formData.certificates, introVideoUrl: formData.introVideoUrl }}
                       onChange={(data) => setFormData({ ...formData, ...data })}
                     />
                   </motion.div>
@@ -372,7 +372,6 @@ export default function InstructorRegistrationPage() {
                         bankInfo: formData.bankInfo,
                         taxId: formData.taxId,
                         teachingLanguages: formData.teachingLanguages,
-                        introVideoUrl: formData.introVideoUrl,
                       }}
                       onChange={(data) => setFormData({ ...formData, ...data })}
                     />
