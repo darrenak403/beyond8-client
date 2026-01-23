@@ -29,6 +29,7 @@ export function OtpDialog({ open, onOpenChange, email, onVerify, onResend, isLoa
     // Reset timer when dialog opens
     useEffect(() => {
         if (open) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
             setTimeLeft(60);
             setOtp("");
         }

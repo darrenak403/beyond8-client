@@ -2,7 +2,7 @@
 
 import { DataTable } from "@/components/ui/data-table"
 import { PaginationState } from "@tanstack/react-table"
-import { getColumns } from "./components/Columns"
+import { getColumns } from "./components/columns"
 import { UserTableToolbar } from "./components/UserTableToolbar"
 import { useState } from "react"
 import { UserDialog } from "./components/UserDialog"
