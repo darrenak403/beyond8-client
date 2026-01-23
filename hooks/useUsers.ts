@@ -1,4 +1,4 @@
-import { AddUserRequest, fetchUsers, UserParams, UserResponse } from "@/lib/api/services/fetchUsers";
+import { AddUserRequest, fetchUsers, UpdateUserRequest, UserParams, UserResponse } from "@/lib/api/services/fetchUsers";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
@@ -40,7 +40,7 @@ export function useAddUser() {
 export function useUpdateUser() {
     const queryClient = useQueryClient()
     const { mutateAsync, isPending } = useMutation({
-        mutationFn: ({ id, user }: { id: string; user: any }) => fetchUsers.updateUser(id, user),
+        mutationFn: ({ id, roles }: { id: string; roles: string[] }) => fetchUsers.updateUser(id, roles),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users', 'getAll'] })
         }
@@ -62,7 +62,7 @@ export function useDeleteUser() {
 export function useUpdateUserStatus() {
     const queryClient = useQueryClient()
     const { mutateAsync, isPending } = useMutation({
-        mutationFn: ({ id, status }: { id: string; status: string }) => fetchUsers.updateUserStatus(id, status),
+        mutationFn: (id: string) => fetchUsers.updateUserStatus(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users', 'getAll'] })
         }

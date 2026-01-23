@@ -84,7 +84,8 @@ export enum VerificationStatus {
   Pending = "Pending",
   Verified = "Verified",
   Hidden = "Hidden",
-  RequestUpdate = "RequestUpdate"
+  RequestUpdate = "RequestUpdate",
+  Recovering = "Recovering"
 }
 
 export interface RejectRegistrationRequest {
@@ -114,6 +115,7 @@ export interface InstructorRegistrationResponse {
   taxId: string | null;
   identityDocuments: IdentityDocuments[];
   certificates: Certificates[];
+  verifiedBy: string | null;
 }
 
 export interface InstructorProfileResponse {
@@ -218,16 +220,9 @@ export interface AIProfileReviewRequest {
   teachingLanguages: string[];
 }
 
-export enum InstructorRegistrationParamsStatus {
-  All = "All",
-  Pending = "Pending",
-  Verified = "Verified",
-  Rejected = "Rejected",
-  RequestUpdate = "RequestUpdate"
-}
 
 export interface InstructorRegistrationParams {
-  status: InstructorRegistrationParamsStatus;
+  verificationStatus: string;
   fullName: string;
   pageNumber: number;
   pageSize: number;
@@ -237,7 +232,7 @@ export interface InstructorRegistrationParams {
 const convertParamsToQuery = (params: InstructorRegistrationParams): RequestParams => {
   if (!params) return {};
   const query: RequestParams = {};
-  if (params.status) query.status = params.status;
+  if (params.verificationStatus) query.verificationStatus = params.verificationStatus;
   if (params.fullName) query.fullName = params.fullName;
   if (params.pageNumber) query.pageNumber = params.pageNumber;
   if (params.pageSize) query.pageSize = params.pageSize;

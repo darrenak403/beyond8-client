@@ -69,8 +69,7 @@ const UserManagementPage = () => {
   const onConfirmStatusChange = async () => {
     if (selectedUser) {
       try {
-        const newStatus = "Active"
-        await updateUserStatus({ id: selectedUser.id, status: newStatus })
+        await updateUserStatus(selectedUser.id)
         toast.success("Kích hoạt tài khoản thành công")
         setIsStatusDialogOpen(false)
       } catch (error: any) {

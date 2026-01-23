@@ -30,6 +30,8 @@ import { toast } from "sonner"
 import { mediaService } from "@/lib/api/services/fetchMedia"
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 import { useIsMobile } from "@/hooks/useMobile"
+import { Badge } from "@/components/ui/badge"
+import { RoleBadgeItem } from "./RoleBadge"
 
 interface UserDialogProps {
     open: boolean
@@ -41,7 +43,7 @@ interface UserDialogProps {
 type UserFormValues = {
     fullName: string
     email: string
-    role: string
+    roles: string[]
     password?: string
     avatarUrl?: string
     phoneNumber?: string
@@ -58,7 +60,9 @@ const getUserValidationSchema = (mode: string) => Yup.object().shape({
     email: Yup.string()
         .email("Email không hợp lệ")
         .required("Email là bắt buộc"),
-    role: Yup.string()
+    roles: Yup.array()
+        .of(Yup.string())
+        .min(1, "Phải chọn ít nhất một vai trò")
         .required("Phải chọn vai trò"),
     password: mode === "add"
         ? Yup.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự").required("Mật khẩu là bắt buộc")
@@ -75,12 +79,12 @@ const getUserValidationSchema = (mode: string) => Yup.object().shape({
     timezone: Yup.string().optional(),
 })
 
-const ROLE_VALUES: Record<string, number> = {
-    "Student": 0,
-    "Instructor": 1,
-    "Staff": 2,
-    "Admin": 99
-}
+const ROLE_VALUES: Array<{ value: string, label: string }> = [
+    { label: "Học viên", value: "ROLE_STUDENT" },
+    { label: "Giảng viên", value: "ROLE_INSTRUCTOR" },
+    { label: "Nhân viên", value: "ROLE_STAFF" },
+    { label: "Admin", value: "ROLE_ADMIN" }
+]
 
 export function UserDialog({
     open,
@@ -97,12 +101,13 @@ export function UserDialog({
     const [isUploading, setIsUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
+
     const initialValues: UserFormValues = useMemo(() => {
         if (user && mode === "edit") {
             return {
                 fullName: user.fullName || "",
                 email: user.email || "",
-                role: user.roles && user.roles.length > 0 ? user.roles[0] : "Student",
+                roles: user.roles && user.roles.length > 0 ? user.roles : ["ROLE_STUDENT"],
                 password: "",
                 avatarUrl: user.avatarUrl || "",
                 phoneNumber: user.phoneNumber || "",
@@ -114,7 +119,7 @@ export function UserDialog({
         return {
             fullName: "",
             email: "",
-            role: "Student",
+            roles: ["Student"],
             password: "",
             avatarUrl: "",
             phoneNumber: "",
@@ -131,7 +136,7 @@ export function UserDialog({
             if (mode === "add") {
                 const addData: any = {
                     ...values,
-                    roles: [ROLE_VALUES[values.role]],
+                    roles: values.roles,
                     avatarUrl: formatImageUrl(values.avatarUrl), // Already updated by handleFileChange
                     locale: values.locale || "vi-VN",
                     timezone: values.timezone || "Asia/Ho_Chi_Minh",
@@ -142,17 +147,8 @@ export function UserDialog({
                 await addUser(addData)
                 toast.success("Thêm người dùng thành công")
             } else {
-                if (user) {
-                    // Handle other updates
-                    const updateData: any = {
-                        fullName: values.fullName,
-                        phoneNumber: values.phoneNumber || "",
-                        dateOfBirth: values.dateOfBirth ? new Date(values.dateOfBirth).toISOString() : user.dateOfBirth,
-                        locale: values.locale || "vi-VN",
-                        timezone: values.timezone || "Asia/Ho_Chi_Minh",
-                    };
-
-                    await updateUser({ id: user.id, user: updateData })
+                if (values.roles && user) {
+                    await updateUser({ id: user.id, roles: values.roles })
                     toast.success("Cập nhật người dùng thành công")
                 }
             }
@@ -162,6 +158,13 @@ export function UserDialog({
             toast.error(error.message || "Có lỗi xảy ra")
         }
     }
+
+    const toggleRole = (roleValue: string, currentRoles: string[], setFieldValue: (field: string, value: any) => void) => {
+        const newRoles = currentRoles.includes(roleValue)
+            ? currentRoles.filter(r => r !== roleValue)
+            : [...currentRoles, roleValue];
+        setFieldValue("roles", newRoles);
+    };
 
     const isLoading = isAdding || isUpdating || isUploading
 
@@ -270,11 +273,13 @@ export function UserDialog({
                                                 name="fullName"
                                                 label="Họ và tên"
                                                 placeholder="Nguyễn Văn A"
+                                                disabled={mode === "edit"}
                                             />
                                             <FormikField
                                                 name="phoneNumber"
                                                 label="Số điện thoại"
                                                 placeholder="0123456789"
+                                                disabled={mode === "edit"}
                                             />
                                         </div>
 
@@ -291,6 +296,7 @@ export function UserDialog({
                                                 label="Ngày sinh"
                                                 type="date"
                                                 max={new Date().toISOString().split("T")[0]}
+                                                disabled={mode === "edit"}
                                             />
                                         </div>
 
@@ -303,32 +309,34 @@ export function UserDialog({
                                             />
                                         )}
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label>Vai trò</Label>
-                                                <Select
-                                                    onValueChange={(value) => setFieldValue("role", value)}
-                                                    value={values.role}
-                                                    disabled={mode === "edit"}
-                                                >
-                                                    <SelectTrigger className={errors.role && touched.role ? "border-destructive" : ""}>
-                                                        <SelectValue placeholder="Chọn vai trò" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {(Object.keys(Role) as Array<keyof typeof Role>).map((key) => (
-                                                            <SelectItem key={key} value={key} className="capitalize">
-                                                                {Role[key]}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {errors.role && touched.role && (
-                                                    <p className="text-[0.8rem] font-medium text-destructive">
-                                                        {errors.role as string}
+                                        {ROLE_VALUES.length > 0 && (
+                                            <div className="space-y-3">
+                                                <p className="text-sm font-medium text-gray-700">
+                                                    Vai trò <span className="text-destructive">*</span>
+                                                </p>
+                                                <div className="flex gap-2 flex-wrap">
+                                                    {ROLE_VALUES.map((role) => {
+                                                        const isSelected = values.roles.includes(role.value);
+                                                        return (
+                                                            <RoleBadgeItem
+                                                                key={role.value}
+                                                                role={role.value}
+                                                                variant={isSelected ? "secondary" : "outline"}
+                                                                className={`cursor-pointer select-none ${isSelected ? "bg-primary/10 hover:bg-primary/20 border-primary/50 text-foreground" : "hover:bg-accent"}`}
+                                                                onClick={() => toggleRole(role.value, values.roles, setFieldValue)}
+                                                            />
+                                                        )
+                                                    })}
+                                                </div>
+                                                {touched.roles && errors.roles && (
+                                                    <p className="text-sm font-medium text-destructive">
+                                                        {typeof errors.roles === 'string' ? errors.roles : "Vui lòng chọn vai trò"}
                                                     </p>
                                                 )}
                                             </div>
+                                        )}
 
+                                        {/* <div className="grid grid-cols-2 gap-4">
                                             {mode === "edit" && (
                                                 <div className="space-y-2">
                                                     <Label>Ngôn ngữ</Label>
@@ -370,7 +378,7 @@ export function UserDialog({
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                        )}
+                                        )} */}
                                     </div>
 
                                     <DialogFooter className="pt-4">

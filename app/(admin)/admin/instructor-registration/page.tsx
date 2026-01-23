@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useGetAllRegistration, useAproveRegistration, useRejectRegistration } from "@/hooks/useInstructorRegistration";
-import { InstructorRegistrationResponse, InstructorRegistrationParamsStatus, VerificationStatus } from "@/lib/api/services/fetchInstructorRegistration";
+import { InstructorRegistrationResponse, VerificationStatus } from "@/lib/api/services/fetchInstructorRegistration";
 import { RejectDialog } from "./components/RejectDialog";
 
 import { RegistrationTableSkeleton } from "./components/RegistrationTableSkeleton";
@@ -25,7 +25,7 @@ const InstructorRegistrationPage = () => {
         pageSize: 10,
     });
 
-    const [status, setStatus] = useState<InstructorRegistrationParamsStatus>(InstructorRegistrationParamsStatus.All);
+    const [status, setStatus] = useState<string>("");
     const [fullName, setFullName] = useState("");
     const [debouncedFullName, setDebouncedFullName] = useState("");
 
@@ -47,7 +47,7 @@ const InstructorRegistrationPage = () => {
     } = useGetAllRegistration({
         pageNumber: pagination.pageIndex + 1,
         pageSize: pagination.pageSize,
-        status: status,
+        verificationStatus: status,
         fullName: debouncedFullName,
         IsDescending: true
     });
@@ -121,6 +121,11 @@ const InstructorRegistrationPage = () => {
         }
     };
 
+    const handleStatusChange = (value: string) => {
+        setStatus(value);
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    };
+
     const columns = useMemo(() => getColumns({
         onReview: handleReview,
         onApprove: handleApproveClick,
@@ -176,7 +181,7 @@ const InstructorRegistrationPage = () => {
                             searchValue={fullName}
                             onSearchChange={setFullName}
                             statusFilter={status}
-                            onStatusChange={(value) => setStatus(value as InstructorRegistrationParamsStatus)}
+                            onStatusChange={(value) => handleStatusChange(value)}
                         />
                     )}
                 </DataTable>

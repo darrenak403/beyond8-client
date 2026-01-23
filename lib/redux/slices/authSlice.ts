@@ -12,7 +12,7 @@ export interface User {
   id: string
   email: string
   userNname: string
-  role: string
+  role: string[]
 }
 
 interface AuthState {

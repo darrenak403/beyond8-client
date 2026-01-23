@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Eye, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
-import { InstructorRegistrationResponse } from "@/lib/api/services/fetchInstructorRegistration";
+import { InstructorRegistrationResponse, VerificationStatus } from "@/lib/api/services/fetchInstructorRegistration";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 
 interface GetColumnsProps {
@@ -97,7 +97,9 @@ export const getColumns = ({
                                     ? "bg-red-600 hover:bg-red-700 whitespace-nowrap"
                                     : status === "Pending"
                                         ? "bg-orange-500 hover:bg-orange-600 whitespace-nowrap"
-                                        : "bg-yellow-500 hover:bg-yellow-600 whitespace-nowrap"
+                                        : status === "Recovering"
+                                            ? "bg-blue-500 hover:bg-blue-600 whitespace-nowrap"
+                                            : "bg-yellow-500 hover:bg-yellow-600 whitespace-nowrap"
                         }
                     >
                         {status === "Verified"
@@ -106,7 +108,9 @@ export const getColumns = ({
                                 ? "Đã từ chối"
                                 : status === "Pending"
                                     ? "Chờ duyệt"
-                                    : "Yêu cầu cập nhật"}
+                                    : status === "Recovering"
+                                        ? "Yêu cầu khôi phục"
+                                        : "Yêu cầu cập nhật"}
                     </Badge>
                 );
             },
@@ -128,28 +132,29 @@ export const getColumns = ({
                         >
                             <Eye className="h-4 w-4" />
                         </Button>
-                        {registration.verificationStatus === "Pending" && (
-                            <>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-green-600 hover:text-green-700 hover:bg-green-200"
-                                    onClick={() => onApprove(registration.id)}
-                                    title="Chấp nhận"
-                                >
-                                    <CheckCircle className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-200"
-                                    onClick={() => onReject(registration.id)}
-                                    title="Từ chối"
-                                >
-                                    <XCircle className="h-4 w-4" />
-                                </Button>
-                            </>
-                        )}
+                        {(registration.verificationStatus === VerificationStatus.Pending
+                            || registration.verificationStatus === VerificationStatus.Recovering) && (
+                                <>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-green-600 hover:text-green-700 hover:bg-green-200"
+                                        onClick={() => onApprove(registration.id)}
+                                        title="Chấp nhận"
+                                    >
+                                        <CheckCircle className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-red-600 hover:text-red-700 hover:bg-red-200"
+                                        onClick={() => onReject(registration.id)}
+                                        title="Từ chối"
+                                    >
+                                        <XCircle className="h-4 w-4" />
+                                    </Button>
+                                </>
+                            )}
                     </div>
                 );
             },
