@@ -16,7 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 interface RejectDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSubmit: (reason: string, status: VerificationStatus.Rejected | VerificationStatus.RequestUpdate) => void;
+    onSubmit: (reason: string, status: VerificationStatus.Hidden | VerificationStatus.RequestUpdate) => void;
     isSubmitting?: boolean;
 }
 
@@ -27,7 +27,7 @@ export function RejectDialog({
     isSubmitting = false,
 }: RejectDialogProps) {
     const [reason, setReason] = useState("");
-    const [status, setStatus] = useState<VerificationStatus.Rejected | VerificationStatus.RequestUpdate>(
+    const [status, setStatus] = useState<VerificationStatus.Hidden | VerificationStatus.RequestUpdate>(
         VerificationStatus.RequestUpdate
     );
 
@@ -53,7 +53,7 @@ export function RejectDialog({
                         <RadioGroup
                             value={status}
                             onValueChange={(value) =>
-                                setStatus(value as VerificationStatus.Rejected | VerificationStatus.RequestUpdate)
+                                setStatus(value as VerificationStatus.Hidden | VerificationStatus.RequestUpdate)
                             }
                             className="flex flex-col space-y-2"
                         >
@@ -64,7 +64,7 @@ export function RejectDialog({
                                 </Label>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <RadioGroupItem value={VerificationStatus.Rejected} id="r2" />
+                                <RadioGroupItem value={VerificationStatus.Hidden} id="r2" />
                                 <Label htmlFor="r2" className="font-normal cursor-pointer">
                                     Từ chối đơn đăng ký
                                 </Label>
@@ -91,7 +91,7 @@ export function RejectDialog({
                         Hủy
                     </Button>
                     <Button
-                        variant={status === VerificationStatus.Rejected ? "destructive" : "default"}
+                        variant={status === VerificationStatus.Hidden ? "destructive" : "default"}
                         onClick={handleSubmit}
                         disabled={!reason.trim() || isSubmitting}
                     >

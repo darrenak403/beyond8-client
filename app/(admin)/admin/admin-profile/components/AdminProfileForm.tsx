@@ -85,7 +85,7 @@ export default function AdminProfileForm({
           <div className="flex items-center justify-between">
             <Label htmlFor="email">Email</Label>
             {userProfile.isEmailVerified ? (
-              <Badge variant="default" className="flex items-center gap-1 text-xs">
+              <Badge variant="default" className="flex items-center gap-1 text-xs border border-green-500 bg-white text-green-500 hover:bg-white">
                 <CheckCircle2 className="w-3 h-3" />
                 Đã xác thực
               </Badge>

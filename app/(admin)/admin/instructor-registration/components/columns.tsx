@@ -93,16 +93,20 @@ export const getColumns = ({
                         className={
                             status === "Verified"
                                 ? "bg-green-600 hover:bg-green-700 whitespace-nowrap"
-                                : status === "Rejected"
+                                : status === "Hidden"
                                     ? "bg-red-600 hover:bg-red-700 whitespace-nowrap"
-                                    : "bg-orange-500 hover:bg-orange-600 whitespace-nowrap"
+                                    : status === "Pending"
+                                        ? "bg-orange-500 hover:bg-orange-600 whitespace-nowrap"
+                                        : "bg-yellow-500 hover:bg-yellow-600 whitespace-nowrap"
                         }
                     >
                         {status === "Verified"
                             ? "Đã duyệt"
-                            : status === "Rejected"
+                            : status === "Hidden"
                                 ? "Đã từ chối"
-                                : "Chờ duyệt"}
+                                : status === "Pending"
+                                    ? "Chờ duyệt"
+                                    : "Yêu cầu cập nhật"}
                     </Badge>
                 );
             },

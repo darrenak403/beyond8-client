@@ -10,6 +10,7 @@ import {
   InstructorRegistrationResponseList
 } from "@/lib/api/services/fetchInstructorRegistration";
 import { toast } from "sonner";
+import { ApiError } from "@/types/api";
 
 export function useInstructorRegistration() {
   const queryClient = useQueryClient();
@@ -26,8 +27,8 @@ export function useInstructorRegistration() {
 
       return response.data;
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Đánh giá hồ sơ thất bại!");
+    onError: (error: any) => {
+      toast.error(error.data.value.message || "Đánh giá hồ sơ thất bại!");
     },
   });
 
@@ -50,7 +51,7 @@ export function useInstructorRegistration() {
       queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },
-    onError: (error: Error) => {
+    onError: (error: ApiError) => {
       toast.error(error.message || "Đăng ký giảng viên thất bại!");
     },
   });
@@ -115,8 +116,8 @@ export function useAproveRegistration() {
       });
       queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Duyệt đăng ký thất bại!");
+    onError: (error: any) => {
+      toast.error(error.data.value.message || "Duyệt đăng ký thất bại!");
     },
   });
 
@@ -148,8 +149,8 @@ export function useRejectRegistration() {
       });
       queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Từ chối đăng ký thất bại!");
+    onError: (error: any) => {
+      toast.error(error.data.value.message || "Từ chối đăng ký thất bại!");
     },
   });
 

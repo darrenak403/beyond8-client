@@ -83,13 +83,13 @@ export interface InstructorSocialLinks {
 export enum VerificationStatus {
   Pending = "Pending",
   Verified = "Verified",
-  Rejected = "Rejected",
+  Hidden = "Hidden",
   RequestUpdate = "RequestUpdate"
 }
 
 export interface RejectRegistrationRequest {
   notApproveReason: string,
-  verificationStatus: VerificationStatus.Rejected | VerificationStatus.RequestUpdate
+  verificationStatus: VerificationStatus.Hidden | VerificationStatus.RequestUpdate
 }
 
 export interface InstructorRegistrationResponse {

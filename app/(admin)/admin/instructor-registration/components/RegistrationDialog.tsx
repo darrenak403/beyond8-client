@@ -124,7 +124,7 @@ export function RegistrationDialog({
                                     variant={
                                         registration.verificationStatus === VerificationStatus.Verified
                                             ? "default"
-                                            : registration.verificationStatus === VerificationStatus.Rejected
+                                            : registration.verificationStatus === VerificationStatus.Hidden
                                                 ? "destructive"
                                                 : "secondary"
                                     }
@@ -134,7 +134,7 @@ export function RegistrationDialog({
                                             ? "Đang chờ"
                                             : registration.verificationStatus === VerificationStatus.Verified
                                                 ? "Đã duyệt"
-                                                : registration.verificationStatus === VerificationStatus.Rejected
+                                                : registration.verificationStatus === VerificationStatus.Hidden
                                                     ? "Đã từ chối"
                                                     : "Yêu cầu cập nhật"
                                     }
