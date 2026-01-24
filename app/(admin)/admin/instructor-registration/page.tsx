@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useSearchParams, usePathname, useRouter } from "next/navigation"
+import { useDebounce } from "@/hooks/useDebounce"
 import { DataTable } from "@/components/ui/data-table";
 import { PaginationState } from "@tanstack/react-table";
 import { getColumns } from "./components/Columns";
@@ -19,24 +21,81 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
 const InstructorRegistrationPage = () => {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const isMobile = useIsMobile();
-    const [pagination, setPagination] = useState<PaginationState>({
-        pageIndex: 0,
-        pageSize: 10,
-    });
 
-    const [status, setStatus] = useState<string>("");
-    const [fullName, setFullName] = useState("");
-    const [debouncedFullName, setDebouncedFullName] = useState("");
+    // URL Params State
+    const pageNumber = Number(searchParams.get("pageNumber")) || 1;
+    const pageSize = Number(searchParams.get("pageSize")) || 10;
+    const isDescendingParam = searchParams.get("isDescending");
+    const isDescending = isDescendingParam === "false" ? false : true;
+    const verificationStatus = searchParams.get("verificationStatus") || "";
+    const fullNameParam = searchParams.get("fullName") || "";
 
-    // Debounce effect
+    const [fullName, setFullName] = useState(fullNameParam);
+
+    // Sync local search state with URL (handling external URL changes)
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedFullName(fullName);
-        }, 500);
+        setFullName(fullNameParam);
+    }, [fullNameParam]);
 
-        return () => clearTimeout(timer);
-    }, [fullName]);
+    const debouncedFullName = useDebounce(fullName, 500);
+
+    // Update URL when debounced search changes
+    useEffect(() => {
+        if (debouncedFullName !== fullNameParam) {
+            const params = new URLSearchParams(searchParams.toString());
+            if (debouncedFullName) {
+                params.set("fullName", debouncedFullName);
+            } else {
+                params.delete("fullName");
+            }
+            params.set("pageNumber", "1");
+            if (searchParams.get("isDescending")) {
+                params.set("isDescending", searchParams.get("isDescending")!);
+            }
+            router.push(`${pathname}?${params.toString()}`);
+        }
+    }, [debouncedFullName, pathname, router, searchParams, fullNameParam]);
+
+    const createQueryString = useCallback(
+        (name: string, value: string | number | boolean) => {
+            const params = new URLSearchParams(searchParams.toString());
+            params.set(name, String(value));
+            return params.toString();
+        },
+        [searchParams]
+    );
+
+    const pagination: PaginationState = {
+        pageIndex: pageNumber - 1,
+        pageSize: pageSize,
+    };
+
+    const setPagination = (updater: any) => {
+        const newPagination = typeof updater === "function" ? updater(pagination) : updater;
+        router.push(`${pathname}?${createQueryString("pageNumber", newPagination.pageIndex + 1)}&${createQueryString("pageSize", newPagination.pageSize)}&${createQueryString("isDescending", isDescending)}`);
+    };
+
+    const handleStatusChange = (value: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (value && value !== "all") {
+            params.set("verificationStatus", value);
+        } else {
+            params.delete("verificationStatus");
+        }
+        params.set("pageNumber", "1");
+        if (searchParams.get("isDescending")) {
+            params.set("isDescending", searchParams.get("isDescending")!);
+        }
+        router.push(`${pathname}?${params.toString()}`);
+    };
+
+    const handleSearchChange = (value: string) => {
+        setFullName(value);
+    };
 
     const {
         data,
@@ -45,11 +104,11 @@ const InstructorRegistrationPage = () => {
         refetch,
         isFetching
     } = useGetAllRegistration({
-        pageNumber: pagination.pageIndex + 1,
-        pageSize: pagination.pageSize,
-        verificationStatus: status,
-        fullName: debouncedFullName,
-        IsDescending: true
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        verificationStatus: verificationStatus === "all" ? "" : verificationStatus, // Handle "all" case explicitly if needed, usually empty string is all
+        fullName: fullNameParam, // Use URL search param directly for API call to match current view
+        IsDescending: isDescending
     });
 
     const registrations = data?.registrations || [];
@@ -121,11 +180,6 @@ const InstructorRegistrationPage = () => {
         }
     };
 
-    const handleStatusChange = (value: string) => {
-        setStatus(value);
-        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-    };
-
     const columns = useMemo(() => getColumns({
         onReview: handleReview,
         onApprove: handleApproveClick,
@@ -169,22 +223,24 @@ const InstructorRegistrationPage = () => {
             {isLoading ? (
                 <RegistrationTableSkeleton />
             ) : (
-                <DataTable
-                    data={registrations}
-                    columns={columns}
-                    pagination={pagination}
-                    onPaginationChange={setPagination}
-                    pageCount={data?.totalPages}
-                >
-                    {(table) => (
-                        <RegistrationTableToolbar
-                            searchValue={fullName}
-                            onSearchChange={setFullName}
-                            statusFilter={status}
-                            onStatusChange={(value) => handleStatusChange(value)}
-                        />
-                    )}
-                </DataTable>
+                <div className={`transition-opacity duration-200 ${isFetching ? "opacity-50 pointer-events-none" : ""}`}>
+                    <DataTable
+                        data={registrations}
+                        columns={columns}
+                        pagination={pagination}
+                        onPaginationChange={setPagination}
+                        pageCount={data?.totalPages}
+                    >
+                        {(table) => (
+                            <RegistrationTableToolbar
+                                searchValue={fullName}
+                                onSearchChange={handleSearchChange}
+                                statusFilter={verificationStatus}
+                                onStatusChange={handleStatusChange}
+                            />
+                        )}
+                    </DataTable>
+                </div>
             )}
 
             <RegistrationDialog
