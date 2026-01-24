@@ -92,8 +92,8 @@ export function Header() {
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className={`container mx-auto ${isMobile ? 'px-3 py-2' : 'px-2 py-2'} flex items-center justify-between ${isMobile ? 'gap-2' : 'gap-6'}`}>
-        <Link href="/" className="flex items-center flex-shrink-0">
+      <div className={`${isMobile ? 'px-3 py-2' : 'px-14 py-2'} ${isMobile ? 'flex items-center justify-between gap-2' : 'grid grid-cols-3 items-center gap-6'}`}>
+        <Link href="/" className="flex items-center">
           <Image
             src="/white-text-logo.svg"
             alt="Beyond 8"
@@ -104,8 +104,8 @@ export function Header() {
         </Link>
 
         {!isMobile && (
-          <form onSubmit={handleSearch} className="flex-1 max-w-md" id="search-form">
-            <div className="relative flex items-center rounded-full bg-background overflow-hidden shadow-sm">
+          <form onSubmit={handleSearch} className="flex justify-center" id="search-form">
+            <div className="relative flex items-center rounded-full bg-background overflow-hidden shadow-lg">
               <div className="w-1/2 flex items-center pl-4" id="search-input-section">
                 <Input
                   type="search"
@@ -187,20 +187,20 @@ export function Header() {
           </form>
         )}
 
-        <nav className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} flex-shrink-0`}>
+        <nav className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} ${isMobile ? '' : 'justify-end'}`}>
           {isAuthenticated ? (
             <>
               {!isMobile && (
                 showInstructorDashboard ? (
                   <Link href="/instructor/dashboard">
-                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
                       <GraduationCap className="h-4 w-4" />
                       Trang giảng viên
                     </Button>
                   </Link>
                 ) : showRegisterInstructor ? (
                   <Link href="/instructor-registration">
-                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
                       <GraduationCap className="h-4 w-4" />
                       Đăng ký giảng viên
                     </Button>
@@ -295,10 +295,10 @@ export function Header() {
           ) : (
             <>
               <Link href="/login">
-                <Button className="cursor-pointer" variant="outline" size={isMobile ? "sm" : "sm"}>Đăng nhập</Button>
+                <Button className="cursor-pointer rounded-xl hover:bg-gray-100 hover:text-black" variant="outline" size={isMobile ? "sm" : "sm"}>Đăng nhập</Button>
               </Link>
               <Link href="/register">
-                <Button className="cursor-pointer" size={isMobile ? "sm" : "sm"}>Đăng ký</Button>
+                <Button className="cursor-pointer rounded-xl" size={isMobile ? "sm" : "sm"}>Đăng ký</Button>
               </Link>
             </>
           )}

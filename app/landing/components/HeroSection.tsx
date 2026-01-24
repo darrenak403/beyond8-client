@@ -92,14 +92,14 @@ export default function HeroSection() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Link href="/courses">
-            <Button size="lg" className="text-lg px-8 py-6 cursor-pointer">
+            <Button size="lg" className="text-lg px-8 py-6 cursor-pointer rounded-xl">
               Khám Phá Khóa Học
             </Button>
           </Link>
           <Button
             size="lg"
             variant="outline"
-            className="text-lg px-8 py-6 bg-white/15 border-white/30 text-white hover:bg-white/20 cursor-pointer"
+            className="text-lg px-8 py-6 bg-white/15 border-white/30 text-white hover:bg-white/20 cursor-pointer rounded-xl"
           >
             Tìm Hiểu Thêm
           </Button>

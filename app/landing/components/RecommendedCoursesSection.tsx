@@ -94,7 +94,7 @@ export default function RecommendedCoursesSection() {
       alt: "Tư duy chiến lược Marketing",
       badge: "Marketing & Business",
       title: "Tư duy chiến lược Marketing",
-      description: "Nắm vững nghệ thuật quản trị và dẫn đầu thị trường cạnh tranh.",
+      description: "Nắm vững nghệ thuật quản trị và dẫn đầu thị trường.",
       link: "/courses?category=marketing",
     },
     {
@@ -103,7 +103,7 @@ export default function RecommendedCoursesSection() {
       alt: "Đón đầu kỷ nguyên AI",
       badge: "AI & Machine Learning",
       title: "Đón đầu kỷ nguyên AI",
-      description: "Học cách tương tác với AI và tăng hiệu suất làm việc lên gấp 10 lần.",
+      description: "Học cách tương tác với AI và tăng hiệu suất làm việc.",
       link: "/courses?category=ai",
     },
   ];
@@ -111,49 +111,56 @@ export default function RecommendedCoursesSection() {
   const currentData = carouselData[current];
 
   return (
-    <section className={`${isMobile ? 'py-12' : 'py-20'} bg-muted/30`}>
-      <div className={isMobile ? 'px-4' : 'px-12 sm:px-16 lg:px-20'}>
-        <div className={`grid grid-cols-1 ${isMobile ? 'gap-6' : 'lg:grid-cols-12 gap-8'} items-center`}>
+    <section className={`${isMobile ? "py-12" : "py-20"} bg-muted/30`}>
+      <div className={isMobile ? "px-4" : "px-12 sm:px-16 lg:px-20"}>
+        <div
+          className={`grid grid-cols-1 ${isMobile ? "gap-6" : "lg:grid-cols-12 gap-8"} items-center`}
+        >
           {/* Left: Content */}
-          <div className={isMobile ? '' : 'lg:col-span-4'}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={current}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary mb-4">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-xs font-medium">{currentData.badge}</span>
-                </div>
+          <div className={isMobile ? "" : "lg:col-span-4"}>
+            <div className="flex flex-col gap-3">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={current}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary mb-4">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="text-xs font-medium">{currentData.badge}</span>
+                  </div>
 
-                <h2 className={`${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold mb-3`}>{currentData.title}</h2>
+                  <h2 className={`${isMobile ? "text-xl" : "text-2xl md:text-3xl"} font-bold mb-3`}>
+                    {currentData.title}
+                  </h2>
 
-                <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-base'} mb-6 leading-relaxed`}>
-                  {currentData.description}
-                </p>
+                  <p
+                    className={`text-muted-foreground ${isMobile ? "text-sm" : "text-base"} mb-6 leading-relaxed`}
+                  >
+                    {currentData.description}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
 
-                {/* Dots Indicator */}
-                <div className="flex gap-2">
-                  {carouselData.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => api?.scrollTo(index)}
-                      className={`h-2 rounded-full transition-all cursor-pointer ${
-                        current === index ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"
-                      }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            </AnimatePresence>
+              <div className="flex gap-2">
+                {carouselData.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => api?.scrollTo(index)}
+                    className={`h-2 rounded-full transition-all cursor-pointer ${
+                      current === index ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Right: Carousel */}
-          <div className={`${isMobile ? '' : 'lg:col-span-8'} relative`}>
+          <div className={`${isMobile ? "" : "lg:col-span-8"} relative`}>
             <Carousel
               setApi={setApi}
               opts={{
@@ -166,7 +173,9 @@ export default function RecommendedCoursesSection() {
                 {carouselData.map((item) => (
                   <CarouselItem key={item.id} className="relative">
                     <Link href={item.link || "/courses"} className="block">
-                      <div className={`relative w-full ${isMobile ? 'aspect-[16/9]' : 'aspect-[4/1]'} rounded-2xl overflow-hidden group cursor-pointer`}>
+                      <div
+                        className={`relative w-full ${isMobile ? "aspect-[16/9]" : "aspect-[4/1]"} rounded-2xl overflow-hidden group cursor-pointer`}
+                      >
                         <Image
                           src={item.src}
                           alt={item.alt}
@@ -176,7 +185,9 @@ export default function RecommendedCoursesSection() {
                         />
                         {/* Overlay with text on hover */}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                          <span className={`text-white ${isMobile ? 'text-lg' : 'text-2xl'} font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
+                          <span
+                            className={`text-white ${isMobile ? "text-lg" : "text-2xl"} font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                          >
                             Xem chi tiết
                           </span>
                         </div>
@@ -203,7 +214,7 @@ export default function RecommendedCoursesSection() {
                     size="icon"
                     onClick={() => api?.scrollNext()}
                     disabled={!canScrollNext}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full z-10 cursor-pointer" 
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full z-10 cursor-pointer"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>

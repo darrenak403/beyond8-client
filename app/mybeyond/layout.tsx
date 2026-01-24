@@ -54,8 +54,8 @@ export default function MyBeyondLayout({ children }: { children: ReactNode }) {
       <Header />
       
       <div className="flex-1 flex flex-col">
-        <div className={`container mx-auto flex-1 flex flex-col ${
-          isMobile ? "px-3 py-4" : "px-4 py-8"
+        <div className={` flex-1 flex flex-col ${
+          isMobile ? "container mx-auto px-3 py-4" : "px-16 py-8"
         }`}>
           <div className="flex items-center justify-between mb-6">
             <h1 className={`font-bold ${
@@ -67,13 +67,13 @@ export default function MyBeyondLayout({ children }: { children: ReactNode }) {
           </div>
           
           <div className={`flex flex-1 ${
-            isMobile ? "flex-col gap-0" : "gap-10"
+            isMobile ? "flex-col gap-0" : "gap-6"
           }`}>
             {/* Sidebar (Desktop or Mobile Overlay, hidden for admin) */}
             {!isMobile && showSidebar && <SidebarProfile currentTab={currentTab} onTabChange={handleTabChange} />}
 
             {/* Main Content */}
-            <main className={`flex-1 min-w-0 ${!showSidebar ? "max-w-full" : ""}`}>
+            <main className={`flex-1 min-w-0 ${!showSidebar ? "max-w-full" : ""} ${isMobile ? "" : "max-w-7xl mx-auto"}`}>
               {children}
             </main>
           </div>
