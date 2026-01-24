@@ -197,7 +197,9 @@ export function useUnHiddenProfile() {
     },
     onSuccess: (data) => {
       toast.success("Khôi phục hiển thị hồ sơ giảng viên thành công!");
-      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });    },
+      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });    
+      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });    
+    },
     onError: (error: any) => {
       toast.error(error.data.value.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại!");
     },
