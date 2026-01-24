@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Edit, BanIcon, CircleCheckBig } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { User, Role } from "@/lib/api/services/fetchUsers"
+import { User } from "@/lib/api/services/fetchUsers"
 
 interface GetColumnsProps {
     onEdit: (user: User) => void
@@ -21,7 +21,6 @@ interface GetColumnsProps {
 export const getColumns = ({
     onEdit,
     onChangeStatus,
-    onDelete,
 }: GetColumnsProps): ColumnDef<User>[] => [
 
         {

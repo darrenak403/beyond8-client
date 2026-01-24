@@ -1,9 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Cross, Search } from "lucide-react";
-import { useIsMobile } from "@/hooks/useMobile";
+import { Search } from "lucide-react";
 import {
     Select,
     SelectContent,
@@ -25,7 +23,6 @@ export function RegistrationTableToolbar({
     statusFilter,
     onStatusChange,
 }: RegistrationTableToolbarProps) {
-    const isMobile = useIsMobile();
 
     return (
         <div className="flex items-center gap-2 md:gap-4 flex-wrap">

@@ -12,17 +12,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
 
-import { TIMEZONES, LOCALES } from "@/lib/types/userSettings"
-import { User, Role } from "@/lib/api/services/fetchUsers"
+import { User } from "@/lib/api/services/fetchUsers"
 import { useAddUser, useUpdateUser } from "@/hooks/useUsers"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Camera, Loader2 } from "lucide-react"
@@ -30,7 +21,6 @@ import { toast } from "sonner"
 import { mediaService } from "@/lib/api/services/fetchMedia"
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 import { useIsMobile } from "@/hooks/useMobile"
-import { Badge } from "@/components/ui/badge"
 import { RoleBadgeItem } from "./RoleBadge"
 
 interface UserDialogProps {
@@ -127,6 +117,7 @@ export function UserDialog({
             locale: "vi-VN",
             timezone: "Asia/Ho_Chi_Minh",
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, mode, open])
 
     const validationSchema = useMemo(() => getUserValidationSchema(mode), [mode])

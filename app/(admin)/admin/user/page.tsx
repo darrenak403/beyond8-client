@@ -59,28 +59,28 @@ const UserManagementPage = () => {
     pageIndex: pageNumber - 1,
     pageSize: pageSize,
   };
-
+  
   const setPagination = (updater: any) => {
     const newPagination = typeof updater === "function" ? updater(pagination) : updater;
     router.push(`${pathname}?${createQueryString("pageNumber", newPagination.pageIndex + 1)}&${createQueryString("pageSize", newPagination.pageSize)}&${createQueryString("isDescending", isDescending)}`);
   };
 
   // Handle Search
-  const handleFullNameChange = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set("fullName", value);
-    } else {
-      params.delete("fullName");
-    }
-    // Reset to page 1 on search
-    params.set("pageNumber", "1");
-    // Preserve current isDescending setting
-    if (searchParams.get("isDescending")) {
-      params.set("isDescending", searchParams.get("isDescending")!);
-    }
-    router.push(`${pathname}?${params.toString()}`);
-  };
+  // const handleFullNameChange = (value: string) => {
+  //   const params = new URLSearchParams(searchParams.toString());
+  //   if (value) {
+  //     params.set("fullName", value);
+  //   } else {
+  //     params.delete("fullName");
+  //   }
+  //   // Reset to page 1 on search
+  //   params.set("pageNumber", "1");
+  //   // Preserve current isDescending setting
+  //   if (searchParams.get("isDescending")) {
+  //     params.set("isDescending", searchParams.get("isDescending")!);
+  //   }
+  //   router.push(`${pathname}?${params.toString()}`);
+  // };
 
   // We need to request pageNumber starting from 1 for the API
   const { data, isLoading, isError, error, refetch, isFetching } = useGetAllUsers({

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/useMobile";
-import { Briefcase, User, Tags, X, Sparkles } from "lucide-react";
+import { Briefcase, User, Tags, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";

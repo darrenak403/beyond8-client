@@ -12,16 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
 import { format } from "date-fns";
-import { ExternalLink, Facebook, Linkedin, Globe, Calendar, Users, BookOpen, Star, FileText, CreditCard, User, GraduationCap, Briefcase, Award } from "lucide-react";
+import { ExternalLink, Facebook, Linkedin, Globe, Calendar, FileText, CreditCard, User, GraduationCap, Briefcase, Award } from "lucide-react";
 import Image from "next/image";
 import {
     Accordion,

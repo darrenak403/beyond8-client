@@ -151,6 +151,7 @@ const InstructorRegistrationPage = () => {
             setIsDialogOpen(false);
             refetch();
         } catch (error) {
+            console.error("Error approving registration:", error);
             // Error handling is done in mutation hooks
         } finally {
             setIsConfirmOpen(false);
@@ -174,6 +175,7 @@ const InstructorRegistrationPage = () => {
             setIsRejectDialogOpen(false);
             refetch();
         } catch (error) {
+            console.error("Error rejecting registration:", error);
             // Error handling is done in mutation hooks
         } finally {
             setTargetId(null);
@@ -231,7 +233,7 @@ const InstructorRegistrationPage = () => {
                         onPaginationChange={setPagination}
                         pageCount={data?.totalPages}
                     >
-                        {(table) => (
+                        {() => (
                             <RegistrationTableToolbar
                                 searchValue={fullName}
                                 onSearchChange={handleSearchChange}

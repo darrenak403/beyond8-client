@@ -2,7 +2,6 @@
 
 import { useRef, useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
-import { Role } from "@/lib/api/services/fetchUsers"
 import gsap from "gsap"
 
 export interface RoleBadgeItemProps {
