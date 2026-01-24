@@ -20,8 +20,9 @@ export function getSecureCookieConfig(customOptions: Partial<CookieOptions> = {}
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: '/',
     secure: isSecureEnvironment, // true for HTTPS, false for HTTP
-    sameSite: isSecureEnvironment ? 'strict' : 'lax', // More secure in production
+    sameSite: 'lax', // Compatible with production redirects
     httpOnly: false, // Allow JavaScript access for client-side auth state
+    ...(isProduction && { domain: 'beyond8.io.vn' }), // Hard-code domain for production
   };
 
   return { ...defaultConfig, ...customOptions };
@@ -46,7 +47,8 @@ export function getAuthCookieConfig(rememberMe: boolean = false): CookieOptions 
     httpOnly: false, // Allow JavaScript access for client-side state management
     path: '/',
     secure: isSecureEnvironment, // true for HTTPS, false for HTTP
-    sameSite: isSecureEnvironment ? 'strict' : 'lax', // More secure in production
+    sameSite: 'lax', // Compatible with production redirects
+    ...(isProduction && { domain: 'beyond8.io.vn' }), // Hard-code domain for production
   };
 }
 
