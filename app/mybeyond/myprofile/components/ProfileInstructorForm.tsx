@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,9 @@ import {
   Building,
   Edit3,
   Check,
+  Video,
+  Upload,
+  Medal,
 } from "lucide-react";
 import { useGetInstructorProfile, useUpdateMyRegistration } from "@/hooks/useInstructorRegistration";
 import type {
@@ -36,6 +39,9 @@ import type {
 } from "@/lib/api/services/fetchInstructorRegistration";
 import { Switch } from "@/components/ui/switch";
 import { useUnHiddenProfile } from "@/hooks/useInstructorRegistration";
+import { useMedia } from "@/hooks/useMedia";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
+import SafeImage from "@/components/ui/SafeImage";
 
 export default function ProfileInstructorForm() {
   const { instructorProfile, isLoading, error } = useGetInstructorProfile();
@@ -49,6 +55,12 @@ export default function ProfileInstructorForm() {
   const [educationList, setEducationList] = useState<InstructorEducation[]>([]);
   const [workList, setWorkList] = useState<InstructorWorkExperience[]>([]);
   const [certificateList, setCertificateList] = useState<Certificates[]>([]);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [introVideoUrl, setIntroVideoUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const { uploadCertificateAsync, isUploadingCertificate, uploadIntroVideoAsync } = useMedia();
 
   // Memoize form data from API
   const initialFormData = useMemo(() => {
@@ -111,6 +123,7 @@ export default function ProfileInstructorForm() {
       setEducationList(instructorProfile.education || []);
       setWorkList(instructorProfile.workExperience || []);
       setCertificateList(instructorProfile.certificates || []);
+      setIntroVideoUrl(instructorProfile.introVideoUrl || null);
     }
   }, [initialFormData, instructorProfile]);
 
@@ -129,7 +142,7 @@ export default function ProfileInstructorForm() {
       certificates: certificateList,
       expertiseAreas: formData.expertise ? formData.expertise.split(',').map(s => s.trim()).filter(Boolean) : [],
       teachingLanguages: formData.teachingLanguages ? formData.teachingLanguages.split(',').map(s => s.trim()).filter(Boolean) : [],
-      introVideoUrl: instructorProfile?.introVideoUrl || null,
+      introVideoUrl: introVideoUrl,
     };
 
     updateMyRegistration(data);
@@ -226,6 +239,68 @@ export default function ProfileInstructorForm() {
     const newList = [...certificateList];
     newList[index] = { ...newList[index], [field]: value };
     setCertificateList(newList);
+  };
+
+  const handleFileSelect = async (index: number, file: File | null) => {
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      alert('Vui lòng chọn file PNG, JPG hoặc PDF');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Kích thước file tối đa là 5MB');
+      return;
+    }
+
+    try {
+      setUploadingIndex(index);
+      const uploadedFile = await uploadCertificateAsync(file);
+      handleChangeCertificate(index, 'url', uploadedFile.fileUrl);
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setUploadingIndex(null);
+      // Reset file input to allow re-uploading the same file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleVideoFileSelect = async (file: File | null) => {
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['video/mp4', 'video/mov', 'video/avi', 'video/quicktime'];
+    if (!validTypes.includes(file.type)) {
+      alert('Vui lòng chọn file MP4, MOV hoặc AVI');
+      return;
+    }
+
+    // Validate file size (100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      alert('Kích thước file tối đa là 100MB');
+      return;
+    }
+
+    try {
+      setUploadingVideo(true);
+      const uploadedFile = await uploadIntroVideoAsync(file);
+      setIntroVideoUrl(formatImageUrl(uploadedFile.fileUrl) || uploadedFile.fileUrl);
+    } catch (error) {
+      console.error('Upload video failed:', error);
+    } finally {
+      setUploadingVideo(false);
+      // Reset file input to allow re-uploading the same file
+      if (videoInputRef.current) {
+        videoInputRef.current.value = '';
+      }
+    }
   };
 
   if (isLoading) {
@@ -405,7 +480,7 @@ export default function ProfileInstructorForm() {
         </div>
       ) : instructorProfile?.verificationStatus === "Verified" ? (
         <div className="flex flex-row items-center justify-between gap-5 p-3 bg-white border-2 border-green-500 rounded-3xl">
-          <p className="flex-1 text-sm text-red-700 font-medium text-center">
+          <p className="flex-1 text-sm text-green-700 font-medium text-center">
             Hồ sơ của bạn đã được duyệt.
           </p>
         </div>
@@ -1006,75 +1081,131 @@ export default function ProfileInstructorForm() {
                             </Button>
                           </div>
 
-                          <div className="space-y-3">
-                            <div>
-                              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
+                          {/* Two Column Layout */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Left Column - Image Upload */}
+                            <div className="space-y-2">
+                              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                                 <Award className="w-4 h-4 text-purple-600" />
-                                Tên chứng chỉ <span className="text-red-500">*</span>
+                                Ảnh chứng chỉ <span className="text-red-500">*</span>
                               </label>
-                              <Input
-                                value={cert.name}
-                                onChange={(e) =>
-                                  handleChangeCertificate(index, "name", e.target.value)
-                                }
-                                placeholder="VD: AWS Certified Solutions Architect"
-                                disabled={isHidden}
-                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg,application/pdf"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file && editingCertificate !== null) {
+                                    handleFileSelect(editingCertificate, file);
+                                  }
+                                }}
                               />
+                              <div 
+                                className={`border-2 border-dashed rounded-lg p-4 transition-colors ${isHidden ? "border-gray-300 bg-gray-100 cursor-not-allowed" : "border-purple-300 hover:border-purple-400 cursor-pointer bg-purple-50/50"}`}
+                                onClick={() => !isHidden && !isUploadingCertificate && fileInputRef.current?.click()}
+                              >
+                                {uploadingIndex === index ? (
+                                  <div className="aspect-[4/3] w-full flex flex-col items-center justify-center text-center">
+                                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mb-2 animate-pulse">
+                                      <Upload className="w-6 h-6 text-purple-600" />
+                                    </div>
+                                    <p className="text-xs font-medium text-gray-700">Đang tải lên...</p>
+                                  </div>
+                                ) : cert.url ? (
+                                  <div className="relative aspect-[4/3] w-full">
+                                    <SafeImage
+                                      src={formatImageUrl(cert.url) || cert.url}
+                                      alt="Certificate preview"
+                                      className="w-full h-full object-cover rounded-lg"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      disabled={isHidden}
+                                      className="absolute top-2 right-2 bg-white/90 hover:bg-white h-7 w-7 p-0"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (!isHidden) {
+                                          handleChangeCertificate(index, 'url', '');
+                                          if (fileInputRef.current) {
+                                            fileInputRef.current.value = '';
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="aspect-[4/3] w-full flex flex-col items-center justify-center text-center">
+                                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mb-2">
+                                      <Award className="w-6 h-6 text-purple-600" />
+                                    </div>
+                                    <p className="text-xs font-medium text-gray-700 mb-1">Upload ảnh chứng chỉ</p>
+                                    <p className="text-xs text-gray-500">PNG, JPG hoặc PDF</p>
+                                    <p className="text-xs text-gray-400 mt-1">Tối đa 5MB</p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
 
-                            <div>
-                              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
-                                <Building className="w-4 h-4 text-purple-600" />
-                                Tổ chức cấp <span className="text-red-500">*</span>
-                              </label>
-                              <Input
-                                value={cert.issuer}
-                                onChange={(e) =>
-                                  handleChangeCertificate(index, "issuer", e.target.value)
-                                }
-                                placeholder="VD: Amazon Web Services"
-                                disabled={isHidden}
-                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
-                              />
-                            </div>
+                            {/* Right Column - Certificate Information */}
+                            <div className="space-y-3">
+                              <div>
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
+                                  <Award className="w-4 h-4 text-purple-600" />
+                                  Tên chứng chỉ <span className="text-red-500">*</span>
+                                </label>
+                                <Input
+                                  value={cert.name}
+                                  onChange={(e) =>
+                                    handleChangeCertificate(index, "name", e.target.value)
+                                  }
+                                  placeholder="VD: AWS Certified Solutions Architect"
+                                  disabled={isHidden}
+                                  className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
+                                />
+                              </div>
 
-                            <div>
-                              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
-                                <Calendar className="w-4 h-4 text-purple-600" />
-                                Năm cấp
-                              </label>
-                              <Input
-                                type="number"
-                                value={cert.year}
-                                onChange={(e) =>
-                                  handleChangeCertificate(
-                                    index,
-                                    "year",
-                                    parseInt(e.target.value) || new Date().getFullYear()
-                                  )
-                                }
-                                min="1950"
-                                max={new Date().getFullYear()}
-                                disabled={isHidden}
-                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
-                              />
-                            </div>
+                              <div>
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
+                                  <Building className="w-4 h-4 text-purple-600" />
+                                  Tổ chức cấp <span className="text-red-500">*</span>
+                                </label>
+                                <Input
+                                  value={cert.issuer}
+                                  onChange={(e) =>
+                                    handleChangeCertificate(index, "issuer", e.target.value)
+                                  }
+                                  placeholder="VD: Amazon Web Services"
+                                  disabled={isHidden}
+                                  className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
+                                />
+                              </div>
 
-                            <div>
-                              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
-                                <Globe className="w-4 h-4 text-purple-600" />
-                                URL chứng chỉ
-                              </label>
-                              <Input
-                                value={cert.url}
-                                onChange={(e) =>
-                                  handleChangeCertificate(index, "url", e.target.value)
-                                }
-                                placeholder="https://..."
-                                disabled={isHidden}
-                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
-                              />
+                              <div>
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
+                                  <Calendar className="w-4 h-4 text-purple-600" />
+                                  Năm cấp
+                                </label>
+                                <Input
+                                  type="number"
+                                  value={cert.year}
+                                  onChange={(e) =>
+                                    handleChangeCertificate(
+                                      index,
+                                      "year",
+                                      parseInt(e.target.value) || new Date().getFullYear()
+                                    )
+                                  }
+                                  min="1950"
+                                  max={new Date().getFullYear()}
+                                  disabled={isHidden}
+                                  className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
+                                />
+                              </div>
                             </div>
                           </div>
 
@@ -1127,6 +1258,113 @@ export default function ProfileInstructorForm() {
                 Chưa có chứng chỉ
               </p>
             )}
+          </div>
+
+          {/* Video Introduction Section */}
+          <div className="flex flex-col gap-2 mt-6">
+            <div className="flex items-center gap-2 pb-3 border-b">
+              <div className={`p-2 rounded-lg ${isHidden ? "bg-gray-200" : "bg-purple-50"}`}>
+                <Video className={`w-5 h-5 ${isHidden ? "text-gray-500" : "text-purple-600"}`} />
+              </div>
+              <h3 className="font-semibold text-gray-800">Video giới thiệu</h3>
+            </div>
+
+            <div className="space-y-3 mt-3">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <Video className={`w-4 h-4 ${isHidden ? "text-gray-500" : "text-purple-600"}`} />
+                Upload video giới thiệu (không bắt buộc)
+              </label>
+              
+              {/* Hidden Video Input */}
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/mp4,video/mov,video/avi,video/quicktime"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file && !isHidden) {
+                    handleVideoFileSelect(file);
+                  }
+                }}
+              />
+              
+              {/* Video Upload Area */}
+              <div 
+                className={`border-2 border-dashed rounded-lg transition-colors ${
+                  isHidden 
+                    ? "border-gray-300 bg-gray-100 cursor-not-allowed" 
+                    : "border-purple-300 hover:border-purple-400 cursor-pointer bg-purple-50/50"
+                }`}
+                onClick={() => !uploadingVideo && !introVideoUrl && !isHidden && videoInputRef.current?.click()}
+              >
+                {uploadingVideo ? (
+                  <div className="aspect-video w-full flex flex-col items-center justify-center text-center p-8">
+                    <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center mb-3 animate-pulse">
+                      <Upload className="w-8 h-8 text-purple-600" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-700">Đang tải lên video...</p>
+                  </div>
+                ) : introVideoUrl ? (
+                  <div className="relative">
+                    <div className="aspect-video w-full bg-gray-900 rounded-lg flex items-center justify-center">
+                      <video
+                        src={introVideoUrl}
+                        controls
+                        className="w-full h-full rounded-lg"
+                      >
+                        Trình duyệt của bạn không hỗ trợ video.
+                      </video>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={isHidden}
+                      className="absolute top-3 right-3 bg-white/90 hover:bg-white h-8 px-3"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isHidden) {
+                          setIntroVideoUrl(null);
+                          if (videoInputRef.current) {
+                            videoInputRef.current.value = '';
+                          }
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500 mr-1" />
+                      <span className="text-xs">Xóa</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="aspect-video w-full flex flex-col items-center justify-center text-center p-8">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${
+                      isHidden ? "bg-gray-200" : "bg-purple-100"
+                    }`}>
+                      <Video className={`w-8 h-8 ${isHidden ? "text-gray-500" : "text-purple-600"}`} />
+                    </div>
+                    <p className={`text-sm font-medium mb-2 ${isHidden ? "text-gray-500" : "text-gray-700"}`}>
+                      Upload video giới thiệu
+                    </p>
+                    <p className={`text-xs mb-1 ${isHidden ? "text-gray-400" : "text-gray-500"}`}>MP4, MOV, AVI</p>
+                    <p className={`text-xs ${isHidden ? "text-gray-400" : "text-gray-400"}`}>Tối đa 100MB</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Instructions */}
+              <div className={`rounded-lg p-4 space-y-2 ${isHidden ? "bg-gray-100" : "bg-purple-50"}`}>
+                <p className={`text-xs ${isHidden ? "text-gray-500" : "text-gray-600"}`}>
+                  <strong>Lưu ý:</strong> Video giới thiệu giúp học viên hiểu rõ hơn về bạn và phong cách giảng dạy của bạn.
+                </p>
+                <ul className={`text-xs space-y-1 ml-4 list-disc ${isHidden ? "text-gray-500" : "text-gray-600"}`}>
+                  <li>Độ dài video: <strong>Tối đa 1 phút</strong></li>
+                  <li>Định dạng: <strong>Video ngang (horizontal/landscape)</strong></li>
+                  <li>Giới thiệu bản thân, kinh nghiệm và lý do muốn giảng dạy</li>
+                  <li>Quay ở nơi có ánh sáng tốt và âm thanh rõ ràng</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -82,6 +82,11 @@ export interface UpdateRegistrationRequest {
   }>;
 }
 
+export interface CheckApplyResponse {
+  isApplied: boolean;
+  verificationStatus: string;
+}
+
 export interface InstructorUser {
   id: string;
   email: string;
@@ -333,8 +338,8 @@ export const instructorRegistrationService = {
     return response.data;
   },
 
-  checkApply: async (): Promise<ApiResponse<boolean>> => {
-    const response = await apiService.get<ApiResponse<boolean>>(
+  checkApply: async (): Promise<ApiResponse<CheckApplyResponse | null>> => {
+    const response = await apiService.get<ApiResponse<CheckApplyResponse | null>>(
       "/api/v1/instructors/check-apply"
     );
     return response.data;

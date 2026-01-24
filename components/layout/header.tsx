@@ -48,8 +48,14 @@ export function Header() {
   const { data: checkApplyData } = useQuery({
     queryKey: ["instructor-check-apply"],
     queryFn: () => instructorRegistrationService.checkApply(),
-    enabled: isAuthenticated && isStudent(),
+    enabled: isAuthenticated && (isStudent() || isInstructor()),
   });
+
+  // Show "Trang giảng viên" if user is verified instructor
+  const showInstructorDashboard = checkApplyData?.data?.isApplied && checkApplyData?.data?.verificationStatus === "Verified";
+  
+  // Show "Đăng ký giảng viên" if user hasn't applied yet
+  const showRegisterInstructor = checkApplyData?.data === null;
 
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
@@ -185,14 +191,14 @@ export function Header() {
           {isAuthenticated ? (
             <>
               {!isMobile && (
-                isInstructor() ? (
+                showInstructorDashboard ? (
                   <Link href="/instructor/dashboard">
                     <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
                       <GraduationCap className="h-4 w-4" />
                       Trang giảng viên
                     </Button>
                   </Link>
-                ) : isStudent() && checkApplyData?.data === false ? (
+                ) : showRegisterInstructor ? (
                   <Link href="/instructor-registration">
                     <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground">
                       <GraduationCap className="h-4 w-4" />
@@ -255,17 +261,17 @@ export function Header() {
                       Ví của tôi
                     </Link>
                   </DropdownMenuItem>
-                  {isMobile && (isInstructor() || (isStudent() && checkApplyData?.data === false)) && (
+                  {isMobile && (showInstructorDashboard || showRegisterInstructor) && (
                     <>
                       <DropdownMenuSeparator />
-                      {isInstructor() ? (
+                      {showInstructorDashboard ? (
                         <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
                           <Link href="/instructor/dashboard" className="flex items-center gap-2">
                             <GraduationCap className="h-4 w-4" />
                             Trang giảng viên
                           </Link>
                         </DropdownMenuItem>
-                      ) : isStudent() && checkApplyData?.data === false ? (
+                      ) : showRegisterInstructor ? (
                         <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
                           <Link href="/instructor-registration" className="flex items-center gap-2">
                             <GraduationCap className="h-4 w-4" />
