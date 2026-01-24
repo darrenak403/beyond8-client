@@ -21,11 +21,7 @@ export interface AddUserRequest {
 }
 
 export interface UpdateUserRequest {
-    dateOfBirth: string;
-    fullName: string;
-    locale: string;
-    phoneNumber: string;
-    timezone: string;
+    roles: string[];
 }
 
 export interface UserResponse {
@@ -89,8 +85,8 @@ export const fetchUsers = {
         return response.data;
     },
 
-    updateUser: async (id: string, user: UpdateUserRequest): Promise<UserResponse> => {
-        const response = await apiService.put<UserResponse>(`/api/v1/users/${id}`, user);
+    updateUser: async (id: string, roles: string[]): Promise<UserResponse> => {
+        const response = await apiService.patch<UserResponse>(`/api/v1/users/${id}/roles`, { roles });
         return response.data;
     },
 
@@ -99,8 +95,8 @@ export const fetchUsers = {
         return response.data;
     },
 
-    updateUserStatus: async (id: string, status: string): Promise<UserResponse> => {
-        const response = await apiService.put<UserResponse>(`/api/v1/users/${id}/status`, { status });
+    updateUserStatus: async (id: string): Promise<UserResponse> => {
+        const response = await apiService.patch<UserResponse>(`/api/v1/users/${id}/toggle-status`);
         return response.data;
     }
 }

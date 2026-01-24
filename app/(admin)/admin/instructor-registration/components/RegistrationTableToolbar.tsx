@@ -43,17 +43,18 @@ export function RegistrationTableToolbar({
             {/* Status Filter */}
             <div className="w-[180px]">
                 <Select
-                    value={statusFilter}
-                    onValueChange={onStatusChange}
+                    value={statusFilter === "" ? "ALL" : statusFilter}
+                    onValueChange={(value) => onStatusChange(value === "ALL" ? "" : value)}
                 >
                     <SelectTrigger className="h-9 rounded-full border-slate-200 shadow-sm bg-white">
                         <SelectValue placeholder="Trạng thái" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="All">Tất cả</SelectItem>
+                        <SelectItem value="ALL">Tất cả</SelectItem>
                         <SelectItem value="Pending">Chờ duyệt</SelectItem>
                         <SelectItem value="Verified">Đã duyệt</SelectItem>
-                        <SelectItem value="Rejected">Đã từ chối</SelectItem>
+                        <SelectItem value="RequestUpdate">Yêu cầu cập nhật</SelectItem>
+                        <SelectItem value="Recovering">Yêu cầu khôi phục</SelectItem>
                     </SelectContent>
                 </Select>
             </div>

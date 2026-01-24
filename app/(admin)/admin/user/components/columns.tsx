@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header"
 import { Badge } from "@/components/ui/badge"
+import { RoleBadges } from "./RoleBadge"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Edit, BanIcon, CircleCheckBig } from "lucide-react"
@@ -56,13 +57,7 @@ export const getColumns = ({
             cell: ({ row }) => {
                 const roles = row.original.roles || []
                 return (
-                    <div className="flex flex-wrap gap-1">
-                        {roles.map((role) => (
-                            <Badge key={role} variant="outline" className="capitalize whitespace-nowrap">
-                                {Role[role as keyof typeof Role] || role}
-                            </Badge>
-                        ))}
-                    </div>
+                    <RoleBadges roles={roles} />
                 )
             },
             filterFn: (row, id, value) => {
@@ -123,7 +118,7 @@ export const getColumns = ({
                             variant="ghost"
                             size="icon"
                             className={isActive ? "text-destructive hover:bg-destructive/10 hover:text-destructive" : "text-green-600 hover:bg-green-100 hover:text-green-700"}
-                            onClick={() => isActive ? onDelete(row.original) : onChangeStatus(row.original)}
+                            onClick={() => onChangeStatus(row.original)}
                             title={isActive ? "Xóa tài khoản" : "Kích hoạt tài khoản"}
                         >
                             {isActive ? (

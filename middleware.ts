@@ -1,12 +1,12 @@
-import {NextResponse} from 'next/server'
-import type {NextRequest} from 'next/server'
-import {jwtDecode} from 'jwt-decode'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { jwtDecode } from 'jwt-decode'
 
 // Helper function to get user role from token
 const getUserRole = (token: string | undefined): string | null => {
   if (!token) return null
   try {
-    const decoded = jwtDecode(token) as {role?: string} | null
+    const decoded = jwtDecode(token) as { role?: string } | null
     return decoded?.role ?? null
   } catch (error) {
     console.error('[AUTH] Failed to decode token:', error)
@@ -15,7 +15,7 @@ const getUserRole = (token: string | undefined): string | null => {
 }
 
 export function middleware(request: NextRequest) {
-  const {pathname} = request.nextUrl
+  const { pathname } = request.nextUrl
   const token = request.cookies.get('authToken')?.value
   const userRole = getUserRole(token)
 
@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
     '/reset-password',
     '/forgot-password'
   ]
-  
+
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   )
@@ -52,9 +52,9 @@ export function middleware(request: NextRequest) {
   // If user IS authenticated
   // Redirect from auth pages to appropriate dashboard
   if (isAuthRoute) {
-    if (userRole === 'Admin') {
+    if (userRole === 'ROLE_ADMIN') {
       return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-    } else if (userRole === 'Instructor') {
+    } else if (userRole === 'ROLE_INSTRUCTOR') {
       return NextResponse.redirect(new URL('/instructor/dashboard', request.url))
     } else {
       return NextResponse.redirect(new URL('/courses', request.url))
@@ -63,13 +63,13 @@ export function middleware(request: NextRequest) {
 
   // Admin routes - Only Admin can access
   const isAdminRoute = pathname.startsWith('/admin/')
-  if (isAdminRoute && userRole !== 'Admin') {
+  if (isAdminRoute && userRole !== 'ROLE_ADMIN') {
     return NextResponse.redirect(new URL('/courses', request.url))
   }
 
   // Instructor routes - Only Instructor and Admin can access
   const isInstructorRoute = pathname.startsWith('/instructor/')
-  if (isInstructorRoute && userRole !== 'Instructor' && userRole !== 'Admin') {
+  if (isInstructorRoute && userRole !== 'ROLE_INSTRUCTOR' && userRole !== 'ROLE_ADMIN') {
     return NextResponse.redirect(new URL('/courses', request.url))
   }
 
