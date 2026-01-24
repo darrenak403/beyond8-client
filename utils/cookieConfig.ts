@@ -24,11 +24,6 @@ export function getSecureCookieConfig(customOptions: Partial<CookieOptions> = {}
     httpOnly: false, // Allow JavaScript access for client-side auth state
   };
 
-  // In production, add domain if specified
-  if (isProduction && '.revoland.vn') {
-    defaultConfig.domain = '.revoland.vn';
-  }
-
   return { ...defaultConfig, ...customOptions };
 }
 
@@ -51,8 +46,7 @@ export function getAuthCookieConfig(rememberMe: boolean = false): CookieOptions 
     httpOnly: false, // Allow JavaScript access for client-side state management
     path: '/',
     secure: isSecureEnvironment, // true for HTTPS, false for HTTP
-    sameSite: 'lax', // Better for same-site applications than 'none'
-    domain: isProduction ? '.revoland.vn' : undefined, // Use undefined for localhost
+    sameSite: isSecureEnvironment ? 'strict' : 'lax', // More secure in production
   };
 }
 
