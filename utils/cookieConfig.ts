@@ -2,9 +2,25 @@ interface CookieOptions {
   maxAge?: number;
   path?: string;
   secure?: boolean;
-  sameSite?: 'strict' | 'lax' | 'none';
+  sameSite?: "strict" | "lax" | "none";
   httpOnly?: boolean;
   domain?: string;
+}
+
+/**
+ * Get the appropriate domain for cookies based on environment
+ */
+function getCookieDomain(): string | undefined {
+  const isProduction =
+    process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_ENV === "production" || process.env.NEXT_PUBLIC_API_URL === 'https://api.beyond8.io.vn';
+
+  if (!isProduction) {
+    // In development, don't set domain (use default)
+    return undefined;
+  }
+
+  // In production, set to .beyond8.io.vn to work across all subdomains
+  return ".beyond8.io.vn";
 }
 
 /**
@@ -12,17 +28,17 @@ interface CookieOptions {
  * This ensures cookies work in both development (HTTP) and production (HTTPS)
  */
 export function getSecureCookieConfig(customOptions: Partial<CookieOptions> = {}): CookieOptions {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_API_URL === 'https://api.beyond8.io.vn' || process.env.NEXT_PUBLIC_ENV === 'production';
   const isSecureEnvironment =
-    typeof window !== 'undefined' ? window.location.protocol === 'https:' : isProduction;
+    typeof window !== "undefined" ? window.location.protocol === "https:" : isProduction;
 
   const defaultConfig: CookieOptions = {
     maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/',
+    path: "/",
     secure: isSecureEnvironment, // true for HTTPS, false for HTTP
-    sameSite: 'lax', // Compatible with production redirects
+    sameSite: isProduction ? "strict" : "lax", // Use 'strict' in production for better security
     httpOnly: false, // Allow JavaScript access for client-side auth state
-    ...(isProduction && { domain: 'beyond8.io.vn' }), // Hard-code domain for production
+    domain: getCookieDomain(), // Set domain for production
   };
 
   return { ...defaultConfig, ...customOptions };
@@ -33,9 +49,9 @@ export function getSecureCookieConfig(customOptions: Partial<CookieOptions> = {}
  * Optimized for auth token security and accessibility
  */
 export function getAuthCookieConfig(rememberMe: boolean = false): CookieOptions {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_API_URL === 'https://api.beyond8.io.vn' || process.env.NEXT_PUBLIC_ENV === 'production';
   const isSecureEnvironment =
-    typeof window !== 'undefined' ? window.location.protocol === 'https:' : isProduction;
+    typeof window !== "undefined" ? window.location.protocol === "https:" : isProduction;
 
   // Different expiration times based on "remember me" option
   const maxAge = rememberMe
@@ -45,10 +61,10 @@ export function getAuthCookieConfig(rememberMe: boolean = false): CookieOptions 
   return {
     maxAge,
     httpOnly: false, // Allow JavaScript access for client-side state management
-    path: '/',
+    path: "/",
     secure: isSecureEnvironment, // true for HTTPS, false for HTTP
-    sameSite: 'lax', // Compatible with production redirects
-    ...(isProduction && { domain: 'beyond8.io.vn' }), // Hard-code domain for production
+    sameSite: isProduction ? "strict" : "lax", // Compatible with production redirects
+    domain: getCookieDomain(), // Set domain for production
   };
 }
 
@@ -60,5 +76,6 @@ export function getRefreshTokenCookieConfig(): CookieOptions {
   return getSecureCookieConfig({
     maxAge: 60 * 60 * 24 * 30, // 30 days
     httpOnly: true, // More secure, server-only access
+    sameSite: "strict", // Most secure for refresh tokens
   });
 }
