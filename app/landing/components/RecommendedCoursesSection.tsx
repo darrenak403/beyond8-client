@@ -54,7 +54,7 @@ export default function RecommendedCoursesSection() {
   const carouselData = [
     {
       id: 1,
-      src: "/carousel 1.svg",
+      src: "https://d30z0qh7rhzgt8.cloudfront.net/assets/carousel-1.svg",
       alt: "Ưu đãi Năm mới",
       badge: "Special Offer",
       title: "Ưu đãi Năm mới",
@@ -63,7 +63,7 @@ export default function RecommendedCoursesSection() {
     },
     {
       id: 2,
-      src: "/carousel 2.svg",
+      src: "https://d30z0qh7rhzgt8.cloudfront.net/assets/carousel-2.svg",
       alt: "Học Ngôn ngữ",
       badge: "Language Learning",
       title: "Học Ngôn ngữ",
@@ -72,7 +72,7 @@ export default function RecommendedCoursesSection() {
     },
     {
       id: 3,
-      src: "/carousel 3.svg",
+      src: "https://d30z0qh7rhzgt8.cloudfront.net/assets/carousel-3.svg",
       alt: "Làm chủ Code",
       badge: "Programming & Tech",
       title: "Làm chủ Code",
@@ -81,7 +81,7 @@ export default function RecommendedCoursesSection() {
     },
     {
       id: 4,
-      src: "/carousel 4.svg",
+      src: "https://d30z0qh7rhzgt8.cloudfront.net/assets/carousel-4.svg",
       alt: "Design & Sáng tạo",
       badge: "Design & Creative",
       title: "Design & Sáng tạo",
@@ -90,7 +90,7 @@ export default function RecommendedCoursesSection() {
     },
     {
       id: 5,
-      src: "/carousel 5.svg",
+      src: "https://d30z0qh7rhzgt8.cloudfront.net/assets/carousel-5.svg",
       alt: "Tư duy chiến lược Marketing",
       badge: "Marketing & Business",
       title: "Tư duy chiến lược Marketing",
@@ -99,7 +99,7 @@ export default function RecommendedCoursesSection() {
     },
     {
       id: 6,
-      src: "/carousel 6.svg",
+      src: "https://d30z0qh7rhzgt8.cloudfront.net/assets/carousel-6.svg",
       alt: "Đón đầu kỷ nguyên AI",
       badge: "AI & Machine Learning",
       title: "Đón đầu kỷ nguyên AI",

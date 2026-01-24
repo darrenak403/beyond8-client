@@ -56,11 +56,12 @@ export default function AuthLayout({
                     {/* Background Image */}
                     <div className="absolute inset-0 z-0">
                         <Image
-                            src="/bg-auth.webp"
+                            src="https://d30z0qh7rhzgt8.cloudfront.net/assets/bg-auth.webp"
                             alt="Background Auth"
                             fill
                             className="object-cover opacity-80"
                             priority
+                            unoptimized
                         />
                         {/* Overlay to ensure text readability */}
                         <div className="absolute inset-0 bg-white/20" />
