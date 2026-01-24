@@ -53,7 +53,7 @@ export function Header() {
 
   // Show "Trang giảng viên" if user is verified instructor
   const showInstructorDashboard = checkApplyData?.data?.isApplied && checkApplyData?.data?.verificationStatus === "Verified";
-  
+
   // Show "Đăng ký giảng viên" if user hasn't applied yet
   const showRegisterInstructor = checkApplyData?.data === null;
 

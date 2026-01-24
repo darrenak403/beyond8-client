@@ -109,7 +109,7 @@ export const getColumns = ({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="hover:bg-muted"
+                            className="hover:bg-blue-600/10 hover:text-blue-600"
                             onClick={() => onEdit(row.original)}
                         >
                             <Edit className="h-4 w-4" />

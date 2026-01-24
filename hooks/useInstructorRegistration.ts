@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   instructorRegistrationService,
   type InstructorRegistrationRequest,
@@ -88,6 +88,7 @@ export function useGetAllRegistration(filterParams: InstructorRegistrationParams
       hasNextPage: data.metadata.hasNextPage,
       hasPreviousPage: data.metadata.hasPreviousPage
     }),
+    placeholderData: keepPreviousData,
   })
 
   return {
@@ -197,8 +198,8 @@ export function useUnHiddenProfile() {
     },
     onSuccess: (data) => {
       toast.success("Khôi phục hiển thị hồ sơ giảng viên thành công!");
-      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });    
-      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });    
+      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
     },
     onError: (error: any) => {
       toast.error(error.data.value.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại!");

@@ -1,10 +1,10 @@
 import { AddUserRequest, fetchUsers, UpdateUserRequest, UserParams, UserResponse } from "@/lib/api/services/fetchUsers";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 export function useGetAllUsers(filterParams?: UserParams) {
     const { isLoading, isError, data, error, refetch, isFetching } = useQuery({
-        queryKey: ['users', 'getAll'],
+        queryKey: ['users', 'getAll', filterParams],
         queryFn: () => fetchUsers.getAll(filterParams),
         select: (data: UserResponse) => ({
             users: data.data,
@@ -15,6 +15,7 @@ export function useGetAllUsers(filterParams?: UserParams) {
             hasNextPage: data.metadata.hasNextPage,
             hasPreviousPage: data.metadata.hasPreviousPage
         }),
+        placeholderData: keepPreviousData,
     })
     return {
         isLoading,

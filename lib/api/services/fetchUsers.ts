@@ -62,6 +62,7 @@ export interface UserParams {
     pageNumber: number;
     pageSize: number;
     isDescending: boolean;
+    fullName?: string;
 }
 
 const convertUserParamsToQuery = (params?: UserParams): RequestParams => {
@@ -69,7 +70,8 @@ const convertUserParamsToQuery = (params?: UserParams): RequestParams => {
     const query: RequestParams = {};
     if (params.pageNumber) query.pageNumber = params.pageNumber;
     if (params.pageSize) query.pageSize = params.pageSize;
-    if (params.isDescending) query.isDescending = params.isDescending;
+    if (params.isDescending !== undefined) query.isDescending = params.isDescending;
+    if (params.fullName) query.fullName = params.fullName;
     return query;
 }
 

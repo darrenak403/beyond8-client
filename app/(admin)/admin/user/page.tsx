@@ -4,7 +4,9 @@ import { DataTable } from "@/components/ui/data-table"
 import { PaginationState } from "@tanstack/react-table"
 import { getColumns } from "./components/Columns"
 import { UserTableToolbar } from "./components/UserTableToolbar"
-import { useState } from "react"
+import { useState, useCallback, useEffect } from "react"
+import { useSearchParams, usePathname, useRouter } from "next/navigation"
+import { useDebounce } from "@/hooks/useDebounce"
 import { UserDialog } from "./components/UserDialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AlertCircle, RotateCw } from "lucide-react"
@@ -22,79 +24,150 @@ import { ConfirmDialog } from "@/components/widget/confirm-dialog"
 import { useIsMobile } from "@/hooks/useMobile"
 
 const UserManagementPage = () => {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const isMobile = useIsMobile()
-  const [dialogMode, setDialogMode] = useState<"add" | "edit">("add")
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  })
+  // URL Params State
+  const pageNumber = Number(searchParams.get("pageNumber")) || 1;
+  const pageSize = Number(searchParams.get("pageSize")) || 10;
+  // Handle isDescending param, defaulting to true if not present or invalid
+  const isDescendingParam = searchParams.get("isDescending");
+  const isDescending = isDescendingParam === "false" ? false : true;
+
+  const fullName = searchParams.get("fullName") || "";
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [dialogMode, setDialogMode] = useState<"add" | "edit">("add");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Create query string helper
+  const createQueryString = useCallback(
+    (name: string, value: string | number | boolean) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set(name, String(value));
+      return params.toString();
+    },
+    [searchParams]
+  );
+
+  // Handle Pagination
+  const pagination: PaginationState = {
+    pageIndex: pageNumber - 1,
+    pageSize: pageSize,
+  };
+
+  const setPagination = (updater: any) => {
+    const newPagination = typeof updater === "function" ? updater(pagination) : updater;
+    router.push(`${pathname}?${createQueryString("pageNumber", newPagination.pageIndex + 1)}&${createQueryString("pageSize", newPagination.pageSize)}&${createQueryString("isDescending", isDescending)}`);
+  };
+
+  // Handle Search
+  const handleFullNameChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set("fullName", value);
+    } else {
+      params.delete("fullName");
+    }
+    // Reset to page 1 on search
+    params.set("pageNumber", "1");
+    // Preserve current isDescending setting
+    if (searchParams.get("isDescending")) {
+      params.set("isDescending", searchParams.get("isDescending")!);
+    }
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   // We need to request pageNumber starting from 1 for the API
   const { data, isLoading, isError, error, refetch, isFetching } = useGetAllUsers({
-    pageNumber: pagination.pageIndex + 1,
-    pageSize: pagination.pageSize,
-    isDescending: true,
-  })
+    pageNumber: pageNumber,
+    pageSize: pageSize,
+    isDescending: isDescending,
+    fullName: fullName
+  });
 
-  const { mutateAsync: updateUserStatus } = useUpdateUserStatus()
-  const { mutateAsync: deleteUser } = useDeleteUser()
+  // Let's add local state for search input
+  const [searchValue, setSearchValue] = useState(fullName);
+
+  // Sync local state with URL param (in case URL changes externally)
+  useEffect(() => {
+    setSearchValue(fullName);
+  }, [fullName]);
+
+  const debouncedSearch = useDebounce(searchValue, 500);
+
+  // Effect to update URL when debounced search changes
+  useEffect(() => {
+    if (debouncedSearch !== fullName) {
+      const params = new URLSearchParams(searchParams.toString());
+      if (debouncedSearch) {
+        params.set("fullName", debouncedSearch);
+      } else {
+        params.delete("fullName");
+      }
+      params.set("pageNumber", "1");
+      router.push(`${pathname}?${params.toString()}`);
+    }
+  }, [debouncedSearch, pathname, router, searchParams, fullName]);
+
+  const { mutateAsync: updateUserStatus } = useUpdateUserStatus();
+  const { mutateAsync: deleteUser } = useDeleteUser();
 
   const handleAdd = () => {
-    setSelectedUser(null)
-    setDialogMode("add")
-    setIsDialogOpen(true)
-  }
+    setSelectedUser(null);
+    setDialogMode("add");
+    setIsDialogOpen(true);
+  };
 
   const handleEdit = (user: User) => {
-    setSelectedUser(user)
-    setDialogMode("edit")
-    setIsDialogOpen(true)
-  }
+    setSelectedUser(user);
+    setDialogMode("edit");
+    setIsDialogOpen(true);
+  };
 
   const handleDelete = (user: User) => {
-    setSelectedUser(user)
-    setIsDeleteDialogOpen(true)
-  }
+    setSelectedUser(user);
+    setIsDeleteDialogOpen(true);
+  };
 
   const handleChangeStatus = (user: User) => {
-    setSelectedUser(user)
-    setIsStatusDialogOpen(true)
-  }
+    setSelectedUser(user);
+    setIsStatusDialogOpen(true);
+  };
 
   const onConfirmStatusChange = async () => {
     if (selectedUser) {
       try {
-        await updateUserStatus(selectedUser.id)
-        toast.success("Kích hoạt tài khoản thành công")
-        setIsStatusDialogOpen(false)
+        await updateUserStatus(selectedUser.id);
+        toast.success("Kích hoạt tài khoản thành công");
+        setIsStatusDialogOpen(false);
       } catch (error: any) {
-        toast.error(error.message || "Kích hoạt tài khoản thất bại")
+        toast.error(error.message || "Kích hoạt tài khoản thất bại");
       }
     }
-  }
+  };
 
   const onConfirmDelete = async () => {
     if (selectedUser) {
       try {
-        await deleteUser(selectedUser.id)
-        toast.success("Xóa người dùng thành công")
-        setIsDeleteDialogOpen(false)
+        await deleteUser(selectedUser.id);
+        toast.success("Xóa người dùng thành công");
+        setIsDeleteDialogOpen(false);
       } catch (error: any) {
-        toast.error(error.message || "Xóa người dùng thất bại")
+        toast.error(error.message || "Xóa người dùng thất bại");
       }
     }
-  }
+  };
 
   const columns = getColumns({
     onEdit: handleEdit,
     onChangeStatus: handleChangeStatus,
     onDelete: handleDelete,
-  })
+  });
 
   return (
     <div className={`h-full flex-1 flex-col space-y-8 ${isMobile ? 'p-4' : 'p-8'} flex`}>
@@ -151,21 +224,25 @@ const UserManagementPage = () => {
           </div>
         </div>
       ) : (
-        <DataTable
-          data={data?.users || []}
-          columns={columns}
-          pageCount={data?.totalPages}
-          rowCount={data?.count}
-          pagination={pagination}
-          onPaginationChange={setPagination}
-        >
-          {(table) => (
-            <UserTableToolbar
-              table={table}
-              onAdd={handleAdd}
-            />
-          )}
-        </DataTable>
+        <div className={`transition-opacity duration-200 ${isFetching ? "opacity-50 pointer-events-none" : ""}`}>
+          <DataTable
+            data={data?.users || []}
+            columns={columns}
+            pageCount={data?.totalPages}
+            rowCount={data?.count}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+          >
+            {(table) => (
+              <UserTableToolbar
+                table={table}
+                onAdd={handleAdd}
+                searchValue={searchValue}
+                onSearchChange={setSearchValue}
+              />
+            )}
+          </DataTable>
+        </div>
       )}
 
       <UserDialog
