@@ -22,9 +22,9 @@ export default function MyBeyondLayout({ children }: { children: ReactNode }) {
 
     // Define access rules
     const accessRules: Record<string, string[]> = {
-      mycourse: ["Student", "Instructor"],
-      myprofile: ["Student", "Instructor", "Admin"],
-      mywallet: ["Instructor"],
+      mycourse: ["ROLE_STUDENT", "ROLE_INSTRUCTOR"],
+      myprofile: ["ROLE_STUDENT", "ROLE_INSTRUCTOR", "ROLE_ADMIN"],
+      mywallet: ["ROLE_INSTRUCTOR"],
     };
 
     const allowedRoles = accessRules[currentTab];
@@ -36,7 +36,7 @@ export default function MyBeyondLayout({ children }: { children: ReactNode }) {
     }
 
     // If user doesn't have access to this tab, redirect to myprofile
-    if (!allowedRoles.includes(role)) {
+    if (!role || !role.some(r => allowedRoles.includes(r))) {
       router.replace("/mybeyond?tab=myprofile");
       return;
     }
@@ -47,7 +47,7 @@ export default function MyBeyondLayout({ children }: { children: ReactNode }) {
   };
 
   // Hide sidebar for Admin role
-  const showSidebar = role !== "Admin";
+  const showSidebar = !role?.includes("ROLE_ADMIN");
 
   return (
     <div className="min-h-screen flex flex-col">

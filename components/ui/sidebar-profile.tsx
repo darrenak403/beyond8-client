@@ -13,21 +13,21 @@ const sidebarMenuItems = [
     label: "Khóa học của tôi",
     icon: BookOpen,
     value: "mycourse",
-    roles: ["Student", "Instructor"],
+    roles: ["ROLE_STUDENT", "ROLE_INSTRUCTOR"],
   },
   {
     id: "myprofile",
     label: "Cài đặt tài khoản",
     icon: Settings,
     value: "myprofile",
-    roles: ["Student", "Instructor", "Admin"],
+    roles: ["ROLE_STUDENT", "ROLE_INSTRUCTOR", "ROLE_ADMIN"],
   },
   {
     id: "mywallet",
     label: "Ví của tôi",
     icon: Wallet,
     value: "mywallet",
-    roles: ["Instructor"],
+    roles: ["ROLE_INSTRUCTOR"],
   },
 ];
 
@@ -41,18 +41,12 @@ export default function SidebarProfile({ currentTab, onTabChange }: SidebarProfi
   const { role } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const userRoles = useMemo(() => {
-    if (!role) return [];
-    if (Array.isArray(role)) return role;
-    if (typeof role === 'string') {
-      return role.includes(',') ? role.split(',').map(r => r.trim()) : [role];
-    }
-    return [];
-  }, [role]);
+  // role is already a string[] array from useAuth
+  const userRoles = role || [];
 
   const visibleMenuItems = useMemo(() => {
     return sidebarMenuItems.filter((item) => {
-      if (item.id === "mywallet" && userRoles.includes("Student")) {
+      if (item.id === "mywallet" && userRoles.includes("ROLE_STUDENT")) {
         return false;
       }
       return item.roles.some(requiredRole => userRoles.includes(requiredRole));
