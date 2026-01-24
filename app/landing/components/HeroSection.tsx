@@ -47,7 +47,7 @@ export default function HeroSection() {
           perspective: 1000
         }}
       >
-        <source src="/bg-video1.mp4" type="video/mp4" />
+        <source src="https://d30z0qh7rhzgt8.cloudfront.net/assets/bg-video1.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
