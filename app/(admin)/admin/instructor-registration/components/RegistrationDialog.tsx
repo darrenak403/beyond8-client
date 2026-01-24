@@ -376,7 +376,7 @@ export function RegistrationDialog({
                                                                                     <>
                                                                                         <span className="text-gray-300">•</span>
                                                                                         <a
-                                                                                            href={cert.url}
+                                                                                            href={formatImageUrl(cert.url)}
                                                                                             target="_blank"
                                                                                             rel="noopener noreferrer"
                                                                                             className="text-xs text-purple-600 hover:text-purple-700 hover:underline flex items-center gap-1 font-medium"
