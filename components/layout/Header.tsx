@@ -45,17 +45,17 @@ export function Header() {
     return roles.length === 1 && roles.includes("ROLE_STUDENT");
   };
 
-  const { data: checkApplyData } = useQuery({
+  const { data: checkApplyData, isLoading: isCheckingApply, error: checkApplyError } = useQuery({
     queryKey: ["instructor-check-apply"],
     queryFn: () => instructorRegistrationService.checkApply(),
     enabled: isAuthenticated && (isStudent() || isInstructor()),
+    retry: false,
   });
+  const showInstructorDashboard = checkApplyData?.isSuccess && checkApplyData?.data?.isApplied && checkApplyData?.data?.verificationStatus === "Verified";
 
-  // Show "Trang giảng viên" if user is verified instructor
-  const showInstructorDashboard = checkApplyData?.data?.isApplied && checkApplyData?.data?.verificationStatus === "Verified";
-
-  // Show "Đăng ký giảng viên" if user hasn't applied yet
-  const showRegisterInstructor = checkApplyData?.data === null;
+  const showRegisterInstructor = (!isCheckingApply && checkApplyData !== undefined && checkApplyData.isSuccess === false) || 
+                                  (!isCheckingApply && checkApplyError);
+  console.log("Show Register Instructor:", showRegisterInstructor);
 
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
