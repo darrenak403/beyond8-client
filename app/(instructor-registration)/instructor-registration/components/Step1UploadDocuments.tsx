@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { Upload, X, CheckCircle2, CreditCard, Hash, Calendar } from "lucide-react";
+import { Upload, X, CheckCircle2, CreditCard } from "lucide-react";
 import { useIdentity } from "@/hooks/useIdentity";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -274,7 +274,6 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
                     
                     {data.frontClassifyResult.id_number && (
                       <div className="flex items-start gap-2">
-                        <Hash className="w-4 h-4 text-gray-600 mt-0.5" />
                         <span className="text-sm font-medium text-gray-600 min-w-[100px]">Số CCCD:</span>
                         <span className="text-sm font-mono text-gray-900">{data.frontClassifyResult.id_number}</span>
                       </div>
@@ -282,7 +281,6 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
                     
                     {data.frontClassifyResult.issue_date && (
                       <div className="flex items-start gap-2">
-                        <Calendar className="w-4 h-4 text-gray-600 mt-0.5" />
                         <span className="text-sm font-medium text-gray-600 min-w-[100px]">Ngày cấp:</span>
                         <span className="text-sm text-gray-900">{data.frontClassifyResult.issue_date}</span>
                       </div>
@@ -316,7 +314,6 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
                     
                     {data.backClassifyResult.id_number && (
                       <div className="flex items-start gap-2">
-                        <Hash className="w-4 h-4 text-gray-600 mt-0.5" />
                         <span className="text-sm font-medium text-gray-600 min-w-[100px]">Số CCCD:</span>
                         <span className="text-sm font-mono text-gray-900">{data.backClassifyResult.id_number}</span>
                       </div>
@@ -324,7 +321,6 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
                     
                     {data.backClassifyResult.issue_date && (
                       <div className="flex items-start gap-2">
-                        <Calendar className="w-4 h-4 text-gray-600 mt-0.5" />
                         <span className="text-sm font-medium text-gray-600 min-w-[100px]">Ngày cấp:</span>
                         <span className="text-sm text-gray-900">{data.backClassifyResult.issue_date}</span>
                       </div>

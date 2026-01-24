@@ -25,8 +25,18 @@ interface InstructorFormData {
   backImg: string;
   frontFileId: string;
   backFileId: string;
-  frontClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
-  backClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
+  frontClassifyResult?: {
+    type_name: string;
+    card_name: string;
+    id_number: string | null;
+    issue_date: string | null;
+  };
+  backClassifyResult?: {
+    type_name: string;
+    card_name: string;
+    id_number: string | null;
+    issue_date: string | null;
+  };
   bio: string;
   headline: string;
   expertiseAreas: string[];
@@ -39,7 +49,7 @@ interface InstructorFormData {
   }>;
   certificates: Array<{
     name: string;
-    url: string;
+    imageUrl: string;
     issuer: string;
     year: number;
   }>;
@@ -95,10 +105,18 @@ export default function InstructorRegistrationPage() {
     headline: "",
     expertiseAreas: [],
     education: [
-      { school: "", degree: "", fieldOfStudy: "", start: new Date().getFullYear(), end: new Date().getFullYear() },
+      {
+        school: "",
+        degree: "",
+        fieldOfStudy: "",
+        start: new Date().getFullYear(),
+        end: new Date().getFullYear(),
+      },
     ],
-    certificates: [{ name: "", url: "", issuer: "", year: new Date().getFullYear() }],
-    workExperience: [{ company: "", role: "", from: "", to: "", isCurrentJob: false, description: null }],
+    certificates: [{ name: "", imageUrl: "", issuer: "", year: new Date().getFullYear() }],
+    workExperience: [
+      { company: "", role: "", from: "", to: "", isCurrentJob: false, description: null },
+    ],
     socialLinks: { facebook: null, linkedIn: null, website: null },
     bankInfo: { bankName: "", accountNumber: "", accountHolderName: "" },
     taxId: null,
@@ -141,7 +159,12 @@ export default function InstructorRegistrationPage() {
           backImg: formatImageUrl(formData.backImg) || formData.backImg,
         },
       ],
-      certificates: formData.certificates,
+      certificates: formData.certificates.map((cert) => ({
+        name: cert.name,
+        url: formatImageUrl(cert.imageUrl) || cert.imageUrl,
+        issuer: cert.issuer,
+        year: cert.year,
+      })),
     });
     router.push("/mybeyond?tab=myprofile");
   };
@@ -159,11 +182,12 @@ export default function InstructorRegistrationPage() {
     formData.expertiseAreas.length > 0
   );
   const canProceedStep3 = !!(
-    formData.education.length > 0 && formData.education.every((e) => e.school && e.degree && e.fieldOfStudy)
+    formData.education.length > 0 &&
+    formData.education.every((e) => e.school && e.degree && e.fieldOfStudy)
   );
   const canProceedStep4 = !!(
     formData.certificates.length > 0 &&
-    formData.certificates.every((c) => c.name && c.url && c.issuer)
+    formData.certificates.every((c) => c.name && c.imageUrl && c.issuer)
   );
   const canProceedStep5 = !!(
     formData.workExperience.length > 0 &&
@@ -198,6 +222,48 @@ export default function InstructorRegistrationPage() {
   };
 
   const handleFooterNext = () => {
+    // Console log để kiểm tra validation và formData
+    console.log("=== Step Validation Debug ===");
+    console.log("Current Step:", currentStep);
+    console.log("Can Proceed:", getCanProceed());
+    console.log("\n--- Form Data Summary ---");
+    console.log("Step 1 (Documents):", {
+      frontImg: !!formData.frontImg,
+      backImg: !!formData.backImg,
+      frontFileId: !!formData.frontFileId,
+      backFileId: !!formData.backFileId,
+      frontClassifyResult: !!formData.frontClassifyResult,
+      backClassifyResult: !!formData.backClassifyResult,
+    });
+    console.log("Step 2 (Basic Info):", {
+      bio: !!formData.bio,
+      headline: !!formData.headline,
+      expertiseAreas: formData.expertiseAreas.length,
+    });
+    console.log("Step 3 (Education):", {
+      count: formData.education.length,
+      valid: formData.education.every((e) => e.school && e.degree && e.fieldOfStudy),
+      data: formData.education,
+    });
+    console.log("Step 4 (Certificates):", {
+      count: formData.certificates.length,
+      valid: formData.certificates.every((c) => c.name && c.imageUrl && c.issuer),
+      data: formData.certificates,
+      introVideoUrl: formData.introVideoUrl || "null",
+    });
+    console.log("Step 5 (Work Experience):", {
+      count: formData.workExperience.length,
+      valid: formData.workExperience.every((w) => w.company && w.role && w.from && (w.isCurrentJob || w.to)),
+      data: formData.workExperience,
+    });
+    console.log("Step 6 (Additional Info):", {
+      bankInfo: formData.bankInfo,
+      taxId: formData.taxId || "null",
+      teachingLanguages: formData.teachingLanguages,
+      socialLinks: formData.socialLinks,
+    });
+    console.log("=== End Debug ===\n");
+
     if (currentStep === 7) {
       handleSubmit();
     } else if (currentStep === 6) {
@@ -274,7 +340,10 @@ export default function InstructorRegistrationPage() {
                       }}
                       onChange={(data) => {
                         if (data.frontClassifyResult) {
-                          console.log("Page - frontClassifyResult.id_number:", data.frontClassifyResult.id_number);
+                          console.log(
+                            "Page - frontClassifyResult.id_number:",
+                            data.frontClassifyResult.id_number
+                          );
                         }
                         const newFormData = { ...formData, ...data };
                         console.log("Page - Updated formData:", newFormData);
@@ -333,7 +402,10 @@ export default function InstructorRegistrationPage() {
                     className="h-full"
                   >
                     <Step4Certificates
-                      data={{ certificates: formData.certificates, introVideoUrl: formData.introVideoUrl }}
+                      data={{
+                        certificates: formData.certificates,
+                        introVideoUrl: formData.introVideoUrl,
+                      }}
                       onChange={(data) => setFormData({ ...formData, ...data })}
                     />
                   </motion.div>
@@ -411,7 +483,12 @@ export default function InstructorRegistrationPage() {
                             backImg: formData.backImg,
                           },
                         ],
-                        certificates: formData.certificates,
+                        certificates: formData.certificates.map((cert) => ({
+                          name: cert.name,
+                          url: formatImageUrl(cert.imageUrl) || cert.imageUrl,
+                          issuer: cert.issuer,
+                          year: cert.year,
+                        })),
                       }}
                       isSubmitting={isRegistering}
                       onReviewComplete={(result) => setReviewResult(result)}

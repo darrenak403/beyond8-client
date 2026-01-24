@@ -80,6 +80,28 @@ export const mediaService = {
     return response.data;
   },
 
+  // Certificate presigned URL
+  getCertificatePresignedUrl: async (
+    request: PresignedUrlRequest
+  ): Promise<ApiResponse<PresignedUrlResponse>> => {
+    const response = await apiService.post<ApiResponse<PresignedUrlResponse>>(
+      "api/v1/media/certificate/presigned-url",
+      request
+    );
+    return response.data;
+  },
+
+  // Intro video presigned URL
+  getIntroVideoPresignedUrl: async (
+    request: PresignedUrlRequest
+  ): Promise<ApiResponse<PresignedUrlResponse>> => {
+    const response = await apiService.post<ApiResponse<PresignedUrlResponse>>(
+      "api/v1/media/intro-video/presigned-url",
+      request
+    );
+    return response.data;
+  },
+
   uploadToPresignedUrl: async (presignedUrl: string, file: File): Promise<void> => {
     await axios.put(presignedUrl, file, {
       headers: {
@@ -225,6 +247,70 @@ export const mediaService = {
 
     if (!mediaResponse.isSuccess || !mediaResponse.data) {
       throw new Error(mediaResponse.message || "Không thể lấy thông tin file");
+    }
+
+    return mediaResponse.data;
+  },
+
+  // Upload certificate with full flow
+  uploadCertificate: async (file: File): Promise<MediaFile> => {
+    const presignedResponse = await mediaService.getCertificatePresignedUrl({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      metadata: null,
+    });
+
+    if (!presignedResponse.isSuccess || !presignedResponse.data) {
+      throw new Error(presignedResponse.message || "Không thể lấy URL tải lên chứng chỉ");
+    }
+
+    const { fileId, presignedUrl } = presignedResponse.data;
+
+    await mediaService.uploadToPresignedUrl(presignedUrl, file);
+
+    const confirmResponse = await mediaService.confirmUpload({ fileId });
+
+    if (!confirmResponse.isSuccess || !confirmResponse.data) {
+      throw new Error(confirmResponse.message || "Không thể xác nhận tải lên chứng chỉ");
+    }
+
+    const mediaResponse = await mediaService.getMediaFile(fileId);
+
+    if (!mediaResponse.isSuccess || !mediaResponse.data) {
+      throw new Error(mediaResponse.message || "Không thể lấy thông tin file chứng chỉ");
+    }
+
+    return mediaResponse.data;
+  },
+
+  // Upload intro video with full flow
+  uploadIntroVideo: async (file: File): Promise<MediaFile> => {
+    const presignedResponse = await mediaService.getIntroVideoPresignedUrl({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      metadata: null,
+    });
+
+    if (!presignedResponse.isSuccess || !presignedResponse.data) {
+      throw new Error(presignedResponse.message || "Không thể lấy URL tải lên video");
+    }
+
+    const { fileId, presignedUrl } = presignedResponse.data;
+
+    await mediaService.uploadToPresignedUrl(presignedUrl, file);
+
+    const confirmResponse = await mediaService.confirmUpload({ fileId });
+
+    if (!confirmResponse.isSuccess || !confirmResponse.data) {
+      throw new Error(confirmResponse.message || "Không thể xác nhận tải lên video");
+    }
+
+    const mediaResponse = await mediaService.getMediaFile(fileId);
+
+    if (!mediaResponse.isSuccess || !mediaResponse.data) {
+      throw new Error(mediaResponse.message || "Không thể lấy thông tin file video");
     }
 
     return mediaResponse.data;
