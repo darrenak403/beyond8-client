@@ -1,6 +1,5 @@
 # ===========================================
-# Beyond8 Frontend - Docker Compose (Production)
-# Dành cho deploy với Dokploy
+# Beyond8 Frontend - Docker Compose (Fixed)
 # ===========================================
 
 services:
@@ -13,12 +12,16 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5173
+      # Quan trọng: Buộc Next.js lắng nghe trên mọi IP (IPv4)
       - HOSTNAME=0.0.0.0
-      # API URL cho client-side fetch (Browser) - Production domain
       - NEXT_PUBLIC_API_URL=https://api.beyond8.io.vn
+
+    # Sửa lỗi Healthcheck:
+    # 1. Tăng start_period để App kịp khởi động
+    # 2. Dùng 127.0.0.1 để ép dùng IPv4 (tránh lỗi Connection Refused do IPv6)
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:5173/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:5173"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 30s
