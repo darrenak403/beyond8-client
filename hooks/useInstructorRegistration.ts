@@ -50,6 +50,7 @@ export function useInstructorRegistration() {
         description: `Trạng thái: ${data.verificationStatus}`,
       });
       queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },
     onError: (error: ApiError) => {
@@ -196,7 +197,8 @@ export function useUnHiddenProfile() {
     },
     onSuccess: (data) => {
       toast.success("Khôi phục hiển thị hồ sơ giảng viên thành công!");
-      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });    
+      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });    
     },
     onError: (error: any) => {
       toast.error(error.data.value.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại!");
@@ -225,6 +227,7 @@ export function useHiddenProfile() {
     onSuccess: () => {
       toast.success("Ẩn hồ sơ giảng viên thành công!");
       queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
     },
     onError: (error: any) => {
       toast.error(error.data.value.message || "Ẩn hồ sơ giảng viên thất bại!");
@@ -253,6 +256,7 @@ export function useUpdateMyRegistration() {
     onSuccess: () => {
       toast.success("Cập nhật hồ sơ giảng viên thành công!");
       queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
     },
     onError: (error: any) => {
       toast.error(error.data.value.message || "Cập nhật hồ sơ giảng viên thất bại!");
