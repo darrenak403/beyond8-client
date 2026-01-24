@@ -48,6 +48,40 @@ export interface InstructorRegistrationRequest {
   }>;
 }
 
+export interface UpdateRegistrationRequest {
+  bio: string;
+  headline: string;
+  expertiseAreas: string[];
+  education: Array<{
+    school: string;
+    degree: string;
+    fieldOfStudy: string;
+    start: number;
+    end: number;
+  }>;
+  workExperience: Array<{
+    company: string;
+    role: string;
+    from: string;
+    to: string;
+    isCurrentJob: boolean;
+    description: string | null;
+  }>;
+  socialLinks: {
+    facebook: string | null;
+    linkedIn: string | null;
+    website: string | null;
+  };
+  teachingLanguages: string[];
+  introVideoUrl: string | null;
+  certificates: Array<{
+    name: string;
+    url: string;
+    issuer: string;
+    year: number;
+  }>;
+}
+
 export interface InstructorUser {
   id: string;
   email: string;
@@ -322,5 +356,14 @@ export const instructorRegistrationService = {
       `api/v1/instructors/${profileId}/hidden`
     );
     return response.data;
-  }
+  },
+
+  updateMyRegistration: async (
+    request: UpdateRegistrationRequest
+  ): Promise<ApiResponse<InstructorProfileResponse>> => {
+    const response = await apiService.put<ApiResponse<InstructorProfileResponse>>(
+      "api/v1/instructors/me", request
+    );
+    return response.data;
+  },
 };

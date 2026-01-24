@@ -7,7 +7,8 @@ import {
   type AIProfileReviewRequest,
   type RejectRegistrationRequest,
   InstructorRegistrationParams,
-  InstructorRegistrationResponseList
+  InstructorRegistrationResponseList,
+  UpdateRegistrationRequest
 } from "@/lib/api/services/fetchInstructorRegistration";
 import { toast } from "sonner";
 import { ApiError } from "@/types/api";
@@ -111,9 +112,7 @@ export function useAproveRegistration() {
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success("Duyệt đăng ký thành công!", {
-        description: `Trạng thái: ${data.verificationStatus}`,
-      });
+      toast.success("Duyệt đăng ký thành công!");
       queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
     },
     onError: (error: any) => {
@@ -144,9 +143,7 @@ export function useRejectRegistration() {
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success("Từ chối đăng ký thành công!", {
-        description: `Trạng thái: ${data.verificationStatus}`,
-      });
+      toast.success("Từ chối đăng ký thành công!");
       queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
     },
     onError: (error: any) => {
@@ -187,24 +184,24 @@ export function useGetInstructorProfile() {
   };
 }
 
-  export function useUnHiddenProfile() {
-    const queryClient = useQueryClient();
-    const mutation = useMutation({
-      mutationFn: async (profileId: string) => {
-        const response = await instructorRegistrationService.unhidden(profileId);   
-        if (!response.isSuccess || !response.data) {
-          throw new Error(response.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại");
-        }
-        return response.data;
-      },
-      onSuccess: (data) => {
-        toast.success("Khôi phục hiển thị hồ sơ giảng viên thành công!");
-        queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
-      },
-      onError: (error: any) => {
-        toast.error(error.data.value.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại!");
-      },
-    }); 
+export function useUnHiddenProfile() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (profileId: string) => {
+      const response = await instructorRegistrationService.unhidden(profileId);
+      if (!response.isSuccess || !response.data) {
+        throw new Error(response.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại");
+      }
+      return response.data;
+    },
+    onSuccess: (data) => {
+      toast.success("Khôi phục hiển thị hồ sơ giảng viên thành công!");
+      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.data.value.message || "Khôi phục hiển thị hồ sơ giảng viên thất bại!");
+    },
+  });
 
   return {
     unhideProfile: mutation.mutate,
@@ -215,24 +212,24 @@ export function useGetInstructorProfile() {
   };
 }
 
-  export function useHiddenProfile() {
-    const queryClient = useQueryClient();
-    const mutation = useMutation({
-      mutationFn: async (profileId: string) => {
-        const response = await instructorRegistrationService.hidden(profileId);   
-        if (!response.isSuccess || !response.data) {
-          throw new Error(response.message || "Ẩn hồ sơ giảng viên thất bại");
-        }
-        return response.data;
-      },
-      onSuccess: () => {
-        toast.success("Ẩn hồ sơ giảng viên thành công!");
-        queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
-      },
-      onError: (error: any) => {
-        toast.error(error.data.value.message || "Ẩn hồ sơ giảng viên thất bại!");
-      },
-    }); 
+export function useHiddenProfile() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (profileId: string) => {
+      const response = await instructorRegistrationService.hidden(profileId);
+      if (!response.isSuccess || !response.data) {
+        throw new Error(response.message || "Ẩn hồ sơ giảng viên thất bại");
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Ẩn hồ sơ giảng viên thành công!");
+      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.data.value.message || "Ẩn hồ sơ giảng viên thất bại!");
+    },
+  });
 
   return {
     unhideProfile: mutation.mutate,
@@ -240,5 +237,33 @@ export function useGetInstructorProfile() {
     isUnhiding: mutation.isPending,
     error: mutation.error,
     unhideProfileData: mutation.data,
+  };
+}
+
+export function useUpdateMyRegistration() {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async (registration: UpdateRegistrationRequest) => {
+      const response = await instructorRegistrationService.updateMyRegistration(registration);
+      if (!response.isSuccess || !response.data) {
+        throw new Error(response.message || "Cập nhật hồ sơ giảng viên thất bại");
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Cập nhật hồ sơ giảng viên thành công!");
+      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.data.value.message || "Cập nhật hồ sơ giảng viên thất bại!");
+    },
+  });
+
+  return {
+    updateMyRegistration: mutation.mutate,
+    updateMyRegistrationAsync: mutation.mutateAsync,
+    isUpdating: mutation.isPending,
+    error: mutation.error,
+    updateMyRegistrationData: mutation.data,
   };
 }

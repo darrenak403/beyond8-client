@@ -36,13 +36,13 @@ export function Header() {
   const isInstructor = () => {
     if (!userProfile?.roles) return false;
     const roles = Array.isArray(userProfile.roles) ? userProfile.roles : [userProfile.roles];
-    return roles.includes("Instructor");
+    return roles.includes("ROLE_INSTRUCTOR");
   };
 
   const isStudent = () => {
     if (!userProfile?.roles) return false;
     const roles = Array.isArray(userProfile.roles) ? userProfile.roles : [userProfile.roles];
-    return roles.length === 1 && roles.includes("Student");
+    return roles.length === 1 && roles.includes("ROLE_STUDENT");
   };
 
   const { data: checkApplyData } = useQuery({
@@ -276,7 +276,7 @@ export function Header() {
                     </>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={handleLogout}
                     className="cursor-pointer text-red-600 focus:text-red-600 hover:bg-red-100 focus:bg-red-50"
                   >

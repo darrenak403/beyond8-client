@@ -26,17 +26,20 @@ import {
   Edit3,
   Check,
 } from "lucide-react";
-import { useGetInstructorProfile } from "@/hooks/useInstructorRegistration";
+import { useGetInstructorProfile, useUpdateMyRegistration } from "@/hooks/useInstructorRegistration";
 import type {
   InstructorEducation,
   InstructorWorkExperience,
   Certificates,
+  InstructorRegistrationRequest,
+  UpdateRegistrationRequest,
 } from "@/lib/api/services/fetchInstructorRegistration";
 import { Switch } from "@/components/ui/switch";
 import { useUnHiddenProfile } from "@/hooks/useInstructorRegistration";
 
 export default function ProfileInstructorForm() {
   const { instructorProfile, isLoading, error } = useGetInstructorProfile();
+  const { updateMyRegistration, isUpdating } = useUpdateMyRegistration();
   const { unhideProfile, isUnhiding } = useUnHiddenProfile();
   const [editingEducation, setEditingEducation] = useState<number | null>(null);
   const [editingWork, setEditingWork] = useState<number | null>(null);
@@ -116,12 +119,20 @@ export default function ProfileInstructorForm() {
   };
 
   const handleSubmit = () => {
-    console.log("Instructor profile updated:", {
-      ...formData,
+
+    const data: UpdateRegistrationRequest = {
+      bio: formData.bio,
+      headline: formData.headline,
+      socialLinks: formData.socialLinks,
       education: educationList,
       workExperience: workList,
       certificates: certificateList,
-    });
+      expertiseAreas: formData.expertise ? formData.expertise.split(',').map(s => s.trim()).filter(Boolean) : [],
+      teachingLanguages: formData.teachingLanguages ? formData.teachingLanguages.split(',').map(s => s.trim()).filter(Boolean) : [],
+      introVideoUrl: instructorProfile?.introVideoUrl || null,
+    };
+
+    updateMyRegistration(data);
   };
 
   const handleRequestReopen = async () => {
@@ -366,7 +377,7 @@ export default function ProfileInstructorForm() {
 
   return (
     <div className="space-y-6">
-      {isHidden && (
+      {isHidden ? (
         <div className="flex flex-row items-center justify-between gap-5 p-3 bg-white border-2 border-red-500 rounded-3xl">
           <p className="flex-1 text-sm text-red-700 font-medium text-center">
             Hồ sơ của bạn đang ở trạng thái ẩn. Vui lòng yêu cầu mở lại để chỉnh sửa.
@@ -379,6 +390,30 @@ export default function ProfileInstructorForm() {
           >
             {isUnhiding ? "Đang xử lý..." : "Yêu cầu mở lại"}
           </Button>
+        </div>
+      ) : instructorProfile?.verificationStatus === "RequestUpdate" ? (
+        <div className="flex flex-row items-center justify-between gap-5 p-3 bg-white border-2 border-yellow-500 rounded-3xl">
+          <p className="flex-1 text-sm text-yellow-700 font-medium text-center">
+            Hồ sơ của bạn đang ở trạng thái yêu cầu cập nhật. Vui lòng chỉnh sửa.
+          </p>
+        </div>
+      ) : instructorProfile?.verificationStatus === "Pending" ? (
+        <div className="flex flex-row items-center justify-between gap-5 p-3 bg-white border-2 border-orange-500 rounded-3xl">
+          <p className="flex-1 text-sm text-orange-700 font-medium text-center">
+            Hồ sơ của bạn đang ở trạng thái chờ duyệt.
+          </p>
+        </div>
+      ) : instructorProfile?.verificationStatus === "Verified" ? (
+        <div className="flex flex-row items-center justify-between gap-5 p-3 bg-white border-2 border-green-500 rounded-3xl">
+          <p className="flex-1 text-sm text-red-700 font-medium text-center">
+            Hồ sơ của bạn đã được duyệt.
+          </p>
+        </div>
+      ) : instructorProfile?.verificationStatus === "Recovering" && (
+        <div className="flex flex-row items-center justify-between gap-5 p-3 bg-white border-2 border-blue-500 rounded-3xl">
+          <p className="flex-1 text-sm text-blue-700 font-medium text-center">
+            Hồ sơ của bạn đang ở trạng thái đang chờ khôi phục.
+          </p>
         </div>
       )}
       {/* Card 1: Headline, Bio, Expertise */}
@@ -843,18 +878,18 @@ export default function ProfileInstructorForm() {
                           <p className="text-sm text-gray-600">
                             {work.from
                               ? new Date(work.from).toLocaleDateString("vi-VN", {
-                                  month: "long",
-                                  year: "numeric",
-                                })
+                                month: "long",
+                                year: "numeric",
+                              })
                               : ""}{" "}
                             -{" "}
                             {work.isCurrentJob
                               ? "Hiện tại"
                               : work.to
                                 ? new Date(work.to).toLocaleDateString("vi-VN", {
-                                    month: "long",
-                                    year: "numeric",
-                                  })
+                                  month: "long",
+                                  year: "numeric",
+                                })
                                 : ""}
                           </p>
                           {work.description && (
@@ -1160,17 +1195,17 @@ export default function ProfileInstructorForm() {
       </Card>
       {/* Header with Save Button */}
       <div className="flex justify-end gap-3">
-        {instructorProfile?.verificationStatus === "Verified" && (
+        {(instructorProfile?.verificationStatus === "RequestUpdate" || instructorProfile?.verificationStatus === "Verified") && (
           <>
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               className="border-2 border-purple-200 hover:bg-purple-50 hover:text-purple-700 rounded-2xl"
             >
               Hủy thay đổi
-            </Button>
+            </Button> */}
             <Button type="button" size="sm" onClick={handleSubmit} className="rounded-2xl">
-              Lưu thay đổi
+              {isUpdating ? "Đang cập nhật..." : "Lưu thay đổi"}
             </Button>
           </>
         )}
