@@ -1,23 +1,27 @@
-'use client'
+'use client';
+
+import { StatsCards } from './components/StatsCards';
+import { RevenueChart } from './components/RevenueChart';
+import { CashflowChart } from './components/CashflowChart';
+import { TrafficChart } from './components/TrafficChart';
+import { useIsMobile } from '@/hooks/useMobile';
 
 export default function AdminDashboard() {
+  const isMobile = useIsMobile();
+  
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 border rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Total Users</h3>
-          <p className="text-3xl font-bold">1,234</p>
-        </div>
-        <div className="p-6 border rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Total Courses</h3>
-          <p className="text-3xl font-bold">56</p>
-        </div>
-        <div className="p-6 border rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Total Instructors</h3>
-          <p className="text-3xl font-bold">23</p>
-        </div>
+    <div className="space-y-2">
+      {/* Stats Cards */}
+      <StatsCards />
+
+      {/* Middle Row: Revenue & Cashflow */}
+      <div className={`grid ${isMobile ? 'gap-2' : 'gap-4 lg:grid-cols-2'}`}>
+        <RevenueChart />
+        <CashflowChart />
       </div>
+
+      {/* Bottom: Traffic Chart */}
+      <TrafficChart />
     </div>
-  )
+  );
 }

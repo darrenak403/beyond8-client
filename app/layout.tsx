@@ -4,8 +4,12 @@ import {Providers} from '@/lib/providers'
 import {Toaster} from '@/components/ui/sonner'
 
 export const metadata: Metadata = {
-  title: 'Beyond 8 - Nền tảng khóa học trực tuyến',
-  description: 'Modern ecommerce application with Next.js 16',
+  title: 'Beyond8 - Learning AI Platform',
+  description:
+    'Beyond8 là nền tảng học tập trực tuyến ứng dụng AI, giúp học viên và giảng viên kết nối, quản lý khóa học, và cá nhân hóa trải nghiệm học tập.',
+  icons: {
+    icon: '/icon-logo.png',
+  },
 }
 
 export default function RootLayout({
@@ -17,6 +21,7 @@ export default function RootLayout({
     <html lang="vi">
       <body>
         <Providers>{children}</Providers>
+        {/* Toast notifications */}
         <Toaster position="bottom-center" expand={true} closeButton={true} />
       </body>
     </html>

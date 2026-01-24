@@ -193,3 +193,26 @@
 .font-jetbrains {
   font-family: 'JetBrains Mono', monospace;
 }
+
+/* Date input calendar icon positioning */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 12px;
+  cursor: pointer;
+}
+
+input[type="date"] {
+  position: relative;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}

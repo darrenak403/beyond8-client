@@ -1,0 +1,255 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2, School, Award, Calendar, GraduationCap, BookOpen } from "lucide-react";
+import { useIsMobile } from "@/hooks/useMobile";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+
+interface Education {
+  school: string;
+  degree: string;
+  fieldOfStudy: string;
+  start: number;
+  end: number;
+}
+
+interface Step3Props {
+  data: { education: Education[] };
+  onChange: (data: { education: Education[] }) => void;
+}
+
+export default function Step3Education({ data, onChange }: Step3Props) {
+  const isMobile = useIsMobile();
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const handleAdd = () => {
+    const newEducation = [...data.education, { school: "", degree: "", fieldOfStudy: "", start: new Date().getFullYear(), end: new Date().getFullYear() }];
+    onChange({ education: newEducation });
+    setEditingIndex(newEducation.length - 1);
+  };
+
+  const handleRemove = (index: number) => {
+    onChange({
+      education: data.education.filter((_, i) => i !== index)
+    });
+    if (editingIndex === index) setEditingIndex(null);
+  };
+
+  const handleChange = (index: number, field: keyof Education, value: string | number) => {
+    const newEducation = [...data.education];
+    newEducation[index] = { ...newEducation[index], [field]: value };
+    onChange({ education: newEducation });
+  };
+
+  return (
+    <div className="w-full h-full flex flex-col">
+      {/* Header */}
+      <div className="text-center space-y-3 flex-shrink-0">
+        {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
+          <GraduationCap className="w-8 h-8 text-white" />
+        </div> */}
+        <h2 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+          Học vấn
+        </h2>
+        <p className={`text-gray-600 max-w-2xl mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
+          Thêm trình độ học vấn để học viên hiểu rõ hơn về nền tảng của bạn
+        </p>
+      </div>
+
+      {/* Add Button */}
+      <div className="flex justify-center mt-8 flex-shrink-0">
+        <Button
+          type="button"
+          onClick={handleAdd}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Thêm học vấn
+        </Button>
+      </div>
+
+      {/* Education List - Fixed Scroll Container */}
+      <div className="overflow-y-auto pr-2 scrollbar-hide flex-1 mt-8">
+        <div className="space-y-4">
+          <AnimatePresence mode="popLayout">
+            {data.education.map((edu, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ duration: 0.3 }}
+                layout
+              >
+                <Card className="border-2 border-purple-100 hover:border-purple-300 transition-all hover:shadow-lg rounded-4xl">
+                  <CardContent className="pt-4 px-4 pb-4">
+                    {editingIndex === index ? (
+                      // Edit Mode
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center pb-3 border-b">
+                          <div className="flex items-center gap-2">
+                            <div className="p-2 rounded-lg bg-purple-50">
+                              <BookOpen className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <h4 className="font-semibold text-gray-800">Học vấn #{index + 1}</h4>
+                          </div>
+                          {data.education.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="hover:bg-red-50 hover:text-red-600"
+                              onClick={() => handleRemove(index)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="space-y-4">
+                          {/* School */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                              <School className="w-4 h-4 text-purple-600" />
+                              Tên trường <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                              placeholder="VD: Đại học Bách Khoa Hà Nội"
+                              value={edu.school}
+                              onChange={(e) => handleChange(index, 'school', e.target.value)}
+                            />
+                          </div>
+
+                          {/* Degree */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                              <Award className="w-4 h-4 text-purple-600" />
+                              Bằng cấp <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                              placeholder="VD: Cử nhân Khoa học Máy tính"
+                              value={edu.degree}
+                              onChange={(e) => handleChange(index, 'degree', e.target.value)}
+                            />
+                          </div>
+
+                          {/* Field of Study */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                              <BookOpen className="w-4 h-4 text-purple-600" />
+                              Chuyên ngành <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                              placeholder="VD: Khoa học Máy tính"
+                              value={edu.fieldOfStudy}
+                              onChange={(e) => handleChange(index, 'fieldOfStudy', e.target.value)}
+                            />
+                          </div>
+
+                          {/* Start & End Year */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-purple-600" />
+                                Năm bắt đầu
+                              </label>
+                              <input
+                                type="number"
+                                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                                placeholder="2015"
+                                min="1950"
+                                max={new Date().getFullYear() + 10}
+                                value={edu.start}
+                                onChange={(e) => handleChange(index, 'start', parseInt(e.target.value) || new Date().getFullYear())}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-purple-600" />
+                                Năm kết thúc
+                              </label>
+                              <input
+                                type="number"
+                                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                                placeholder="2019"
+                                min="1950"
+                                max={new Date().getFullYear() + 10}
+                                value={edu.end}
+                                onChange={(e) => handleChange(index, 'end', parseInt(e.target.value) || new Date().getFullYear())}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button
+                          type="button"
+                          onClick={() => setEditingIndex(null)}
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                        >
+                          ✓ Lưu thông tin
+                        </Button>
+                      </div>
+                    ) : (
+                      // View Mode
+                      <div
+                        className="cursor-pointer"
+                        onClick={() => setEditingIndex(index)}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                            <GraduationCap className="w-6 h-6 text-purple-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-lg text-gray-800 truncate">
+                              {edu.school || "Chưa có tên trường"}
+                            </h3>
+                            <p className="text-purple-600 font-medium mt-1">
+                              {edu.degree || "Chưa có bằng cấp"}
+                            </p>
+                            {edu.fieldOfStudy && (
+                              <p className="text-gray-600 text-sm mt-1">
+                                {edu.fieldOfStudy}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                              <Calendar className="w-4 h-4" />
+                              <span>{edu.start} - {edu.end}</span>
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <div className="text-purple-600 hover:text-purple-700 transition-colors">
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {data.education.length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <GraduationCap className="w-16 h-16 mx-auto mb-4 opacity-50" />
+              <p className="text-lg">Chưa có thông tin học vấn</p>
+              <p className="text-sm mt-2">Nhấn nút &ldquo;Thêm học vấn&rdquo; để bắt đầu</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
