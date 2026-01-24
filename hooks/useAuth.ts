@@ -264,7 +264,14 @@ export function useLogout() {
       });
       
       dispatch(logout());
-      deleteCookie('authToken');
+      
+      // Delete cookie with same config as when setting
+      const cookieConfig = getAuthCookieConfig();
+      deleteCookie('authToken', {
+        path: cookieConfig.path,
+        domain: cookieConfig.domain,
+      });
+      
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Đăng xuất thành công!');
       router.push('/login');
