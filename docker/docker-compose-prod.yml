@@ -1,5 +1,6 @@
 # ===========================================
 # Beyond8 Frontend - Docker Compose (Production)
+# Dành cho deploy với Dokploy
 # ===========================================
 
 services:
@@ -15,17 +16,9 @@ services:
       - HOSTNAME=0.0.0.0
       # API URL cho client-side fetch (Browser) - Production domain
       - NEXT_PUBLIC_API_URL=https://api.beyond8.io.vn
-    networks:
-      - beyond8-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5173 || exit 1"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5173/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-
-networks:
-  beyond8-network:
-    external: true
