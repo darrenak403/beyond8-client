@@ -81,7 +81,7 @@ export default function HeroSection() {
         <h1 className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
           Học Hết Sức
           <br />
-          AI hỗ trợ hết mình
+          AI Hỗ Trợ Hết Mình
         </h1>
 
         {/* Description */}
