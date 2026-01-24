@@ -33,6 +33,7 @@ import { InstructorRegistrationResponse, VerificationStatus } from "@/lib/api/se
 
 import { useIsMobile } from "@/hooks/useMobile";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
+import { useBanks } from "@/hooks/useBank";
 
 interface RegistrationDialogProps {
     open: boolean;
@@ -50,11 +51,19 @@ export function RegistrationDialog({
     onReject,
 }: RegistrationDialogProps) {
     const isMobile = useIsMobile();
+    const { banks } = useBanks();
     const [activeTab, setActiveTab] = useState("info");
 
     if (!registration) return null;
 
     const { user } = registration;
+
+    const bankLogo = registration.bankInfo ? banks?.find(b =>
+        b.shortName === registration.bankInfo?.bankName ||
+        b.short_name === registration.bankInfo?.bankName ||
+        b.name === registration.bankInfo?.bankName ||
+        b.code === registration.bankInfo?.bankName
+    )?.logo : null;
 
     const tabs = [
         { id: "info", label: "Thông tin chung", icon: User },
@@ -397,58 +406,89 @@ export function RegistrationDialog({
                                 )}
 
                                 {activeTab === "financial" && (
-                                    <div className="space-y-4">
-                                        {/* Bank Info */}
-                                        <div className="border rounded-lg bg-white overflow-hidden">
-                                            <div className="px-4 py-3 border-b flex items-center gap-3 bg-muted/20">
-                                                <div className="p-2 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg">
-                                                    <CreditCard className="w-4 h-4 text-green-600" />
+                                    <div className="space-y-6">
+                                        {/* Bank Info Card - Premium Credit Card Look */}
+                                        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-6 text-white shadow-xl ring-1 ring-white/10 transition-all hover:shadow-2xl">
+                                            {/* Abstract Background Decoration */}
+                                            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+                                            <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
+
+                                            <div className="relative z-10 flex flex-col justify-between h-full min-h-[200px]">
+                                                {/* Top Row: Bank Name & Logo */}
+                                                <div className="flex items-start justify-between mb-8">
+                                                    <div>
+                                                        <p className="text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Ngân hàng thụ hưởng</p>
+                                                        <h3 className="text-lg font-bold tracking-tight text-white/90">
+                                                            {registration.bankInfo?.bankName || "Chưa cập nhật"}
+                                                        </h3>
+                                                    </div>
+                                                    {bankLogo ? (
+                                                        <div className="h-10 w-20 rounded bg-white p-1.5 flex items-center justify-center shadow-lg">
+                                                            <div className="relative w-full h-full">
+                                                                <Image
+                                                                    src={bankLogo}
+                                                                    alt={registration.bankInfo.bankName}
+                                                                    fill
+                                                                    className="object-contain"
+                                                                    unoptimized
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-10 w-14 rounded bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
+                                                            <CreditCard className="h-5 w-5 text-white/50" />
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <span className="font-semibold text-base">Thông tin ngân hàng</span>
-                                            </div>
-                                            <div className="p-4">
-                                                {registration.bankInfo ? (
-                                                    <div className="grid gap-4 md:grid-cols-2">
-                                                        <div className="space-y-1">
-                                                            <p className="text-sm font-medium text-muted-foreground">Tên ngân hàng</p>
-                                                            <p className="font-medium">{registration.bankInfo.bankName}</p>
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <p className="text-sm font-medium text-muted-foreground">Số tài khoản</p>
-                                                            <p className="font-medium font-mono bg-muted/30 px-2 py-1 rounded inline-block">
-                                                                {registration.bankInfo.accountNumber}
-                                                            </p>
-                                                        </div>
-                                                        <div className="space-y-1 md:col-span-2">
-                                                            <p className="text-sm font-medium text-muted-foreground">Tên chủ tài khoản</p>
-                                                            <p className="font-medium uppercase">{registration.bankInfo.accountHolderName}</p>
-                                                        </div>
+
+                                                {/* Middle Row: Account Number */}
+                                                <div className="mb-8">
+                                                    <p className="text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Số tài khoản</p>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="font-mono text-3xl font-medium tracking-widest text-white shadow-sm">
+                                                            {registration.bankInfo?.accountNumber || "Wait for update"}
+                                                        </span>
                                                     </div>
-                                                ) : (
-                                                    <div className="text-center py-4 text-muted-foreground bg-muted/20 rounded-lg">
-                                                        <CreditCard className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                                        <p>Chưa cập nhật thông tin ngân hàng</p>
+                                                </div>
+
+                                                {/* Bottom Row: Account Holder */}
+                                                <div className="flex items-end justify-between border-t border-white/10 pt-4">
+                                                    <div>
+                                                        <p className="text-[10px] font-medium text-slate-400 mb-1 uppercase tracking-wider">Chủ tài khoản</p>
+                                                        <p className="font-semibold uppercase tracking-wide text-sm md:text-base">
+                                                            {registration.bankInfo?.accountHolderName || "---"}
+                                                        </p>
                                                     </div>
-                                                )}
+                                                    <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                                        <span>Verified Bank</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        {/* Tax ID */}
-                                        <div className="border rounded-lg bg-white overflow-hidden">
-                                            <div className="px-4 py-3 border-b flex items-center gap-3 bg-muted/20">
-                                                <div className="p-2 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg">
-                                                    <FileText className="w-4 h-4 text-blue-600" />
+                                        {/* Tax ID - Clean Modern Row */}
+
+
+                                        <div className="group rounded-xl border bg-white p-0 overflow-hidden shadow-sm hover:shadow-md transition-all hover:border-blue-200">
+                                            <div className="flex items-center gap-5 p-5">
+                                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 group-hover:bg-blue-100 group-hover:scale-110 transition-all duration-300">
+                                                    <FileText className="h-6 w-6" />
                                                 </div>
-                                                <span className="font-semibold text-base">Mã số thuế</span>
-                                            </div>
-                                            <div className="p-4">
-                                                {registration.taxId ? (
-                                                    <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg border border-dashed">
-                                                        <FileText className="w-4 h-4 text-muted-foreground" />
-                                                        <span className="font-mono font-medium">{registration.taxId}</span>
+                                                <div className="flex-1 space-y-1">
+                                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Mã số thuế cá nhân</p>
+                                                    {registration.taxId ? (
+                                                        <p className="text-xl font-bold text-gray-900 font-mono tracking-wide">{registration.taxId}</p>
+                                                    ) : (
+                                                        <p className="text-sm italic text-muted-foreground">Chưa cập nhật mã số thuế</p>
+                                                    )}
+                                                </div>
+                                                {registration.taxId && (
+                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Badge variant="secondary" className="bg-slate-100 text-slate-600">
+                                                            Tax ID
+                                                        </Badge>
                                                     </div>
-                                                ) : (
-                                                    <p className="text-sm text-muted-foreground">Chưa cập nhật mã số thuế</p>
                                                 )}
                                             </div>
                                         </div>

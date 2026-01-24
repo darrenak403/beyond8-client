@@ -33,7 +33,15 @@ export function useUserProfile() {
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["userProfile"], data);
+      queryClient.setQueryData(["userProfile"], (old: UserProfile | undefined) => {
+        if (!old) return data;
+        return {
+          ...old,
+          ...data,
+          // Preserve roles if they are missing or empty in the response
+          roles: (data.roles && data.roles.length > 0) ? data.roles : old.roles
+        };
+      });
       toast.success("Cập nhật thông tin thành công!");
     },
     onError: (error: Error) => {

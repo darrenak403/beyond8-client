@@ -35,7 +35,14 @@ const initialState: AuthState = {
 // Helper to decode token safely
 export const decodeToken = (token: string): User | null => {
   try {
-    return jwtDecode<User>(token)
+    const decoded: any = jwtDecode(token)
+
+    // Normalize role to array if it is a string
+    if (decoded.role && !Array.isArray(decoded.role)) {
+      decoded.role = [decoded.role]
+    }
+
+    return decoded as User
   } catch (error) {
     console.error('Failed to decode token:', error)
     return null
