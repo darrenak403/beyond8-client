@@ -2,6 +2,19 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from '@/lib/providers'
 import { Toaster } from '@/components/ui/sonner'
+import { Open_Sans, Quicksand } from 'next/font/google'
+
+const openSans = Open_Sans({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-open-sans',
+  weight: ['300', '400', '500', '600', '700', '800'],
+})
+
+const quicksand = Quicksand({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-quicksand',
+  weight: ['300', '400', '500', '600', '700'],
+})
 
 export const metadata: Metadata = {
   title: 'Beyond8 - Nền Tảng Học Tập Trực Tuyến Với AI',
@@ -54,7 +67,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body>
+      <body className={`${openSans.variable} ${quicksand.variable} antialiased`}>
         <Providers>{children}</Providers>
         <Toaster position="bottom-center" expand={true} closeButton={true} />
       </body>
