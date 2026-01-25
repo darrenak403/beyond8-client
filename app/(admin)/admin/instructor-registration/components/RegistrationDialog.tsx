@@ -77,9 +77,9 @@ export function RegistrationDialog({
                     <div className="space-y-6 pb-6">
                         {/* User Profile Header */}
                         <div className={`flex flex-col md:flex-row items-center md:items-start gap-4 p-4 border-b bg-muted/20 ${isMobile ? "mx-4 mt-4 rounded-lg border" : "mx-6 mt-6 rounded-lg border"}`}>
-                            <Avatar className="h-16 w-16">
+                            <Avatar className="h-16 w-16 border-2 border-purple-400">
                                 <AvatarImage src={user.avatarUrl || ""} />
-                                <AvatarFallback>
+                                <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
                                     {user.fullName.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
