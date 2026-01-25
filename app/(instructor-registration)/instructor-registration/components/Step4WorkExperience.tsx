@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Building, Briefcase, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/useMobile";
 import { motion, AnimatePresence } from "framer-motion";
-import { formatDateForInput } from "@/lib/utils/formatDate";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface WorkExperience {
@@ -27,13 +29,6 @@ interface Step5Props {
 export default function Step5WorkExperience({ data, onChange }: Step5Props) {
   const isMobile = useIsMobile();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-
-  const toISOFromDateInput = (value: string) => {
-    if (!value) return "";
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return "";
-    return d.toISOString();
-  };
 
   const handleAdd = () => {
     const newWorkExperience = [...data.workExperience, { company: "", role: "", from: "", to: "", isCurrentJob: false, description: null }];
@@ -175,12 +170,42 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                                 <CalendarIcon className="w-4 h-4 text-purple-600" />
                                 Từ <span className="text-red-500">*</span>
                               </label>
-                              <input
-                                type="date"
-                                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
-                                value={formatDateForInput(work.from)}
-                                onChange={(e) => handleChange(index, "from", toISOFromDateInput(e.target.value))}
-                              />
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal text-sm px-4 py-2 border-2 border-gray-200 rounded-lg hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all",
+                                      !work.from && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {work.from ? (
+                                      new Date(work.from).toLocaleDateString("vi-VN", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                      })
+                                    ) : (
+                                      <span>Chọn ngày bắt đầu</span>
+                                    )}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-fit p-4" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={work.from ? new Date(work.from) : undefined}
+                                    onSelect={(date) => {
+                                      if (date) {
+                                        handleChange(index, "from", date.toISOString());
+                                      } else {
+                                        handleChange(index, "from", "");
+                                      }
+                                    }}
+                                    captionLayout="dropdown"
+                                  />
+                                </PopoverContent>
+                              </Popover>
                             </div>
 
                             <div className="space-y-2">
@@ -188,13 +213,44 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                                 <CalendarIcon className="w-4 h-4 text-purple-600" />
                                 Đến {!work.isCurrentJob && <span className="text-red-500">*</span>}
                               </label>
-                              <input
-                                type="date"
-                                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
-                                value={formatDateForInput(work.to)}
-                                onChange={(e) => handleChange(index, "to", toISOFromDateInput(e.target.value))}
-                                disabled={work.isCurrentJob}
-                              />
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    disabled={work.isCurrentJob}
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal text-sm px-4 py-2 border-2 border-gray-200 rounded-lg hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed",
+                                      !work.to && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {work.to ? (
+                                      new Date(work.to).toLocaleDateString("vi-VN", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                      })
+                                    ) : (
+                                      <span>Chọn ngày kết thúc</span>
+                                    )}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-fit p-4" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={work.to ? new Date(work.to) : undefined}
+                                    onSelect={(date) => {
+                                      if (date) {
+                                        handleChange(index, "to", date.toISOString());
+                                      } else {
+                                        handleChange(index, "to", "");
+                                      }
+                                    }}
+                                    captionLayout="dropdown"
+                                    disabled={(date) => work.from ? date < new Date(work.from) : false}
+                                  />
+                                </PopoverContent>
+                              </Popover>
                             </div>
                           </div>
 

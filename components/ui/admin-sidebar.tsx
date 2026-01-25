@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { useIsMobile } from '@/hooks/useMobile';
 
 import Link from 'next/link';
@@ -51,6 +52,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
   const { userProfile } = useUserProfile();
   const { mutateLogout } = useLogout();
   const isMobile = useIsMobile();
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
@@ -196,9 +198,12 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
           <div className="flex items-center gap-2">
             {isCollapsed ? (
               <TooltipProvider>
-                <Tooltip>
+                <Tooltip open={isTooltipOpen} onOpenChange={setIsTooltipOpen}>
                   <TooltipTrigger asChild>
-                    <Avatar className="h-8 w-8 rounded-lg flex-shrink-0 cursor-pointer">
+                    <Avatar 
+                      className="h-8 w-8 rounded-lg flex-shrink-0 cursor-pointer"
+                      onClick={() => setIsTooltipOpen(!isTooltipOpen)}
+                    >
                       <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
                       <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
                         {getAvatarFallback()}
@@ -217,12 +222,16 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                         <Link
                           href="/admin/admin-profile"
                           className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-white cursor-pointer"
+                          onClick={() => setIsTooltipOpen(false)}
                         >
                           <User className="h-3.5 w-3.5" />
                           Hồ sơ
                         </Link>
                         <button
-                          onClick={() => mutateLogout()}
+                          onClick={() => {
+                            setIsTooltipOpen(false)
+                            mutateLogout()
+                          }}
                           className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-red-50 text-red-600 cursor-pointer"
                         >
                           <LogOut className="h-3.5 w-3.5" />
