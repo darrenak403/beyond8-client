@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Quicksand:wght@300..700&display=swap');
-
 @import "tailwindcss";
 
 @layer base {
@@ -102,8 +100,8 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   /* Fonts */
-  --font-sans: "Quicksand", sans-serif;
-  --font-serif: "Open Sans", sans-serif;
+  --font-sans: var(--font-quicksand);
+  --font-serif: var(--font-open-sans);
   --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -114,7 +112,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Quicksand", sans-serif;
+    font-family: var(--font-quicksand), sans-serif;
   }
 }
 
@@ -192,6 +190,7 @@
 
 /* Font utility class */
 .font-jetbrains {
+
   font-family: 'JetBrains Mono', monospace;
 }
 

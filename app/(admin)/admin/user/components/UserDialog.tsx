@@ -12,6 +12,16 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
+import { CalendarIcon } from "lucide-react"
+import { Label } from "@/components/ui/label"
 
 import { User } from "@/lib/api/services/fetchUsers"
 import { useAddUser, useUpdateUser } from "@/hooks/useUsers"
@@ -282,13 +292,58 @@ export function UserDialog({
                                                 placeholder="example@gmail.com"
                                                 disabled={mode === "edit"}
                                             />
-                                            <FormikField
-                                                name="dateOfBirth"
-                                                label="Ngày sinh"
-                                                type="date"
-                                                max={new Date().toISOString().split("T")[0]}
-                                                disabled={mode === "edit"}
-                                            />
+                                            <div className="space-y-2 flex flex-col pt-1">
+                                                <Label className={mode === "edit" ? "text-muted-foreground" : ""}>Ngày sinh</Label>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            variant={"outline"}
+                                                            className={cn(
+                                                                "w-full justify-start text-left font-normal transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 hover:bg-white hover:text-black",
+                                                                !values.dateOfBirth && "text-muted-foreground"
+                                                            )}
+                                                            disabled={mode === "edit"}
+                                                        >
+                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                            {values.dateOfBirth ? (
+                                                                new Date(values.dateOfBirth).toLocaleDateString("vi-VN", {
+                                                                    day: "2-digit",
+                                                                    month: "2-digit",
+                                                                    year: "numeric",
+                                                                })
+                                                            ) : (
+                                                                <span>Chọn ngày sinh</span>
+                                                            )}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-fit p-4" align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={values.dateOfBirth ? new Date(values.dateOfBirth + "T00:00:00") : undefined}
+                                                            onSelect={(date) => {
+                                                                if (date) {
+                                                                    const year = date.getFullYear();
+                                                                    const month = String(date.getMonth() + 1).padStart(2, "0");
+                                                                    const day = String(date.getDate()).padStart(2, "0");
+                                                                    setFieldValue("dateOfBirth", `${year}-${month}-${day}`);
+                                                                } else {
+                                                                    setFieldValue("dateOfBirth", "");
+                                                                }
+                                                            }}
+                                                            disabled={(date) =>
+                                                                date > new Date() || date < new Date("1900-01-01")
+                                                            }
+                                                            captionLayout="dropdown"
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                                {touched.dateOfBirth && errors.dateOfBirth && (
+                                                    <p className="text-sm font-medium text-destructive">
+                                                        {errors.dateOfBirth as string}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
 
                                         {mode === "add" && (
