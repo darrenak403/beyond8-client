@@ -195,14 +195,14 @@ export default function ProfileHeader({
               )}
             </div>
             
-            {/* Green dot indicator - bottom right of avatar */}
-            {userProfile.isActive && (
-              <span className={`absolute bottom-1 right-1 ${isMobile ? 'w-5 h-5' : 'w-7 h-7'} bg-green-500 rounded-full border-4 border-white shadow-lg z-20`} />
-            )}
+            {/* Status Indicator */}
+            <div className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} rounded-full border-4 border-white ${
+              userProfile.isActive ? "bg-green-500" : "bg-gray-400"
+            } shadow-lg z-30`} />
           </div>
 
           {/* Name & Email */}
-          <div className={`${isMobile ? "mt-3 space-y-2" : "mb-4"}`}>
+          <div className={`${isMobile ? "mt-3 space-y-2 flex flex-col items-center" : "mb-4"}`}>
             <div className="flex items-center gap-2">
               <h2
                 className={`font-bold ${

@@ -43,7 +43,7 @@ export default function AdminProfileContent({
     <div className="bg-white">
       {/* Tab Navigation */}
       <div className={`border-b ${isMobile ? "px-4" : "px-6"}`}>
-        <div className="flex gap-1 overflow-x-auto">
+        <div className={`flex overflow-x-auto ${isMobile ? "justify-around" : "gap-1"}`}>
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.value;
@@ -61,7 +61,7 @@ export default function AdminProfileContent({
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
+                  {!isMobile && <span>{tab.label}</span>}
                 </button>
                 {isActive && (
                   <motion.div
