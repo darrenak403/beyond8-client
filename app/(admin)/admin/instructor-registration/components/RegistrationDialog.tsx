@@ -175,7 +175,7 @@ export function RegistrationDialog({
                         <div className="bg-white">
                             {/* Tab Navigation */}
                             <div className={`border-b ${isMobile ? "px-4" : "px-6"}`}>
-                                <div className="flex gap-1 overflow-x-auto no-scrollbar">
+                                <div className="grid grid-cols-3 gap-1">
                                     {tabs.map((tab) => {
                                         const Icon = tab.icon;
                                         const isActive = activeTab === tab.id;
@@ -184,7 +184,7 @@ export function RegistrationDialog({
                                             <div key={tab.id} className="relative">
                                                 <button
                                                     onClick={() => setActiveTab(tab.id)}
-                                                    className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors whitespace-nowrap ${isMobile ? "text-sm" : "text-base"
+                                                    className={`flex items-center justify-center gap-2 w-full py-4 font-medium transition-colors whitespace-nowrap ${isMobile ? "text-sm" : "text-base"
                                                         } ${isActive
                                                             ? "text-primary"
                                                             : "text-gray-600 hover:text-gray-900"
@@ -247,6 +247,21 @@ export function RegistrationDialog({
                                                                 registration.expertiseAreas.map((area, index) => (
                                                                     <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200">
                                                                         {area}
+                                                                    </Badge>
+                                                                ))
+                                                            ) : (
+                                                                <span className="text-sm text-muted-foreground">Chưa cập nhật</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Ngôn ngữ giảng dạy</h4>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {registration.teachingLanguages && registration.teachingLanguages.length > 0 ? (
+                                                                registration.teachingLanguages.map((lang, index) => (
+                                                                    <Badge key={index} variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">
+                                                                        {lang}
                                                                     </Badge>
                                                                 ))
                                                             ) : (
@@ -321,7 +336,7 @@ export function RegistrationDialog({
                                                                             <p className="text-sm text-purple-700 font-medium">{exp.role}</p>
                                                                         </div>
                                                                         <Badge variant="outline" className="text-xs text-muted-foreground whitespace-nowrap">
-                                                                            {format(new Date(exp.from), "MM/yyyy")} - {format(new Date(exp.to), "MM/yyyy")}
+                                                                            {format(new Date(exp.from), "MM/yyyy")} - {exp.isCurrentJob ? "Hiện tại" : format(new Date(exp.to), "MM/yyyy")}
                                                                         </Badge>
                                                                     </div>
                                                                     {exp.description && (
@@ -599,8 +614,8 @@ export function RegistrationDialog({
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
                         Đóng
                     </Button>
-                    {registration.verificationStatus === VerificationStatus.Pending
-                        || registration.verificationStatus === VerificationStatus.Recovering && (
+                    {(registration.verificationStatus === VerificationStatus.Pending
+                        || registration.verificationStatus === VerificationStatus.Recovering) && (
                             <>
                                 <Button
                                     className="bg-yellow-500 hover:bg-yellow-600 text-white"

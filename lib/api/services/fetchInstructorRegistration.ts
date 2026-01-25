@@ -269,7 +269,7 @@ export interface AIProfileReviewRequest {
 
 export interface InstructorRegistrationParams {
   verificationStatus: string;
-  fullName: string;
+  email: string;
   pageNumber: number;
   pageSize: number;
   IsDescending: boolean;
@@ -279,7 +279,7 @@ const convertParamsToQuery = (params: InstructorRegistrationParams): RequestPara
   if (!params) return {};
   const query: RequestParams = {};
   if (params.verificationStatus) query.verificationStatus = params.verificationStatus;
-  if (params.fullName) query.fullName = params.fullName;
+  if (params.email) query.email = params.email;
   if (params.pageNumber) query.pageNumber = params.pageNumber;
   if (params.pageSize) query.pageSize = params.pageSize;
   if (params.IsDescending) query.isDescending = params.IsDescending;

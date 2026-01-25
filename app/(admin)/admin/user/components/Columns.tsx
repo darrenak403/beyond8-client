@@ -27,6 +27,7 @@ interface GetColumnsProps {
 export const getColumns = ({
     onEdit,
     onChangeStatus,
+    onDelete,
 }: GetColumnsProps): ColumnDef<User>[] => [
 
         {
@@ -133,7 +134,7 @@ export const getColumns = ({
         {
             id: "actions",
             cell: ({ row }) => {
-                const isActive = row.original.status === "Active"
+                const isActive = row.original.status === "Active"? true : false;
                 return (
                     <div className="flex items-center">
                         <Button
@@ -148,7 +149,7 @@ export const getColumns = ({
                             variant="ghost"
                             size="icon"
                             className={isActive ? "text-destructive hover:bg-destructive/10 hover:text-destructive" : "text-green-600 hover:bg-green-100 hover:text-green-700"}
-                            onClick={() => onChangeStatus(row.original)}
+                            onClick={() => isActive ? onDelete(row.original) : onChangeStatus(row.original)}
                             title={isActive ? "Xóa tài khoản" : "Kích hoạt tài khoản"}
                         >
                             {isActive ? (
