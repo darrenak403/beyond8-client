@@ -36,7 +36,7 @@ export function RejectDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="w-[95%] sm:w-full sm:max-w-[500px] rounded-lg">
                 <DialogHeader>
                     <DialogTitle>Yêu cầu cập nhật thông tin</DialogTitle>
                     <DialogDescription>
@@ -59,12 +59,12 @@ export function RejectDialog({
                     </div>
                 </div>
 
-                <DialogFooter>
+                <DialogFooter className="sm:justify-start gap-2">
                     <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                         Hủy
                     </Button>
                     <Button
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white "
                         onClick={handleSubmit}
                         disabled={!reason.trim() || isSubmitting}
                     >

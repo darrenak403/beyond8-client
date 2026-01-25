@@ -47,7 +47,7 @@ export function RegistrationTableToolbar({
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
                 <Input
-                    placeholder="Tìm kiếm giảng viên..."
+                    placeholder="Tìm kiếm theo email..."
                     value={inputValue}
                     onChange={(event) => setInputValue(event.target.value)}
                     onKeyDown={handleKeyDown}

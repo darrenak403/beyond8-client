@@ -272,3 +272,34 @@ export function useUpdateMyRegistration() {
     updateMyRegistrationData: mutation.data,
   };
 }
+
+export function useCheckAIHealth() {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["ai-health"],
+    queryFn: async () => {
+      const response = await instructorRegistrationService.checkAIHealth();
+      return response;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    meta: {
+      onSuccess: (data: any) => {
+        if (data?.isSuccess && data?.data === true) {
+          toast.success(data?.message || "Dịch vụ AI đang hoạt động");
+        } else {
+          toast.warning(data?.message || "Dịch vụ AI hiện không khả dụng");
+        }
+      },
+      onError: (error: any) => {
+        toast.error(error?.value?.data?.message || "Không thể kết nối đến dịch vụ AI");
+      },
+    },
+  });
+
+  return {
+    isAIAvailable: data?.isSuccess && data?.data === true,
+    isLoading,
+    error,
+    refetch,
+  };
+}

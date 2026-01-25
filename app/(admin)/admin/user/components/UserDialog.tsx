@@ -224,13 +224,13 @@ export function UserDialog({
                                         className={`relative group ${mode === "add" ? "cursor-pointer" : ""}`}
                                         onClick={() => mode === "add" && !isLoading && fileInputRef.current?.click()}
                                     >
-                                        <Avatar className="h-40 w-40 border-4 border-muted">
+                                        <Avatar className="h-40 w-40 border-4 border-purple-400">
                                             <AvatarImage
                                                 src={formatImageUrl(values.avatarUrl)}
                                                 className="object-cover"
                                                 referrerPolicy="no-referrer"
                                             />
-                                            <AvatarFallback className="text-4xl text-muted-foreground">
+                                            <AvatarFallback className="text-4xl bg-purple-100 text-purple-700 font-semibold">
                                                 {values.fullName ? values.fullName.charAt(0).toUpperCase() : "U"}
                                             </AvatarFallback>
                                         </Avatar>

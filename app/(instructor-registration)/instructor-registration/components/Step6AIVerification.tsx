@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, XCircle, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useInstructorRegistration } from "@/hooks/useInstructorRegistration";
+import { useInstructorRegistration, useCheckAIHealth } from "@/hooks/useInstructorRegistration";
 import { useIsMobile } from "@/hooks/useMobile";
 import type { InstructorRegistrationRequest, AIProfileReviewRequest } from "@/lib/api/services/fetchInstructorRegistration";
 
@@ -19,11 +19,20 @@ interface Step6Props {
 
 export default function Step6AIVerification({  formData, onReviewComplete }: Step6Props) {
   const { reviewApplicationAsync, isReviewing, reviewData } = useInstructorRegistration();
+  const { isAIAvailable, isLoading: isCheckingAI } = useCheckAIHealth();
   const [hasReviewed, setHasReviewed] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
     const runAIReview = async () => {
+      // Kiểm tra AI service có khả dụng không
+      if (!isAIAvailable) {
+        setAiError("Dịch vụ AI hiện không khả dụng. Vui lòng thử lại sau.");
+        setHasReviewed(true);
+        return;
+      }
+
       try {
         // Chỉ truyền các field cần thiết cho AI review
         const reviewRequest: AIProfileReviewRequest = {
@@ -43,14 +52,15 @@ export default function Step6AIVerification({  formData, onReviewComplete }: Ste
         }
       } catch (error) {
         console.error("AI Review error:", error);
+        setAiError("Có lỗi xảy ra khi đánh giá hồ sơ. Vui lòng thử lại.");
         setHasReviewed(true);
       }
     };
 
-    if (!hasReviewed && !isReviewing) {
+    if (!hasReviewed && !isReviewing && !isCheckingAI) {
       runAIReview();
     }
-  }, [formData, reviewApplicationAsync, hasReviewed, isReviewing, onReviewComplete]);
+  }, [formData, reviewApplicationAsync, hasReviewed, isReviewing, isCheckingAI, isAIAvailable, onReviewComplete]);
 
   const getStatusIcon = (status: string | null) => {
     if (status === 'Valid') return <CheckCircle2 className="w-5 h-5 text-green-600" />;
@@ -76,6 +86,27 @@ export default function Step6AIVerification({  formData, onReviewComplete }: Ste
 
       {/* Scrollable Content */}
       <div className="overflow-y-auto pr-2 scrollbar-hide flex-1 mt-8 space-y-6">
+        {/* AI Error Card */}
+        {aiError && (
+          <Card className="border-2 border-red-200 bg-red-50 rounded-4xl">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 rounded-full bg-red-100">
+                  <XCircle className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-red-800">
+                    Dịch vụ AI không khả dụng
+                  </h3>
+                  <p className="text-sm mt-2 text-red-700">
+                    {aiError}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Progress Card */}
         <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
           <CardContent className="pt-6">

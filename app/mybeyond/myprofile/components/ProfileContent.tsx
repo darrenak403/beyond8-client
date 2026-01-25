@@ -46,8 +46,8 @@ export default function ProfileContent({
   return (
     <div className="bg-white">
       {/* Tab Navigation */}
-      <div className={`border-b ${isMobile ? "px-4" : "px-6"}`}>
-        <div className="flex gap-1 overflow-x-auto">
+      <div className={`border-b ${isMobile ? "" : "px-6"}`}>
+        <div className={`flex overflow-x-auto ${isMobile ? "justify-around" : "gap-1"}`}>
           {visibleTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.value;
@@ -56,8 +56,8 @@ export default function ProfileContent({
               <div key={tab.id} className="relative">
                 <button
                   onClick={() => handleTabChange(tab.value)}
-                  className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors whitespace-nowrap ${
-                    isMobile ? "text-sm" : "text-base"
+                  className={`flex items-center gap-2 font-medium transition-colors whitespace-nowrap ${
+                    isMobile ? "text-sm px-2 py-4" : "text-base px-6 py-4"
                   } ${
                     isActive
                       ? "text-primary"
@@ -65,7 +65,7 @@ export default function ProfileContent({
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
+                  {!isMobile && <span>{tab.label}</span>}
                 </button>
                 {isActive && (
                   <motion.div
