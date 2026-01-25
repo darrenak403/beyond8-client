@@ -10,6 +10,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Edit, BanIcon, CircleCheckBig } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { User } from "@/lib/api/services/fetchUsers"
 
 interface GetColumnsProps {
@@ -38,7 +44,7 @@ export const getColumns = ({
                                 alt={user.fullName}
                                 referrerPolicy="no-referrer"
                             />
-                            <AvatarFallback>{user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}</AvatarFallback>
+                            <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">{user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
                             <span className="font-medium">{user.fullName}</span>
@@ -55,8 +61,33 @@ export const getColumns = ({
             ),
             cell: ({ row }) => {
                 const roles = row.original.roles || []
+                const roleLabels = roles.map(role => 
+                    role === "ROLE_STUDENT" ? "Học viên" : 
+                    role === "ROLE_INSTRUCTOR" ? "Giảng viên" : 
+                    role === "ROLE_STAFF" ? "Nhân viên" : 
+                    "Admin"
+                )
+                
                 return (
-                    <RoleBadges roles={roles} />
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div>
+                                    <RoleBadges roles={roles} />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <div className="flex flex-col gap-1">
+                                    <p className="font-medium text-xs">Vai trò:</p>
+                                    <ul className="text-xs space-y-0.5">
+                                        {roleLabels.map((label, index) => (
+                                            <li key={index}>• {label}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 )
             },
             filterFn: (row, id, value) => {
