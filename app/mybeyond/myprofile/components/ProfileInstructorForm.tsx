@@ -27,14 +27,12 @@ import {
   Check,
   Video,
   Upload,
-  Medal,
 } from "lucide-react";
 import { useGetInstructorProfile, useUpdateMyRegistration } from "@/hooks/useInstructorRegistration";
 import type {
   InstructorEducation,
   InstructorWorkExperience,
   Certificates,
-  InstructorRegistrationRequest,
   UpdateRegistrationRequest,
 } from "@/lib/api/services/fetchInstructorRegistration";
 import { Switch } from "@/components/ui/switch";
@@ -42,6 +40,10 @@ import { useUnHiddenProfile } from "@/hooks/useInstructorRegistration";
 import { useMedia } from "@/hooks/useMedia";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import SafeImage from "@/components/ui/SafeImage";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 export default function ProfileInstructorForm() {
   const { instructorProfile, isLoading, error } = useGetInstructorProfile();
@@ -118,7 +120,6 @@ export default function ProfileInstructorForm() {
 
   useEffect(() => {
     if (instructorProfile) {
-      // eslint-disable-next-line
       setFormData(initialFormData);
       setEducationList(instructorProfile.education || []);
       setWorkList(instructorProfile.workExperience || []);
@@ -859,13 +860,30 @@ export default function ProfileInstructorForm() {
                                 <Calendar className="w-4 h-4 text-purple-600" />
                                 Từ ngày
                               </label>
-                              <Input
-                                type="date"
-                                value={work.from}
-                                onChange={(e) => handleChangeWork(index, "from", e.target.value)}
-                                disabled={isHidden}
-                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
-                              />
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    disabled={isHidden}
+                                    className={`w-full justify-start text-left font-normal border-2 rounded-xl h-10 hover:bg-white hover:text-black ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 hover:border-purple-500"} ${!work.from && "text-muted-foreground"}`}
+                                  >
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    {work.from ? format(new Date(work.from), "dd/MM/yyyy", { locale: vi }) : <span>Chọn ngày</span>}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-2" align="start">
+                                  <CalendarComponent
+                                    mode="single"
+                                    selected={work.from ? new Date(work.from) : undefined}
+                                    onSelect={(date) => handleChangeWork(index, "from", date ? format(date, "yyyy-MM-dd") : "")}
+                                    captionLayout="dropdown"
+                                    fromYear={1950}
+                                    toYear={new Date().getFullYear() + 10}
+                                    disabled={isHidden}
+                                    className="px-4"
+                                  />
+                                </PopoverContent>
+                              </Popover>
                             </div>
 
                             <div>
@@ -873,13 +891,30 @@ export default function ProfileInstructorForm() {
                                 <Calendar className="w-4 h-4 text-purple-600" />
                                 Đến ngày
                               </label>
-                              <Input
-                                type="date"
-                                value={work.to || ""}
-                                onChange={(e) => handleChangeWork(index, "to", e.target.value)}
-                                disabled={work.isCurrentJob || isHidden}
-                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 disabled:opacity-50 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
-                              />
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    disabled={work.isCurrentJob || isHidden}
+                                    className={`w-full justify-start text-left font-normal border-2 rounded-xl h-10 disabled:opacity-50 hover:bg-white hover:text-black ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 hover:border-purple-500"} ${!work.to && "text-muted-foreground"}`}
+                                  >
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    {work.to ? format(new Date(work.to), "dd/MM/yyyy", { locale: vi }) : <span>Chọn ngày</span>}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-2" align="start">
+                                  <CalendarComponent
+                                    mode="single"
+                                    selected={work.to ? new Date(work.to) : undefined}
+                                    onSelect={(date) => handleChangeWork(index, "to", date ? format(date, "yyyy-MM-dd") : "")}
+                                    captionLayout="dropdown"
+                                    fromYear={1950}
+                                    toYear={new Date().getFullYear() + 10}
+                                    disabled={work.isCurrentJob || isHidden}
+                                    className="px-4"
+                                  />
+                                </PopoverContent>
+                              </Popover>
                             </div>
                           </div>
 
@@ -1116,6 +1151,8 @@ export default function ProfileInstructorForm() {
                                   <div className="relative aspect-[4/3] w-full">
                                     <SafeImage
                                       src={formatImageUrl(cert.url) || cert.url}
+                                      width={100}
+                                      height={100}
                                       alt="Certificate preview"
                                       className="w-full h-full object-cover rounded-lg"
                                     />

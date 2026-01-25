@@ -24,13 +24,13 @@ export default function CourseCard({course}: CourseCardProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col group-hover:text-primary transition-colors duration-300">
         <h3 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
           {course.title}
         </h3>
-        <p className="text-sm text-muted-foreground mb-3">{course.instructor}</p>
+        <p className="text-sm text-muted-foreground mb-3 group-hover:text-primary/80 transition-colors duration-300">{course.instructor}</p>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3 group-hover:text-primary/70 transition-colors duration-300">
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <span className="font-medium">{course.rating}</span>
@@ -46,7 +46,7 @@ export default function CourseCard({course}: CourseCardProps) {
         </div>
 
         <div className="flex items-center justify-between mt-auto">
-          <Badge variant="outline" className="rounded-lg">
+          <Badge variant="outline" className="rounded-lg group-hover:border-primary group-hover:text-primary transition-colors duration-300">
             {course.level}
           </Badge>
           <span className="text-2xl font-bold text-primary">

@@ -12,11 +12,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen bg-background">
       <AdminSidebar isCollapsed={isSidebarCollapsed} />
-      <div className={`transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : isMobile ? 'ml-0' : 'ml-56'}`}>
-        <AdminHeader
-          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        />
-        <main className="p-3">{children}</main>
+      <div className={`transition-all duration-300 ${isMobile ? 'ml-0 pb-16' : isSidebarCollapsed ? 'ml-16' : 'ml-56'}`}>
+        {!isMobile && (
+          <AdminHeader
+            onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          />
+        )}
+        <main className={isMobile ? "p-0" : "p-3"}>{children}</main>
       </div>
 
       {/* Mobile overlay when sidebar is open */}

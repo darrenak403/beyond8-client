@@ -7,7 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle2, Circle } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CheckCircle2, Circle, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { UserProfile, UpdateUserProfileRequest } from "@/lib/api/services/fetchProfile";
 import { formatDateForInput } from "@/lib/utils/formatDate";
 import { TIMEZONES, LOCALES } from "@/lib/types/userSettings";
@@ -150,19 +153,46 @@ export default function ProfileForm({
 
         <div className="space-y-2">
           <Label htmlFor="dateOfBirth">Ngày sinh</Label>
-          <div className="relative">
-            <Input
-              id="dateOfBirth"
-              type="date"
-              value={formData.dateOfBirth}
-              onChange={(e) => handleChange("dateOfBirth", e.target.value)}
-              placeholder="Chọn ngày sinh"
-              className="transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              style={{
-                colorScheme: 'light'
-              }}
-            />
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="dateOfBirth"
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal transition-colors border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 hover:bg-white hover:text-black",
+                  !formData.dateOfBirth && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {formData.dateOfBirth ? (
+                  new Date(formData.dateOfBirth).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                ) : (
+                  <span>Chọn ngày sinh</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-fit p-4" align="start">
+              <Calendar
+                mode="single"
+                selected={formData.dateOfBirth ? new Date(formData.dateOfBirth + "T00:00:00") : undefined}
+                onSelect={(date) => {
+                  if (date) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, "0");
+                    const day = String(date.getDate()).padStart(2, "0");
+                    handleChange("dateOfBirth", `${year}-${month}-${day}`);
+                  } else {
+                    handleChange("dateOfBirth", "");
+                  }
+                }}
+                captionLayout="dropdown"
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
