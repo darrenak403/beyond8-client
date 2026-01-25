@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { FormikForm, FormikField, Yup } from '@/components/ui/formik-form';
-import { useLogin, useForgotPassword, useVerifyOtpForgotPassword, useResendOtp } from '@/hooks/useAuth';
+import { useLogin, useForgotPassword, useVerifyOtpForgotPassword, useResendOtp, useVerifyOtpRegister } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ForgotPasswordDialog } from '@/components/widget/auth/ForgotPasswordDialog';
 import { OtpDialog } from '@/components/widget/auth/OtpDialog';
+import { toast } from 'sonner';
 
 const loginSchema = Yup.object({
     email: Yup.string()
@@ -29,19 +30,31 @@ export function LoginForm() {
     const { mutateLogin, isLoading: isLoginLoading } = useLogin();
     const { mutateForgotPassword, isLoading: isForgotLoading } = useForgotPassword();
     const { mutateResendOtp, isLoading: isResendLoading } = useResendOtp();
-    const { mutateVerifyOtpForgotPassword, isLoading: isVerifyLoading } = useVerifyOtpForgotPassword();
+    const { mutateVerifyOtpForgotPassword, isLoading: isVerifyForgotLoading } = useVerifyOtpForgotPassword();
+    const { mutateVerifyOtpRegister, isLoading: isVerifyRegisterLoading } = useVerifyOtpRegister();
     const router = useRouter();
 
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [showOtp, setShowOtp] = useState(false);
     const [emailForOtp, setEmailForOtp] = useState("");
+    const [otpType, setOtpType] = useState<'forgot' | 'register'>('forgot');
 
     const handleSubmit = (values: LoginValues) => {
-        mutateLogin(values);
+        mutateLogin(values, {
+            onError: (error: any) => {
+                if (error.message === "Tài khoản của bạn chưa được xác thực, vui lòng kiểm tra email để xác thực.") {
+                    setEmailForOtp(values.email);
+                    setOtpType('register');
+                    mutateResendOtp(values.email);
+                    setShowOtp(true);
+                }
+            }
+        });
     };
 
     const handleForgotPasswordSuccess = (email: string) => {
         setEmailForOtp(email);
+        setOtpType('forgot');
         mutateForgotPassword(email, {
             onSuccess: () => {
                 setShowForgotPassword(false);
@@ -51,15 +64,30 @@ export function LoginForm() {
     };
 
     const handleVerifyOtp = (otp: string) => {
-        mutateVerifyOtpForgotPassword({ email: emailForOtp, otpCode: otp }, {
-            onSuccess: () => {
-                setShowOtp(false);
-                sessionStorage.setItem('resetPasswordEmail', emailForOtp);
-                sessionStorage.setItem('resetPasswordOtp', otp);
-                router.push('/reset-password');
-            }
-        });
+        if (otpType === 'forgot') {
+            mutateVerifyOtpForgotPassword({ email: emailForOtp, otpCode: otp }, {
+                onSuccess: () => {
+                    setShowOtp(false);
+                    sessionStorage.setItem('resetPasswordEmail', emailForOtp);
+                    sessionStorage.setItem('resetPasswordOtp', otp);
+                    router.push('/reset-password');
+                }
+            });
+        } else {
+            mutateVerifyOtpRegister({ email: emailForOtp, otpCode: otp }, {
+                onSuccess: () => {
+                    setShowOtp(false);
+                    toast.success('Xác thực tài khoản thành công!',
+                        {
+                            description: 'Vui lòng đăng nhập',
+                        }
+                    );
+                }
+            });
+        }
     };
+
+    const isVerifyLoading = otpType === 'forgot' ? isVerifyForgotLoading : isVerifyRegisterLoading;
 
     return (
         <>
