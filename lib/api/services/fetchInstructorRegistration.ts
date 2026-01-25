@@ -231,6 +231,13 @@ export interface AIReviewResponse {
   additionalFeedback: string | null;
 }
 
+export interface AIHealthResponse {
+  isSuccess: boolean;
+  message: string;
+  data: boolean;
+  metadata: null;
+}
+
 export interface AIProfileReviewRequest {
   bio: string;
   headline: string;
@@ -280,6 +287,13 @@ const convertParamsToQuery = (params: InstructorRegistrationParams): RequestPara
 }
 
 export const instructorRegistrationService = {
+  checkAIHealth: async (): Promise<AIHealthResponse> => {
+    const response = await apiService.get<AIHealthResponse>(
+      "api/v1/ai/health"
+    );
+    return response.data;
+  },
+
   reviewApplication: async (
     request: AIProfileReviewRequest
   ): Promise<ApiResponse<AIReviewResponse>> => {
