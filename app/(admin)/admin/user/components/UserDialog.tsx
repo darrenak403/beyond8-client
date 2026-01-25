@@ -109,7 +109,7 @@ export function UserDialog({
         return {
             fullName: "",
             email: "",
-            roles: ["Student"],
+            roles: ["ROLE_STUDENT"],
             password: "",
             avatarUrl: "",
             phoneNumber: "",

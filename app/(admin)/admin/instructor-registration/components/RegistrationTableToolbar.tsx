@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import {
     Select,
@@ -9,6 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useEffect, useState } from "react";
 
 interface RegistrationTableToolbarProps {
     searchValue: string;
@@ -23,18 +25,41 @@ export function RegistrationTableToolbar({
     statusFilter,
     onStatusChange,
 }: RegistrationTableToolbarProps) {
+    const [inputValue, setInputValue] = useState(searchValue);
+
+    // Sync local state with parent state
+    useEffect(() => {
+        setInputValue(searchValue);
+    }, [searchValue]);
+
+    const handleSearch = () => {
+        onSearchChange(inputValue);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            handleSearch();
+        }
+    };
 
     return (
         <div className="flex items-center gap-2 md:gap-4 flex-wrap">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Tìm kiếm giảng viên..."
-                    value={searchValue}
-                    onChange={(event) => onSearchChange(event.target.value)}
-                    className="pl-10 h-9 bg-white border-slate-200 rounded-full shadow-sm w-full"
+                    value={inputValue}
+                    onChange={(event) => setInputValue(event.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="pr-10 h-9 bg-white border-slate-200 rounded-full shadow-sm w-full"
                 />
+                <Button
+                    onClick={handleSearch}
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full"
+                >
+                    <Search className="h-4 w-4" />
+                </Button>
             </div>
 
             {/* Status Filter */}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
 
 @import "tailwindcss";
 
@@ -102,8 +102,8 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   /* Fonts */
-  --font-sans: 'JetBrains Mono', monospace;
-  --font-serif: 'JetBrains Mono', monospace;
+  --font-sans: "IBM Plex Sans", sans-serif;
+  --font-serif: "IBM Plex Sans", serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
@@ -111,9 +111,10 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "IBM Plex Sans", sans-serif;
   }
 }
 

@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Plus } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/useMobile"
-
-
+import { useEffect, useState } from "react"
 
 interface UserTableToolbarProps<TData> {
     table: Table<TData>
@@ -22,22 +21,42 @@ export function UserTableToolbar<TData>({
     searchValue,
     onSearchChange,
 }: UserTableToolbarProps<TData>) {
-    const isFiltered = searchValue.length > 0 || table.getState().columnFilters.length > 0
     const isMobile = useIsMobile()
+    const [inputValue, setInputValue] = useState(searchValue)
+
+    // Sync local state with parent state (e.g. when reset is clicked)
+    useEffect(() => {
+        setInputValue(searchValue)
+    }, [searchValue])
+
+    const handleSearch = () => {
+        onSearchChange(inputValue)
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            handleSearch()
+        }
+    }
 
     return (
         <div className="flex items-center gap-2 md:gap-4 flex-wrap">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Tìm kiếm theo tên..."
-                    value={searchValue}
-                    onChange={(event) =>
-                        onSearchChange(event.target.value)
-                    }
-                    className="pl-10 h-9 bg-white border-slate-200 rounded-full shadow-sm w-full"
+                    value={inputValue}
+                    onChange={(event) => setInputValue(event.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="pr-10 h-9 bg-white border-slate-200 rounded-full shadow-sm w-full"
                 />
+                <Button
+                    onClick={handleSearch}
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full"
+                >
+                    <Search className="h-4 w-4" />
+                </Button>
             </div>
 
             {/* Role Filter */}
@@ -60,32 +79,6 @@ export function UserTableToolbar<TData>({
             </div> */}
 
             <div className="flex items-center gap-2">
-                {/* Reset Filter */}
-                {isFiltered && (
-                    <Button
-                        variant="ghost"
-                        onClick={() => {
-                            table.resetColumnFilters()
-                            onSearchChange("")
-                        }}
-                        className="h-9 px-2 md:px-4 gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-full whitespace-nowrap"
-                    >
-                        {/* {isMobile ? <Cross className="h-4 w-4" /> : (
-                            <>
-                                Đặt lại
-                                <Cross className="h-4 w-4" />
-                            </>
-                        )} */}
-                    </Button>
-                )}
-
-                {/* Count - Hidden on Mobile */}
-                {!isMobile && (
-                    <div className="text-sm font-medium text-slate-500 whitespace-nowrap px-2">
-                        Tổng số: <strong>{table.getFilteredRowModel().rows.length}</strong> thành viên
-                    </div>
-                )}
-
                 {/* Add User Button - Icon only on mobile */}
                 <Button
                     onClick={onAdd}

@@ -28,7 +28,7 @@ const InstructorRegistrationPage = () => {
 
     // URL Params State
     const pageNumber = Number(searchParams.get("pageNumber")) || 1;
-    const pageSize = Number(searchParams.get("pageSize")) || 10;
+    const pageSize = Number(searchParams.get("pageSize")) || 8;
     const isDescendingParam = searchParams.get("isDescending");
     const isDescending = isDescendingParam === "false" ? false : true;
     const verificationStatus = searchParams.get("verificationStatus") || "";

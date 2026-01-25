@@ -76,15 +76,15 @@ export function Header() {
       const containerRect = container.getBoundingClientRect();
       const searchFormRect = searchForm.getBoundingClientRect();
       const searchFormCenterX = searchFormRect.left + searchFormRect.width / 2 - containerRect.left;
-      
+
       const logoRect = logo.getBoundingClientRect();
       const navRect = nav.getBoundingClientRect();
       const logoCenterX = logoRect.left + logoRect.width / 2 - containerRect.left;
       const navCenterX = navRect.left + navRect.width / 2 - containerRect.left;
-      
+
       const logoMoveX = searchFormCenterX - logoCenterX;
       const navMoveX = searchFormCenterX - navCenterX;
-      
+
       tl.to(logo, {
         x: logoMoveX,
         scale: 0.2,
@@ -95,16 +95,16 @@ export function Header() {
         pointerEvents: "none",
         overflow: "hidden",
       })
-      .to(nav, {
-        x: navMoveX,
-        scale: 0.2,
-        opacity: 0,
-        width: 0,
-        duration: 0.5,
-        ease: "power2.in",
-        pointerEvents: "none",
-        overflow: "hidden",
-      }, "<")
+        .to(nav, {
+          x: navMoveX,
+          scale: 0.2,
+          opacity: 0,
+          width: 0,
+          duration: 0.5,
+          ease: "power2.in",
+          pointerEvents: "none",
+          overflow: "hidden",
+        }, "<")
         .to(
           header,
           {
@@ -248,8 +248,8 @@ export function Header() {
   });
   const showInstructorDashboard = checkApplyData?.isSuccess && checkApplyData?.data?.isApplied && checkApplyData?.data?.verificationStatus === "Verified";
 
-  const showRegisterInstructor = (!isCheckingApply && checkApplyData !== undefined && checkApplyData.isSuccess === false) || 
-                                  (!isCheckingApply && checkApplyError);
+  const showRegisterInstructor = (!isCheckingApply && checkApplyData !== undefined && checkApplyData.isSuccess === false) ||
+    (!isCheckingApply && checkApplyError);
   console.log("Show Register Instructor:", showRegisterInstructor);
 
   const getAvatarFallback = () => {
@@ -331,7 +331,7 @@ export function Header() {
                     sideOffset={8}
                     alignOffset={-200}
                     style={{
-                      width: '420px'
+                      width: '395px'
                     }}
                   >
                     <div className="grid grid-cols-3 gap-2 mb-3">

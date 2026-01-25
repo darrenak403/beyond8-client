@@ -1,7 +1,7 @@
-import type {Metadata} from 'next'
+import type { Metadata } from 'next'
 import './globals.css'
-import {Providers} from '@/lib/providers'
-import {Toaster} from '@/components/ui/sonner'
+import { Providers } from '@/lib/providers'
+import { Toaster } from '@/components/ui/sonner'
 
 export const metadata: Metadata = {
   title: 'Beyond8 - Nền Tảng Học Tập Trực Tuyến Với AI',
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'Beyond8 Team' }],
   creator: 'Beyond8',
   publisher: 'Beyond8',
-  
+
 
   // Open Graph (Facebook, LinkedIn)
   openGraph: {

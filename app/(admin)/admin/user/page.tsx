@@ -31,7 +31,7 @@ const UserManagementPage = () => {
 
   // URL Params State
   const pageNumber = Number(searchParams.get("pageNumber")) || 1;
-  const pageSize = Number(searchParams.get("pageSize")) || 10;
+  const pageSize = Number(searchParams.get("pageSize")) || 8;
   // Handle isDescending param, defaulting to true if not present or invalid
   const isDescendingParam = searchParams.get("isDescending");
   const isDescending = isDescendingParam === "false" ? false : true;
@@ -59,7 +59,7 @@ const UserManagementPage = () => {
     pageIndex: pageNumber - 1,
     pageSize: pageSize,
   };
-  
+
   const setPagination = (updater: any) => {
     const newPagination = typeof updater === "function" ? updater(pagination) : updater;
     router.push(`${pathname}?${createQueryString("pageNumber", newPagination.pageIndex + 1)}&${createQueryString("pageSize", newPagination.pageSize)}&${createQueryString("isDescending", isDescending)}`);
