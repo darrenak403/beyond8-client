@@ -1,4 +1,5 @@
 'use client';
+import { useIsMobile } from '@/hooks/useMobile';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -43,6 +44,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
   const pathname = usePathname();
   const { userProfile } = useUserProfile();
   const { mutateLogout } = useLogout();
+  const isMobile = useIsMobile();
 
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
@@ -56,6 +58,77 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
     if (userProfile?.email) return userProfile.email.charAt(0).toUpperCase();
     return 'A';
   };
+
+  if (isMobile) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 h-16 px-4 pb-safe">
+        <nav className="flex items-center justify-between h-full">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex flex-col items-center justify-center p-2 rounded-lg transition-colors',
+                  isActive ? 'text-purple-700' : 'text-gray-500 hover:text-gray-900'
+                )}
+              >
+                <Icon className={cn("w-6 h-6", isActive && "fill-current")} />
+              </Link>
+            );
+          })}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex flex-col items-center justify-center p-2 cursor-pointer">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
+                  <AvatarFallback className="text-[10px] bg-purple-100 text-purple-700">
+                    {getAvatarFallback()}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 mb-2">
+              <div className="flex items-center justify-start gap-2 p-2">
+                <div className="flex flex-col space-y-1 leading-none">
+                  {userProfile?.fullName && (
+                    <p className="font-medium">{userProfile.fullName}</p>
+                  )}
+                  {userProfile?.email && (
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {userProfile.email}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/admin/admin-profile"
+                  className="cursor-pointer flex items-center"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Hồ sơ
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => mutateLogout()}
+                className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Đăng xuất
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </nav>
+      </div>
+    );
+  }
 
   return (
     <aside
