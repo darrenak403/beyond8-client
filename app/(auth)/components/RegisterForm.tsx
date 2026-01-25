@@ -105,11 +105,11 @@ export function RegisterForm() {
 
                         {/* Divider */}
                         <div className="relative pt-2">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-dashed border-gray-300" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white px-2 text-gray-500">Đã có tài khoản?</span>
+                            {/* Divider */}
+                            <div className="relative flex items-center justify-center w-full mt-6 mb-2">
+                                <div className="flex-grow border-t border-dashed border-gray-300"></div>
+                                <span className="px-4 bg-white text-xs uppercase text-gray-500 font-medium">Đã có tài khoản?</span>
+                                <div className="flex-grow border-t border-dashed border-gray-300"></div>
                             </div>
                         </div>
 
