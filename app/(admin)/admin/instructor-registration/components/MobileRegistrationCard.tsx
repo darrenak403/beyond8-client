@@ -17,16 +17,14 @@ const getStatusBadgeVariant = (status: VerificationStatus) => {
     switch (status) {
         case VerificationStatus.Verified:
             return "bg-green-600 hover:bg-green-700"
-        case VerificationStatus.Pending:
-            return "bg-yellow-600 hover:bg-yellow-700"
-        case VerificationStatus.RequestUpdate:
-            return "bg-orange-600 hover:bg-orange-700"
         case VerificationStatus.Hidden:
-            return "bg-gray-600 hover:bg-gray-700"
+            return "bg-red-600 hover:bg-red-700"
+        case VerificationStatus.Pending:
+            return "bg-orange-500 hover:bg-orange-600"
         case VerificationStatus.Recovering:
-            return "bg-blue-600 hover:bg-blue-700"
-        default:
-            return "bg-gray-500"
+            return "bg-blue-500 hover:bg-blue-600"
+        default: // RequestUpdate
+            return "bg-yellow-500 hover:bg-yellow-600"
     }
 }
 
@@ -34,16 +32,14 @@ const getStatusLabel = (status: VerificationStatus) => {
     switch (status) {
         case VerificationStatus.Verified:
             return "Đã duyệt"
+        case VerificationStatus.Hidden:
+            return "Đã từ chối"
         case VerificationStatus.Pending:
             return "Chờ duyệt"
-        case VerificationStatus.RequestUpdate:
-            return "Yêu cầu cập nhật"
-        case VerificationStatus.Hidden:
-            return "Đã ẩn"
         case VerificationStatus.Recovering:
-            return "Đang khôi phục"
+            return "Yêu cầu khôi phục"
         default:
-            return status
+            return "Yêu cầu cập nhật"
     }
 }
 
@@ -118,28 +114,29 @@ export function MobileRegistrationCard({
                     Xem chi tiết
                 </Button>
 
-                {registration.verificationStatus === VerificationStatus.Pending && (
-                    <>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={onApprove}
-                        >
-                            <Check className="h-4 w-4 mr-1.5" />
-                            Duyệt
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={onReject}
-                        >
-                            <X className="h-4 w-4 mr-1.5" />
-                            Từ chối
-                        </Button>
-                    </>
-                )}
+                {(registration.verificationStatus === VerificationStatus.Pending ||
+                    registration.verificationStatus === VerificationStatus.Recovering) && (
+                        <>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                onClick={onApprove}
+                            >
+                                <Check className="h-4 w-4 mr-1.5" />
+                                Duyệt
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={onReject}
+                            >
+                                <X className="h-4 w-4 mr-1.5" />
+                                Từ chối
+                            </Button>
+                        </>
+                    )}
             </div>
         </div>
     )
