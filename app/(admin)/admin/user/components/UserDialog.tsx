@@ -107,7 +107,7 @@ export function UserDialog({
             return {
                 fullName: user.fullName || "",
                 email: user.email || "",
-                roles: user.roles && user.roles.length > 0 ? user.roles : ["ROLE_STUDENT"],
+                roles: user.roles && user.roles.length > 0 ? user.roles : [],
                 password: "",
                 avatarUrl: user.avatarUrl || "",
                 phoneNumber: user.phoneNumber || "",
@@ -119,7 +119,7 @@ export function UserDialog({
         return {
             fullName: "",
             email: "",
-            roles: ["ROLE_STUDENT"],
+            roles: [],
             password: "",
             avatarUrl: "",
             phoneNumber: "",
@@ -161,6 +161,7 @@ export function UserDialog({
     }
 
     const toggleRole = (roleValue: string, currentRoles: string[], setFieldValue: (field: string, value: any) => void) => {
+        if (["ROLE_STUDENT", "ROLE_INSTRUCTOR"].includes(roleValue)) return;
         const newRoles = currentRoles.includes(roleValue)
             ? currentRoles.filter(r => r !== roleValue)
             : [...currentRoles, roleValue];
@@ -363,13 +364,14 @@ export function UserDialog({
                                                 <div className="flex gap-2 flex-wrap">
                                                     {ROLE_VALUES.map((role) => {
                                                         const isSelected = values.roles.includes(role.value);
+                                                        const isRestricted = ["ROLE_STUDENT", "ROLE_INSTRUCTOR"].includes(role.value);
                                                         return (
                                                             <RoleBadgeItem
                                                                 key={role.value}
                                                                 role={role.value}
                                                                 variant={isSelected ? "secondary" : "outline"}
-                                                                className={`cursor-pointer select-none ${isSelected ? "bg-primary/10 hover:bg-primary/20 border-primary/50 text-foreground" : "hover:bg-accent"}`}
-                                                                onClick={() => toggleRole(role.value, values.roles, setFieldValue)}
+                                                                className={`cursor-pointer select-none ${isSelected ? "bg-primary/10 hover:bg-primary/20 border-primary/50 text-foreground" : "hover:bg-accent"} ${isRestricted ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                                onClick={() => !isRestricted && toggleRole(role.value, values.roles, setFieldValue)}
                                                             />
                                                         )
                                                     })}

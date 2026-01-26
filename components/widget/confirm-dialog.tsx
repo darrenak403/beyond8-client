@@ -2,15 +2,14 @@
 
 import { X } from "lucide-react"
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface ConfirmDialogProps {
@@ -42,16 +41,21 @@ export function ConfirmDialog({
             buttonClass = "bg-destructive text-destructive-foreground hover:bg-destructive/90"
             break
         case "success":
-            buttonClass = "bg-green-600 hover:bg-green-700"
+            buttonClass = "bg-green-600 hover:bg-green-700 text-white"
             break
         default:
             buttonClass = ""
             break
     }
 
+    const handleCancel = () => {
+        onOpenChange(false)
+        onCancel?.()
+    }
+
     return (
-        <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogContent className="w-[95%] sm:w-full rounded-lg duration-300 transition-all data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="w-[95%] sm:w-full rounded-lg duration-300 transition-all data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
                 <button
                     onClick={() => onOpenChange(false)}
                     className={cn(
@@ -61,19 +65,21 @@ export function ConfirmDialog({
                     <X className="h-4 w-4" />
                     <span className="sr-only">Đóng</span>
                 </button>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{title}</AlertDialogTitle>
-                    <AlertDialogDescription className="border rounded-md bg-gray-100 p-3">
+                <DialogHeader>
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogDescription className="border rounded-md bg-gray-100 p-3">
                         {description}
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={onCancel}>{cancelText}</AlertDialogCancel>
-                    <AlertDialogAction onClick={onConfirm} className={buttonClass}>
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button variant="outline" onClick={handleCancel}>
+                        {cancelText}
+                    </Button>
+                    <Button onClick={onConfirm} className={buttonClass}>
                         {confirmText}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     )
 }

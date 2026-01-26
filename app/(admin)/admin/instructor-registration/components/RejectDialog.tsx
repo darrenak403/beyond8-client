@@ -59,7 +59,7 @@ export function RejectDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="sm:justify-start gap-2">
+                <DialogFooter className="sm:justify-end gap-2">
                     <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                         Hủy
                     </Button>

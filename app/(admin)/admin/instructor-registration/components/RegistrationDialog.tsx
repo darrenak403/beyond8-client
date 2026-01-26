@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { ExternalLink, Facebook, Linkedin, Globe, Calendar, FileText, CreditCard, User, GraduationCap, Briefcase, Award } from "lucide-react";
+import { ExternalLink, Calendar, FileText, CreditCard, User, GraduationCap, Briefcase, Award } from "lucide-react";
+import { Icon } from "@iconify/react";
 import Image from "next/image";
 import {
     Accordion,
@@ -76,7 +77,7 @@ export function RegistrationDialog({
                 <ScrollArea className={`flex-1 ${isMobile ? "px-0" : "px-0"}`}>
                     <div className="space-y-6 pb-6">
                         {/* User Profile Header */}
-                        <div className={`flex flex-col md:flex-row items-center md:items-start gap-4 p-4 border-b bg-muted/20 ${isMobile ? "mx-4 mt-4 rounded-lg border" : "mx-6 mt-6 rounded-lg border"}`}>
+                        <div className={`flex flex-col md:flex-row items-center md:items-center gap-4 p-4 border-b bg-muted/20 ${isMobile ? "mx-4 mt-4 rounded-lg border" : "mx-6 mt-6 rounded-lg border"}`}>
                             <Avatar className="h-16 w-16 border-2 border-purple-400">
                                 <AvatarImage src={user.avatarUrl || ""} />
                                 <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
@@ -85,49 +86,48 @@ export function RegistrationDialog({
                             </Avatar>
                             <div className="flex-1 text-center md:text-left bg-transparent">
                                 <h3 className="font-semibold text-lg">{user.fullName}</h3>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
-                                {user.dateOfBirth && (
-                                    <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-1 mt-1">
-                                        <Calendar className="h-3 w-3" />
-                                        Ngày sinh: {format(new Date(user.dateOfBirth), "dd/MM/yyyy")}
-                                    </p>
-                                )}
-                                {registration.headline && (
-                                    <p className="text-sm font-medium mt-1">
-                                        {registration.headline}
-                                    </p>
-                                )}
-                                <div className="flex gap-2 mt-2 justify-center md:justify-start">
-                                    {registration.socialLinks.facebook && (
-                                        <a
-                                            href={registration.socialLinks.facebook}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-muted-foreground hover:text-primary"
-                                        >
-                                            <Facebook className="h-4 w-4" />
-                                        </a>
-                                    )}
-                                    {registration.socialLinks.linkedIn && (
-                                        <a
-                                            href={registration.socialLinks.linkedIn}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-muted-foreground hover:text-primary"
-                                        >
-                                            <Linkedin className="h-4 w-4" />
-                                        </a>
-                                    )}
-                                    {registration.socialLinks.website && (
-                                        <a
-                                            href={registration.socialLinks.website}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-muted-foreground hover:text-primary"
-                                        >
-                                            <Globe className="h-4 w-4" />
-                                        </a>
-                                    )}
+                                <div className="flex gap-8 flex-col md:flex-row items-center">
+                                    <div className="flex items-center flex-col">
+                                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                                        {user.dateOfBirth && (
+                                            <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-1 mt-1">
+                                                <Calendar className="h-3 w-3" />
+                                                Ngày sinh: {format(new Date(user.dateOfBirth), "dd/MM/yyyy")}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {registration.socialLinks.facebook && (
+                                            <a
+                                                href={registration.socialLinks.facebook}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-center w-8 h-8 border rounded-md border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors"
+                                            >
+                                                <Icon icon="uil:facebook" className="w-5 h-5" />
+                                            </a>
+                                        )}
+                                        {registration.socialLinks.linkedIn && (
+                                            <a
+                                                href={registration.socialLinks.linkedIn}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-center w-8 h-8 border rounded-md border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors"
+                                            >
+                                                <Icon icon="uil:linkedin" className="w-5 h-5" />
+                                            </a>
+                                        )}
+                                        {registration.socialLinks.website && (
+                                            <a
+                                                href={registration.socialLinks.website}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-center w-8 h-8 border rounded-md border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors"
+                                            >
+                                                <Icon icon="uil:globe" className="w-5 h-5" />
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex flex-col items-center md:items-end gap-1 w-full md:w-auto mt-2 md:mt-0">
@@ -376,9 +376,8 @@ export function RegistrationDialog({
                                                                     <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-purple-600 ring-4 ring-white" />
                                                                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                                                                         <div>
-                                                                            <h4 className="font-semibold text-gray-900">{cert.name}</h4>
-                                                                            <div className="flex items-center gap-2 mt-0.5">
-                                                                                <p className="text-sm text-gray-600">{cert.issuer}</p>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <h4 className="font-semibold text-gray-900">{cert.name}</h4>
                                                                                 {cert.url && (
                                                                                     <>
                                                                                         <span className="text-gray-300">•</span>
@@ -392,6 +391,10 @@ export function RegistrationDialog({
                                                                                         </a>
                                                                                     </>
                                                                                 )}
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                                <p className="text-sm text-gray-600">{cert.issuer}</p>
+
                                                                             </div>
                                                                         </div>
                                                                         <Badge variant="outline" className="w-fit text-xs text-muted-foreground whitespace-nowrap">
