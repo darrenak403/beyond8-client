@@ -3,7 +3,7 @@
 import { Table } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, RotateCw } from "lucide-react"
 import {
     Select,
     SelectContent,
@@ -15,23 +15,25 @@ import {
 import { useIsMobile } from "@/hooks/useMobile"
 import { useEffect, useState } from "react"
 
-interface UserTableToolbarProps<TData> {
-    table: Table<TData>
+interface UserTableToolbarProps {
     onAdd: () => void
     searchValue: string
     onSearchChange: (value: string) => void
     roleFilter: string
     onRoleChange: (value: string) => void
+    onRefresh: () => void
+    isFetching: boolean
 }
 
-export function UserTableToolbar<TData>({
-    table,
+export function UserTableToolbar({
     onAdd,
     searchValue,
     onSearchChange,
     roleFilter,
     onRoleChange,
-}: UserTableToolbarProps<TData>) {
+    onRefresh,
+    isFetching,
+}: UserTableToolbarProps) {
     const isMobile = useIsMobile()
     const [inputValue, setInputValue] = useState(searchValue)
 
@@ -97,6 +99,17 @@ export function UserTableToolbar<TData>({
             >
                 <Plus className="h-4 w-4" />
                 {!isMobile && "Thêm người dùng"}
+            </Button>
+
+            {/* Refresh Button */}
+            <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 rounded-full shrink-0 border-slate-200 shadow-sm bg-white"
+                onClick={onRefresh}
+                disabled={isFetching}
+            >
+                <RotateCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
             </Button>
         </div>
     )

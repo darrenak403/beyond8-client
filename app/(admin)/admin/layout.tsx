@@ -5,7 +5,10 @@ import { AdminSidebar } from '@/components/ui/admin-sidebar';
 import { AdminHeader } from '@/components/ui/admin-header';
 import { useIsMobile } from '@/hooks/useMobile';
 
+import { usePathname } from 'next/navigation';
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const isMobile = useIsMobile();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isMobile);
 
@@ -18,7 +21,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           />
         )}
-        <main className={isMobile ? "p-0" : "p-3"}>{children}</main>
+        <main className={isMobile ? "p-0" : "py-2 px-4"}>{children}</main>
       </div>
 
       {/* Mobile overlay when sidebar is open */}
