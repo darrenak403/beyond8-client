@@ -23,6 +23,7 @@ interface CourseToolbarProps {
     searchQuery: string
     setSearchQuery: (query: string) => void
     totalCount: number
+    isMobile: boolean
 }
 
 export default function CourseToolbar({
@@ -30,7 +31,8 @@ export default function CourseToolbar({
     setViewMode,
     searchQuery,
     setSearchQuery,
-    totalCount
+    totalCount,
+    isMobile
 }: CourseToolbarProps) {
     return (
         <div className="flex items-center gap-4">
@@ -52,45 +54,47 @@ export default function CourseToolbar({
             </Button>
 
             {/* View Toggle */}
-            <div className="flex items-center p-1 bg-white rounded-full border border-slate-200 h-9 shadow-sm px-1 gap-1">
-                <button
-                    onClick={() => setViewMode('grid')}
-                    className={`relative p-2 rounded-full transition-colors duration-200 ${viewMode === 'grid'
-                        ? 'text-white'
-                        : 'text-slate-400 hover:text-slate-600'
-                        }`}
-                >
-                    {viewMode === 'grid' && (
-                        <motion.div
-                            layoutId="viewMode-active"
-                            className="absolute inset-0 bg-slate-900 rounded-full shadow-sm"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                        />
-                    )}
-                    <span className="relative z-10">
-                        <LayoutGrid className="w-4 h-4" />
-                    </span>
-                </button>
+            {!isMobile && (
+                <div className="flex items-center p-1 bg-white rounded-full border border-slate-200 h-9 shadow-sm px-1 gap-1">
+                    <button
+                        onClick={() => setViewMode('grid')}
+                        className={`relative p-2 rounded-full transition-colors duration-200 ${viewMode === 'grid'
+                            ? 'text-white'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        {viewMode === 'grid' && (
+                            <motion.div
+                                layoutId="viewMode-active"
+                                className="absolute inset-0 bg-slate-900 rounded-full shadow-sm"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                        <span className="relative z-10">
+                            <LayoutGrid className="w-4 h-4" />
+                        </span>
+                    </button>
 
-                <button
-                    onClick={() => setViewMode('list')}
-                    className={`relative p-2 rounded-full transition-colors duration-200 ${viewMode === 'list'
-                        ? 'text-white'
-                        : 'text-slate-400 hover:text-slate-600'
-                        }`}
-                >
-                    {viewMode === 'list' && (
-                        <motion.div
-                            layoutId="viewMode-active"
-                            className="absolute inset-0 bg-slate-900 rounded-full shadow-sm"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                        />
-                    )}
-                    <span className="relative z-10">
-                        <ListIcon className="w-4 h-4" />
-                    </span>
-                </button>
-            </div>
+                    <button
+                        onClick={() => setViewMode('list')}
+                        className={`relative p-2 rounded-full transition-colors duration-200 ${viewMode === 'list'
+                            ? 'text-white'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        {viewMode === 'list' && (
+                            <motion.div
+                                layoutId="viewMode-active"
+                                className="absolute inset-0 bg-slate-900 rounded-full shadow-sm"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                        <span className="relative z-10">
+                            <ListIcon className="w-4 h-4" />
+                        </span>
+                    </button>
+                </div>
+            )}
 
             {/* Count */}
             <div className="text-sm font-medium text-slate-500 whitespace-nowrap px-2">

@@ -11,6 +11,8 @@ import CourseListItem from './components/CourseListItem'
 import CourseToolbar from './components/CourseToolbar'
 import CoursePagination from './components/CoursePagination'
 
+import { useIsMobile } from '@/hooks/useMobile'
+
 // Combine mock data for demo
 const allCourses = [...topRatedCourses, ...newCourses]
 const ITEMS_PER_PAGE = 8
@@ -21,6 +23,15 @@ export default function CourseManagementPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+
+  const isMobile = useIsMobile()
+
+  // Force grid view on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setViewMode('grid')
+    }
+  }, [isMobile])
 
   // Simulate API Fetch
   const fetchData = () => {
@@ -82,6 +93,7 @@ export default function CourseManagementPage() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         totalCount={filteredCourses.length}
+        isMobile={isMobile}
       />
 
       {/* Content */}

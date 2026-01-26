@@ -11,10 +11,10 @@ import { Edit, BanIcon, CircleCheckBig } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { User } from "@/lib/api/services/fetchUsers"
 
@@ -62,13 +62,13 @@ export const getColumns = ({
             ),
             cell: ({ row }) => {
                 const roles = row.original.roles || []
-                const roleLabels = roles.map(role => 
-                    role === "ROLE_STUDENT" ? "Học viên" : 
-                    role === "ROLE_INSTRUCTOR" ? "Giảng viên" : 
-                    role === "ROLE_STAFF" ? "Nhân viên" : 
-                    "Admin"
+                const roleLabels = roles.map(role =>
+                    role === "ROLE_STUDENT" ? "Học viên" :
+                        role === "ROLE_INSTRUCTOR" ? "Giảng viên" :
+                            role === "ROLE_STAFF" ? "Nhân viên" :
+                                "Admin"
                 )
-                
+
                 return (
                     <TooltipProvider>
                         <Tooltip>
@@ -134,7 +134,7 @@ export const getColumns = ({
         {
             id: "actions",
             cell: ({ row }) => {
-                const isActive = row.original.status === "Active"? true : false;
+                const isActive = row.original.status === "Active" ? true : false;
                 return (
                     <div className="flex items-center">
                         <Button
