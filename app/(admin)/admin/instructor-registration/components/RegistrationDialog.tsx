@@ -336,7 +336,7 @@ export function RegistrationDialog({
                                                                             <p className="text-sm text-purple-700 font-medium">{exp.role}</p>
                                                                         </div>
                                                                         <Badge variant="outline" className="text-xs text-muted-foreground whitespace-nowrap">
-                                                                            {format(new Date(exp.from), "MM/yyyy")} - {exp.isCurrentJob ? "Hiện tại" : format(new Date(exp.to), "MM/yyyy")}
+                                                                            {format(new Date(exp.from), "MM/yyyy")} - {exp.isCurrentJob ? "Hiện tại" : format(new Date(exp.to ?? ""), "MM/yyyy")}
                                                                         </Badge>
                                                                     </div>
                                                                     {exp.description && (

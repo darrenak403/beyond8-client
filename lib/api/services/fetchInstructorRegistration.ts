@@ -16,7 +16,7 @@ export interface InstructorRegistrationRequest {
     company: string;
     role: string;
     from: string;
-    to: string;
+    to: string | null;
     isCurrentJob: boolean;
     description: string | null;
   }>;
@@ -63,7 +63,7 @@ export interface UpdateRegistrationRequest {
     company: string;
     role: string;
     from: string;
-    to: string;
+    to: string | null;
     isCurrentJob: boolean;
     description: string | null;
   }>;
@@ -108,7 +108,7 @@ export interface InstructorWorkExperience {
   company: string;
   role: string;
   from: string;
-  to: string;
+  to: string | null;
   isCurrentJob: boolean;
   description: string | null;
 }
@@ -253,7 +253,7 @@ export interface AIProfileReviewRequest {
     company: string;
     role: string;
     from: string;
-    to: string;
+    to: string | null;
     isCurrentJob: boolean;
     description: string | null;
   }>;
