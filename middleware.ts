@@ -53,8 +53,13 @@ export function middleware(request: NextRequest) {
     '/login',
     '/register',
     '/reset-password',
-    '/forgot-password'
+    '/forgot-password',
   ]
+
+  // Static files and XML sitemaps should always be accessible
+  if (pathname === '/sitemap.xml' || pathname.endsWith('.xml') || pathname.endsWith('.json')) {
+    return NextResponse.next()
+  }
 
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
@@ -229,8 +234,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public files (images, etc.)
+     * - public files (images, xml, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp4)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp4|xml)$).*)',
   ],
 }
