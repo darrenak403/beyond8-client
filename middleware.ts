@@ -53,7 +53,8 @@ export function middleware(request: NextRequest) {
     '/login',
     '/register',
     '/reset-password',
-    '/forgot-password'
+    '/forgot-password',
+    '/sitemap.xml'
   ]
 
   const isPublicRoute = publicRoutes.some(
