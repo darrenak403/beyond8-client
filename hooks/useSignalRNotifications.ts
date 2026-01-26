@@ -28,7 +28,7 @@ export function useSignalRNotifications() {
         timestamp?: string | Date
       }) => {
         console.log('[SignalR] Received InstructorApplicationSubmitted:', data)
-        const { instructorName, profileUrl, timestamp } = data
+        const { instructorName, timestamp } = data
 
         const timeStr = timestamp
           ? new Date(timestamp).toLocaleString('vi-VN', {
@@ -47,16 +47,14 @@ export function useSignalRNotifications() {
           {
             description: timeStr ? `Thời gian: ${timeStr}` : undefined,
             duration: 5000,
-            action: profileUrl
-              ? {
-                  label: 'Xem chi tiết',
-                  onClick: () => {
-                    if (typeof window !== 'undefined') {
-                      window.location.href = profileUrl
-                    }
-                  },
+            action: {
+              label: 'Xem chi tiết',
+              onClick: () => {
+                if (typeof window !== 'undefined') {
+                  window.location.href = '/admin/instructor-registration'
                 }
-              : undefined,
+              },
+            },
           }
         )
       }

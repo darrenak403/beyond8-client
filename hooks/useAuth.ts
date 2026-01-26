@@ -43,11 +43,14 @@ export function useLogin() {
 
       toast.success('Đăng nhập thành công!');
 
-      if (user?.role?.includes(Roles.Admin)) {
+      // Handle multiple roles - redirect based on priority (Admin > Instructor > Student)
+      const roles = Array.isArray(user?.role) ? user?.role : (user?.role ? [user?.role] : []);
+      
+      if (roles.includes(Roles.Admin)) {
         window.location.href = '/admin/dashboard';
-      } else if (user?.role?.includes(Roles.Instructor)) {
+      } else if (roles.includes(Roles.Instructor)) {
         window.location.href = '/instructor/dashboard';
-      } else if (user?.role?.includes(Roles.Student)) {
+      } else if (roles.includes(Roles.Student)) {
         window.location.href = '/courses';
       }
     },
@@ -264,7 +267,14 @@ export function useLogout() {
       });
       
       dispatch(logout());
-      deleteCookie('authToken');
+      
+      // Delete cookie with same config as when setting
+      const cookieConfig = getAuthCookieConfig();
+      deleteCookie('authToken', {
+        path: cookieConfig.path,
+        domain: cookieConfig.domain,
+      });
+      
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Đăng xuất thành công!');
       router.push('/login');

@@ -1,7 +1,6 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Camera, Mail } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -102,13 +101,17 @@ export default function AdminProfileHeader({ userProfile }: AdminProfileHeaderPr
       <div className={`${isMobile ? "flex flex-col items-center text-center px-4 pb-6" : "flex items-end justify-between px-8 pb-3"}`}>
         <div className={`${isMobile ? "flex flex-col items-center -mt-12" : "flex items-end gap-4 -mt-20"}`}>
           <div className="relative group cursor-pointer z-20" onClick={handleAvatarClick}>
-            <Avatar className={`border-4 border-white shadow-lg ${isMobile ? "w-24 h-24" : "w-40 h-40"}`}>
+            <Avatar className={`border-4 border-purple-400 ${isMobile ? "w-24 h-24" : "w-40 h-40"}`}>
               <AvatarImage src={formatImageUrl(userProfile.avatarUrl)} alt={userProfile.fullName || 'User'} />
-              <AvatarFallback className="text-2xl">
+              <AvatarFallback className="text-4xl bg-purple-100 text-purple-700 font-semibold">
                 {userProfile.fullName?.split(" ").map((n) => n[0]).join("").toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Status Indicator */}
+            <div className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} rounded-full border-4 border-white ${
+              userProfile.isActive ? "bg-green-500" : "bg-gray-400"
+            } z-30`} />
+            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
               {isUploadingAvatar ? (
                 <Skeleton className={`rounded-full bg-white/20 ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />
               ) : (
@@ -118,22 +121,9 @@ export default function AdminProfileHeader({ userProfile }: AdminProfileHeaderPr
           </div>
 
           <div className={`${isMobile ? "mt-3 space-y-2" : "mb-4"}`}>
-            <div className="flex items-center gap-2">
-              <h2 className={`font-bold ${isMobile ? "text-xl" : "text-2xl"}`}>
-                {userProfile.fullName || 'User'}
-              </h2>
-              {userProfile.isActive ? (
-                <Badge className="bg-green-500 hover:bg-green-600">
-                  <span className="w-2 h-2 bg-white rounded-full mr-1.5" />
-                  Trực tuyến
-                </Badge>
-              ) : (
-                <Badge className="bg-gray-500 hover:bg-gray-600">
-                  <span className="w-2 h-2 bg-white rounded-full mr-1.5" />
-                  Ngoại tuyến
-                </Badge>
-              )}
-            </div>
+            <h2 className={`font-bold ${isMobile ? "text-xl" : "text-2xl"}`}>
+              {userProfile.fullName || 'User'}
+            </h2>
             <div className="flex items-center gap-2 text-gray-600">
               <Mail className="w-4 h-4" />
               <span className="text-sm">{userProfile.email}</span>

@@ -33,7 +33,7 @@ export const getColumns = ({
                     <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
                             <AvatarImage src={formatImageUrl(user.avatarUrl) || ""} alt={user.fullName} />
-                            <AvatarFallback>
+                            <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
                                 {user.fullName.charAt(0).toUpperCase()}
                             </AvatarFallback>
                         </Avatar>

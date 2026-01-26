@@ -57,7 +57,7 @@ export default function MyProfilePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <ProfileHeader
         userProfile={mappedProfileForHeader}
       />

@@ -231,6 +231,13 @@ export interface AIReviewResponse {
   additionalFeedback: string | null;
 }
 
+export interface AIHealthResponse {
+  isSuccess: boolean;
+  message: string;
+  data: boolean;
+  metadata: null;
+}
+
 export interface AIProfileReviewRequest {
   bio: string;
   headline: string;
@@ -262,7 +269,7 @@ export interface AIProfileReviewRequest {
 
 export interface InstructorRegistrationParams {
   verificationStatus: string;
-  fullName: string;
+  email: string;
   pageNumber: number;
   pageSize: number;
   IsDescending: boolean;
@@ -272,7 +279,7 @@ const convertParamsToQuery = (params: InstructorRegistrationParams): RequestPara
   if (!params) return {};
   const query: RequestParams = {};
   if (params.verificationStatus) query.verificationStatus = params.verificationStatus;
-  if (params.fullName) query.fullName = params.fullName;
+  if (params.email) query.email = params.email;
   if (params.pageNumber) query.pageNumber = params.pageNumber;
   if (params.pageSize) query.pageSize = params.pageSize;
   if (params.IsDescending) query.isDescending = params.IsDescending;
@@ -280,6 +287,13 @@ const convertParamsToQuery = (params: InstructorRegistrationParams): RequestPara
 }
 
 export const instructorRegistrationService = {
+  checkAIHealth: async (): Promise<AIHealthResponse> => {
+    const response = await apiService.get<AIHealthResponse>(
+      "api/v1/ai/health"
+    );
+    return response.data;
+  },
+
   reviewApplication: async (
     request: AIProfileReviewRequest
   ): Promise<ApiResponse<AIReviewResponse>> => {

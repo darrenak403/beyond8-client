@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useDebounce } from "@/hooks/useDebounce"
 import { DataTable } from "@/components/ui/data-table";
@@ -18,7 +18,8 @@ import { RejectDialog } from "./components/RejectDialog";
 
 import { RegistrationTableSkeleton } from "./components/RegistrationTableSkeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { MobileRegistrationCard } from "./components/MobileRegistrationCard";
 
 const InstructorRegistrationPage = () => {
     const router = useRouter();
@@ -28,29 +29,42 @@ const InstructorRegistrationPage = () => {
 
     // URL Params State
     const pageNumber = Number(searchParams.get("pageNumber")) || 1;
-    const pageSize = Number(searchParams.get("pageSize")) || 10;
+    const pageSize = Number(searchParams.get("pageSize")) || 8;
     const isDescendingParam = searchParams.get("isDescending");
     const isDescending = isDescendingParam === "false" ? false : true;
     const verificationStatus = searchParams.get("verificationStatus") || "";
-    const fullNameParam = searchParams.get("fullName") || "";
+    const emailParam = searchParams.get("email") || "";
 
-    const [fullName, setFullName] = useState(fullNameParam);
+    const [email, setEmail] = useState(emailParam);
+
+    // Ensure URL params are initialized on mount
+    useEffect(() => {
+        const hasPageNumber = searchParams.has("pageNumber");
+        const hasPageSize = searchParams.has("pageSize");
+
+        if (!hasPageNumber || !hasPageSize) {
+            const params = new URLSearchParams(searchParams.toString());
+            if (!hasPageNumber) params.set("pageNumber", "1");
+            if (!hasPageSize) params.set("pageSize", "8");
+            router.replace(`${pathname}?${params.toString()}`);
+        }
+    }, []);
 
     // Sync local search state with URL (handling external URL changes)
     useEffect(() => {
-        setFullName(fullNameParam);
-    }, [fullNameParam]);
+        setEmail(emailParam);
+    }, [emailParam]);
 
-    const debouncedFullName = useDebounce(fullName, 500);
+    const debouncedEmail = useDebounce(email, 500);
 
     // Update URL when debounced search changes
     useEffect(() => {
-        if (debouncedFullName !== fullNameParam) {
+        if (debouncedEmail !== emailParam) {
             const params = new URLSearchParams(searchParams.toString());
-            if (debouncedFullName) {
-                params.set("fullName", debouncedFullName);
+            if (debouncedEmail) {
+                params.set("email", debouncedEmail);
             } else {
-                params.delete("fullName");
+                params.delete("email");
             }
             params.set("pageNumber", "1");
             if (searchParams.get("isDescending")) {
@@ -58,16 +72,7 @@ const InstructorRegistrationPage = () => {
             }
             router.push(`${pathname}?${params.toString()}`);
         }
-    }, [debouncedFullName, pathname, router, searchParams, fullNameParam]);
-
-    const createQueryString = useCallback(
-        (name: string, value: string | number | boolean) => {
-            const params = new URLSearchParams(searchParams.toString());
-            params.set(name, String(value));
-            return params.toString();
-        },
-        [searchParams]
-    );
+    }, [debouncedEmail, pathname, router, searchParams, emailParam]);
 
     const pagination: PaginationState = {
         pageIndex: pageNumber - 1,
@@ -76,7 +81,14 @@ const InstructorRegistrationPage = () => {
 
     const setPagination = (updater: any) => {
         const newPagination = typeof updater === "function" ? updater(pagination) : updater;
-        router.push(`${pathname}?${createQueryString("pageNumber", newPagination.pageIndex + 1)}&${createQueryString("pageSize", newPagination.pageSize)}&${createQueryString("isDescending", isDescending)}`);
+        const params = new URLSearchParams();
+        params.set("pageNumber", String(newPagination.pageIndex + 1));
+        params.set("pageSize", String(newPagination.pageSize));
+        params.set("isDescending", String(isDescending));
+        // Preserve existing filters
+        if (verificationStatus) params.set("verificationStatus", verificationStatus);
+        if (emailParam) params.set("email", emailParam);
+        router.push(`${pathname}?${params.toString()}`);
     };
 
     const handleStatusChange = (value: string) => {
@@ -94,7 +106,7 @@ const InstructorRegistrationPage = () => {
     };
 
     const handleSearchChange = (value: string) => {
-        setFullName(value);
+        setEmail(value);
     };
 
     const {
@@ -107,7 +119,7 @@ const InstructorRegistrationPage = () => {
         pageNumber: pageNumber,
         pageSize: pageSize,
         verificationStatus: verificationStatus === "all" ? "" : verificationStatus, // Handle "all" case explicitly if needed, usually empty string is all
-        fullName: fullNameParam, // Use URL search param directly for API call to match current view
+        email: emailParam, // Use URL search param directly for API call to match current view
         IsDescending: isDescending
     });
 
@@ -189,7 +201,7 @@ const InstructorRegistrationPage = () => {
     }), []);
 
     return (
-        <div className={`h-full flex-1 flex-col space-y-8 ${isMobile ? 'p-4' : 'p-8'} flex`}>
+        <div className={`h-full flex-1 flex-col space-y-8 ${isMobile ? 'p-2 space-y-4' : 'p-8'} flex`}>
             <div className="flex items-center justify-between space-y-2">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Duyệt đơn đăng ký giảng viên</h2>
@@ -226,22 +238,106 @@ const InstructorRegistrationPage = () => {
                 <RegistrationTableSkeleton />
             ) : (
                 <div className={`transition-opacity duration-200 ${isFetching ? "opacity-50 pointer-events-none" : ""}`}>
-                    <DataTable
-                        data={registrations}
-                        columns={columns}
-                        pagination={pagination}
-                        onPaginationChange={setPagination}
-                        pageCount={data?.totalPages}
-                    >
-                        {() => (
+                    {isMobile ? (
+                        <div className="space-y-4">
                             <RegistrationTableToolbar
-                                searchValue={fullName}
+                                searchValue={email}
                                 onSearchChange={handleSearchChange}
                                 statusFilter={verificationStatus}
                                 onStatusChange={handleStatusChange}
                             />
-                        )}
-                    </DataTable>
+                            <div className="grid gap-4">
+                                {registrations.map((registration) => (
+                                    <MobileRegistrationCard
+                                        key={registration.id}
+                                        registration={registration}
+                                        onReview={() => handleReview(registration)}
+                                        onApprove={() => handleApproveClick(registration.id)}
+                                        onReject={() => handleRejectClick(registration.id)}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Mobile Pagination */}
+                            <div className="flex items-center justify-center px-2 py-4">
+                                <div className="flex items-center space-x-1">
+                                    <Button
+                                        variant="outline"
+                                        className="h-8 w-8 p-0"
+                                        onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: 0 }))}
+                                        disabled={!data?.hasPreviousPage}
+                                    >
+                                        <ChevronsLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="h-8 w-8 p-0"
+                                        onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: prev.pageIndex - 1 }))}
+                                        disabled={!data?.hasPreviousPage}
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+
+                                    {Array.from({ length: Math.min(3, data?.totalPages || 1) }, (_, i) => {
+                                        let startPage = Math.max(0, pagination.pageIndex - 1);
+                                        const endPage = Math.min((data?.totalPages || 1) - 1, startPage + 2);
+
+                                        if (endPage - startPage < 2) {
+                                            startPage = Math.max(0, endPage - 2);
+                                        }
+
+                                        const pageNum = startPage + i;
+                                        if (pageNum >= (data?.totalPages || 0)) return null;
+
+                                        return (
+                                            <Button
+                                                key={pageNum}
+                                                variant={pagination.pageIndex === pageNum ? "default" : "outline"}
+                                                className="h-8 w-8 p-0"
+                                                onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: pageNum }))}
+                                            >
+                                                {pageNum + 1}
+                                            </Button>
+                                        )
+                                    })}
+
+                                    <Button
+                                        variant="outline"
+                                        className="h-8 w-8 p-0"
+                                        onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: prev.pageIndex + 1 }))}
+                                        disabled={!data?.hasNextPage}
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="h-8 w-8 p-0"
+                                        onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: (data?.totalPages || 1) - 1 }))}
+                                        disabled={!data?.hasNextPage}
+                                    >
+                                        <ChevronsRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <DataTable
+                            data={registrations}
+                            columns={columns}
+                            pagination={pagination}
+                            onPaginationChange={setPagination}
+                            pageCount={data?.totalPages}
+                        >
+                            {() => (
+                                <RegistrationTableToolbar
+                                    searchValue={email}
+                                    onSearchChange={handleSearchChange}
+                                    statusFilter={verificationStatus}
+                                    onStatusChange={handleStatusChange}
+                                />
+                            )}
+                        </DataTable>
+                    )}
                 </div>
             )}
 

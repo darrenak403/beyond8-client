@@ -27,14 +27,12 @@ import {
   Check,
   Video,
   Upload,
-  Medal,
 } from "lucide-react";
 import { useGetInstructorProfile, useUpdateMyRegistration } from "@/hooks/useInstructorRegistration";
 import type {
   InstructorEducation,
   InstructorWorkExperience,
   Certificates,
-  InstructorRegistrationRequest,
   UpdateRegistrationRequest,
 } from "@/lib/api/services/fetchInstructorRegistration";
 import { Switch } from "@/components/ui/switch";
@@ -42,6 +40,28 @@ import { useUnHiddenProfile } from "@/hooks/useInstructorRegistration";
 import { useMedia } from "@/hooks/useMedia";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import SafeImage from "@/components/ui/SafeImage";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { X, Tags, Languages } from "lucide-react";
+
+const SUGGESTED_TAGS = [
+  "JavaScript", "TypeScript", "React", "Vue.js", "Angular",
+  "Node.js", "Python", "Java", "C++", "C#",
+  "PHP", "Ruby", "Go", "Rust", "Swift",
+  "HTML/CSS", "Tailwind CSS", "Bootstrap", "SASS/SCSS",
+  "MongoDB", "PostgreSQL", "MySQL", "Redis",
+  "AWS", "Docker", "Kubernetes", "Git",
+  "Machine Learning", "Data Science", "AI", "Blockchain",
+  "Mobile Development", "iOS", "Android", "Flutter",
+  "DevOps", "CI/CD", "Microservices", "REST API"
+];
+
+const SUGGESTED_LANGUAGES = [
+  "Tiếng Việt", "English", "한국어", "简体中文", "繁體中文",
+  "Français", "Deutsch", "Español", "Português", "Italiano", "Русский"
+];
 
 export default function ProfileInstructorForm() {
   const { instructorProfile, isLoading, error } = useGetInstructorProfile();
@@ -58,6 +78,10 @@ export default function ProfileInstructorForm() {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [introVideoUrl, setIntroVideoUrl] = useState<string | null>(null);
+  const [expertiseTagInput, setExpertiseTagInput] = useState("");
+  const [languageTagInput, setLanguageTagInput] = useState("");
+  const [expertiseTags, setExpertiseTags] = useState<string[]>([]);
+  const [languageTags, setLanguageTags] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const { uploadCertificateAsync, isUploadingCertificate, uploadIntroVideoAsync } = useMedia();
@@ -118,7 +142,6 @@ export default function ProfileInstructorForm() {
 
   useEffect(() => {
     if (instructorProfile) {
-      // eslint-disable-next-line
       setFormData(initialFormData);
       setEducationList(instructorProfile.education || []);
       setWorkList(instructorProfile.workExperience || []);
@@ -127,8 +150,66 @@ export default function ProfileInstructorForm() {
     }
   }, [initialFormData, instructorProfile]);
 
+  // Initialize tags from formData
+  useEffect(() => {
+    if (formData.expertise) {
+      const tags = formData.expertise.split(',').map(s => s.trim()).filter(Boolean);
+      setExpertiseTags(tags);
+    }
+    if (formData.teachingLanguages) {
+      const tags = formData.teachingLanguages.split(',').map(s => s.trim()).filter(Boolean);
+      setLanguageTags(tags);
+    }
+  }, [formData.expertise, formData.teachingLanguages]);
+
   const handleChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  // Tag handlers for expertise
+  const handleAddExpertiseTag = (tag: string) => {
+    if (tag && !expertiseTags.includes(tag)) {
+      const newTags = [...expertiseTags, tag];
+      setExpertiseTags(newTags);
+      handleChange("expertise", newTags.join(", "));
+    }
+    setExpertiseTagInput("");
+  };
+
+  const handleRemoveExpertiseTag = (tagToRemove: string) => {
+    const newTags = expertiseTags.filter(tag => tag !== tagToRemove);
+    setExpertiseTags(newTags);
+    handleChange("expertise", newTags.join(", "));
+  };
+
+  const handleExpertiseTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && expertiseTagInput.trim()) {
+      e.preventDefault();
+      handleAddExpertiseTag(expertiseTagInput.trim());
+    }
+  };
+
+  // Tag handlers for languages
+  const handleAddLanguageTag = (language: string) => {
+    if (language && !languageTags.includes(language)) {
+      const newTags = [...languageTags, language];
+      setLanguageTags(newTags);
+      handleChange("teachingLanguages", newTags.join(", "));
+    }
+    setLanguageTagInput("");
+  };
+
+  const handleRemoveLanguageTag = (tagToRemove: string) => {
+    const newTags = languageTags.filter(tag => tag !== tagToRemove);
+    setLanguageTags(newTags);
+    handleChange("teachingLanguages", newTags.join(", "));
+  };
+
+  const handleLanguageTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && languageTagInput.trim()) {
+      e.preventDefault();
+      handleAddLanguageTag(languageTagInput.trim());
+    }
   };
 
   const handleSubmit = () => {
@@ -140,8 +221,8 @@ export default function ProfileInstructorForm() {
       education: educationList,
       workExperience: workList,
       certificates: certificateList,
-      expertiseAreas: formData.expertise ? formData.expertise.split(',').map(s => s.trim()).filter(Boolean) : [],
-      teachingLanguages: formData.teachingLanguages ? formData.teachingLanguages.split(',').map(s => s.trim()).filter(Boolean) : [],
+      expertiseAreas: expertiseTags.length > 0 ? expertiseTags : (formData.expertise ? formData.expertise.split(',').map(s => s.trim()).filter(Boolean) : []),
+      teachingLanguages: languageTags.length > 0 ? languageTags : (formData.teachingLanguages ? formData.teachingLanguages.split(',').map(s => s.trim()).filter(Boolean) : []),
       introVideoUrl: introVideoUrl,
     };
 
@@ -536,29 +617,84 @@ export default function ProfileInstructorForm() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="expertise" className="text-sm font-medium">
-              Lĩnh vực chuyên môn
-            </Label>
+            <div className="flex items-center gap-2">
+              <Tags className={`w-4 h-4 ${isHidden ? "text-gray-500" : "text-purple-600"}`} />
+              <Label htmlFor="expertise" className="text-sm font-medium">
+                Lĩnh vực chuyên môn
+              </Label>
+            </div>
+            
             <Input
               id="expertise"
-              value={formData.expertise}
-              onChange={(e) => handleChange("expertise", e.target.value)}
-              placeholder="VD: Web Development, React, Node.js"
+              value={expertiseTagInput}
+              onChange={(e) => setExpertiseTagInput(e.target.value)}
+              onKeyDown={handleExpertiseTagInputKeyDown}
+              placeholder="Nhập kỹ năng và nhấn Enter để thêm"
               disabled={isHidden}
               className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
             />
-            {formData.expertise && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.expertise.split(",").map((skill, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className={`${isHidden ? "bg-gray-200 text-gray-500 cursor-not-allowed hover:bg-gray-200" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-3 py-1 shadow-sm`}
-                  >
-                    {skill.trim()}
-                  </Badge>
-                ))}
+
+            {/* Selected Tags */}
+            {expertiseTags.length > 0 && (
+              <div className={`p-4 rounded-xl ${isHidden ? "bg-gray-100" : "bg-purple-50"}`}>
+                <p className="text-sm font-medium text-gray-700 mb-3">
+                  Đã chọn ({expertiseTags.length}):
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {expertiseTags.map((tag, index) => (
+                    <motion.div
+                      key={tag}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Badge
+                        variant="secondary"
+                        className={`${isHidden ? "bg-gray-200 text-gray-500" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-1.5 py-0.5 flex items-center gap-0.5 text-[10px] font-medium shadow-sm`}
+                      >
+                        {tag}
+                        {!isHidden && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExpertiseTag(tag)}
+                            className="ml-0.5 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                          >
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        )}
+                      </Badge>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* Suggested Tags */}
+            {!isHidden && SUGGESTED_TAGS.filter(tag => !expertiseTags.includes(tag)).length > 0 && (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-gray-700">
+                  💡 Gợi ý cho bạn:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {SUGGESTED_TAGS.filter(tag => !expertiseTags.includes(tag)).slice(0, 15).map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-[10px]"
+                      onClick={() => handleAddExpertiseTag(tag)}
+                    >
+                      + {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {expertiseTags.length === 0 && !isHidden && (
+              <p className="text-sm text-orange-600">
+                ⚠ Vui lòng chọn ít nhất 1 lĩnh vực chuyên môn
+              </p>
             )}
           </div>
         </CardContent>
@@ -859,13 +995,30 @@ export default function ProfileInstructorForm() {
                                 <Calendar className="w-4 h-4 text-purple-600" />
                                 Từ ngày
                               </label>
-                              <Input
-                                type="date"
-                                value={work.from}
-                                onChange={(e) => handleChangeWork(index, "from", e.target.value)}
-                                disabled={isHidden}
-                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
-                              />
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    disabled={isHidden}
+                                    className={`w-full justify-start text-left font-normal border-2 rounded-xl h-10 hover:bg-white hover:text-black ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 hover:border-purple-500"} ${!work.from && "text-muted-foreground"}`}
+                                  >
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    {work.from ? format(new Date(work.from), "dd/MM/yyyy", { locale: vi }) : <span>Chọn ngày</span>}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-2" align="start">
+                                  <CalendarComponent
+                                    mode="single"
+                                    selected={work.from ? new Date(work.from) : undefined}
+                                    onSelect={(date) => handleChangeWork(index, "from", date ? format(date, "yyyy-MM-dd") : "")}
+                                    captionLayout="dropdown"
+                                    fromYear={1950}
+                                    toYear={new Date().getFullYear() + 10}
+                                    disabled={isHidden}
+                                    className="px-4"
+                                  />
+                                </PopoverContent>
+                              </Popover>
                             </div>
 
                             <div>
@@ -873,13 +1026,30 @@ export default function ProfileInstructorForm() {
                                 <Calendar className="w-4 h-4 text-purple-600" />
                                 Đến ngày
                               </label>
-                              <Input
-                                type="date"
-                                value={work.to || ""}
-                                onChange={(e) => handleChangeWork(index, "to", e.target.value)}
-                                disabled={work.isCurrentJob || isHidden}
-                                className={`border-2 rounded-xl focus:outline-none focus:ring-2 disabled:opacity-50 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
-                              />
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    disabled={work.isCurrentJob || isHidden}
+                                    className={`w-full justify-start text-left font-normal border-2 rounded-xl h-10 disabled:opacity-50 hover:bg-white hover:text-black ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 hover:border-purple-500"} ${!work.to && "text-muted-foreground"}`}
+                                  >
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    {work.to ? format(new Date(work.to), "dd/MM/yyyy", { locale: vi }) : <span>Chọn ngày</span>}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-2" align="start">
+                                  <CalendarComponent
+                                    mode="single"
+                                    selected={work.to ? new Date(work.to) : undefined}
+                                    onSelect={(date) => handleChangeWork(index, "to", date ? format(date, "yyyy-MM-dd") : "")}
+                                    captionLayout="dropdown"
+                                    fromYear={1950}
+                                    toYear={new Date().getFullYear() + 10}
+                                    disabled={work.isCurrentJob || isHidden}
+                                    className="px-4"
+                                  />
+                                </PopoverContent>
+                              </Popover>
                             </div>
                           </div>
 
@@ -1004,30 +1174,86 @@ export default function ProfileInstructorForm() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-5 pt-6">
+          {/* Teaching Languages Section */}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="teachingLanguages" className="text-sm font-medium">
-              Ngôn ngữ giảng dạy
-            </Label>
+            <div className="flex items-center gap-2">
+              <Languages className={`w-4 h-4 ${isHidden ? "text-gray-500" : "text-purple-600"}`} />
+              <Label htmlFor="teachingLanguages" className="text-sm font-medium">
+                Ngôn ngữ giảng dạy
+              </Label>
+            </div>
+            
             <Input
               id="teachingLanguages"
-              value={formData.teachingLanguages}
-              onChange={(e) => handleChange("teachingLanguages", e.target.value)}
-              placeholder="VD: Tiếng Việt, English"
+              value={languageTagInput}
+              onChange={(e) => setLanguageTagInput(e.target.value)}
+              onKeyDown={handleLanguageTagInputKeyDown}
+              placeholder="Nhập ngôn ngữ và nhấn Enter để thêm"
               disabled={isHidden}
               className={`border-2 rounded-xl focus:outline-none focus:ring-2 ${isHidden ? "border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed" : "border-gray-200 focus:ring-purple-500 focus:border-transparent"}`}
             />
-            {formData.teachingLanguages && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.teachingLanguages.split(",").map((lang, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className={`${isHidden ? "bg-gray-200 text-gray-500 cursor-not-allowed hover:bg-gray-200" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-3 py-1 shadow-sm`}
-                  >
-                    {lang.trim()}
-                  </Badge>
-                ))}
+
+            {/* Selected Languages */}
+            {languageTags.length > 0 && (
+              <div className={`p-4 rounded-xl ${isHidden ? "bg-gray-100" : "bg-purple-50"}`}>
+                <p className="text-sm font-medium text-gray-700 mb-3">
+                  Đã chọn ({languageTags.length}):
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {languageTags.map((language, index) => (
+                    <motion.div
+                      key={language}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Badge
+                        variant="secondary"
+                        className={`${isHidden ? "bg-gray-200 text-gray-500" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-1.5 py-0.5 flex items-center gap-0.5 text-[10px] font-medium shadow-sm`}
+                      >
+                        {language}
+                        {!isHidden && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLanguageTag(language)}
+                            className="ml-0.5 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                          >
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        )}
+                      </Badge>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* Suggested Languages */}
+            {!isHidden && SUGGESTED_LANGUAGES.filter(lang => !languageTags.includes(lang)).length > 0 && (
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-gray-700">
+                  🌐 Gợi ý cho bạn:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {SUGGESTED_LANGUAGES.filter(lang => !languageTags.includes(lang)).map((language) => (
+                    <Badge
+                      key={language}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-[10px]"
+                      onClick={() => handleAddLanguageTag(language)}
+                    >
+                      + {language}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {languageTags.length === 0 && !isHidden && (
+              <p className="text-sm text-orange-600">
+                ⚠ Vui lòng chọn ít nhất 1 ngôn ngữ giảng dạy
+              </p>
             )}
           </div>
 
@@ -1116,6 +1342,8 @@ export default function ProfileInstructorForm() {
                                   <div className="relative aspect-[4/3] w-full">
                                     <SafeImage
                                       src={formatImageUrl(cert.url) || cert.url}
+                                      width={100}
+                                      height={100}
                                       alt="Certificate preview"
                                       className="w-full h-full object-cover rounded-lg"
                                     />

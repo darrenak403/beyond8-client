@@ -2,16 +2,14 @@
 
 import * as React from "react"
 import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "lucide-react"
-import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
+  DayPicker,
+  getDefaultClassNames,
+  type DayButton,
+} from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
 
 function Calendar({
   className,
@@ -31,7 +29,7 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        "bg-background group/calendar p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        "[--cell-radius:var(--radius-md)] [--cell-size:--spacing(7)] bg-background group/calendar [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -45,74 +43,80 @@ function Calendar({
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
         months: cn(
-          "relative flex flex-col gap-4 md:flex-row",
+          "flex gap-4 flex-col md:flex-row relative",
           defaultClassNames.months
         ),
-        month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
+        month: cn("flex flex-col w-full gap-4", defaultClassNames.month),
         nav: cn(
-          "absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
+          "flex flex-row items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
           defaultClassNames.nav
         ),
         button_previous: cn(
           buttonVariants({ variant: buttonVariant }),
-          "h-[--cell-size] w-[--cell-size] select-none p-0 aria-disabled:opacity-50",
+          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
           defaultClassNames.button_previous
         ),
         button_next: cn(
           buttonVariants({ variant: buttonVariant }),
-          "h-[--cell-size] w-[--cell-size] select-none p-0 aria-disabled:opacity-50",
+          "size-(--cell-size) aria-disabled:opacity-50 p-0 select-none",
           defaultClassNames.button_next
         ),
         month_caption: cn(
-          "flex h-[--cell-size] w-full items-center justify-center px-[--cell-size]",
+          "flex items-center justify-center h-(--cell-size) w-full px-(--cell-size)",
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
-          "flex h-[--cell-size] w-full items-center justify-center gap-1.5 text-sm font-medium",
+          "w-full flex items-center text-sm font-medium justify-center h-auto gap-1.5",
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
-          "has-focus:border-ring border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] relative rounded-md border",
+          "relative cn-calendar-dropdown-root rounded-(--cell-radius)",
           defaultClassNames.dropdown_root
         ),
         dropdown: cn(
-          "bg-popover absolute inset-0 opacity-0",
+          "absolute bg-popover inset-0 opacity-0",
           defaultClassNames.dropdown
         ),
         caption_label: cn(
           "select-none font-medium",
           captionLayout === "label"
             ? "text-sm"
-            : "[&>svg]:text-muted-foreground flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5",
+            : "cn-calendar-caption-label rounded-(--cell-radius) flex items-center gap-1 text-sm  [&>svg]:text-muted-foreground [&>svg]:size-3.5",
           defaultClassNames.caption_label
         ),
         table: "w-full border-collapse",
         weekdays: cn("flex", defaultClassNames.weekdays),
         weekday: cn(
-          "text-muted-foreground flex-1 select-none rounded-md text-[0.8rem] font-normal",
+          "text-muted-foreground rounded-(--cell-radius) flex-1 font-normal text-[0.8rem] select-none",
           defaultClassNames.weekday
         ),
-        week: cn("mt-2 flex w-full", defaultClassNames.week),
+        week: cn("flex w-full mt-2", defaultClassNames.week),
         week_number_header: cn(
-          "w-[--cell-size] select-none",
+          "select-none w-(--cell-size)",
           defaultClassNames.week_number_header
         ),
         week_number: cn(
-          "text-muted-foreground select-none text-[0.8rem]",
+          "text-[0.8rem] select-none text-muted-foreground",
           defaultClassNames.week_number
         ),
         day: cn(
-          "group/day relative aspect-square h-full w-full select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
+          "relative w-full rounded-(--cell-radius) h-full p-0 text-center [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius) group/day aspect-square select-none",
+          props.showWeekNumber
+            ? "[&:nth-child(2)[data-selected=true]_button]:rounded-l-(--cell-radius)"
+            : "[&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
           defaultClassNames.day
         ),
         range_start: cn(
-          "bg-accent rounded-l-md",
+          "rounded-l-(--cell-radius) bg-muted relative after:bg-muted after:absolute after:inset-y-0 after:w-4 after:right-0 -z-0 isolate",
           defaultClassNames.range_start
         ),
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
-        range_end: cn("bg-accent rounded-r-md", defaultClassNames.range_end),
+        range_end: cn(
+          "rounded-r-(--cell-radius) bg-muted relative after:bg-muted-200 after:absolute after:inset-y-0 after:w-4 after:left-0 -z-0 isolate",
+          defaultClassNames.range_end
+        ),
         today: cn(
-          "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
+          "bg-muted text-foreground rounded-(--cell-radius) data-[selected=true]:rounded-none",
           defaultClassNames.today
         ),
         outside: cn(
@@ -146,10 +150,7 @@ function Calendar({
 
           if (orientation === "right") {
             return (
-              <ChevronRightIcon
-                className={cn("size-4", className)}
-                {...props}
-              />
+              <ChevronRightIcon className={cn("size-4", className)} {...props} />
             )
           }
 
@@ -161,7 +162,7 @@ function Calendar({
         WeekNumber: ({ children, ...props }) => {
           return (
             <td {...props}>
-              <div className="flex size-[--cell-size] items-center justify-center text-center">
+              <div className="flex size-(--cell-size) items-center justify-center text-center">
                 {children}
               </div>
             </td>
@@ -203,7 +204,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 font-normal leading-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
+        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-muted data-[range-middle=true]:text-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 dark:hover:text-foreground relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 border-0 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] data-[range-end=true]:rounded-(--cell-radius) data-[range-end=true]:rounded-r-(--cell-radius) data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-(--cell-radius) data-[range-start=true]:rounded-l-(--cell-radius) [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         className
       )}
@@ -212,167 +213,4 @@ function CalendarDayButton({
   )
 }
 
-// Month Year Picker Component
-interface MonthYearPickerProps {
-  value?: string; // Format: "YYYY-MM" or "nay"
-  onChange?: (value: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-  className?: string;
-}
-
-const months = [
-  { value: 1, label: "Tháng 1", short: "T1" },
-  { value: 2, label: "Tháng 2", short: "T2" },
-  { value: 3, label: "Tháng 3", short: "T3" },
-  { value: 4, label: "Tháng 4", short: "T4" },
-  { value: 5, label: "Tháng 5", short: "T5" },
-  { value: 6, label: "Tháng 6", short: "T6" },
-  { value: 7, label: "Tháng 7", short: "T7" },
-  { value: 8, label: "Tháng 8", short: "T8" },
-  { value: 9, label: "Tháng 9", short: "T9" },
-  { value: 10, label: "Tháng 10", short: "T10" },
-  { value: 11, label: "Tháng 11", short: "T11" },
-  { value: 12, label: "Tháng 12", short: "T12" },
-];
-
-function MonthYearPicker({
-  value = "",
-  onChange,
-  placeholder = "Chọn tháng/năm",
-  disabled = false,
-  className,
-}: MonthYearPickerProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1;
-  const currentYear = currentDate.getFullYear();
-
-  const [selectedMonth, setSelectedMonth] = React.useState<number | null>(null);
-  const [selectedYear, setSelectedYear] = React.useState<number>(currentYear);
-
-  // Parse value from prop
-  React.useEffect(() => {
-    if (value === "nay") {
-      setSelectedMonth(currentMonth);
-      setSelectedYear(currentYear);
-    } else if (value && value.includes("-")) {
-      const [year, month] = value.split("-");
-      setSelectedYear(parseInt(year));
-      setSelectedMonth(parseInt(month));
-    } else {
-      setSelectedMonth(null);
-      setSelectedYear(currentYear);
-    }
-  }, [value, currentMonth, currentYear]);
-
-  const handleSelect = (month: number) => {
-    setSelectedMonth(month);
-    
-    // Check if selected month/year is current month/year
-    if (month === currentMonth && selectedYear === currentYear) {
-      onChange?.("nay");
-    } else {
-      onChange?.(`${selectedYear}-${month.toString().padStart(2, "0")}`);
-    }
-    
-    setIsOpen(false);
-  };
-
-  const handleSetCurrent = () => {
-    setSelectedMonth(currentMonth);
-    setSelectedYear(currentYear);
-    onChange?.("nay");
-    setIsOpen(false);
-  };
-
-  const getDisplayValue = () => {
-    if (value === "nay") {
-      return "Hiện tại";
-    } else if (selectedMonth && selectedYear) {
-      return `${months[selectedMonth - 1].label} ${selectedYear}`;
-    }
-    return placeholder;
-  };
-
-  return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !value && "text-muted-foreground",
-            className
-          )}
-        >
-          <ChevronDownIcon className="mr-2 h-4 w-4" />
-          {getDisplayValue()}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Card className="border-0 shadow-none">
-          <CardContent className="p-3">
-            {/* Year selector */}
-            <div className="flex items-center justify-between mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedYear((prev) => prev - 1)}
-                disabled={selectedYear <= 1960}
-              >
-                <ChevronLeftIcon className="h-4 w-4" />
-              </Button>
-              <span className="font-semibold text-sm">{selectedYear}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedYear((prev) => prev + 1)}
-                disabled={selectedYear >= currentYear}
-              >
-                <ChevronRightIcon className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Month grid */}
-            <div className="grid grid-cols-4 gap-2">
-              {months.map((month) => {
-                const isSelected = selectedMonth === month.value;
-                const isCurrent = month.value === currentMonth && selectedYear === currentYear;
-
-                return (
-                  <Button
-                    key={month.value}
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleSelect(month.value)}
-                    className={cn(
-                      "h-9",
-                      isSelected && "bg-purple-600 hover:bg-purple-700",
-                      isCurrent && !isSelected && "border-2 border-purple-400"
-                    )}
-                  >
-                    {month.short}
-                  </Button>
-                );
-              })}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-wrap gap-2 border-t p-3">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={handleSetCurrent}
-            >
-              Hiện tại
-            </Button>
-          </CardFooter>
-        </Card>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-export { Calendar, CalendarDayButton, MonthYearPicker }
+export { Calendar, CalendarDayButton }

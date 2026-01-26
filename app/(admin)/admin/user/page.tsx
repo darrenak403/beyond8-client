@@ -4,12 +4,13 @@ import { DataTable } from "@/components/ui/data-table"
 import { PaginationState } from "@tanstack/react-table"
 import { getColumns } from "./components/Columns"
 import { UserTableToolbar } from "./components/UserTableToolbar"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
 import { useDebounce } from "@/hooks/useDebounce"
 import { UserDialog } from "./components/UserDialog"
+import { MobileUserCard } from "./components/MobileUserCard"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertCircle, RotateCw } from "lucide-react"
+import { AlertCircle, RotateCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Alert,
@@ -31,12 +32,13 @@ const UserManagementPage = () => {
 
   // URL Params State
   const pageNumber = Number(searchParams.get("pageNumber")) || 1;
-  const pageSize = Number(searchParams.get("pageSize")) || 10;
+  const pageSize = Number(searchParams.get("pageSize")) || 8;
   // Handle isDescending param, defaulting to true if not present or invalid
   const isDescendingParam = searchParams.get("isDescending");
   const isDescending = isDescendingParam === "false" ? false : true;
 
-  const fullName = searchParams.get("fullName") || "";
+  const email = searchParams.get("email") || "";
+  const role = searchParams.get("role") || "";
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [dialogMode, setDialogMode] = useState<"add" | "edit">("add");
@@ -44,75 +46,85 @@ const UserManagementPage = () => {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Create query string helper
-  const createQueryString = useCallback(
-    (name: string, value: string | number | boolean) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set(name, String(value));
-      return params.toString();
-    },
-    [searchParams]
-  );
-
   // Handle Pagination
   const pagination: PaginationState = {
     pageIndex: pageNumber - 1,
     pageSize: pageSize,
   };
-  
+
   const setPagination = (updater: any) => {
     const newPagination = typeof updater === "function" ? updater(pagination) : updater;
-    router.push(`${pathname}?${createQueryString("pageNumber", newPagination.pageIndex + 1)}&${createQueryString("pageSize", newPagination.pageSize)}&${createQueryString("isDescending", isDescending)}`);
+    const params = new URLSearchParams();
+    params.set("pageNumber", String(newPagination.pageIndex + 1));
+    params.set("pageSize", String(newPagination.pageSize));
+    params.set("isDescending", String(isDescending));
+    // Preserve email if it exists
+    if (email) {
+      params.set("email", email);
+    }
+    // Preserve role if it exists
+    if (role) {
+      params.set("role", role);
+    }
+    router.push(`${pathname}?${params.toString()}`);
   };
 
-  // Handle Search
-  // const handleFullNameChange = (value: string) => {
-  //   const params = new URLSearchParams(searchParams.toString());
-  //   if (value) {
-  //     params.set("fullName", value);
-  //   } else {
-  //     params.delete("fullName");
-  //   }
-  //   // Reset to page 1 on search
-  //   params.set("pageNumber", "1");
-  //   // Preserve current isDescending setting
-  //   if (searchParams.get("isDescending")) {
-  //     params.set("isDescending", searchParams.get("isDescending")!);
-  //   }
-  //   router.push(`${pathname}?${params.toString()}`);
-  // };
+  const handleRoleChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value && value !== "ALL") {
+      params.set("role", value);
+    } else {
+      params.delete("role");
+    }
+    params.set("pageNumber", "1");
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   // We need to request pageNumber starting from 1 for the API
   const { data, isLoading, isError, error, refetch, isFetching } = useGetAllUsers({
     pageNumber: pageNumber,
     pageSize: pageSize,
     isDescending: isDescending,
-    fullName: fullName
+    email: email,
+    role: role
   });
 
   // Let's add local state for search input
-  const [searchValue, setSearchValue] = useState(fullName);
+  const [searchValue, setSearchValue] = useState(email);
+
+  // Ensure URL params are initialized on mount
+  useEffect(() => {
+    const hasPageNumber = searchParams.has("pageNumber");
+    const hasPageSize = searchParams.has("pageSize");
+
+    if (!hasPageNumber || !hasPageSize) {
+      const params = new URLSearchParams(searchParams.toString());
+      if (!hasPageNumber) params.set("pageNumber", "1");
+      if (!hasPageSize) params.set("pageSize", "8");
+      router.replace(`${pathname}?${params.toString()}`);
+    }
+  }, []);
 
   // Sync local state with URL param (in case URL changes externally)
   useEffect(() => {
-    setSearchValue(fullName);
-  }, [fullName]);
+    setSearchValue(email);
+  }, [email]);
 
   const debouncedSearch = useDebounce(searchValue, 500);
 
   // Effect to update URL when debounced search changes
   useEffect(() => {
-    if (debouncedSearch !== fullName) {
+    if (debouncedSearch !== email) {
       const params = new URLSearchParams(searchParams.toString());
       if (debouncedSearch) {
-        params.set("fullName", debouncedSearch);
+        params.set("email", debouncedSearch);
       } else {
-        params.delete("fullName");
+        params.delete("email");
       }
       params.set("pageNumber", "1");
       router.push(`${pathname}?${params.toString()}`);
     }
-  }, [debouncedSearch, pathname, router, searchParams, fullName]);
+  }, [debouncedSearch, pathname, router, searchParams, email]);
 
   const { mutateAsync: updateUserStatus } = useUpdateUserStatus();
   const { mutateAsync: deleteUser } = useDeleteUser();
@@ -155,10 +167,10 @@ const UserManagementPage = () => {
     if (selectedUser) {
       try {
         await deleteUser(selectedUser.id);
-        toast.success("Xóa người dùng thành công");
+        toast.success("Ngưng hoạt động tài khoản thành công");
         setIsDeleteDialogOpen(false);
       } catch (error: any) {
-        toast.error(error.message || "Xóa người dùng thất bại");
+        toast.error(error.message || "Ngưng hoạt động tài khoản thất bại");
       }
     }
   };
@@ -170,7 +182,7 @@ const UserManagementPage = () => {
   });
 
   return (
-    <div className={`h-full flex-1 flex-col space-y-8 ${isMobile ? 'p-4' : 'p-8'} flex`}>
+    <div className={`h-full flex-1 flex-col space-y-8 ${isMobile ? 'p-2 space-y-4' : 'p-8'} flex`}>
       <div className="flex items-center justify-between space-y-2">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h2>
@@ -225,23 +237,110 @@ const UserManagementPage = () => {
         </div>
       ) : (
         <div className={`transition-opacity duration-200 ${isFetching ? "opacity-50 pointer-events-none" : ""}`}>
-          <DataTable
-            data={data?.users || []}
-            columns={columns}
-            pageCount={data?.totalPages}
-            rowCount={data?.count}
-            pagination={pagination}
-            onPaginationChange={setPagination}
-          >
-            {(table) => (
+          {isMobile ? (
+            <div className="space-y-4">
               <UserTableToolbar
-                table={table}
+                table={null as any} // Toolbar doesn't actually use table for search/filter in this implementation
                 onAdd={handleAdd}
                 searchValue={searchValue}
                 onSearchChange={setSearchValue}
+                roleFilter={role}
+                onRoleChange={handleRoleChange}
               />
-            )}
-          </DataTable>
+              <div className="grid gap-4">
+                {data?.users?.map((user) => (
+                  <MobileUserCard
+                    key={user.id}
+                    user={user}
+                    onEdit={() => handleEdit(user)}
+                    onDelete={() => handleDelete(user)}
+                    onChangeStatus={() => handleChangeStatus(user)}
+                  />
+                ))}
+              </div>
+              {/* Mobile Pagination */}
+              <div className="flex items-center justify-center px-2 py-4">
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: 0 }))}
+                    disabled={!data?.hasPreviousPage}
+                  >
+                    <ChevronsLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: prev.pageIndex - 1 }))}
+                    disabled={!data?.hasPreviousPage}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                  {Array.from({ length: Math.min(3, data?.totalPages || 1) }, (_, i) => {
+                    let startPage = Math.max(0, pagination.pageIndex - 1);
+                    const endPage = Math.min((data?.totalPages || 1) - 1, startPage + 2);
+
+                    if (endPage - startPage < 2) {
+                      startPage = Math.max(0, endPage - 2);
+                    }
+
+                    const pageNum = startPage + i;
+                    if (pageNum >= (data?.totalPages || 0)) return null;
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={pagination.pageIndex === pageNum ? "default" : "outline"}
+                        className="h-8 w-8 p-0"
+                        onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: pageNum }))}
+                      >
+                        {pageNum + 1}
+                      </Button>
+                    )
+                  })}
+
+                  <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: prev.pageIndex + 1 }))}
+                    disabled={!data?.hasNextPage}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setPagination((prev: any) => ({ ...prev, pageIndex: (data?.totalPages || 1) - 1 }))}
+                    disabled={!data?.hasNextPage}
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <DataTable
+              data={data?.users || []}
+              columns={columns}
+              pageCount={data?.totalPages}
+              rowCount={data?.count}
+              pagination={pagination}
+              onPaginationChange={setPagination}
+            >
+              {(table) => (
+                <UserTableToolbar
+                  table={table}
+                  onAdd={handleAdd}
+                  searchValue={searchValue}
+                  onSearchChange={setSearchValue}
+                  roleFilter={role}
+                  onRoleChange={handleRoleChange}
+                />
+              )}
+            </DataTable>
+          )}
         </div>
       )}
 

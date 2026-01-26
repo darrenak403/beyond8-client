@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 // Form Field Wrapper Component
 interface FormFieldProps {
@@ -32,6 +33,8 @@ export function FormikField({
   disabled,
   max,
 }: FormFieldProps) {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
   return (
     <div className="space-y-2">
       {label && <Label htmlFor={name}>{label}</Label>}
@@ -51,18 +54,35 @@ export function FormikField({
                 disabled={disabled}
               />
             ) : (
-              <Input
-                {...field}
-                id={name}
-                type={type}
-                placeholder={placeholder}
-                className={cn(
-                  meta.touched && meta.error && 'border-destructive focus-visible:ring-destructive',
-                  className
+              <div className="relative">
+                <Input
+                  {...field}
+                  id={name}
+                  type={passwordVisible ? 'text' : type}
+                  placeholder={placeholder}
+                  className={cn(
+                    meta.touched && meta.error && 'border-destructive focus-visible:ring-destructive',
+                    type === 'password' && "pr-10",
+                    className
+                  )}
+                  disabled={disabled}
+                  max={max}
+                />
+                {type === 'password' && (
+                  <button
+                    type="button"
+                    onClick={() => setPasswordVisible(!passwordVisible)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {passwordVisible ? (
+                      <EyeOff className="h-4 w-4 cursor-pointer" />
+                    ) : (
+                      <Eye className="h-4 w-4 cursor-pointer" />
+                    )}
+                  </button>
                 )}
-                disabled={disabled}
-                max={max}
-              />
+              </div>
             )}
           </>
         )}
