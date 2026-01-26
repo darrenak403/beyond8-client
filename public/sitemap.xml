@@ -2,5 +2,7 @@
   <url>
     <loc>https://beyond8.io.vn/</loc>
     <lastmod>2026-01-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
   </url>
 </urlset>
