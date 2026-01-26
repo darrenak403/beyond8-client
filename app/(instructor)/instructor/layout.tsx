@@ -1,10 +1,12 @@
-﻿export default function InstructorLayout({children}: {children: React.ReactNode}) {
+﻿import { InstructorHeader } from "@/components/ui/instructor-header";
+import { InstructorBottomNav } from "@/components/ui/instructor-bottom-nav";
+
+export default function InstructorLayout({children}: {children: React.ReactNode}) {
   return (
-    <div className="min-h-screen">
-      <header className="border-b p-4">
-        <h2 className="text-xl font-bold">Instructor Panel</h2>
-      </header>
-      <main>{children}</main>
+    <div className="min-h-screen pb-16 md:pb-0">
+      <InstructorHeader />
+      <main className="flex-1 w-full px-3 sm:px-4 md:px-6 py-4 sm:py-5 md:py-6 mx-auto space-y-4 sm:space-y-6 md:space-y-8">{children}</main>
+      <InstructorBottomNav />
     </div>
   )
 }
