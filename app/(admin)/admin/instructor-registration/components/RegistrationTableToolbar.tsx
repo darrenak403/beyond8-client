@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, RotateCw } from "lucide-react";
 import {
     Select,
     SelectContent,
@@ -17,6 +17,8 @@ interface RegistrationTableToolbarProps {
     onSearchChange: (value: string) => void;
     statusFilter: string;
     onStatusChange: (value: string) => void;
+    onRefresh: () => void;
+    isFetching: boolean;
 }
 
 export function RegistrationTableToolbar({
@@ -24,6 +26,8 @@ export function RegistrationTableToolbar({
     onSearchChange,
     statusFilter,
     onStatusChange,
+    onRefresh,
+    isFetching,
 }: RegistrationTableToolbarProps) {
     const [inputValue, setInputValue] = useState(searchValue);
 
@@ -80,6 +84,17 @@ export function RegistrationTableToolbar({
                     </SelectContent>
                 </Select>
             </div>
+
+            {/* Refresh Button */}
+            <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 rounded-full shrink-0 border-slate-200 shadow-sm bg-white"
+                onClick={onRefresh}
+                disabled={isFetching}
+            >
+                <RotateCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+            </Button>
         </div>
     );
 }

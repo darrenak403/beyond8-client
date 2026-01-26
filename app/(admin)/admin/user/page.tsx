@@ -10,7 +10,7 @@ import { useDebounce } from "@/hooks/useDebounce"
 import { UserDialog } from "./components/UserDialog"
 import { MobileUserCard } from "./components/MobileUserCard"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertCircle, RotateCw, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { AlertCircle, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Alert,
@@ -32,7 +32,7 @@ const UserManagementPage = () => {
 
   // URL Params State
   const pageNumber = Number(searchParams.get("pageNumber")) || 1;
-  const pageSize = Number(searchParams.get("pageSize")) || 8;
+  const pageSize = Number(searchParams.get("pageSize")) || 12;
   // Handle isDescending param, defaulting to true if not present or invalid
   const isDescendingParam = searchParams.get("isDescending");
   const isDescending = isDescendingParam === "false" ? false : true;
@@ -100,7 +100,7 @@ const UserManagementPage = () => {
     if (!hasPageNumber || !hasPageSize) {
       const params = new URLSearchParams(searchParams.toString());
       if (!hasPageNumber) params.set("pageNumber", "1");
-      if (!hasPageSize) params.set("pageSize", "8");
+      if (!hasPageSize) params.set("pageSize", "10");
       router.replace(`${pathname}?${params.toString()}`);
     }
   }, []);
@@ -182,23 +182,14 @@ const UserManagementPage = () => {
   });
 
   return (
-    <div className={`h-full flex-1 flex-col space-y-8 ${isMobile ? 'p-2 space-y-4' : 'p-8'} flex`}>
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h2>
+    <div className={`h-full flex-1 flex-col space-y-2 ${isMobile ? 'p-2' : 'p-2'} flex`}>
+      {isMobile && (
+        <div className="flex items-center justify-between space-y-2">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Quản lý người dùng</h2>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 rounded-xl"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
-            <RotateCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-          </Button>
-        </div>
-      </div>
+      )}
 
       {isError && (
         <Alert variant="destructive">
@@ -240,12 +231,13 @@ const UserManagementPage = () => {
           {isMobile ? (
             <div className="space-y-4">
               <UserTableToolbar
-                table={null as any} // Toolbar doesn't actually use table for search/filter in this implementation
                 onAdd={handleAdd}
                 searchValue={searchValue}
                 onSearchChange={setSearchValue}
                 roleFilter={role}
                 onRoleChange={handleRoleChange}
+                onRefresh={refetch}
+                isFetching={isFetching}
               />
               <div className="grid gap-4">
                 {data?.users?.map((user) => (
@@ -337,6 +329,8 @@ const UserManagementPage = () => {
                   onSearchChange={setSearchValue}
                   roleFilter={role}
                   onRoleChange={handleRoleChange}
+                  onRefresh={refetch}
+                  isFetching={isFetching}
                 />
               )}
             </DataTable>

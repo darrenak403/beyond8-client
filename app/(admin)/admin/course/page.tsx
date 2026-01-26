@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { RotateCw, AlertCircle, RotateCcw } from 'lucide-react'
+import { AlertCircle, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -15,7 +15,7 @@ import { useIsMobile } from '@/hooks/useMobile'
 
 // Combine mock data for demo
 const allCourses = [...topRatedCourses, ...newCourses]
-const ITEMS_PER_PAGE = 8
+const ITEMS_PER_PAGE = 12
 
 export default function CourseManagementPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -69,22 +69,15 @@ export default function CourseManagementPage() {
   }, [searchQuery])
 
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 p-6 space-y-6">
+    <div className="flex flex-col h-full bg-slate-50/50 p-2 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Quản lý khóa học
-        </h1>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9"
-          onClick={fetchData}
-          disabled={isLoading}
-        >
-          <RotateCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-        </Button>
-      </div>
+      {isMobile && (
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Quản lý khóa học
+          </h1>
+        </div>
+      )}
 
       {/* Toolbar */}
       <CourseToolbar
@@ -94,6 +87,8 @@ export default function CourseManagementPage() {
         setSearchQuery={setSearchQuery}
         totalCount={filteredCourses.length}
         isMobile={isMobile}
+        onRefresh={fetchData}
+        isLoading={isLoading}
       />
 
       {/* Content */}

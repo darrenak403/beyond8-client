@@ -8,7 +8,6 @@ import { PaginationState } from "@tanstack/react-table";
 import { getColumns } from "./components/Columns";
 import { RegistrationTableToolbar } from "./components/RegistrationTableToolbar";
 import { RegistrationDialog } from "./components/RegistrationDialog";
-import { RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -29,7 +28,7 @@ const InstructorRegistrationPage = () => {
 
     // URL Params State
     const pageNumber = Number(searchParams.get("pageNumber")) || 1;
-    const pageSize = Number(searchParams.get("pageSize")) || 8;
+    const pageSize = Number(searchParams.get("pageSize")) || 12;
     const isDescendingParam = searchParams.get("isDescending");
     const isDescending = isDescendingParam === "false" ? false : true;
     const verificationStatus = searchParams.get("verificationStatus") || "";
@@ -45,7 +44,7 @@ const InstructorRegistrationPage = () => {
         if (!hasPageNumber || !hasPageSize) {
             const params = new URLSearchParams(searchParams.toString());
             if (!hasPageNumber) params.set("pageNumber", "1");
-            if (!hasPageSize) params.set("pageSize", "8");
+            if (!hasPageSize) params.set("pageSize", "10");
             router.replace(`${pathname}?${params.toString()}`);
         }
     }, []);
@@ -201,26 +200,20 @@ const InstructorRegistrationPage = () => {
     }), []);
 
     return (
-        <div className={`h-full flex-1 flex-col space-y-8 ${isMobile ? 'p-2 space-y-4' : 'p-8'} flex`}>
-            <div className="flex items-center justify-between space-y-2">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Duyệt đơn đăng ký giảng viên</h2>
-                    <p className="text-muted-foreground">
-                        Quản lý và xét duyệt các yêu cầu trở thành giảng viên.
-                    </p>
+        <div className={`h-full flex-1 flex-col space-y-4 ${isMobile ? 'p-2 space-y-4' : 'p-2'} flex`}>
+            {isMobile && (
+                <div className="flex items-center justify-between space-y-2">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">Duyệt đơn đăng ký giảng viên</h2>
+                        <p className="text-muted-foreground">
+                            Quản lý và xét duyệt các yêu cầu trở thành giảng viên.
+                        </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        {/* Removed header Refresh Button */}
+                    </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-9 w-9 rounded-xl"
-                        onClick={() => refetch()}
-                        disabled={isLoading || isFetching}
-                    >
-                        <RotateCw className={`h-4 w-4 ${isLoading || isFetching ? "animate-spin" : ""}`} />
-                    </Button>
-                </div>
-            </div>
+            )}
 
             {error && (
                 <Alert variant="destructive">
@@ -245,6 +238,8 @@ const InstructorRegistrationPage = () => {
                                 onSearchChange={handleSearchChange}
                                 statusFilter={verificationStatus}
                                 onStatusChange={handleStatusChange}
+                                onRefresh={refetch}
+                                isFetching={isFetching}
                             />
                             <div className="grid gap-4">
                                 {registrations.map((registration) => (
@@ -334,6 +329,8 @@ const InstructorRegistrationPage = () => {
                                     onSearchChange={handleSearchChange}
                                     statusFilter={verificationStatus}
                                     onStatusChange={handleStatusChange}
+                                    onRefresh={refetch}
+                                    isFetching={isFetching}
                                 />
                             )}
                         </DataTable>
