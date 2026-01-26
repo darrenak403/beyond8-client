@@ -323,7 +323,6 @@ const UserManagementPage = () => {
             >
               {(table) => (
                 <UserTableToolbar
-                  table={table}
                   onAdd={handleAdd}
                   searchValue={searchValue}
                   onSearchChange={setSearchValue}
