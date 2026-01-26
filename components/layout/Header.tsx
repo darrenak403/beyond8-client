@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
-import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell, Receipt } from "lucide-react";
+import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -456,12 +456,12 @@ export function Header() {
                       Khóa học của tôi
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                  {/* <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
                     <Link href="/mybeyond?tab=mywallet" className="flex items-center gap-2">
                       <Receipt className="h-4 w-4" />
                       Ví của tôi
                     </Link>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                   {isMobile && (showInstructorDashboard || showRegisterInstructor) && (
                     <>
                       <DropdownMenuSeparator />
