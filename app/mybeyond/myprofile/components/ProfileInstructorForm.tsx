@@ -150,7 +150,6 @@ export default function ProfileInstructorForm() {
     }
   }, [initialFormData, instructorProfile]);
 
-  // Initialize tags from formData
   useEffect(() => {
     if (formData.expertise) {
       const tags = formData.expertise.split(',').map(s => s.trim()).filter(Boolean);
@@ -162,11 +161,39 @@ export default function ProfileInstructorForm() {
     }
   }, [formData.expertise, formData.teachingLanguages]);
 
+  const hasChanges = useMemo(() => {
+    if (!instructorProfile) return false;
+
+    const basicFieldsChanged = 
+      formData.bio !== (instructorProfile.bio || "") ||
+      formData.headline !== (instructorProfile.headline || "") ||
+      formData.socialLinks.facebook !== (instructorProfile.socialLinks.facebook || "") ||
+      formData.socialLinks.linkedIn !== (instructorProfile.socialLinks.linkedIn || "") ||
+      formData.socialLinks.website !== (instructorProfile.socialLinks.website || "");
+
+    const currentExpertise = expertiseTags.length > 0 ? expertiseTags : (formData.expertise ? formData.expertise.split(',').map(s => s.trim()).filter(Boolean) : []);
+    const originalExpertise = instructorProfile.expertiseAreas || [];
+    const expertiseChanged = JSON.stringify(currentExpertise.sort()) !== JSON.stringify(originalExpertise.sort());
+
+    const currentLanguages = languageTags.length > 0 ? languageTags : (formData.teachingLanguages ? formData.teachingLanguages.split(',').map(s => s.trim()).filter(Boolean) : []);
+    const originalLanguages = instructorProfile.teachingLanguages || [];
+    const languagesChanged = JSON.stringify(currentLanguages.sort()) !== JSON.stringify(originalLanguages.sort());
+
+    const educationChanged = JSON.stringify(educationList) !== JSON.stringify(instructorProfile.education || []);
+
+    const workChanged = JSON.stringify(workList) !== JSON.stringify(instructorProfile.workExperience || []);
+
+    const certificatesChanged = JSON.stringify(certificateList) !== JSON.stringify(instructorProfile.certificates || []);
+
+    const videoChanged = introVideoUrl !== (instructorProfile.introVideoUrl || null);
+
+    return basicFieldsChanged || expertiseChanged || languagesChanged || educationChanged || workChanged || certificatesChanged || videoChanged;
+  }, [formData, expertiseTags, languageTags, educationList, workList, certificateList, introVideoUrl, instructorProfile]);
+
   const handleChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 
-  // Tag handlers for expertise
   const handleAddExpertiseTag = (tag: string) => {
     if (tag && !expertiseTags.includes(tag)) {
       const newTags = [...expertiseTags, tag];
@@ -189,7 +216,6 @@ export default function ProfileInstructorForm() {
     }
   };
 
-  // Tag handlers for languages
   const handleAddLanguageTag = (language: string) => {
     if (language && !languageTags.includes(language)) {
       const newTags = [...languageTags, language];
@@ -291,7 +317,18 @@ export default function ProfileInstructorForm() {
     value: string | boolean
   ) => {
     const newList = [...workList];
-    newList[index] = { ...newList[index], [field]: value };
+    
+    // Nếu đang bật "Đang làm việc tại đây", set trường "to" thành null
+    if (field === 'isCurrentJob' && value === true) {
+      newList[index] = {
+        ...newList[index],
+        [field]: value,
+        to: null
+      };
+    } else {
+      newList[index] = { ...newList[index], [field]: value };
+    }
+    
     setWorkList(newList);
   };
 
@@ -1065,9 +1102,7 @@ export default function ProfileInstructorForm() {
                                 newList[index] = {
                                   ...newList[index],
                                   isCurrentJob: checked,
-                                  to: checked
-                                    ? new Date().toISOString().split("T")[0]
-                                    : newList[index].to,
+                                  to: checked ? null : newList[index].to,
                                 };
                                 setWorkList(newList);
                               }}
@@ -1670,7 +1705,13 @@ export default function ProfileInstructorForm() {
             >
               Hủy thay đổi
             </Button> */}
-            <Button type="button" size="sm" onClick={handleSubmit} className="rounded-2xl">
+            <Button 
+              type="button" 
+              size="sm" 
+              onClick={handleSubmit} 
+              disabled={!hasChanges || isUpdating}
+              className="rounded-2xl"
+            >
               {isUpdating ? "Đang cập nhật..." : "Lưu thay đổi"}
             </Button>
           </>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/useMobile";
-import { useInstructorRegistration } from "@/hooks/useInstructorRegistration";
+import { useInstructorRegistration, useCheckAIHealth } from "@/hooks/useInstructorRegistration";
 import InstructorRegisHeader from "./components/InstructorRegisHeader";
 import InstructorRegisFooter from "./components/InstructorRegisFooter";
 import InstructorRegisSidebar from "./components/InstructorRegisSidebar";
@@ -17,8 +17,18 @@ import Step6AdditionalInfo from "./components/Step5AdditionalInfo";
 import { toast } from "sonner";
 import Step6AIVerification from "./components/Step6AIVerification";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
-import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 import { toISOFromDDMMYYYY } from "@/lib/utils/formatDate";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { X, Loader2, AlertCircle } from "lucide-react";
 
 interface InstructorFormData {
   frontImg: string;
@@ -57,7 +67,7 @@ interface InstructorFormData {
     company: string;
     role: string;
     from: string;
-    to: string;
+    to: string | null;
     isCurrentJob: boolean;
     description: string | null;
   }>;
@@ -91,6 +101,7 @@ export default function InstructorRegistrationPage() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const { registerAsync, isRegistering } = useInstructorRegistration();
+  const { isAIAvailable, isLoading: isCheckingAI } = useCheckAIHealth();
   const [currentStep, setCurrentStep] = useState(1);
   const [reviewResult, setReviewResult] = useState<{ isAccepted: boolean } | null>(null);
   const [showAIDialog, setShowAIDialog] = useState(false);
@@ -492,6 +503,7 @@ export default function InstructorRegistrationPage() {
                       }}
                       isSubmitting={isRegistering}
                       onReviewComplete={(result) => setReviewResult(result)}
+                      onNavigateToStep={(step) => setCurrentStep(step)}
                     />
                   </motion.div>
                 )}
@@ -513,17 +525,50 @@ export default function InstructorRegistrationPage() {
       />
 
       {/* AI Review Dialog */}
-      <ConfirmDialog
-        open={showAIDialog}
-        onOpenChange={setShowAIDialog}
-        onConfirm={handleUseAI}
-        onCancel={handleSkipAI}
-        title="Xác thực hồ sơ bằng AI"
-        description="Sử dụng AI để có thể dễ dàng kiểm tra tính hợp lệ của hồ sơ. Bạn có muốn sử dụng AI review không?"
-        confirmText="Review cùng AI"
-        cancelText="Nộp hồ sơ ngay"
-        variant="default"
-      />
+      <AlertDialog open={showAIDialog} onOpenChange={setShowAIDialog}>
+        <AlertDialogContent className="w-[95%] sm:w-full rounded-lg">
+          <button
+            onClick={() => setShowAIDialog(false)}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none z-10"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Đóng</span>
+          </button>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác thực hồ sơ bằng AI</AlertDialogTitle>
+            <AlertDialogDescription className="border rounded-md bg-gray-100 p-3">
+              {isCheckingAI ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Đang kiểm tra dịch vụ AI...</span>
+                </div>
+              ) : isAIAvailable ? (
+                "Sử dụng AI để có thể dễ dàng kiểm tra tính hợp lệ của hồ sơ. Bạn có muốn sử dụng AI review không?"
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-yellow-600">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="font-semibold">Dịch vụ AI hiện không khả dụng</span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Bạn có thể nộp hồ sơ trực tiếp mà không cần xác thực AI. Hồ sơ của bạn sẽ được xem xét bởi đội ngũ quản trị.
+                  </p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleSkipAI}>
+              Nộp hồ sơ ngay
+            </AlertDialogCancel>
+            {isAIAvailable && !isCheckingAI && (
+              <AlertDialogAction onClick={handleUseAI}>
+                Review cùng AI
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

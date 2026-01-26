@@ -20,32 +20,19 @@ export function useSignalRNotifications() {
       }
 
       const handleInstructorApplicationSubmitted = (data: {
-        userId?: string
-        profileId?: string
-        instructorName?: string
-        email?: string
-        profileUrl?: string
-        timestamp?: string | Date
+        Title?: string
+        Message?: string
+        Metadata?: {
+          userId?: string
+        }
       }) => {
         console.log('[SignalR] Received InstructorApplicationSubmitted:', data)
-        const { instructorName, timestamp } = data
-
-        const timeStr = timestamp
-          ? new Date(timestamp).toLocaleString('vi-VN', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          : undefined
+        const { Title, Message } = data
 
         toast.info(
-          instructorName
-            ? `Có đơn đăng ký giảng viên mới từ ${instructorName}`
-            : 'Có đơn đăng ký giảng viên mới',
+          Title || 'Có đơn đăng ký giảng viên mới',
           {
-            description: timeStr ? `Thời gian: ${timeStr}` : undefined,
+            description: Message,
             duration: 5000,
             action: {
               label: 'Xem chi tiết',
@@ -59,11 +46,32 @@ export function useSignalRNotifications() {
         )
       }
 
+      const handleRequireReLogin = (data: {
+        title?: string
+        message?: string
+        requireReLogin?: boolean
+      }) => {
+        console.log('[SignalR] Received RequireReLogin:', data)
+        const { title, message, requireReLogin } = data
+
+        if (requireReLogin) {
+          toast.warning(
+            title || 'Yêu cầu đăng nhập lại',
+            {
+              description: message || 'Tài khoản của bạn đã được duyệt thành công. Vui lòng đăng xuất và đăng nhập lại để cập nhật quyền truy cập.',
+              duration: 10000,
+            }
+          )
+        }
+      }
+
       connection.on('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
+      connection.on('RequireReLogin', handleRequireReLogin)
       console.log('[SignalR] Notification listeners registered successfully')
 
       const cleanup = () => {
         connection.off('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
+        connection.off('RequireReLogin', handleRequireReLogin)
       }
       handlersRef.current.push(cleanup)
     }
