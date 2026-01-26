@@ -54,8 +54,12 @@ export function middleware(request: NextRequest) {
     '/register',
     '/reset-password',
     '/forgot-password',
-    '/sitemap.xml'
   ]
+
+  // Static files and XML sitemaps should always be accessible
+  if (pathname === '/sitemap.xml' || pathname.endsWith('.xml') || pathname.endsWith('.json')) {
+    return NextResponse.next()
+  }
 
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
