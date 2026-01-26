@@ -100,7 +100,7 @@ export default function CourseToolBar({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={getPlaceholderByCategory(currentCategory)}
-            className="pl-10 h-10 bg-white rounded-2xl border border-purple-200"
+            className="pl-10 h-10 bg-white rounded-2xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
