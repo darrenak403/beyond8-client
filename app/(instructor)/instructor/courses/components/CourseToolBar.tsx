@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   List as ListIcon,
   SlidersHorizontal,
+  Plus,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
@@ -157,6 +158,13 @@ export default function CourseToolBar({
         >
           <SlidersHorizontal className="w-4 h-4" />
           {!isMobile && 'Bộ lọc'}
+        </Button>
+        <Button 
+          variant="outline" 
+          className="h-10 px-4 gap-2 border-border bg-gray-100 hover:bg-gray-200 rounded-2xl hover:text-black"
+        >
+          <Plus className="w-4 h-4" />
+          {!isMobile && 'Thêm khóa học'}
         </Button>
       </div>
     </div>
