@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { User } from "@/lib/api/services/fetchUsers"
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 import { Edit, BanIcon, CircleCheckBig, Calendar } from "lucide-react"
-import { RoleBadges } from "./RoleBadge"
+import { RoleBadgeItem } from "./RoleBadge"
 import { format } from "date-fns"
 
 interface MobileUserCardProps {
@@ -50,7 +50,13 @@ export function MobileUserCard({ user, onEdit, onDelete, onChangeStatus }: Mobil
                 <div className="flex flex-col gap-1">
                     <span className="text-muted-foreground font-medium">Vai trò</span>
                     <div className="flex flex-wrap gap-1">
-                        <RoleBadges roles={user.roles || []} />
+                        {user.roles && user.roles.length > 0 ? (
+                            user.roles.map((role) => (
+                                <RoleBadgeItem key={role} role={role} variant="default" className="text-[10px] px-1.5 py-0 h-5" />
+                            ))
+                        ) : (
+                            <span className="text-muted-foreground italic">Chưa có vai trò</span>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-col gap-1 items-end">
