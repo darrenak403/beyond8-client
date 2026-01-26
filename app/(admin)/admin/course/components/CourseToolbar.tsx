@@ -5,6 +5,7 @@ import {
     LayoutGrid,
     List as ListIcon,
     SlidersHorizontal,
+    RotateCw,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
@@ -24,6 +25,8 @@ interface CourseToolbarProps {
     setSearchQuery: (query: string) => void
     totalCount: number
     isMobile: boolean
+    onRefresh: () => void
+    isLoading: boolean
 }
 
 export default function CourseToolbar({
@@ -32,7 +35,9 @@ export default function CourseToolbar({
     searchQuery,
     setSearchQuery,
     totalCount,
-    isMobile
+    isMobile,
+    onRefresh,
+    isLoading
 }: CourseToolbarProps) {
     return (
         <div className="flex items-center gap-4">
@@ -112,6 +117,17 @@ export default function CourseToolbar({
                     <SelectItem value="price-desc">Giá giảm dần</SelectItem>
                 </SelectContent>
             </Select>
+
+            {/* Refresh Button - Moved to end */}
+            <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 rounded-full shrink-0 border-slate-200 shadow-sm bg-white"
+                onClick={onRefresh}
+                disabled={isLoading}
+            >
+                <RotateCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            </Button>
         </div>
     )
 }

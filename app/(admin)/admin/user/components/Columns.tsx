@@ -96,6 +96,27 @@ export const getColumns = ({
             },
         },
         {
+            accessorKey: "phoneNumber",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="SĐT" />
+            ),
+            cell: ({ row }) => {
+                const phone = row.original.phoneNumber
+                return <span>{phone || "-"}</span>
+            },
+        },
+        {
+            accessorKey: "dateOfBirth",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Ngày sinh" />
+            ),
+            cell: ({ row }) => {
+                const dob = row.original.dateOfBirth
+                if (!dob) return <span className="text-muted-foreground">-</span>
+                return <span>{new Date(dob).toLocaleDateString("vi-VN")}</span>
+            },
+        },
+        {
             accessorKey: "status",
             header: ({ column }) => (
                 <DataTableColumnHeader column={column} title="Trạng thái" />

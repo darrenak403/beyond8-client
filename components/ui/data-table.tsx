@@ -86,7 +86,7 @@ export function DataTable<TData, TValue>({
     })
 
     return (
-        <div className="space-y-4 min-h-[calc(100vh-200px)] flex flex-col">
+        <div className="space-y-4 min-h-[calc(100vh-75px)] flex flex-col">
             {children ? children(table) : (<DataTableViewOptions table={table} />)}
             <div className="rounded-md border">
                 <Table>
