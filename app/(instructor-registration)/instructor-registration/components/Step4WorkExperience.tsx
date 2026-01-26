@@ -16,7 +16,7 @@ interface WorkExperience {
   company: string;
   role: string;
   from: string;
-  to: string;
+  to: string | null;
   isCurrentJob: boolean;
   description: string | null;
 }
@@ -46,12 +46,12 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
   const handleChange = (index: number, field: keyof WorkExperience, value: string | boolean | null) => {
     const newWorkExperience = [...data.workExperience];
 
-    // Nếu đang bật "Đang làm việc tại đây", tự động set ngày hiện tại vào trường "to"
+    // Nếu đang bật "Đang làm việc tại đây", set trường "to" thành null
     if (field === 'isCurrentJob' && value === true) {
       newWorkExperience[index] = {
         ...newWorkExperience[index],
         [field]: value,
-        to: new Date().toISOString()
+        to: null
       };
     } else {
       newWorkExperience[index] = { ...newWorkExperience[index], [field]: value };
@@ -322,7 +322,7 @@ export default function Step5WorkExperience({ data, onChange }: Step5Props) {
                                 <CalendarIcon className="w-4 h-4" />
                                 <span>
                                   {work.from
-                                    ? `${formatDisplayDate(work.from)} - ${formatDisplayDate(work.to) || "N/A"}`
+                                    ? `${formatDisplayDate(work.from)} - ${formatDisplayDate(work.to ?? "") || "N/A"}`
                                     : "Chưa có thời gian"}
                                 </span>
                               </div>
