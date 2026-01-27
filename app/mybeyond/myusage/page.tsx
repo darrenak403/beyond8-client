@@ -92,12 +92,6 @@ export default function AIUsagePage() {
                     <h2 className="text-4xl font-black tracking-tighter text-gray-900 uppercase">Lịch sử hoạt động AI</h2>
                     <p className="text-gray-500 font-medium">Theo dõi mức sử dụng và tối ưu hóa chi phí AI của bạn.</p>
                 </div>
-                <div className="flex gap-2">
-                    <div className="px-4 py-2 bg-purple-50 rounded-2xl border border-purple-100">
-                        <span className="text-xs font-bold text-purple-600 uppercase tracking-widest">Active Model</span>
-                        <div className="text-sm font-black text-gray-900">GPT-4 Omni</div>
-                    </div>
-                </div>
             </div>
 
             {/* Stats Cards Grid - Replace Charts Row */}
