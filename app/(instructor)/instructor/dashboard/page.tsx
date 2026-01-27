@@ -8,7 +8,6 @@ import { useIsMobile } from "@/hooks/useMobile";
 
 export default function InstructorDashboard() {
   const isMobile = useIsMobile();
-
   // Mock data - replace with actual API calls
   const stats = {
     totalStudents: 1250,
@@ -20,7 +19,7 @@ export default function InstructorDashboard() {
   return (
     <div className="space-y-6 sm:space-y-8 mx-auto max-w-[1650px] flex flex-col gap-3">
       <div className="flex flex-col gap-2 m-0">
-        <h1 className="text-2xl font-bold">Chào mừng đến với trang quản lý của bạn</h1>
+        <h1 className="text-2xl font-bold">Chào mừng bạn quay trở lại</h1>
         <p className="text-muted-foreground">Dưới đây là tổng quan về các khóa học của bạn</p>
       </div>
       {/* Stats Cards */}

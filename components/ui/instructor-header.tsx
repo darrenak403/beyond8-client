@@ -25,7 +25,6 @@ import gsap from "gsap";
 const navItems = [
   { name: "Tổng quan", href: "/instructor/dashboard" },
   { name: "Khóa học của tôi", href: "/instructor/courses" },
-  { name: "Học sinh", href: "/instructor/students" },
   { name: "Ví của tôi", href: "/instructor/wallet" },
 ];
 

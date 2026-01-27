@@ -3,6 +3,7 @@
 import { ReactNode } from 'react'
 import { useSignalR } from '@/hooks/useSignalR'
 import { useSignalRNotifications } from '@/hooks/useSignalRNotifications'
+import { RequireReLoginDialog } from '@/components/widget/require-relogin-dialog'
 
 /**
  * Auto-connects to SignalR when the app is loaded in the browser.
@@ -11,7 +12,18 @@ import { useSignalRNotifications } from '@/hooks/useSignalRNotifications'
  */
 export function SignalRProvider({ children }: { children: ReactNode }) {
   useSignalR(true)
-  useSignalRNotifications() // Auto-show toast for SignalR messages
-  return <>{children}</>
+  const { showReLoginDialog, reLoginMessage, handleLogout } = useSignalRNotifications()
+  
+  return (
+    <>
+      {children}
+      <RequireReLoginDialog
+        open={showReLoginDialog}
+        onLogout={handleLogout}
+        title={reLoginMessage.title}
+        description={reLoginMessage.description}
+      />
+    </>
+  )
 }
 
