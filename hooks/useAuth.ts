@@ -1,6 +1,6 @@
-import { fetchAuth, LoginRequest, LoginResponse, ResetPasswordRequest, token, VerifyOtpRequest } from '@/lib/api/services/fetchAuth';
+import { fetchAuth, LoginRequest, LoginResponse, ResetPasswordRequest, VerifyOtpRequest } from '@/lib/api/services/fetchAuth';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks'
-import { selectAuth, selectUser, selectIsAuthenticated, setToken, decodeToken, logout } from '@/lib/redux/slices/authSlice'
+import { selectAuth, selectUser, selectIsAuthenticated, selectRefreshToken, setToken, setTokenWithRefresh, decodeToken, logout } from '@/lib/redux/slices/authSlice'
 import { Roles } from '@/lib/types/roles'
 import { ApiResponse } from '@/types/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -29,7 +29,11 @@ export function useLogin() {
       return response;
     },
     onSuccess: (data) => {
-      dispatch(setToken(data.data.accessToken));
+      // Store both access token and refresh token in Redux
+      dispatch(setTokenWithRefresh({
+        accessToken: data.data.accessToken,
+        refreshToken: data.data.refreshToken
+      }));
       setCookie('authToken', data.data.accessToken, getAuthCookieConfig());
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       setError(null);
@@ -245,6 +249,52 @@ export function useResendOtp() {
 
   return {
     mutateResendOtp,
+    isLoading,
+  };
+}
+
+export function useRefreshToken() {
+  const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
+  const refreshToken = useAppSelector(selectRefreshToken);
+
+  const { mutate: mutateRefreshToken, isPending: isLoading } = useMutation({
+    mutationFn: async (): Promise<LoginResponse> => {
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+      const response = await fetchAuth.refreshToken(refreshToken);
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response;
+    },
+    onSuccess: (data) => {
+      // Update both access token and refresh token in Redux
+      dispatch(setTokenWithRefresh({
+        accessToken: data.data.accessToken,
+        refreshToken: data.data.refreshToken
+      }));
+      setCookie('authToken', data.data.accessToken, getAuthCookieConfig());
+      
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
+      queryClient.invalidateQueries({ queryKey: ['instructorProfile'] });
+      
+      // Reconnect SignalR with new token
+      reconnectHubConnection().catch(err => {
+        console.error('[SignalR] Failed to reconnect after token refresh:', err);
+      });
+
+      toast.success('Đã cập nhật quyền truy cập thành công!');
+    },
+    onError: (error: LoginResponse) => {
+      toast.error(error.message || 'Làm mới token thất bại!');
+    },
+  });
+
+  return {
+    mutateRefreshToken,
     isLoading,
   };
 }
