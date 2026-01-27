@@ -4,9 +4,11 @@ import { useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { getHubConnection } from '@/lib/realtime/signalr'
 import { HubConnectionState } from '@microsoft/signalr'
+import { useRefreshToken } from '@/hooks/useAuth'
 
 export function useSignalRNotifications() {
   const handlersRef = useRef<Array<() => void>>([])
+  const { mutateRefreshToken } = useRefreshToken()
 
   useEffect(() => {
     console.log('[SignalR] useSignalRNotifications hook mounted')
@@ -20,19 +22,18 @@ export function useSignalRNotifications() {
       }
 
       const handleInstructorApplicationSubmitted = (data: {
-        Title?: string
-        Message?: string
-        Metadata?: {
+        title?: string
+        message?: string
+        metadata?: {
           userId?: string
         }
       }) => {
-        console.log('[SignalR] Received InstructorApplicationSubmitted:', data)
-        const { Title, Message } = data
+        const { title, message } = data
 
         toast.info(
-          Title || 'Có đơn đăng ký giảng viên mới',
+          title || 'Có đơn đăng ký giảng viên mới',
           {
-            description: Message,
+            description: message,
             duration: 5000,
             action: {
               label: 'Xem chi tiết',
@@ -47,29 +48,31 @@ export function useSignalRNotifications() {
       }
 
       const handleRequireReLogin = (data: {
-        Title?: string
-        Message?: string
-        Metadata?: {
-          RequireReLogin?: boolean
+        title?: string
+        message?: string
+        metadata?: {
+          requireReLogin?: boolean
         }
       }) => {
-        console.log('[SignalR] Received RequireReLogin:', data)
-        const { Title, Message, Metadata } = data
+        const { title, message, metadata } = data
+        console.log('[SignalR] Received RequireReLogin:', data.metadata?.requireReLogin)
 
-        if (Metadata?.RequireReLogin) {
-          toast.warning(
-            Title || 'Yêu cầu đăng nhập lại',
+        if (metadata?.requireReLogin) {
+          toast.info(
+            title || 'Cập nhật quyền truy cập',
             {
-              description: Message || 'Tài khoản của bạn đã được duyệt thành công. Vui lòng đăng xuất và đăng nhập lại để cập nhật quyền truy cập.',
-              duration: 10000,
+              description: message || 'Tài khoản của bạn đã được duyệt thành công. Đang cập nhật quyền truy cập...',
+              duration: 5000,
             }
           )
+
+          // Refresh token automatically using Redux state
+          mutateRefreshToken()
         }
       }
 
       connection.on('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
       connection.on('RequireReLogin', handleRequireReLogin)
-      console.log('[SignalR] Notification listeners registered successfully')
 
       const cleanup = () => {
         connection.off('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
@@ -81,10 +84,8 @@ export function useSignalRNotifications() {
     if (connection.state === HubConnectionState.Connected) {
       setupListeners()
     } else {
-      console.log('[SignalR] Connection not ready, will retry when connected...')
       const checkInterval = setInterval(() => {
         if (connection.state === HubConnectionState.Connected) {
-          console.log('[SignalR] Connection now ready, setting up listeners')
           setupListeners()
           clearInterval(checkInterval)
         }
@@ -112,5 +113,5 @@ export function useSignalRNotifications() {
       handlersRef.current.forEach(cleanup => cleanup())
       handlersRef.current = []
     }
-  }, [])
+  }, [mutateRefreshToken])
 }

@@ -18,6 +18,7 @@ export interface User {
 interface AuthState {
   user: User | null
   token: string | null
+  refreshToken: string | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
@@ -27,6 +28,7 @@ interface AuthState {
 const initialState: AuthState = {
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -131,9 +133,21 @@ const authSlice = createSlice({
         state.isAuthenticated = true
       }
     },
+    setTokenWithRefresh: (state, action: PayloadAction<{ accessToken: string; refreshToken: string }>) => {
+      state.token = action.payload.accessToken
+      state.refreshToken = action.payload.refreshToken
+      apiService.setAuthToken(action.payload.accessToken)
+
+      const user = decodeToken(action.payload.accessToken)
+      if (user) {
+        state.user = user
+        state.isAuthenticated = true
+      }
+    },
     logout: (state) => {
       state.user = null
       state.token = null
+      state.refreshToken = null
       state.isAuthenticated = false
       state.error = null
       deleteCookie('authToken', { path: '/' })
@@ -194,13 +208,13 @@ const authSlice = createSlice({
 })
 
 // Actions
-export const { setCredentials, setToken, logout, clearError } = authSlice.actions
+export const { setCredentials, setToken, setTokenWithRefresh, logout, clearError } = authSlice.actions
 
 // Selectors
 export const selectAuth = (state: RootState) => state.auth
 export const selectUser = (state: RootState) => state.auth.user
 export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated
 export const selectAuthToken = (state: RootState) => state.auth.token
+export const selectRefreshToken = (state: RootState) => state.auth.refreshToken
 
 export default authSlice.reducer
-
