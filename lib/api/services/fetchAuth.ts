@@ -96,6 +96,11 @@ export const fetchAuth = {
     return response.data;
   },
 
+  refreshToken: async (refreshToken: string): Promise<LoginResponse> => {
+    const response = await apiService.post<LoginResponse>("api/v1/auth/refresh-token", { refreshToken });
+    return response.data;
+  },
+
   logout: async (): Promise<LogoutResponse> => {
     const response = await apiService.post<LogoutResponse>("api/v1/auth/logout");
     return response.data;

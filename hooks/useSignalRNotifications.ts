@@ -1,16 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { getHubConnection } from '@/lib/realtime/signalr'
 import { HubConnectionState } from '@microsoft/signalr'
-import { useLogout } from '@/hooks/useAuth'
+import { useRefreshToken } from '@/hooks/useAuth'
 
 export function useSignalRNotifications() {
   const handlersRef = useRef<Array<() => void>>([])
-  const { mutateLogout } = useLogout()
-  const [showReLoginDialog, setShowReLoginDialog] = useState(false)
-  const [reLoginMessage, setReLoginMessage] = useState({ title: '', description: '' })
+  const { mutateRefreshToken } = useRefreshToken()
 
   useEffect(() => {
     console.log('[SignalR] useSignalRNotifications hook mounted')
@@ -60,11 +58,16 @@ export function useSignalRNotifications() {
         console.log('[SignalR] Received RequireReLogin:', data.metadata?.requireReLogin)
 
         if (metadata?.requireReLogin) {
-          setReLoginMessage({
-            title: title || 'Yêu cầu đăng nhập lại',
-            description: message || 'Tài khoản của bạn đã được duyệt thành công. Vui lòng đăng xuất và đăng nhập lại để cập nhật quyền truy cập.'
-          })
-          setShowReLoginDialog(true)
+          toast.info(
+            title || 'Cập nhật quyền truy cập',
+            {
+              description: message || 'Tài khoản của bạn đã được duyệt thành công. Đang cập nhật quyền truy cập...',
+              duration: 5000,
+            }
+          )
+
+          // Refresh token automatically using Redux state
+          mutateRefreshToken()
         }
       }
 
@@ -110,16 +113,5 @@ export function useSignalRNotifications() {
       handlersRef.current.forEach(cleanup => cleanup())
       handlersRef.current = []
     }
-  }, [])
-
-  const handleLogout = () => {
-    setShowReLoginDialog(false)
-    mutateLogout()
-  }
-
-  return {
-    showReLoginDialog,
-    reLoginMessage,
-    handleLogout,
-  }
+  }, [mutateRefreshToken])
 }
