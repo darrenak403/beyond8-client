@@ -66,7 +66,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="vi">
+    <html lang="vi" suppressHydrationWarning>
       <body className={`${openSans.variable} ${quicksand.variable} antialiased`}>
         <Providers>{children}</Providers>
         <Toaster position="bottom-center" expand={true} closeButton={true} />

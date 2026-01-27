@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { AIPrompt } from "@/lib/api/services/fetchAI"
+import { AIPrompt } from '@/hooks/useAI';
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2, Power } from "lucide-react"

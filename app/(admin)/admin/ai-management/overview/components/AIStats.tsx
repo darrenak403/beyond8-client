@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AIUsageStatistics } from '@/lib/api/services/fetchAI';
+import { AIUsageStatistics } from '@/hooks/useAI';
 import { Activity, Coins, Database, Layers } from 'lucide-react';
 
 interface AIStatsProps {

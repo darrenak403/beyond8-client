@@ -4,50 +4,22 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useIsMobile } from "@/hooks/useMobile";
-import { useAuth } from "@/hooks/useAuth";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
 import SidebarProfile from "@/components/ui/sidebar-profile";
 
 export default function MyBeyondLayout({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isMobile = useIsMobile();
-  const { role } = useAuth();
 
   const currentTab = searchParams.get("tab") || "myprofile";
-
-  // Check access permissions and redirect if needed
-  useEffect(() => {
-    if (!role) return;
-
-    // Define access rules
-    const accessRules: Record<string, string[]> = {
-      mycourse: ["ROLE_STUDENT", "ROLE_INSTRUCTOR"],
-      myprofile: ["ROLE_STUDENT", "ROLE_INSTRUCTOR", "ROLE_ADMIN"],
-      mywallet: ["ROLE_INSTRUCTOR"],
-    };
-
-    const allowedRoles = accessRules[currentTab];
-    
-    // If tab doesn't exist in rules, it's invalid - redirect to myprofile
-    if (!allowedRoles) {
-      router.replace("/mybeyond?tab=myprofile");
-      return;
-    }
-
-    // If user doesn't have access to this tab, redirect to myprofile
-    if (!role || !role.some(r => allowedRoles.includes(r))) {
-      router.replace("/mybeyond?tab=myprofile");
-      return;
-    }
-  }, [currentTab, role, router]);
 
   const handleTabChange = (value: string) => {
     router.push(`/mybeyond?tab=${value}`);
   };
 
-  // Hide sidebar for Admin role
-  const showSidebar = !role?.includes("ROLE_ADMIN");
+  // Always show sidebar (filtered by SidebarProfile component)
+  const showSidebar = true;
 
   return (
     <div className="min-h-screen flex flex-col">

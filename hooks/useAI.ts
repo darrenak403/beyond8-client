@@ -1,11 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { 
   fetchAI, 
-  GetUsageHistoryParams, 
-  GetAIPromptsParams, 
-  CreateAIPromptRequest, 
-  UpdateAIPromptRequest 
+  type GetUsageHistoryParams, 
+  type GetAIPromptsParams, 
+  type CreateAIPromptRequest, 
+  type UpdateAIPromptRequest,
+  type AIUsageStatistics, 
+  type AIUsageRecord,
+  type AIPrompt,
 } from '@/lib/api/services/fetchAI';
+
+export type { GetUsageHistoryParams, GetAIPromptsParams, CreateAIPromptRequest, UpdateAIPromptRequest, AIUsageStatistics, AIUsageRecord, AIPrompt };
 
 // Usage Hooks
 export function useAIUsageStatistics() {
@@ -38,6 +43,7 @@ export function useAIPrompts(params: GetAIPromptsParams) {
     queryKey: ['ai-prompts', params],
     queryFn: () => fetchAI.getPrompts(params),
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 }
 
