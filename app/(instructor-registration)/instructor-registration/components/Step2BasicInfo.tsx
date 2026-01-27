@@ -133,7 +133,7 @@ export default function Step2BasicInfo({ data, onChange }: Step2Props) {
               <div className="flex items-center gap-2">
                 {charCount < minChars ? (
                   <p className="text-sm text-orange-600">
-                     Cần ít nhất {minChars - charCount} ký tự nữa để hồ sơ của bạn nổi bật hơn
+                    Cần ít nhất {minChars - charCount} ký tự nữa để hồ sơ của bạn nổi bật hơn
                   </p>
                 ) : (
                   <p className="text-sm text-green-600">
@@ -185,7 +185,7 @@ export default function Step2BasicInfo({ data, onChange }: Step2Props) {
                       >
                         <Badge
                           variant="secondary"
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-1.5 py-0.5 flex items-center gap-0.5 text-[10px] font-medium shadow-sm"
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-1.5 py-0.5 flex items-center gap-0.5 text-xs font-medium shadow-sm"
                         >
                           {tag}
                           <button
@@ -206,14 +206,14 @@ export default function Step2BasicInfo({ data, onChange }: Step2Props) {
               {availableSuggestedTags.length > 0 && (
                 <div className="space-y-3">
                   <p className="text-sm font-medium text-gray-700">
-                     Gợi ý cho bạn:
+                    Gợi ý cho bạn:
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {availableSuggestedTags.slice(0, 15).map((tag) => (
                       <Badge
                         key={tag}
                         variant="outline"
-                        className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-[10px]"
+                        className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-xs"
                         onClick={() => handleAddTag(tag)}
                       >
                         + {tag}
@@ -225,7 +225,7 @@ export default function Step2BasicInfo({ data, onChange }: Step2Props) {
 
               {data.expertiseAreas.length === 0 && (
                 <p className="text-sm text-orange-600">
-                   Vui lòng chọn ít nhất 1 lĩnh vực chuyên môn
+                  Vui lòng chọn ít nhất 1 lĩnh vực chuyên môn
                 </p>
               )}
             </div>

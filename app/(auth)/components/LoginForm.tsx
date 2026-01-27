@@ -29,7 +29,7 @@ interface LoginValues {
 export function LoginForm() {
     const { mutateLogin, isLoading: isLoginLoading } = useLogin();
     const { mutateForgotPassword, isLoading: isForgotLoading } = useForgotPassword();
-    const { mutateResendOtp, isLoading: isResendLoading } = useResendOtp();
+    const { mutateResendOtp } = useResendOtp();
     const { mutateVerifyOtpForgotPassword, isLoading: isVerifyForgotLoading } = useVerifyOtpForgotPassword();
     const { mutateVerifyOtpRegister, isLoading: isVerifyRegisterLoading } = useVerifyOtpRegister();
     const router = useRouter();

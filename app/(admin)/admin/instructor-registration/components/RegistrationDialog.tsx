@@ -385,9 +385,9 @@ export function RegistrationDialog({
                                                                                             href={formatImageUrl(cert.url)}
                                                                                             target="_blank"
                                                                                             rel="noopener noreferrer"
-                                                                                            className="text-xs text-purple-600 hover:text-purple-700 hover:underline flex items-center gap-1 font-medium"
+                                                                                            className="text-sm text-purple-600 hover:text-purple-700 hover:underline flex items-center gap-1 font-medium"
                                                                                         >
-                                                                                            Xem <ExternalLink className="h-3 w-3" />
+                                                                                            Xem chứng chỉ<ExternalLink className="h-3 w-3" />
                                                                                         </a>
                                                                                     </>
                                                                                 )}
@@ -464,7 +464,7 @@ export function RegistrationDialog({
                                                 {/* Bottom Row: Account Holder */}
                                                 <div className="flex items-end justify-between border-t border-white/10 pt-4">
                                                     <div>
-                                                        <p className="text-[10px] font-medium text-slate-400 mb-1 uppercase tracking-wider">Chủ tài khoản</p>
+                                                        <p className="text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Chủ tài khoản</p>
                                                         <p className="font-semibold uppercase tracking-wide text-sm md:text-base">
                                                             {registration.bankInfo?.accountHolderName || "---"}
                                                         </p>

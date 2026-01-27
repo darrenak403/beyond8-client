@@ -181,246 +181,246 @@ export default function Step6AdditionalInfo({ data, onChange }: Step6Props) {
               transition={{ duration: 0.4, ease: "easeInOut" }}
               className="space-y-6"
             >
-            {/* Bank Information Card */}
-            <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b">
-                    <div className="flex items-center gap-2">
+              {/* Bank Information Card */}
+              <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-lg bg-purple-50">
+                          <CreditCard className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <h3 className="font-semibold text-gray-800">Thông tin thanh toán</h3>
+                        <span className="text-red-500">*</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedBank(null);
+                          onChange({
+                            ...data,
+                            bankInfo: { bankName: "", accountNumber: "", accountHolderName: "" }
+                          });
+                        }}
+                        className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 transition-colors"
+                      >
+                        Đổi ngân hàng
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-purple-600" />
+                          Tên ngân hàng <span className="text-red-500">*</span>
+                        </label>
+                        <div className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-700 flex items-center gap-2">
+                          <Check className="w-4 h-4 text-green-600" />
+                          {selectedBank}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-purple-600" />
+                          Số tài khoản <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                          placeholder="VD: 1234567890"
+                          value={data.bankInfo.accountNumber}
+                          onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountNumber: e.target.value } })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <User className="w-4 h-4 text-purple-600" />
+                          Tên chủ tài khoản <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                          placeholder="VD: NGUYEN VAN A"
+                          value={data.bankInfo.accountHolderName}
+                          onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountHolderName: e.target.value } })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <Hash className="w-4 h-4 text-purple-600" />
+                          Mã số thuế (không bắt buộc)
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                          placeholder="VD: 0123456789"
+                          value={data.taxId || ""}
+                          onChange={(e) => onChange({ ...data, taxId: e.target.value || null })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Teaching Languages Card */}
+              <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <label className="flex items-center gap-2 font-semibold text-gray-800">
                       <div className="p-2 rounded-lg bg-purple-50">
-                        <CreditCard className="w-5 h-5 text-purple-600" />
+                        <Languages className="w-5 h-5 text-purple-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-800">Thông tin thanh toán</h3>
+                      <span>Ngôn ngữ giảng dạy</span>
                       <span className="text-red-500">*</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedBank(null);
-                        onChange({
-                          ...data,
-                          bankInfo: { bankName: "", accountNumber: "", accountHolderName: "" }
-                        });
-                      }}
-                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 transition-colors"
-                    >
-                      Đổi ngân hàng
-                    </Button>
-                  </div>
+                    </label>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-purple-600" />
-                        Tên ngân hàng <span className="text-red-500">*</span>
-                      </label>
-                      <div className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-700 flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-600" />
-                        {selectedBank}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <CreditCard className="w-4 h-4 text-purple-600" />
-                        Số tài khoản <span className="text-red-500">*</span>
-                      </label>
+                    <div className="relative">
                       <input
                         type="text"
-                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
-                        placeholder="VD: 1234567890"
-                        value={data.bankInfo.accountNumber}
-                        onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountNumber: e.target.value } })}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-800 placeholder:text-gray-400 text-sm"
+                        placeholder="Nhập ngôn ngữ và nhấn Enter để thêm"
+                        value={customLanguage}
+                        onChange={(e) => setCustomLanguage(e.target.value)}
+                        onKeyDown={handleLanguageInputKeyDown}
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <User className="w-4 h-4 text-purple-600" />
-                        Tên chủ tài khoản <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
-                        placeholder="VD: NGUYEN VAN A"
-                        value={data.bankInfo.accountHolderName}
-                        onChange={(e) => onChange({ ...data, bankInfo: { ...data.bankInfo, accountHolderName: e.target.value } })}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <Hash className="w-4 h-4 text-purple-600" />
-                        Mã số thuế (không bắt buộc)
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
-                        placeholder="VD: 0123456789"
-                        value={data.taxId || ""}
-                        onChange={(e) => onChange({ ...data, taxId: e.target.value || null })}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Teaching Languages Card */}
-            <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <label className="flex items-center gap-2 font-semibold text-gray-800">
-                    <div className="p-2 rounded-lg bg-purple-50">
-                      <Languages className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <span>Ngôn ngữ giảng dạy</span>
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <div className="relative">
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-800 placeholder:text-gray-400 text-sm"
-                      placeholder="Nhập ngôn ngữ và nhấn Enter để thêm"
-                      value={customLanguage}
-                      onChange={(e) => setCustomLanguage(e.target.value)}
-                      onKeyDown={handleLanguageInputKeyDown}
-                    />
-                  </div>
-
-                  {/* Selected Languages */}
-                  {data.teachingLanguages.length > 0 && (
-                    <div className="p-4 bg-purple-50 rounded-xl">
-                      <p className="text-sm font-medium text-gray-700 mb-3">
-                        Đã chọn ({data.teachingLanguages.length}):
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {data.teachingLanguages.map((language, index) => (
-                          <motion.div
-                            key={language}
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0, opacity: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                          >
-                            <Badge
-                              variant="secondary"
-                              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-1.5 py-0.5 flex items-center gap-0.5 text-[10px] font-medium shadow-sm"
+                    {/* Selected Languages */}
+                    {data.teachingLanguages.length > 0 && (
+                      <div className="p-4 bg-purple-50 rounded-xl">
+                        <p className="text-sm font-medium text-gray-700 mb-3">
+                          Đã chọn ({data.teachingLanguages.length}):
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {data.teachingLanguages.map((language, index) => (
+                            <motion.div
+                              key={language}
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0, opacity: 0 }}
+                              transition={{ delay: index * 0.05 }}
                             >
-                              {language}
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveLanguage(language)}
-                                className="ml-0.5 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                              <Badge
+                                variant="secondary"
+                                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 px-1.5 py-0.5 flex items-center gap-0.5 text-xs font-medium shadow-sm"
                               >
-                                <X className="w-2.5 h-2.5" />
-                              </button>
+                                {language}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveLanguage(language)}
+                                  className="ml-0.5 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                                >
+                                  <X className="w-2.5 h-2.5" />
+                                </button>
+                              </Badge>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Suggested Languages */}
+                    {availableSuggestedLanguages.length > 0 && (
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-gray-700">
+                          🌐 Gợi ý cho bạn:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {availableSuggestedLanguages.map((language) => (
+                            <Badge
+                              key={language}
+                              variant="outline"
+                              className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-xs"
+                              onClick={() => handleAddLanguage(language)}
+                            >
+                              + {language}
                             </Badge>
-                          </motion.div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Suggested Languages */}
-                  {availableSuggestedLanguages.length > 0 && (
-                    <div className="space-y-3">
-                      <p className="text-sm font-medium text-gray-700">
-                        🌐 Gợi ý cho bạn:
+                    {data.teachingLanguages.length === 0 && (
+                      <p className="text-sm text-orange-600">
+                        ⚠ Vui lòng chọn ít nhất 1 ngôn ngữ giảng dạy
                       </p>
-                      <div className="flex flex-wrap gap-2">
-                        {availableSuggestedLanguages.map((language) => (
-                          <Badge
-                            key={language}
-                            variant="outline"
-                            className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-[10px]"
-                            onClick={() => handleAddLanguage(language)}
-                          >
-                            + {language}
-                          </Badge>
-                        ))}
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Social Links Card */}
+              <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-3 border-b">
+                      <div className="p-2 rounded-lg bg-purple-50">
+                        <Globe className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <h3 className="font-semibold text-gray-800">Liên kết mạng xã hội</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <Facebook className="w-4 h-4 text-purple-600" />
+                          Facebook
+                        </label>
+                        <input
+                          type="url"
+                          className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                          placeholder="https://facebook.com/yourprofile"
+                          value={data.socialLinks.facebook || ""}
+                          onChange={(e) => onChange({
+                            ...data,
+                            socialLinks: { ...data.socialLinks, facebook: e.target.value || null }
+                          })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <Linkedin className="w-4 h-4 text-purple-600" />
+                          LinkedIn
+                        </label>
+                        <input
+                          type="url"
+                          className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                          placeholder="https://linkedin.com/in/yourprofile"
+                          value={data.socialLinks.linkedIn || ""}
+                          onChange={(e) => onChange({
+                            ...data,
+                            socialLinks: { ...data.socialLinks, linkedIn: e.target.value || null }
+                          })}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-purple-600" />
+                          Website cá nhân
+                        </label>
+                        <input
+                          type="url"
+                          className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
+                          placeholder="https://yourwebsite.com"
+                          value={data.socialLinks.website || ""}
+                          onChange={(e) => onChange({
+                            ...data,
+                            socialLinks: { ...data.socialLinks, website: e.target.value || null }
+                          })}
+                        />
                       </div>
                     </div>
-                  )}
-
-                  {data.teachingLanguages.length === 0 && (
-                    <p className="text-sm text-orange-600">
-                      ⚠ Vui lòng chọn ít nhất 1 ngôn ngữ giảng dạy
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Social Links Card */}
-            <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl">
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-3 border-b">
-                    <div className="p-2 rounded-lg bg-purple-50">
-                      <Globe className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-800">Liên kết mạng xã hội</h3>
                   </div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <Facebook className="w-4 h-4 text-purple-600" />
-                        Facebook
-                      </label>
-                      <input
-                        type="url"
-                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
-                        placeholder="https://facebook.com/yourprofile"
-                        value={data.socialLinks.facebook || ""}
-                        onChange={(e) => onChange({
-                          ...data,
-                          socialLinks: { ...data.socialLinks, facebook: e.target.value || null }
-                        })}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <Linkedin className="w-4 h-4 text-purple-600" />
-                        LinkedIn
-                      </label>
-                      <input
-                        type="url"
-                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
-                        placeholder="https://linkedin.com/in/yourprofile"
-                        value={data.socialLinks.linkedIn || ""}
-                        onChange={(e) => onChange({
-                          ...data,
-                          socialLinks: { ...data.socialLinks, linkedIn: e.target.value || null }
-                        })}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-purple-600" />
-                        Website cá nhân
-                      </label>
-                      <input
-                        type="url"
-                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm"
-                        placeholder="https://yourwebsite.com"
-                        value={data.socialLinks.website || ""}
-                        onChange={(e) => onChange({
-                          ...data,
-                          socialLinks: { ...data.socialLinks, website: e.target.value || null }
-                        })}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
             </motion.div>
           )}
         </AnimatePresence>

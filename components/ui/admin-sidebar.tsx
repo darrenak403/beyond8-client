@@ -94,7 +94,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
               <div className="flex flex-col items-center justify-center p-2 cursor-pointer">
                 <Avatar className="h-6 w-6">
                   <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
-                  <AvatarFallback className="text-[10px] bg-purple-100 text-purple-700">
+                  <AvatarFallback className="text-sm bg-purple-100 text-purple-700">
                     {getAvatarFallback()}
                   </AvatarFallback>
                 </Avatar>
@@ -104,7 +104,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
               <div className="flex items-center justify-start gap-2 p-2">
                 <div className="flex flex-col space-y-1 leading-none">
                   {userProfile?.fullName && (
-                    <p className="font-medium">{userProfile.fullName}</p>
+                    <p className="font-medium text-sm">{userProfile.fullName}</p>
                   )}
                   {userProfile?.email && (
                     <p className="w-[200px] truncate text-sm text-muted-foreground">
@@ -200,8 +200,8 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
               <TooltipProvider>
                 <Tooltip open={isTooltipOpen} onOpenChange={setIsTooltipOpen}>
                   <TooltipTrigger asChild>
-                    <Avatar 
-                      className="h-8 w-8 rounded-lg flex-shrink-0 cursor-pointer"
+                    <Avatar
+                      className="h-10 w-10 rounded-lg flex-shrink-0 cursor-pointer"
                       onClick={() => setIsTooltipOpen(!isTooltipOpen)}
                     >
                       <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
@@ -259,7 +259,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                 <p className="text-xs font-medium text-gray-900 truncate">
                   {userProfile?.fullName || 'Admin'}
                 </p>
-                <p className="text-[10px] text-gray-500 truncate">{userProfile?.email}</p>
+                <p className="text-xs text-gray-500 truncate">{userProfile?.email}</p>
               </div>
 
               <DropdownMenu>

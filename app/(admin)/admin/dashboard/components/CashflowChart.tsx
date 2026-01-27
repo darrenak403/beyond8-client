@@ -40,12 +40,12 @@ const chartConfig = {
 
 export function CashflowChart() {
   const isMobile = useIsMobile();
-  
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className={isMobile ? 'text-sm' : 'text-base'}>Dòng tiền kí quỹ & Lợi nhuận ròng</CardTitle>
-        <CardDescription className={isMobile ? 'text-[10px]' : 'text-xs'}>Tháng 1 - Tháng 6 2024</CardDescription>
+        <CardDescription className={isMobile ? 'text-xs' : 'text-xs'}>Tháng 1 - Tháng 6 2024</CardDescription>
       </CardHeader>
       <CardContent className={isMobile ? 'px-1 py-2' : ''}>
         <ChartContainer config={chartConfig} className={`${isMobile ? 'h-[150px]' : 'h-[200px]'} w-full`}>
@@ -69,8 +69,8 @@ export function CashflowChart() {
             <ChartTooltip
               cursor={false}
               content={
-                <ChartTooltipContent 
-                  hideLabel 
+                <ChartTooltipContent
+                  hideLabel
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   formatter={(value: any) => `₫${Number(value).toLocaleString('vi-VN')}`}
                 />
@@ -81,7 +81,7 @@ export function CashflowChart() {
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className={`flex-col items-start gap-1 ${isMobile ? 'text-[10px] pt-2' : 'text-xs pt-3'}`}>
+      <CardFooter className={`flex-col items-start gap-1 ${isMobile ? 'text-xs pt-2' : 'text-xs pt-3'}`}>
         <div className="flex gap-2 font-medium leading-none">
           Tăng 15.2% {!isMobile && 'so với tháng trước'} <TrendingUp className={`${isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
         </div>

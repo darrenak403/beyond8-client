@@ -61,7 +61,7 @@ export function RevenueChart() {
       <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
         <div className={`flex flex-1 flex-col justify-center gap-1 ${isMobile ? 'px-3 py-3' : 'px-4 py-4'}`}>
           <CardTitle className={isMobile ? 'text-sm' : 'text-base'}>Phân tích doanh thu</CardTitle>
-          <CardDescription className={isMobile ? 'text-[10px]' : 'text-xs'}>
+          <CardDescription className={isMobile ? 'text-xs' : 'text-xs'}>
             {isMobile ? '12 tháng qua' : 'Hiển thị doanh thu và lợi nhuận trong 12 tháng qua'}
           </CardDescription>
         </div>
@@ -75,7 +75,7 @@ export function RevenueChart() {
                 className={`data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t ${isMobile ? 'px-3 py-2' : 'px-4 py-3'} text-left even:border-l sm:border-l sm:border-t-0 cursor-pointer hover:bg-muted/30 transition-colors`}
                 onClick={() => setActiveChart(chart)}
               >
-                <span className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>
+                <span className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
                   {chartConfig[chart].label}
                 </span>
                 <span className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold leading-none`}>

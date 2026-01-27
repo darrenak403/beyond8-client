@@ -6,7 +6,7 @@ import { useIsMobile } from '@/hooks/useMobile';
 
 export function StatsCards() {
   const isMobile = useIsMobile();
-  
+
   const stats = [
     {
       title: 'Tổng người dùng',
@@ -45,12 +45,12 @@ export function StatsCards() {
         return (
           <Card key={stat.title}>
             <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-1' : 'pb-2'}`}>
-              <CardTitle className={`${isMobile ? 'text-[10px]' : 'text-xs'} font-medium`}>{stat.title}</CardTitle>
+              <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>{stat.title}</CardTitle>
               <Icon className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-muted-foreground`} />
             </CardHeader>
             <CardContent>
               <div className={`${isMobile ? 'text-base' : 'text-xl'} font-bold`}>{stat.value}</div>
-              <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground mt-1`}>
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>
                 <span className="text-green-600 font-medium">{stat.change}</span> {!isMobile && 'so với tháng trước'}
               </p>
             </CardContent>

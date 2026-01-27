@@ -34,7 +34,7 @@ export function InstructorHeader() {
   const { userProfile, isLoading } = useUserProfile();
   const { mutateLogout } = useLogout();
   const pathname = usePathname();
-  
+
   // Refs for animation
   const navRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLDivElement>(null);
@@ -69,9 +69,9 @@ export function InstructorHeader() {
     if (activeElement) {
       // Ensure opacity is back to 1 if it was hidden
       gsap.set(activeTabRef.current, { opacity: 1 });
-      
+
       const { offsetLeft, offsetWidth } = activeElement;
-      
+
       gsap.to(activeTabRef.current, {
         x: offsetLeft,
         width: offsetWidth,
@@ -103,24 +103,23 @@ export function InstructorHeader() {
         {!isMobile && (
           <nav ref={navRef} className="flex items-center gap-4 relative">
             {/* Animated Underline */}
-            <div 
+            <div
               ref={activeTabRef}
               className="absolute bg-purple-600 h-0.5 bottom-0 left-0 pointer-events-none"
               style={{ width: 0, opacity: 0 }} // Initial state
             />
-            
+
             {navItems.map((item, index) => {
               const isActive = pathname === item.href;
               return (
-                <Link 
-                  key={item.href} 
+                <Link
+                  key={item.href}
                   href={item.href}
                   ref={el => {
                     tabRefs.current[index] = el;
                   }}
-                  className={`relative z-10 py-2 text-sm font-medium transition-colors ${
-                    isActive ? "text-purple-600" : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`relative z-10 py-2 text-base font-medium transition-colors ${isActive ? "text-purple-600" : "text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   {item.name}
                 </Link>
@@ -162,7 +161,7 @@ export function InstructorHeader() {
                       <DropdownMenuSeparator />
                     </>
                   )}
-                  
+
                   {isMobile && (
                     <>
                       {navItems.map((item) => (
@@ -194,7 +193,7 @@ export function InstructorHeader() {
                       Về trang chủ học viên
                     </Link>
                   </DropdownMenuItem>
-                  
+
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}

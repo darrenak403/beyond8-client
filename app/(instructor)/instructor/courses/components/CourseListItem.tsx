@@ -35,7 +35,7 @@ export default function CourseListItem({ course }: CourseListItemProps) {
 
         {/* Overlay Badges */}
         <div className="absolute top-2 left-2 flex gap-2">
-          <Badge className="bg-emerald-500/90 hover:bg-emerald-500 text-white border-0 backdrop-blur-sm text-[10px] h-5 px-1.5">
+          <Badge className="bg-emerald-500/90 hover:bg-emerald-500 text-white border-0 backdrop-blur-sm text-xs h-5 px-1.5">
             Đang hoạt động
           </Badge>
         </div>

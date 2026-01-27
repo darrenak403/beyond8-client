@@ -87,7 +87,7 @@ export function ForgotPasswordDialog({ open, onOpenChange, onSuccess, isLoading 
                                         <Button
                                             type="button"
                                             variant="ghost"
-                                            className="w-full text-xs text-muted-foreground"
+                                            className="w-full text-sm text-muted-foreground hover:bg-gray-200 hover:text-black"
                                             onClick={() => onOpenChange?.(false)}
                                         >
                                             Quay lại đăng nhập

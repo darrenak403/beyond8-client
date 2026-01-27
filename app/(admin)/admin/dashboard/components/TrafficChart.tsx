@@ -157,7 +157,7 @@ export function TrafficChart() {
       <CardHeader className={`flex items-center gap-2 space-y-0 border-b ${isMobile ? 'py-3 flex-col' : 'py-4 sm:flex-row'}`}>
         <div className="grid flex-1 gap-1 w-full">
           <CardTitle className={isMobile ? 'text-sm' : 'text-base'}>Lượt truy cập từ Desktop/Mobile</CardTitle>
-          <CardDescription className={isMobile ? 'text-[10px]' : 'text-xs'}>
+          <CardDescription className={isMobile ? 'text-xs' : 'text-xs'}>
             {isMobile ? '3 tháng qua' : 'Hiển thị tổng lượt truy cập trong 3 tháng qua'}
           </CardDescription>
         </div>

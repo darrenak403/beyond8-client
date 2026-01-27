@@ -50,7 +50,7 @@ export function InstructorBottomNav() {
                 <DropdownMenuTrigger className="flex flex-col items-center justify-center w-full h-full space-y-1 focus:outline-none">
                   <div className={cn("flex flex-col items-center justify-center", isActive ? "text-purple-600" : "text-muted-foreground")}>
                     <Icon className={cn("h-5 w-5", isActive && "fill-current")} />
-                    <span className="text-[10px] font-medium leading-none">{item.name}</span>
+                    <span className="text-xs font-medium leading-none">{item.name}</span>
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" side="top" className="w-56 mb-2">
@@ -81,7 +81,7 @@ export function InstructorBottomNav() {
                       Về trang chủ học viên
                     </Link>
                   </DropdownMenuItem>
-                  
+
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
@@ -94,7 +94,7 @@ export function InstructorBottomNav() {
               </DropdownMenu>
             );
           }
-          
+
           return (
             <Link
               key={item.href}
@@ -105,7 +105,7 @@ export function InstructorBottomNav() {
               )}
             >
               <Icon className={cn("h-5 w-5", isActive && "fill-current")} />
-              <span className="text-[10px] font-medium leading-none">{item.name}</span>
+              <span className="text-xs font-medium leading-none">{item.name}</span>
             </Link>
           );
         })}

@@ -114,10 +114,10 @@ export default function LearningPathSimulation() {
                                             ? "bg-white/90 border-primary/30 shadow-lg shadow-primary/10"
                                             : "bg-white/60 border-white/50"
                                             }`}>
-                                            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+                                            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-0.5">
                                                 {step.level}
                                             </div>
-                                            <div className={`font-bold text-[15px] leading-tight ${step.status === "current" ? "text-foreground" : "text-muted-foreground"
+                                            <div className={`font-bold text-sm leading-tight ${step.status === "current" ? "text-foreground" : "text-muted-foreground"
                                                 }`}>
                                                 {step.label}
                                             </div>
@@ -164,7 +164,7 @@ export default function LearningPathSimulation() {
                             </motion.div>
                         </div>
 
-                        <div className="mt-3.5 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-yellow-200 shadow-sm text-yellow-700 font-bold text-[13px] flex items-center gap-2">
+                        <div className="mt-3.5 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border border-yellow-200 shadow-sm text-yellow-700 font-bold text-sm flex items-center gap-2">
                             <Award size={16} />
                             <span>Chứng chỉ Expert đang đợi!</span>
                         </div>

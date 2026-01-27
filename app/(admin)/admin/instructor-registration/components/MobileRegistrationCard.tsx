@@ -71,11 +71,11 @@ export function MobileRegistrationCard({
                 </div>
                 <div className="flex flex-col items-end gap-1">
                     <Badge
-                        className={`${getStatusBadgeVariant(registration.verificationStatus)} whitespace-nowrap px-2 py-0.5 text-[10px]`}
+                        className={`${getStatusBadgeVariant(registration.verificationStatus)} whitespace-nowrap px-2 py-0.5 text-xs`}
                     >
                         {getStatusLabel(registration.verificationStatus)}
                     </Badge>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         <span>{format(new Date(registration.createdAt), "dd/MM/yyyy")}</span>
                     </div>
@@ -94,13 +94,13 @@ export function MobileRegistrationCard({
                                     <Badge
                                         key={index}
                                         variant="secondary"
-                                        className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-[10px] px-1.5 py-0"
+                                        className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-xs px-1.5 py-0"
                                     >
                                         {area}
                                     </Badge>
                                 ))}
                                 {registration.expertiseAreas.length > 2 && (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                    <Badge variant="outline" className="text-xs px-1.5 py-0">
                                         +{registration.expertiseAreas.length - 2}
                                     </Badge>
                                 )}
@@ -121,13 +121,13 @@ export function MobileRegistrationCard({
                                     <Badge
                                         key={index}
                                         variant="outline"
-                                        className="border-blue-200 text-blue-700 bg-blue-50 text-[10px] px-1.5 py-0"
+                                        className="border-blue-200 text-blue-700 bg-blue-50 text-xs px-1.5 py-0"
                                     >
                                         {lang}
                                     </Badge>
                                 ))}
                                 {registration.teachingLanguages.length > 2 && (
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                    <Badge variant="outline" className="text-xs px-1.5 py-0">
                                         +{registration.teachingLanguages.length - 2}
                                     </Badge>
                                 )}

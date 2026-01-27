@@ -2,12 +2,10 @@ import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-    Star,
     Trash2,
     Home,
     CheckCircle2,
-    Clock,
-    Eye
+    Clock
 } from 'lucide-react'
 import type { Course } from '@/lib/data/mockCourses'
 
@@ -35,14 +33,14 @@ export default function CourseListItem({ course }: CourseListItemProps) {
 
                 {/* Overlay Badges */}
                 <div className="absolute top-2 left-2 flex gap-2">
-                    <Badge className="bg-emerald-500/90 hover:bg-emerald-500 text-white border-0 backdrop-blur-sm text-[10px] h-5 px-1.5">
+                    <Badge className="bg-emerald-500/90 hover:bg-emerald-500 text-white border-0 backdrop-blur-sm text-xs h-5 px-1.5">
                         Đang hoạt động
                     </Badge>
                 </div>
 
                 {/* Date/Time overlay example (from reference) */}
                 <div className="absolute bottom-2 right-2">
-                    <Badge variant="secondary" className="backdrop-blur-md bg-black/60 text-white border-0 text-[10px] h-5 px-1.5 font-normal">
+                    <Badge variant="secondary" className="backdrop-blur-md bg-black/60 text-white border-0 text-xs h-5 px-1.5 font-normal">
                         19/01/2026 lúc 09:00
                     </Badge>
                 </div>

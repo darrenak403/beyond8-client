@@ -28,7 +28,7 @@ const InstructorRegistrationPage = () => {
 
     // URL Params State
     const pageNumber = Number(searchParams.get("pageNumber")) || 1;
-    const pageSize = Number(searchParams.get("pageSize")) || 12;
+    const pageSize = Number(searchParams.get("pageSize")) || 9;
     const isDescendingParam = searchParams.get("isDescending");
     const isDescending = isDescendingParam === "false" ? false : true;
     const verificationStatus = searchParams.get("verificationStatus") || "";
@@ -44,7 +44,7 @@ const InstructorRegistrationPage = () => {
         if (!hasPageNumber || !hasPageSize) {
             const params = new URLSearchParams(searchParams.toString());
             if (!hasPageNumber) params.set("pageNumber", "1");
-            if (!hasPageSize) params.set("pageSize", "10");
+            if (!hasPageSize) params.set("pageSize", "9");
             router.replace(`${pathname}?${params.toString()}`);
         }
     }, []);
@@ -229,7 +229,7 @@ const InstructorRegistrationPage = () => {
             ) : (
                 <div className={`transition-opacity duration-200 ${isFetching ? "opacity-50 pointer-events-none" : ""}`}>
                     {isMobile ? (
-                        <div className="space-y-4">
+                        <div className="space-y-2">
                             <RegistrationTableToolbar
                                 searchValue={email}
                                 onSearchChange={handleSearchChange}
@@ -238,7 +238,7 @@ const InstructorRegistrationPage = () => {
                                 onRefresh={refetch}
                                 isFetching={isFetching}
                             />
-                            <div className="grid gap-4">
+                            <div className="grid gap-2">
                                 {registrations.map((registration) => (
                                     <MobileRegistrationCard
                                         key={registration.id}

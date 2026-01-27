@@ -27,6 +27,7 @@ import {
   Check,
   Video,
   Upload,
+  ExternalLink,
 } from "lucide-react";
 import { useGetInstructorProfile, useUpdateMyRegistration } from "@/hooks/useInstructorRegistration";
 import type {
@@ -164,7 +165,7 @@ export default function ProfileInstructorForm() {
   const hasChanges = useMemo(() => {
     if (!instructorProfile) return false;
 
-    const basicFieldsChanged = 
+    const basicFieldsChanged =
       formData.bio !== (instructorProfile.bio || "") ||
       formData.headline !== (instructorProfile.headline || "") ||
       formData.socialLinks.facebook !== (instructorProfile.socialLinks.facebook || "") ||
@@ -317,7 +318,7 @@ export default function ProfileInstructorForm() {
     value: string | boolean
   ) => {
     const newList = [...workList];
-    
+
     // Nếu đang bật "Đang làm việc tại đây", set trường "to" thành null
     if (field === 'isCurrentJob' && value === true) {
       newList[index] = {
@@ -328,7 +329,7 @@ export default function ProfileInstructorForm() {
     } else {
       newList[index] = { ...newList[index], [field]: value };
     }
-    
+
     setWorkList(newList);
   };
 
@@ -660,7 +661,7 @@ export default function ProfileInstructorForm() {
                 Lĩnh vực chuyên môn
               </Label>
             </div>
-            
+
             <Input
               id="expertise"
               value={expertiseTagInput}
@@ -688,7 +689,7 @@ export default function ProfileInstructorForm() {
                     >
                       <Badge
                         variant="secondary"
-                        className={`${isHidden ? "bg-gray-200 text-gray-500" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-1.5 py-0.5 flex items-center gap-0.5 text-[10px] font-medium shadow-sm`}
+                        className={`${isHidden ? "bg-gray-200 text-gray-500" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-1.5 py-0.5 flex items-center gap-0.5 text-xs font-medium shadow-sm`}
                       >
                         {tag}
                         {!isHidden && (
@@ -718,7 +719,7 @@ export default function ProfileInstructorForm() {
                     <Badge
                       key={tag}
                       variant="outline"
-                      className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-[10px]"
+                      className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-xs"
                       onClick={() => handleAddExpertiseTag(tag)}
                     >
                       + {tag}
@@ -1217,7 +1218,7 @@ export default function ProfileInstructorForm() {
                 Ngôn ngữ giảng dạy
               </Label>
             </div>
-            
+
             <Input
               id="teachingLanguages"
               value={languageTagInput}
@@ -1245,7 +1246,7 @@ export default function ProfileInstructorForm() {
                     >
                       <Badge
                         variant="secondary"
-                        className={`${isHidden ? "bg-gray-200 text-gray-500" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-1.5 py-0.5 flex items-center gap-0.5 text-[10px] font-medium shadow-sm`}
+                        className={`${isHidden ? "bg-gray-200 text-gray-500" : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"} px-1.5 py-0.5 flex items-center gap-0.5 text-xs font-medium shadow-sm`}
                       >
                         {language}
                         {!isHidden && (
@@ -1275,7 +1276,7 @@ export default function ProfileInstructorForm() {
                     <Badge
                       key={language}
                       variant="outline"
-                      className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-[10px]"
+                      className="cursor-pointer hover:bg-purple-100 hover:text-purple-700 hover:border-purple-300 px-1.5 py-0.5 transition-colors border text-xs"
                       onClick={() => handleAddLanguageTag(language)}
                     >
                       + {language}
@@ -1362,7 +1363,7 @@ export default function ProfileInstructorForm() {
                                   }
                                 }}
                               />
-                              <div 
+                              <div
                                 className={`border-2 border-dashed rounded-lg p-4 transition-colors ${isHidden ? "border-gray-300 bg-gray-100 cursor-not-allowed" : "border-purple-300 hover:border-purple-400 cursor-pointer bg-purple-50/50"}`}
                                 onClick={() => !isHidden && !isUploadingCertificate && fileInputRef.current?.click()}
                               >
@@ -1503,10 +1504,10 @@ export default function ProfileInstructorForm() {
                                 href={cert.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-purple-600 hover:text-purple-700 underline"
+                                className="text-sm text-purple-600 hover:text-purple-700 underline flex items-center gap-1 font-medium"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                Xem chứng chỉ
+                                Xem chứng chỉ<ExternalLink className="h-3 w-3" />
                               </a>
                             )}
                           </div>
@@ -1533,11 +1534,7 @@ export default function ProfileInstructorForm() {
             </div>
 
             <div className="space-y-3 mt-3">
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <Video className={`w-4 h-4 ${isHidden ? "text-gray-500" : "text-purple-600"}`} />
-                Upload video giới thiệu (không bắt buộc)
-              </label>
-              
+
               {/* Hidden Video Input */}
               <input
                 ref={videoInputRef}
@@ -1551,14 +1548,13 @@ export default function ProfileInstructorForm() {
                   }
                 }}
               />
-              
+
               {/* Video Upload Area */}
-              <div 
-                className={`border-2 border-dashed rounded-lg transition-colors ${
-                  isHidden 
-                    ? "border-gray-300 bg-gray-100 cursor-not-allowed" 
-                    : "border-purple-300 hover:border-purple-400 cursor-pointer bg-purple-50/50"
-                }`}
+              <div
+                className={`border-2 border-dashed rounded-lg transition-colors ${isHidden
+                  ? "border-gray-300 bg-gray-100 cursor-not-allowed"
+                  : "border-purple-300 hover:border-purple-400 cursor-pointer bg-purple-50/50"
+                  }`}
                 onClick={() => !uploadingVideo && !introVideoUrl && !isHidden && videoInputRef.current?.click()}
               >
                 {uploadingVideo ? (
@@ -1601,9 +1597,8 @@ export default function ProfileInstructorForm() {
                   </div>
                 ) : (
                   <div className="aspect-video w-full flex flex-col items-center justify-center text-center p-8">
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${
-                      isHidden ? "bg-gray-200" : "bg-purple-100"
-                    }`}>
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${isHidden ? "bg-gray-200" : "bg-purple-100"
+                      }`}>
                       <Video className={`w-8 h-8 ${isHidden ? "text-gray-500" : "text-purple-600"}`} />
                     </div>
                     <p className={`text-sm font-medium mb-2 ${isHidden ? "text-gray-500" : "text-gray-700"}`}>
@@ -1617,10 +1612,10 @@ export default function ProfileInstructorForm() {
 
               {/* Instructions */}
               <div className={`rounded-lg p-4 space-y-2 ${isHidden ? "bg-gray-100" : "bg-purple-50"}`}>
-                <p className={`text-xs ${isHidden ? "text-gray-500" : "text-gray-600"}`}>
+                <p className={`text-sm ${isHidden ? "text-gray-500" : "text-gray-600"}`}>
                   <strong>Lưu ý:</strong> Video giới thiệu giúp học viên hiểu rõ hơn về bạn và phong cách giảng dạy của bạn.
                 </p>
-                <ul className={`text-xs space-y-1 ml-4 list-disc ${isHidden ? "text-gray-500" : "text-gray-600"}`}>
+                <ul className={`text-sm space-y-1 ml-4 list-disc ${isHidden ? "text-gray-500" : "text-gray-600"}`}>
                   <li>Độ dài video: <strong>Tối đa 1 phút</strong></li>
                   <li>Định dạng: <strong>Video ngang (horizontal/landscape)</strong></li>
                   <li>Giới thiệu bản thân, kinh nghiệm và lý do muốn giảng dạy</li>
@@ -1705,10 +1700,10 @@ export default function ProfileInstructorForm() {
             >
               Hủy thay đổi
             </Button> */}
-            <Button 
-              type="button" 
-              size="sm" 
-              onClick={handleSubmit} 
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSubmit}
               disabled={!hasChanges || isUpdating}
               className="rounded-2xl"
             >

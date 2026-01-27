@@ -32,7 +32,7 @@ const UserManagementPage = () => {
 
   // URL Params State
   const pageNumber = Number(searchParams.get("pageNumber")) || 1;
-  const pageSize = Number(searchParams.get("pageSize")) || 12;
+  const pageSize = Number(searchParams.get("pageSize")) || 9;
   // Handle isDescending param, defaulting to true if not present or invalid
   const isDescendingParam = searchParams.get("isDescending");
   const isDescending = isDescendingParam === "false" ? false : true;
@@ -100,7 +100,7 @@ const UserManagementPage = () => {
     if (!hasPageNumber || !hasPageSize) {
       const params = new URLSearchParams(searchParams.toString());
       if (!hasPageNumber) params.set("pageNumber", "1");
-      if (!hasPageSize) params.set("pageSize", "10");
+      if (!hasPageSize) params.set("pageSize", "9");
       router.replace(`${pathname}?${params.toString()}`);
     }
   }, []);
@@ -229,7 +229,7 @@ const UserManagementPage = () => {
       ) : (
         <div className={`transition-opacity duration-200 ${isFetching ? "opacity-50 pointer-events-none" : ""}`}>
           {isMobile ? (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <UserTableToolbar
                 onAdd={handleAdd}
                 searchValue={searchValue}
@@ -239,7 +239,7 @@ const UserManagementPage = () => {
                 onRefresh={refetch}
                 isFetching={isFetching}
               />
-              <div className="grid gap-4">
+              <div className="grid gap-2">
                 {data?.users?.map((user) => (
                   <MobileUserCard
                     key={user.id}

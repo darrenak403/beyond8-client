@@ -39,7 +39,7 @@ export const getColumns = ({
                 const user = row.original
                 return (
                     <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-10 w-10">
                             <AvatarImage
                                 src={formatImageUrl(user.avatarUrl)}
                                 alt={user.fullName}
@@ -49,7 +49,7 @@ export const getColumns = ({
                         </Avatar>
                         <div className="flex flex-col">
                             <span className="font-medium">{user.fullName}</span>
-                            <span className="text-xs text-muted-foreground">{user.email}</span>
+                            <span className="text-sm text-muted-foreground">{user.email}</span>
                         </div>
                     </div>
                 )
