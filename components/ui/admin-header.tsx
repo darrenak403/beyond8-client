@@ -15,6 +15,8 @@ const pageTitles: Record<string, string> = {
   '/admin/instructor-registration': 'Duyệt giảng viên',
   '/admin/report': 'Báo cáo',
   '/admin/admin-profile': 'Hồ sơ',
+  '/admin/ai-management/overview': 'Tổng quan',
+  '/admin/ai-management/prompts': 'Quản lý prompt',
 };
 
 export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {

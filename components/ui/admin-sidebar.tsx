@@ -14,6 +14,11 @@ import {
   LogOut,
   User,
   FileCheck,
+  Bot,
+  ChevronDown,
+  ChevronRight,
+  LayoutList,
+  MessageSquare,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -39,7 +44,17 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: Users, label: 'Quản lý người dùng', href: '/admin/user' },
   { icon: FileCheck, label: 'Duyệt giảng viên', href: '/admin/instructor-registration' },
+  { icon: LayoutList, label: 'Quản lí danh mục', href: '/admin/category' },
   { icon: BookOpen, label: 'Khóa học', href: '/admin/course' },
+  {
+    icon: Bot,
+    label: 'Quản lí AI',
+    href: '#ai-management',
+    children: [
+      { label: 'Tổng quan', href: '/admin/ai-management/overview', icon: LayoutList },
+      { label: 'Quản lí prompt', href: '/admin/ai-management/prompts', icon: MessageSquare },
+    ],
+  },
   { icon: BarChart3, label: 'Báo cáo', href: '/admin/report' },
 ];
 
@@ -53,6 +68,11 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
   const { mutateLogout } = useLogout();
   const isMobile = useIsMobile();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+
+  const toggleMenu = (href: string) => {
+    setExpandedMenu(expandedMenu === href ? null : href);
+  };
 
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
@@ -167,11 +187,66 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
         </div>
 
         {/* Menu Items */}
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = item.children ? item.children.some(child => pathname.startsWith(child.href)) : pathname === item.href;
+            const hasChildren = item.children && item.children.length > 0;
+            const isExpanded = expandedMenu === item.href;
 
+            // Render with children
+            if (hasChildren) {
+              return (
+                <div key={item.href} className="flex flex-col">
+                  <button
+                    onClick={() => !isCollapsed && toggleMenu(item.href)}
+                    className={cn(
+                      'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm w-full select-none',
+                      isActive || isExpanded
+                        ? 'bg-purple-50 text-purple-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    )}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <div className={cn(
+                      "flex items-center justify-between flex-1 transition-opacity duration-200",
+                      isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                    )}>
+                      <span className="whitespace-nowrap">{item.label}</span>
+                      {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                    </div>
+                  </button>
+                  
+                  {/* Submenu */}
+                  <div className={cn(
+                    "overflow-hidden transition-all duration-300 ease-in-out",
+                    isExpanded && !isCollapsed ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"
+                  )}>
+                    <div className="flex flex-col space-y-1 pl-9">
+                      {item.children?.map((child) => {
+                         const isChildActive = pathname === child.href;
+                         const ChildIcon = child.icon;
+                         return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={cn(
+                              'flex items-center gap-2 py-2 text-sm transition-colors hover:text-purple-700',
+                              isChildActive ? 'text-purple-700 font-medium' : 'text-gray-500'
+                            )}
+                          >
+                            {ChildIcon && <ChildIcon className="w-4 h-4" />}
+                            <span>{child.label}</span>
+                          </Link>
+                         )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // Normal Item
             return (
               <Link
                 key={item.href}

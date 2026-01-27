@@ -69,7 +69,7 @@ export default function CourseManagementPage() {
   }, [searchQuery])
 
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 p-2 space-y-4">
+    <div className="flex flex-col h-full p-2 space-y-4">
       {/* Header */}
       {isMobile && (
         <div className="flex items-center justify-between">

@@ -21,7 +21,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           />
         )}
-        <main className={isMobile ? "p-0" : "py-1 px-4"}>{children}</main>
+        <main className={isMobile ? "p-0" : "py-4 px-4"}>{children}</main>
       </div>
 
       {/* Mobile overlay when sidebar is open */}
