@@ -27,16 +27,10 @@ export default function CourseManagementPage() {
   const isMobile = useIsMobile()
 
   // Force grid view on mobile
-  useEffect(() => {
-    if (isMobile) {
-      setViewMode('grid')
-    }
-  }, [isMobile])
+  const currentViewMode = isMobile ? 'grid' : viewMode
 
   // Simulate API Fetch
-  const fetchData = () => {
-    setIsLoading(true)
-    setIsError(false)
+  const loadData = () => {
     setTimeout(() => {
       // Randomly simulate error (10% chance) for demo purpose
       if (Math.random() < 0.1) {
@@ -46,8 +40,19 @@ export default function CourseManagementPage() {
     }, 1500)
   }
 
+  const handleRefresh = () => {
+    setIsLoading(true)
+    setIsError(false)
+    loadData()
+  }
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value)
+    setCurrentPage(1)
+  }
+
   useEffect(() => {
-    fetchData()
+    loadData()
   }, [])
 
   // Filter courses based on search
@@ -63,10 +68,7 @@ export default function CourseManagementPage() {
     currentPage * ITEMS_PER_PAGE
   )
 
-  // Reset to page 1 when search changes
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery])
+
 
   return (
     <div className="flex flex-col h-full bg-slate-50/50 p-2 space-y-4">
@@ -81,23 +83,23 @@ export default function CourseManagementPage() {
 
       {/* Toolbar */}
       <CourseToolbar
-        viewMode={viewMode}
+        viewMode={currentViewMode}
         setViewMode={setViewMode}
         searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        setSearchQuery={handleSearch}
         totalCount={filteredCourses.length}
         isMobile={isMobile}
-        onRefresh={fetchData}
+        onRefresh={handleRefresh}
         isLoading={isLoading}
       />
 
       {/* Content */}
       <div className="flex-1">
         {isError ? (
-          <ErrorState onRetry={fetchData} />
+          <ErrorState onRetry={handleRefresh} />
         ) : (
           <div className={`
-                ${viewMode === 'grid'
+                ${currentViewMode === 'grid'
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
               : 'flex flex-col gap-4'
             }
@@ -105,7 +107,7 @@ export default function CourseManagementPage() {
             {isLoading ? (
               // Render Skeletons
               Array.from({ length: 8 }).map((_, i) => (
-                viewMode === 'grid' ? (
+                currentViewMode === 'grid' ? (
                   <CourseGridItemSkeleton key={i} />
                 ) : (
                   <CourseListItemSkeleton key={i} />
@@ -114,7 +116,7 @@ export default function CourseManagementPage() {
             ) : (
               // Render Courses
               currentCourses.map((course) => (
-                viewMode === 'grid' ? (
+                currentViewMode === 'grid' ? (
                   <CourseGridItem key={course.id} course={course} />
                 ) : (
                   <CourseListItem key={course.id} course={course} />

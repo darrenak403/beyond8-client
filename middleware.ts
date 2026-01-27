@@ -33,9 +33,10 @@ const hasRole = (roles: string[], targetRole: string): boolean => {
 
 // Helper to get primary role for routing
 const getPrimaryRole = (roles: string[]): string | null => {
-  // Priority order: ADMIN > INSTRUCTOR > STUDENT
+  // Priority order: ADMIN > INSTRUCTOR > STUDENT > STAFF
   if (roles.includes("ROLE_ADMIN")) return "ROLE_ADMIN";
   if (roles.includes("ROLE_INSTRUCTOR")) return "ROLE_INSTRUCTOR";
+  if (roles.includes("ROLE_STAFF")) return "ROLE_STAFF";
   if (roles.includes("ROLE_STUDENT")) return "ROLE_STUDENT";
   return null;
 };
@@ -90,6 +91,8 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     } else if (primaryRole === "ROLE_INSTRUCTOR") {
       return NextResponse.redirect(new URL("/instructor/dashboard", request.url));
+    } else if (primaryRole === "ROLE_STAFF") {
+      return NextResponse.redirect(new URL("/staff/dashboard", request.url));
     } else {
       return NextResponse.redirect(new URL("/courses", request.url));
     }
@@ -101,6 +104,7 @@ export function middleware(request: NextRequest) {
   const isCoursesRoute = pathname.startsWith("/courses");
   const isMyBeyondRoute = pathname.startsWith("/mybeyond");
   const isInstructorRegistrationRoute = pathname.startsWith("/instructor-registration");
+  const isStaffRoute = pathname.startsWith("/staff/");
 
   // ADMIN: Only access admin pages
   if (hasRole(userRoles, "ROLE_ADMIN")) {
@@ -126,6 +130,26 @@ export function middleware(request: NextRequest) {
     // Default: redirect to admin dashboard
     if (!isPublicRoute) {
       return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+    }
+  }
+
+  // STAFF: Access staff pages
+  if (hasRole(userRoles, "ROLE_STAFF")) {
+    if (isStaffRoute) {
+      return NextResponse.next();
+    }
+    // Block admin route
+    if (isAdminRoute) {
+      return NextResponse.redirect(new URL("/staff/dashboard", request.url));
+    }
+    // Allow public routes if logged in? (Usually yes, or redirect to dashboard)
+    if (pathname === "/" || pathname === "/landing") {
+      return NextResponse.next();
+    }
+
+    // Default redirect
+    if (!isPublicRoute) {
+      return NextResponse.redirect(new URL("/staff/dashboard", request.url));
     }
   }
 
