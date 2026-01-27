@@ -24,6 +24,14 @@ export function useAIUsageHistory(params: GetUsageHistoryParams) {
   });
 }
 
+export function useAIAllHistory(params?: GetUsageHistoryParams) {
+  return useQuery({
+    queryKey: ['ai-usage-all-history', params],
+    queryFn: () => fetchAI.getAllHistory(params),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 // Prompt Hooks
 export function useAIPrompts(params: GetAIPromptsParams) {
   return useQuery({
@@ -48,16 +56,31 @@ export function useCreateAIPrompt() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateAIPromptRequest) => fetchAI.createPrompt(data),
-    onSuccess: (response) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-prompts'] });
-      toast.success(response.message || 'Tạo prompt thành công!');
+      toast.success('Tạo prompt thành công');
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onError: (error: any) => {
-      toast.error(error.message || 'Tạo prompt thất bại!');
-    },
+    onError: () => {
+        toast.error('Có lỗi xảy ra khi tạo prompt');
+    }
   });
 }
+
+export function useDeleteAIPrompt() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => fetchAI.deletePrompt(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-prompts'] });
+      toast.success('Xóa prompt thành công');
+    },
+    onError: () => {
+        toast.error('Có lỗi xảy ra khi xóa prompt');
+    }
+  });
+}
+
+
 
 export function useUpdateAIPrompt() {
   const queryClient = useQueryClient();
@@ -72,5 +95,21 @@ export function useUpdateAIPrompt() {
     onError: (error: any) => {
       toast.error(error.message || 'Cập nhật prompt thất bại!');
     },
+  });
+}
+
+export function useToggleAIPromptStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => fetchAI.toggleStatus(id),
+    onSuccess: (response, id) => {
+        queryClient.invalidateQueries({ queryKey: ['ai-prompts'] });
+        queryClient.invalidateQueries({ queryKey: ['ai-prompt', id] });
+        toast.success(response.message || 'Cập nhật trạng thái thành công');
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+        toast.error(error.message || 'Cập nhật trạng thái thất bại');
+    }
   });
 }

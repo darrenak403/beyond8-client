@@ -1,10 +1,9 @@
 'use client';
 
-import { useAIPrompts, useCreateAIPrompt, useUpdateAIPrompt } from '@/hooks/useAI';
-import { AIPromptList } from './components/AIPromptList';
+import { useAIPrompts, useCreateAIPrompt, useUpdateAIPrompt, useDeleteAIPrompt, useToggleAIPromptStatus } from '@/hooks/useAI';
+import { getColumns } from './components/Columns';
 import { AIPromptForm } from './components/AIPromptForm';
-import { AIPagination } from './components/AIPagination';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import {
   Dialog,
@@ -15,17 +14,22 @@ import {
 } from "@/components/ui/dialog";
 import { AIPrompt, CreateAIPromptRequest, UpdateAIPromptRequest } from '@/lib/api/services/fetchAI';
 import { AIPromptToolBar } from './components/AIPromptToolBar';
+import { DataTable } from "@/components/ui/data-table";
+import { PaginationState } from "@tanstack/react-table";
+import { useIsMobile } from "@/hooks/useMobile";
+import { ConfirmDialog } from "@/components/widget/confirm-dialog";
+import { AIPromptsTableSkeleton } from "./components/AIPromptsTableSkeleton";
 
 export default function AIPromptsPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isMobile = useIsMobile();
 
   // Read URL params
   const page = Number(searchParams.get('PageNumber')) || 1;
   const pageSize = Number(searchParams.get('PageSize')) || 10;
-  const isDescending = searchParams.get('IsDescending') !== 'false';  
-  const totalPages = Number(searchParams.get('TotalPages')) || 1;
+  const isDescending = searchParams.get('IsDescending') !== 'false';
 
   // Sync default params to URL
   useEffect(() => {
@@ -44,10 +48,6 @@ export default function AIPromptsPage() {
       params.set('IsDescending', 'true');
       hasChanges = true;
     }
-    if (!searchParams.has('TotalPages')) {
-      params.set('TotalPages', '1');
-      hasChanges = true;
-    }
 
     if (hasChanges) {
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
@@ -58,13 +58,23 @@ export default function AIPromptsPage() {
     PageNumber: page,
     PageSize: pageSize,
     IsDescending: isDescending,
-      });
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const metadata = promptRes?.metadata as any;
+  const totalPages = metadata?.totalPages || 1;
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<AIPrompt | null>(null);
 
+  // Delete Dialog State
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
   const createMutation = useCreateAIPrompt();
   const updateMutation = useUpdateAIPrompt();
+  const deleteMutation = useDeleteAIPrompt();
+  const toggleMutation = useToggleAIPromptStatus();
 
   const prompts = promptRes?.data || [];
   
@@ -85,26 +95,56 @@ export default function AIPromptsPage() {
       updateUrl('IsDescending', value);
   };
 
-  const handlePageChange = (newPage: number) => {
-      updateUrl('PageNumber', newPage.toString());
+  const pagination: PaginationState = {
+      pageIndex: page - 1,
+      pageSize: pageSize,
   };
 
-  const handleEdit = (prompt: AIPrompt) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setPagination = (updater: any) => {
+      const newPagination = typeof updater === "function" ? updater(pagination) : updater;
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("PageNumber", String(newPagination.pageIndex + 1));
+      params.set("PageSize", String(newPagination.pageSize));
+      router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleEdit = useCallback((prompt: AIPrompt) => {
     setSelectedPrompt(prompt);
     setIsDialogOpen(true);
-  };
+  }, []);
   
-  const handleCreate = () => {
+  const handleCreate = useCallback(() => {
      setSelectedPrompt(null);
      setIsDialogOpen(true);
-  };
+  }, []);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
       setIsDialogOpen(false);
       setSelectedPrompt(null);
-  }
+  }, []);
 
-  const handleSubmit = async (data: CreateAIPromptRequest | UpdateAIPromptRequest) => {
+  const handleDeleteClick = useCallback((id: string) => {
+      setDeleteId(id);
+      setIsConfirmOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+      if (deleteId) {
+          deleteMutation.mutate(deleteId, {
+              onSuccess: () => {
+                  setIsConfirmOpen(false);
+                  setDeleteId(null);
+              }
+          });
+      }
+  }, [deleteId, deleteMutation]);
+
+  const handleToggleStatus = useCallback((id: string) => {
+      toggleMutation.mutate(id);
+  }, [toggleMutation]);
+
+  const handleSubmit = useCallback(async (data: CreateAIPromptRequest | UpdateAIPromptRequest) => {
       if (selectedPrompt) {
           updateMutation.mutate({ id: selectedPrompt.id, data: data as UpdateAIPromptRequest }, {
               onSuccess: () => handleCloseDialog()
@@ -114,30 +154,37 @@ export default function AIPromptsPage() {
               onSuccess: () => handleCloseDialog()
           });
       }
-  };
+  }, [selectedPrompt, updateMutation, createMutation, handleCloseDialog]);
+
+  const columns = useMemo(() => getColumns({
+      onEdit: handleEdit,
+      onDelete: handleDeleteClick,
+      onToggleStatus: handleToggleStatus
+  }), [handleEdit, handleDeleteClick, handleToggleStatus]);
 
   return (
-    <div className="space-y-6 flex flex-col gap-3">
-        <AIPromptToolBar 
-            sortFilter={isDescending ? 'true' : 'false'}
-            onSortChange={handleSortChange}
-            onAdd={handleCreate}
-            onRefresh={refetch}
-            isFetching={isRefetching || isLoading}
-        />
-
-      <AIPromptList 
-        prompts={prompts} 
-        isLoading={isLoading} 
-        onEdit={handleEdit} 
-      />
-
-      <AIPagination 
-        pageIndex={page}
-        pageSize={pageSize}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+    <div className={`h-full flex-1 flex-col space-y-4 ${isMobile ? 'p-2 space-y-4' : 'p-2'} flex`}>
+        {isLoading ? (
+            <AIPromptsTableSkeleton />
+        ) : (
+            <DataTable
+                data={prompts}
+                columns={columns}
+                pagination={pagination}
+                onPaginationChange={setPagination}
+                pageCount={totalPages}
+            >
+                {() => (
+                    <AIPromptToolBar 
+                        sortFilter={isDescending ? 'true' : 'false'}
+                        onSortChange={handleSortChange}
+                        onAdd={handleCreate}
+                        onRefresh={refetch}
+                        isFetching={isRefetching || isLoading}
+                    />
+                )}
+            </DataTable>
+        )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -156,6 +203,17 @@ export default function AIPromptsPage() {
             />
         </DialogContent>
         </Dialog>
+
+        <ConfirmDialog
+            open={isConfirmOpen}
+            onOpenChange={setIsConfirmOpen}
+            onConfirm={handleConfirmDelete}
+            title="Xóa Prompt"
+            description="Bạn có chắc chắn muốn xóa prompt này không? Hành động này không thể hoàn tác."
+            confirmText="Xóa"
+            variant="destructive"
+            isLoading={deleteMutation.isPending}
+        />
     </div>
   );
 }

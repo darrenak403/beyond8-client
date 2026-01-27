@@ -1,6 +1,6 @@
 "use client"
 
-import { X } from "lucide-react"
+import { X, Loader2 } from "lucide-react"
 import {
     Dialog,
     DialogContent,
@@ -22,6 +22,7 @@ interface ConfirmDialogProps {
     confirmText?: string
     cancelText?: string
     variant?: "default" | "destructive" | "success"
+    isLoading?: boolean
 }
 
 export function ConfirmDialog({
@@ -34,6 +35,7 @@ export function ConfirmDialog({
     confirmText = "Xác nhận",
     cancelText = "Hủy",
     variant = "default",
+    isLoading = false,
 }: ConfirmDialogProps) {
     let buttonClass = ""
     switch (variant) {
@@ -49,6 +51,7 @@ export function ConfirmDialog({
     }
 
     const handleCancel = () => {
+        if (isLoading) return;
         onOpenChange(false)
         onCancel?.()
     }
@@ -61,6 +64,7 @@ export function ConfirmDialog({
                     className={cn(
                         "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none z-10"
                     )}
+                    disabled={isLoading}
                 >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Đóng</span>
@@ -72,10 +76,11 @@ export function ConfirmDialog({
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={handleCancel}>
+                    <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
                         {cancelText}
                     </Button>
-                    <Button onClick={onConfirm} className={buttonClass}>
+                    <Button onClick={onConfirm} className={buttonClass} disabled={isLoading}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {confirmText}
                     </Button>
                 </DialogFooter>
