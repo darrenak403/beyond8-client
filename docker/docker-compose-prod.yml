@@ -1,27 +1,78 @@
-# ===========================================
-# Beyond8 Frontend - Docker Compose (Fixed)
-# ===========================================
+# # ===========================================
+# # Beyond8 Frontend - Docker Compose (Fixed)
+# # ===========================================
+
+# services:
+#   frontend:
+#     image: ngothanhdatak/beyond8-frontend:latest
+#     container_name: beyond8-frontend
+#     restart: unless-stopped
+#     ports:
+#       - "5173:5173"
+#     environment:
+#       - NODE_ENV=production
+#       - PORT=5173
+#       # Quan trọng: Buộc Next.js lắng nghe trên mọi IP (IPv4)
+#       - HOSTNAME=0.0.0.0
+#       - NEXT_PUBLIC_API_URL=https://api.beyond8.io.vn
+
+#     # Sửa lỗi Healthcheck:
+#     # 1. Tăng start_period để App kịp khởi động
+#     # 2. Dùng 127.0.0.1 để ép dùng IPv4 (tránh lỗi Connection Refused do IPv6)
+#     healthcheck:
+#       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:5173"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 3
+#       start_period: 30s
+
+version: "3.8"
 
 services:
   frontend:
     image: ngothanhdatak/beyond8-frontend:latest
     container_name: beyond8-frontend
     restart: unless-stopped
+
+    # 1. Bảo vệ ổ cứng: Giới hạn log (Cực quan trọng với VPS)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # 2. Port: Mở port 5173 để Cloudflare Tunnel trỏ vào
     ports:
       - "5173:5173"
+
     environment:
       - NODE_ENV=production
       - PORT=5173
-      # Quan trọng: Buộc Next.js lắng nghe trên mọi IP (IPv4)
       - HOSTNAME=0.0.0.0
+
+      # [LƯU Ý QUAN TRỌNG]
+      # Vì em dùng Image build sẵn, biến NEXT_PUBLIC_... này
+      # CHỈ có tác dụng nếu em đã cấu hình Next.js hỗ trợ Runtime Config.
+      # Nếu không, nó vẫn nhận giá trị cũ lúc em build image.
       - NEXT_PUBLIC_API_URL=https://api.beyond8.io.vn
 
-    # Sửa lỗi Healthcheck:
-    # 1. Tăng start_period để App kịp khởi động
-    # 2. Dùng 127.0.0.1 để ép dùng IPv4 (tránh lỗi Connection Refused do IPv6)
+      # URL để Server-side (SSR) gọi sang Backend trong mạng nội bộ
+      # Gọi vào Gateway (Port 8080) thay vì gọi trực tiếp Identity/Integration
+      - INTERNAL_API_URL=http://beyond8-gateway:8080
+
+    # 3. Healthcheck: Tối ưu cho Next.js
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:5173"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 40s # Tăng lên xíu để app kịp thở lúc khởi động
+
+    # 4. Mạng: Phải chung mạng với Backend thì mới gọi SSR được
+    networks:
+      - beyond8-network
+
+# Kết nối vào mạng mà Backend đã tạo
+networks:
+  beyond8-network:
+    external: true
