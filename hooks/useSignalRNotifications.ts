@@ -47,18 +47,20 @@ export function useSignalRNotifications() {
       }
 
       const handleRequireReLogin = (data: {
-        title?: string
-        message?: string
-        requireReLogin?: boolean
+        Title?: string
+        Message?: string
+        Metadata?: {
+          RequireReLogin?: boolean
+        }
       }) => {
         console.log('[SignalR] Received RequireReLogin:', data)
-        const { title, message, requireReLogin } = data
+        const { Title, Message, Metadata } = data
 
-        if (requireReLogin) {
+        if (Metadata?.RequireReLogin) {
           toast.warning(
-            title || 'Yêu cầu đăng nhập lại',
+            Title || 'Yêu cầu đăng nhập lại',
             {
-              description: message || 'Tài khoản của bạn đã được duyệt thành công. Vui lòng đăng xuất và đăng nhập lại để cập nhật quyền truy cập.',
+              description: Message || 'Tài khoản của bạn đã được duyệt thành công. Vui lòng đăng xuất và đăng nhập lại để cập nhật quyền truy cập.',
               duration: 10000,
             }
           )
