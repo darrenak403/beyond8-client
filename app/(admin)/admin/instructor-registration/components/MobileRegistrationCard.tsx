@@ -82,24 +82,61 @@ export function MobileRegistrationCard({
                 </div>
             </div>
 
-            {/* Expertise */}
-            <div className="text-xs space-y-1">
-                <span className="text-muted-foreground font-medium">Chuyên môn</span>
-                <div className="flex flex-wrap gap-1.5">
-                    {registration.expertiseAreas.length > 0 ? (
-                        registration.expertiseAreas.map((area, index) => (
-                            <Badge
-                                key={index}
-                                variant="secondary"
-                                className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-[10px] px-1.5 py-0"
-                            >
-                                {area}
-                            </Badge>
-                        ))
-                    ) : (
-                        <span className="text-xs text-muted-foreground">-</span>
-                    )}
+            {/* Expertise & Languages */}
+            <div className="space-y-2 flex justify-between">
+                {/* Expertise */}
+                <div className="text-xs space-y-2">
+                    <span className="text-muted-foreground font-medium">Chuyên môn</span>
+                    <div className="flex flex-wrap gap-1.5">
+                        {registration.expertiseAreas.length > 0 ? (
+                            <>
+                                {registration.expertiseAreas.slice(0, 2).map((area, index) => (
+                                    <Badge
+                                        key={index}
+                                        variant="secondary"
+                                        className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-[10px] px-1.5 py-0"
+                                    >
+                                        {area}
+                                    </Badge>
+                                ))}
+                                {registration.expertiseAreas.length > 2 && (
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                        +{registration.expertiseAreas.length - 2}
+                                    </Badge>
+                                )}
+                            </>
+                        ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                    </div>
                 </div>
+
+                {/* Teaching Languages */}
+                {/* <div className="text-xs space-y-2">
+                    <span className="text-muted-foreground font-medium">Ngôn ngữ giảng dạy</span>
+                    <div className="flex flex-wrap gap-1.5">
+                        {registration.teachingLanguages && registration.teachingLanguages.length > 0 ? (
+                            <>
+                                {registration.teachingLanguages.slice(0, 2).map((lang, index) => (
+                                    <Badge
+                                        key={index}
+                                        variant="outline"
+                                        className="border-blue-200 text-blue-700 bg-blue-50 text-[10px] px-1.5 py-0"
+                                    >
+                                        {lang}
+                                    </Badge>
+                                ))}
+                                {registration.teachingLanguages.length > 2 && (
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                        +{registration.teachingLanguages.length - 2}
+                                    </Badge>
+                                )}
+                            </>
+                        ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                    </div>
+                </div> */}
             </div>
 
             {/* Actions */}

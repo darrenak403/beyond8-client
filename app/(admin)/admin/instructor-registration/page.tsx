@@ -205,9 +205,6 @@ const InstructorRegistrationPage = () => {
                 <div className="flex items-center justify-between space-y-2">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">Duyệt đơn đăng ký giảng viên</h2>
-                        <p className="text-muted-foreground">
-                            Quản lý và xét duyệt các yêu cầu trở thành giảng viên.
-                        </p>
                     </div>
                     <div className="flex items-center space-x-2">
                         {/* Removed header Refresh Button */}

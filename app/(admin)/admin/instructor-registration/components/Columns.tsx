@@ -53,15 +53,38 @@ export const getColumns = ({
             cell: ({ row }) => {
                 const areas = row.original.expertiseAreas || [];
                 return (
-                    <div className="flex flex-wrap gap-1 max-w-50">
+                    <div className="flex gap-1 max-w-50">
                         {areas.slice(0, 2).map((area, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
+                            <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-xs">
                                 {area}
                             </Badge>
                         ))}
                         {areas.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-xs">
                                 +{areas.length - 2}
+                            </Badge>
+                        )}
+                    </div>
+                );
+            },
+        },
+        {
+            accessorKey: "teachingLanguages",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Ngôn ngữ giảng dạy" />
+            ),
+            cell: ({ row }) => {
+                const languages = row.original.teachingLanguages || [];
+                return (
+                    <div className="flex flex-wrap gap-1 max-w-50">
+                        {languages.slice(0, 2).map((lang, index) => (
+                            <Badge key={index} variant="outline" className="border-blue-200 text-blue-700 bg-blue-50 text-xs">
+                                {lang}
+                            </Badge>
+                        ))}
+                        {languages.length > 2 && (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 text-xs">
+                                +{languages.length - 2}
                             </Badge>
                         )}
                     </div>
