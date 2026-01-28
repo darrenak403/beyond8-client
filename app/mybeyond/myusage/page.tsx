@@ -102,7 +102,7 @@ export default function AIUsagePage() {
                     subtext={`${stats.input.toLocaleString()} In / ${stats.output.toLocaleString()} Out`}
                     icon={Activity}
                     colorClass="text-[#f4449b]"
-                    chartTitle="Token Distribution"
+                    chartTitle="Phân bổ token"
                     chartDescription="Phân tích tỉ lệ giữa dữ liệu đầu vào và kết quả phản hồi."
                     isLoading={isLoading}
                     detailsContent={
@@ -133,7 +133,7 @@ export default function AIUsagePage() {
                     subtext="Lưu lượng tiêu thụ trang này"
                     icon={Zap}
                     colorClass="text-[#ad1c9a]"
-                    chartTitle="Token Velocity"
+                    chartTitle="Tốc độ tiêu thụ token"
                     chartDescription="Tốc độ tiêu thụ tokens dựa trên các hoạt động gần đây."
                     isLoading={isLoading}
                     detailsContent={
@@ -167,7 +167,7 @@ export default function AIUsagePage() {
                     subtext="Tổng phí dựa trên tokens"
                     icon={Coins}
                     colorClass="text-[#67178d]"
-                    chartTitle="Cost Efficiency"
+                    chartTitle="Chi phí hiệu quả"
                     chartDescription="Báo cáo chi tiết về giá trị quy đổi từ lượng tokens đã dùng."
                     isLoading={isLoading}
                     detailsContent={
