@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AIPrompt, CreateAIPromptRequest, UpdateAIPromptRequest } from '@/lib/api/services/fetchAI';
+import { AIPrompt, CreateAIPromptRequest, UpdateAIPromptRequest } from '@/hooks/useAI';
 import { AIPromptToolBar } from './components/AIPromptToolBar';
 import { DataTable } from "@/components/ui/data-table";
 import { PaginationState } from "@tanstack/react-table";

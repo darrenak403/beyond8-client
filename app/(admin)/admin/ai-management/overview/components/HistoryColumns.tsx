@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { AIUsageRecord } from "@/lib/api/services/fetchAI"
+import { AIUsageRecord } from "@/hooks/useAI"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 
@@ -31,11 +31,11 @@ export const historyColumns: ColumnDef<AIUsageRecord>[] = [
   },
   {
     accessorKey: "totalCost",
-    header: () => <div className="text-right">Chi phí</div>,
+    header: () => <div className="text-center">Chi phí</div>,
     cell: ({ row }) => {
       const cost = parseFloat(row.getValue("totalCost"));
       return (
-        <div className="text-right font-medium">
+        <div className="text-center font-medium">
           ${cost.toFixed(6)}
         </div>
       )

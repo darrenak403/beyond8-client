@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { CreateAIPromptRequest, UpdateAIPromptRequest, AIPrompt } from '@/lib/api/services/fetchAI';
+import { CreateAIPromptRequest, UpdateAIPromptRequest, AIPrompt } from '@/hooks/useAI';
 import { useEffect } from 'react';
 import { DialogFooter } from '@/components/ui/dialog';
 

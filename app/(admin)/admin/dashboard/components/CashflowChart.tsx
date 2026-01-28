@@ -19,12 +19,12 @@ import {
 import { useIsMobile } from '@/hooks/useMobile';
 
 const chartData = [
-  { month: 'Tháng 1', escrow: 125000000, profit: 85000000, fill: 'var(--color-escrow)' },
-  { month: 'Tháng 2', escrow: 98000000, profit: 72000000, fill: 'var(--color-profit)' },
-  { month: 'Tháng 3', escrow: 142000000, profit: 95000000, fill: 'var(--color-escrow)' },
-  { month: 'Tháng 4', escrow: 156000000, profit: 108000000, fill: 'var(--color-profit)' },
-  { month: 'Tháng 5', escrow: 178000000, profit: 125000000, fill: 'var(--color-escrow)' },
-  { month: 'Tháng 6', escrow: 165000000, profit: 118000000, fill: 'var(--color-profit)' },
+  { month: 'T1', escrow: 125000000, profit: 85000000, fill: 'var(--color-escrow)' },
+  { month: 'T2', escrow: 98000000, profit: 72000000, fill: 'var(--color-profit)' },
+  { month: 'T3', escrow: 142000000, profit: 95000000, fill: 'var(--color-escrow)' },
+  { month: 'T4', escrow: 156000000, profit: 108000000, fill: 'var(--color-profit)' },
+  { month: 'T5', escrow: 178000000, profit: 125000000, fill: 'var(--color-escrow)' },
+  { month: 'T6', escrow: 165000000, profit: 118000000, fill: 'var(--color-profit)' },
 ];
 
 const chartConfig = {

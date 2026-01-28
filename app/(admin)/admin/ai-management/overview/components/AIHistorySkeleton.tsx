@@ -8,10 +8,11 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
-export function AIHistorySkeleton() {
+export function AIHistorySkeleton({ className }: { className?: string }) {
     return (
-        <div className="rounded-md border">
+        <div className={cn("rounded-md border", className)}>
             <Table>
                 <TableHeader>
                     <TableRow>

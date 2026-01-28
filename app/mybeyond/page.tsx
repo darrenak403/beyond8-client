@@ -2,20 +2,20 @@
 
 import { useSearchParams } from "next/navigation";
 import MyProfilePage from "./myprofile/page";
-import MyWalletPage from "./mywallet/page";
 import MyCoursePage from "./mycourse/page";
+import AIUsagePage from "./myusage/page";
 
 export default function MyBeyondPage() {
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get("tab") || "MyProfile";
+  const currentTab = searchParams.get("tab") || "myprofile";
 
   return (
     <>
       {currentTab === "myprofile" && <MyProfilePage />}
-      
-      {currentTab === "mywallet" && <MyWalletPage/>}
-      
+            
       {currentTab === "mycourse" && <MyCoursePage/>}
+
+      {currentTab === "myusage" && <AIUsagePage/>}
     </>
   );
 }

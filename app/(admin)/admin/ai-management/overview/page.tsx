@@ -81,13 +81,13 @@ export default function AIOverviewPage() {
       
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
         <div className="col-span-4 lg:col-span-3">
-          <AIChart stats={stats} isLoading={isLoadingStats} />
+          <AIChart />
         </div>
         
-        <div className="col-span-4 lg:col-span-4">
-             <h3 className="font-semibold text-lg">Hoạt động gần đây</h3>
+        <div className="col-span-4 lg:col-span-4 flex flex-col gap-6 h-full">
+             <h3 className="text-2xl font-semibold leading-none tracking-tight pt-6 pb-2">Hoạt động gần đây</h3>
              {isLoadingHistory ? (
-                <AIHistorySkeleton />
+                <AIHistorySkeleton className="min-h-0 flex-1" />
              ) : (
                 <DataTable
                     data={history}
@@ -95,8 +95,10 @@ export default function AIOverviewPage() {
                     pagination={pagination}
                     onPaginationChange={setPagination}
                     pageCount={totalPages}
-                    className="min-h-0"
-                />
+                    className="min-h-0 flex-1"
+                >
+                    {() => null}
+                </DataTable>
              )}
         </div>
       </div>

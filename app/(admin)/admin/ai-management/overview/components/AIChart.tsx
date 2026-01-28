@@ -1,53 +1,76 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AIUsageStatistics } from '@/lib/api/services/fetchAI';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useAIUsageStatistics } from '@/hooks/useAI';
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
+import { Skeleton } from "@/components/ui/skeleton"
 
-interface AIChartProps {
-  stats?: AIUsageStatistics;
-  isLoading: boolean;
-}
+export const description = "A bar chart"
 
-export function AIChart({ stats, isLoading }: AIChartProps) {
-  if (isLoading) {
-    return <Skeleton className="h-[350px] w-full rounded-xl" />;
-  }
-  
-  const tokenData = [
-    {
-      name: 'Tokens',
-      Input: stats?.totalInputTokens || 0,
-      Output: stats?.totalOutputTokens || 0,
+const chartConfig = {
+  desktop: {
+    label: "Tokens Đầu vào",
+    color: "var(--primary)", 
+  },
+  mobile: {
+    label: "Tokens Đầu ra",
+    color: "var(--brand-pink)",
+  },
+} satisfies ChartConfig
+
+export function AIChart() {
+  const { data: statsData, isLoading } = useAIUsageStatistics();
+  const stats = statsData?.data;
+
+  const chartData = [
+    { 
+        month: "Tổng quan", 
+        desktop: stats?.totalInputTokens || 0, 
+        mobile: stats?.totalOutputTokens || 0 
     },
   ];
 
   return (
-    <Card className="col-span-4 shadow-sm border-gray-100">
+    <Card className="col-span-4 shadow-sm border-gray-100 h-full">
       <CardHeader>
         <CardTitle>Phân bổ Tokens</CardTitle>
-        <CardDescription>
-          So sánh lượng tokens đầu vào và đầu ra
-        </CardDescription>
+        <CardDescription>So sánh tổng lượng tokens đầu vào và đầu ra</CardDescription>
       </CardHeader>
-      <CardContent className="pl-2">
-        <div className="h-[350px] w-full">
-           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={tokenData} layout="vertical" barSize={40}>
-              <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" width={50} tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
-              <Tooltip 
-                cursor={{fill: 'transparent'}}
-                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-              />
-              <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-              <Bar dataKey="Input" fill="var(--secondary)" radius={[0, 4, 4, 0]} name="Tokens Đầu vào" stackId="a" />
-              <Bar dataKey="Output" fill="var(--brand-pink)" radius={[0, 4, 4, 0]} name="Tokens Đầu ra" stackId="a" />
+      <CardContent>
+        {isLoading ? (
+            <Skeleton className="h-[250px] w-full rounded-xl" />
+        ) : (
+            <ChartContainer config={chartConfig}>
+            <BarChart accessibilityLayer data={chartData}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                dataKey="month"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="dashed" />}
+                />
+                <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
+                <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
             </BarChart>
-          </ResponsiveContainer>
-        </div>
+            </ChartContainer>
+        )}
       </CardContent>
     </Card>
-  );
+  )
 }
