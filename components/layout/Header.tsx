@@ -11,6 +11,10 @@ import { useQuery } from "@tanstack/react-query";
 import { instructorRegistrationService } from "@/lib/api/services/fetchInstructorRegistration";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useCategory } from "@/hooks/useCategory";
+import { Category } from "@/lib/api/services/fetchCategory";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +27,113 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect, useRef } from "react";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import gsap from "gsap";
+import { AnimatePresence, motion } from "framer-motion";
+
+const CategoryMenu = ({
+  Content,
+  onSelect,
+  selected
+}: {
+  Content: Category[] | undefined,
+  onSelect: (name: string) => void,
+  selected: string
+}) => {
+  const [hoveredParent, setHoveredParent] = useState<Category | null>(null);
+
+  const handleMouseLeave = () => {
+    setHoveredParent(null);
+  };
+
+  const hasSubmenu = hoveredParent && hoveredParent.subCategories && hoveredParent.subCategories.length > 0;
+
+  return (
+    <motion.div
+      className="flex flex-col w-[300px] bg-background rounded-md py-2 relative border shadow-md"
+      onMouseLeave={handleMouseLeave}
+      animate={{ x: hasSubmenu ? -150 : 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    >
+      <ScrollArea className="h-auto max-h-[600px]">
+        <div className="flex flex-col">
+          <button
+            onClick={() => onSelect("Tất cả")}
+            onMouseEnter={() => setHoveredParent(null)}
+            className={cn(
+              "w-full text-left px-4 py-3 text-sm transition-colors flex items-center justify-between group",
+              selected === "Tất cả"
+                ? "bg-muted text-foreground font-medium"
+                : "hover:bg-muted/50 text-foreground/80 hover:text-foreground"
+            )}
+          >
+            <span>Tất cả</span>
+          </button>
+
+          {Content?.map((parent) => (
+            <div
+              key={parent.id}
+              className="relative"
+              onMouseEnter={() => setHoveredParent(parent)}
+            >
+              <button
+                onClick={() => {
+                  onSelect(parent.name)
+                }}
+                className={cn(
+                  "w-full text-left px-4 py-3 text-sm transition-colors flex items-center justify-between group",
+                  hoveredParent?.id === parent.id
+                    ? "bg-muted/50 text-foreground"
+                    : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                <span className="truncate">{parent.name}</span>
+                {parent.subCategories && parent.subCategories.length > 0 && (
+                  <ChevronDown className="h-4 w-4 -rotate-90 text-muted-foreground/50 group-hover:text-foreground/80" />
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+
+      <AnimatePresence>
+        {hasSubmenu && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-[100%] top-[-1px] h-[calc(100%+2px)] w-[300px] bg-background border rounded-md shadow-lg ml-1 overflow-hidden z-50"
+          >
+            <div className="px-5 py-3 font-semibold text-base text-foreground/70 border-b mx-5 mb-2 mt-2">
+              {hoveredParent!.name}
+            </div>
+            <ScrollArea className="h-[calc(100%-60px)] px-2">
+              <div className="flex flex-col py-2">
+                <button
+                  onClick={() => onSelect(hoveredParent!.name)}
+                  className="flex items-center justify-between w-full px-5 py-3 text-sm text-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors group rounded-md"
+                >
+                  <span className="font-medium">Xem tất cả {hoveredParent!.name}</span>
+                  <ChevronDown className="h-4 w-4 -rotate-90 text-muted-foreground/50 group-hover:text-foreground/80" />
+                </button>
+
+                {hoveredParent!.subCategories!.map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => onSelect(sub.name)}
+                    className="flex items-center justify-between w-full px-5 py-3 text-sm text-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors group rounded-md"
+                  >
+                    <span>{sub.name}</span>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
 
 export function Header() {
   const isMobile = useIsMobile();
@@ -30,8 +141,9 @@ export function Header() {
   const { userProfile, isLoading } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
-  const [tempCategory, setTempCategory] = useState("Tất cả");
+
   const [isOpen, setIsOpen] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { mutateLogout } = useLogout();
 
   const headerRef = useRef<HTMLElement>(null);
@@ -250,7 +362,8 @@ export function Header() {
 
   const showRegisterInstructor = (!isCheckingApply && checkApplyData !== undefined && checkApplyData.isSuccess === false) ||
     (!isCheckingApply && checkApplyError);
-  console.log("Show Register Instructor:", showRegisterInstructor);
+
+  const { categories: categoryData } = useCategory();
 
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
@@ -262,14 +375,7 @@ export function Header() {
     return 'U';
   };
 
-  const categories = [
-    { name: "Tất cả", icon: "mdi:view-grid" },
-    { name: "Lập trình", icon: "mdi:code-tags" },
-    { name: "Thiết kế", icon: "mdi:palette" },
-    { name: "Kinh doanh", icon: "mdi:briefcase" },
-    { name: "Marketing", icon: "mdi:bullhorn" },
-    { name: "Ngoại ngữ", icon: "mdi:translate" },
-  ];
+
 
   const handleLogout = () => {
     mutateLogout();
@@ -280,10 +386,7 @@ export function Header() {
     console.log("Searching for:", searchQuery, "Category:", selectedCategory);
   };
 
-  const handleApplyFilter = () => {
-    setSelectedCategory(tempCategory);
-    setIsOpen(false);
-  };
+
 
   return (
     <header
@@ -320,58 +423,35 @@ export function Header() {
               <div className="h-8 w-px bg-border" />
 
               <div className="w-1/2 flex items-center justify-between pr-1">
-                <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-                  <DropdownMenuTrigger className="flex items-center justify-between w-full px-3 py-2 text-sm focus:outline-none cursor-pointer">
-                    <span>Loại khóa học</span>
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    className="p-4 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200"
-                    sideOffset={8}
-                    alignOffset={-200}
-                    style={{
-                      width: '395px'
+                <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
+                  <DropdownMenuTrigger
+                    className="flex items-center justify-between w-full px-3 py-2 text-sm focus:outline-none cursor-pointer"
+                    onMouseEnter={() => {
+                      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                      setIsOpen(true);
+                    }}
+                    onMouseLeave={() => {
+                      timeoutRef.current = setTimeout(() => setIsOpen(false), 100);
                     }}
                   >
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      {categories.map((category, index) => {
-                        const isSelected = tempCategory === category.name;
-                        return (
-                          <div
-                            key={category.name}
-                            onClick={() => setTempCategory(category.name)}
-                            className={`p-2.5 border rounded-lg cursor-pointer transition-all flex items-center gap-2 animate-in fade-in-0 slide-in-from-bottom-2 ${isSelected
-                              ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/20'
-                              : 'border-border'
-                              }`}
-                            style={{
-                              animationDelay: `${index * 50}ms`,
-                              animationDuration: '300ms'
-                            }}
-                          >
-                            <Icon
-                              icon={category.icon}
-                              className={`text-lg flex-shrink-0 ${isSelected ? 'text-purple-600' : ''}`}
-                            />
-                            <span className={`text-xs font-medium ${isSelected ? 'text-purple-600' : ''}`}>
-                              {category.name}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <Button
-                      onClick={handleApplyFilter}
-                      className="w-full bg-purple-600 hover:bg-purple-700 animate-in fade-in-0 slide-in-from-bottom-2"
-                      size="sm"
-                      style={{
-                        animationDelay: '300ms',
-                        animationDuration: '300ms'
-                      }}
-                    >
-                      Áp dụng
-                    </Button>
+                    <span className="truncate max-w-[120px]">{selectedCategory}</span>
+                    <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="center"
+                    sideOffset={10}
+                    onMouseEnter={() => {
+                      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                    }}
+                    onMouseLeave={() => {
+                      timeoutRef.current = setTimeout(() => setIsOpen(false), 100);
+                    }}
+                    className="p-0 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200 !overflow-visible border-none bg-transparent shadow-none w-auto"
+                  >
+                    <CategoryMenu Content={categoryData?.data} onSelect={(name) => {
+                      setSelectedCategory(name);
+                      setIsOpen(false);
+                    }} selected={selectedCategory} />
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -456,12 +536,6 @@ export function Header() {
                       Khóa học của tôi
                     </Link>
                   </DropdownMenuItem>
-                  {/* <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/mybeyond?tab=mywallet" className="flex items-center gap-2">
-                      <Receipt className="h-4 w-4" />
-                      Ví của tôi
-                    </Link>
-                  </DropdownMenuItem> */}
                   {isMobile && (showInstructorDashboard || showRegisterInstructor) && (
                     <>
                       <DropdownMenuSeparator />
