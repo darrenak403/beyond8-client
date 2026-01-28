@@ -1,12 +1,12 @@
 import React from "react";
 // import CategoryMindMap from "./_components/CategoryMindMap";
-import { CategoryTreeTable } from "./_components/CategoryTreeTable";
+import { CategoryMasterDetail } from "./components/CategoryMasterDetail";
 
 const CategoryPage = () => {
   return (
-    <div className="p-6">
+    <div className="p-2">
       {/* <CategoryMindMap /> */}
-      <CategoryTreeTable />
+      <CategoryMasterDetail />
     </div>
   );
 };

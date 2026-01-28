@@ -109,13 +109,6 @@ const CategoryMenu = ({
             </div>
             <ScrollArea className="h-[calc(100%-60px)] px-2">
               <div className="flex flex-col py-2">
-                <button
-                  onClick={() => onSelect(hoveredParent!.name)}
-                  className="flex items-center justify-between w-full px-5 py-3 text-sm text-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors group rounded-md"
-                >
-                  <span className="font-medium">Xem tất cả {hoveredParent!.name}</span>
-                  <ChevronDown className="h-4 w-4 -rotate-90 text-muted-foreground/50 group-hover:text-foreground/80" />
-                </button>
 
                 {hoveredParent!.subCategories!.map((sub) => (
                   <button
