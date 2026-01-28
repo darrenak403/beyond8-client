@@ -19,6 +19,7 @@ import { PaginationState } from "@tanstack/react-table";
 import { useIsMobile } from "@/hooks/useMobile";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 import { AIPromptsTableSkeleton } from "./components/AIPromptsTableSkeleton";
+import { AIPromptsGridSkeleton } from './components/AIPromptsGridSkeleton';
 import { AIPromptGrid } from './components/AIPromptGrid';
 
 export default function AIPromptsPage() {
@@ -180,7 +181,7 @@ export default function AIPromptsPage() {
     return (
         <div className={`h-full flex-1 flex-col space-y-4 ${isMobile ? 'p-2 space-y-4' : 'p-2'} flex`}>
             {isLoading ? (
-                <AIPromptsTableSkeleton />
+                viewMode === 'grid' ? <AIPromptsGridSkeleton /> : <AIPromptsTableSkeleton />
             ) : (
                 <div className="flex flex-col space-y-4 h-full">
                     <AIPromptToolBar
