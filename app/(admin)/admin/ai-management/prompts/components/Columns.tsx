@@ -97,7 +97,7 @@ export const getColumns = ({ onEdit, onDelete, onToggleStatus }: GetColumnsProps
   },
   {
     id: "actions",
-    header: () => <div className="text-right">Thao tác</div>,
+    header: () => <div className="text-center">Thao tác</div>,
     cell: ({ row }) => {
       const prompt = row.original
       const isActive = prompt.isActive;

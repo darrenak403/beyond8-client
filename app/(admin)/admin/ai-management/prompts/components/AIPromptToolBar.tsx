@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Plus, RotateCw, Search, LayoutGrid, List } from "lucide-react"
+import { Plus, RotateCw, Search, LayoutGrid, ListIcon } from "lucide-react"
 import {
     Select,
     SelectContent,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { useIsMobile } from "@/hooks/useMobile"
+import { motion } from 'framer-motion'
 
 interface AIPromptToolBarProps {
     onAdd: () => void
@@ -89,26 +90,47 @@ export function AIPromptToolBar({
 
                 <div className="flex items-center gap-2">
                     {/* View Toggle */}
-                    <div className="flex items-center bg-slate-100 rounded-full p-1 border border-slate-200">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className={`h-7 w-7 rounded-full ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                            onClick={() => onViewModeChange('list')}
-                            title="Dạng danh sách"
-                        >
-                            <List className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className={`h-7 w-7 rounded-full ${viewMode === 'grid' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                            onClick={() => onViewModeChange('grid')}
-                            title="Dạng lưới"
-                        >
-                            <LayoutGrid className="h-4 w-4" />
-                        </Button>
-                    </div>
+            {!isMobile && (
+                <div className="flex items-center p-1 bg-white rounded-full border border-slate-200 h-9 shadow-sm px-1 gap-1">
+                    <button
+                        onClick={() => onViewModeChange('grid')}
+                        className={`relative p-2 rounded-full transition-colors duration-200 ${viewMode === 'grid'
+                            ? 'text-white'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        {viewMode === 'grid' && (
+                            <motion.div
+                                layoutId="viewMode-active"
+                                className="absolute inset-0 bg-slate-900 rounded-full shadow-sm"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                        <span className="relative z-10">
+                            <LayoutGrid className="w-4 h-4" />
+                        </span>
+                    </button>
+
+                    <button
+                        onClick={() => onViewModeChange('list')}
+                        className={`relative p-2 rounded-full transition-colors duration-200 ${viewMode === 'list'
+                            ? 'text-white'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        {viewMode === 'list' && (
+                            <motion.div
+                                layoutId="viewMode-active"
+                                className="absolute inset-0 bg-slate-900 rounded-full shadow-sm"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                        <span className="relative z-10">
+                            <ListIcon className="w-4 h-4" />
+                        </span>
+                    </button>
+                </div>
+            )}
 
                     {/* Refresh Button */}
                     <Button

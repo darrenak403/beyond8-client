@@ -16,7 +16,7 @@ export type { GetUsageHistoryParams, GetAIPromptsParams, CreateAIPromptRequest, 
 export function useAIUsageStatistics() {
   return useQuery({
     queryKey: ['ai-usage-statistics'],
-    queryFn: fetchAI.getStatistics,
+    queryFn: async () => await fetchAI.getStatistics(),
     staleTime: 5 * 60 * 1000, 
   });
 }
@@ -24,7 +24,7 @@ export function useAIUsageStatistics() {
 export function useAIUsageHistory(params: GetUsageHistoryParams) {
   return useQuery({
     queryKey: ['ai-usage-history', params],
-    queryFn: () => fetchAI.getHistory(params),
+    queryFn: async () => await fetchAI.getHistory(params),
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -32,7 +32,7 @@ export function useAIUsageHistory(params: GetUsageHistoryParams) {
 export function useAIAllHistory(params?: GetUsageHistoryParams) {
   return useQuery({
     queryKey: ['ai-usage-all-history', params],
-    queryFn: () => fetchAI.getAllHistory(params),
+    queryFn: async () => await fetchAI.getAllHistory(params),
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -41,7 +41,7 @@ export function useAIAllHistory(params?: GetUsageHistoryParams) {
 export function useAIPrompts(params: GetAIPromptsParams) {
   return useQuery({
     queryKey: ['ai-prompts', params],
-    queryFn: () => fetchAI.getPrompts(params),
+    queryFn: async () => await fetchAI.getPrompts(params),
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
   });
@@ -50,7 +50,7 @@ export function useAIPrompts(params: GetAIPromptsParams) {
 export function useAIPrompt(id: string) {
   return useQuery({
     queryKey: ['ai-prompt', id],
-    queryFn: () => fetchAI.getPromptById(id),
+    queryFn: async () => await fetchAI.getPromptById(id),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
   });
@@ -61,7 +61,7 @@ import { toast } from 'sonner';
 export function useCreateAIPrompt() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateAIPromptRequest) => fetchAI.createPrompt(data),
+    mutationFn: async (data: CreateAIPromptRequest) => await fetchAI.createPrompt(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-prompts'] });
       toast.success('Tạo prompt thành công');
@@ -75,7 +75,7 @@ export function useCreateAIPrompt() {
 export function useDeleteAIPrompt() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => fetchAI.deletePrompt(id),
+    mutationFn: async (id: string) => await fetchAI.deletePrompt(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-prompts'] });
       toast.success('Xóa prompt thành công');
@@ -91,7 +91,7 @@ export function useDeleteAIPrompt() {
 export function useUpdateAIPrompt() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateAIPromptRequest }) => fetchAI.updatePrompt(id, data),
+    mutationFn: async ({ id, data }: { id: string; data: UpdateAIPromptRequest }) => await fetchAI.updatePrompt(id, data),
     onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: ['ai-prompts'] });
       queryClient.invalidateQueries({ queryKey: ['ai-prompt', variables.id] });
@@ -107,7 +107,7 @@ export function useUpdateAIPrompt() {
 export function useToggleAIPromptStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => fetchAI.toggleStatus(id),
+    mutationFn: async (id: string) => await fetchAI.toggleStatus(id),
     onSuccess: (response, id) => {
         queryClient.invalidateQueries({ queryKey: ['ai-prompts'] });
         queryClient.invalidateQueries({ queryKey: ['ai-prompt', id] });
