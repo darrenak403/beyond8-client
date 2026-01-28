@@ -44,15 +44,15 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: Users, label: 'Quản lý người dùng', href: '/admin/user' },
   { icon: FileCheck, label: 'Duyệt giảng viên', href: '/admin/instructor-registration' },
-  { icon: LayoutList, label: 'Quản lí danh mục', href: '/admin/category' },
+  { icon: LayoutList, label: 'Quản lý danh mục', href: '/admin/category' },
   { icon: BookOpen, label: 'Khóa học', href: '/admin/course' },
   {
     icon: Bot,
-    label: 'Quản lí AI',
+    label: 'Quản lý AI',
     href: '#ai-management',
     children: [
       { label: 'Tổng quan', href: '/admin/ai-management/overview', icon: LayoutList },
-      { label: 'Quản lí prompt', href: '/admin/ai-management/prompts', icon: MessageSquare },
+      { label: 'Quản lý prompt', href: '/admin/ai-management/prompts', icon: MessageSquare },
     ],
   },
   { icon: BarChart3, label: 'Báo cáo', href: '/admin/report' },
@@ -216,7 +216,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                       {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                     </div>
                   </button>
-                  
+
                   {/* Submenu */}
                   <div className={cn(
                     "overflow-hidden transition-all duration-300 ease-in-out",
@@ -224,9 +224,9 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                   )}>
                     <div className="flex flex-col space-y-1 pl-9">
                       {item.children?.map((child) => {
-                         const isChildActive = pathname === child.href;
-                         const ChildIcon = child.icon;
-                         return (
+                        const isChildActive = pathname === child.href;
+                        const ChildIcon = child.icon;
+                        return (
                           <Link
                             key={child.href}
                             href={child.href}
@@ -238,7 +238,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                             {ChildIcon && <ChildIcon className="w-4 h-4" />}
                             <span>{child.label}</span>
                           </Link>
-                         )
+                        )
                       })}
                     </div>
                   </div>

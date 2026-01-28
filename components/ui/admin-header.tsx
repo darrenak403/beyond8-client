@@ -17,6 +17,7 @@ const pageTitles: Record<string, string> = {
   '/admin/admin-profile': 'Hồ sơ',
   '/admin/ai-management/overview': 'Tổng quan',
   '/admin/ai-management/prompts': 'Quản lý prompt',
+  '/admin/category': 'Quản lý danh mục',
 };
 
 export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {

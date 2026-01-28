@@ -2,7 +2,7 @@ import { fetchAuth, LoginRequest, LoginResponse, ResetPasswordRequest, VerifyOtp
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks'
 import { selectAuth, selectUser, selectIsAuthenticated, selectRefreshToken, setToken, setTokenWithRefresh, decodeToken, logout } from '@/lib/redux/slices/authSlice'
 import { Roles } from '@/lib/types/roles'
-import { ApiResponse } from '@/types/api';
+import { ApiError, ApiResponse } from '@/types/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { deleteCookie, setCookie } from 'cookies-next';
 import { getAuthCookieConfig } from '@/utils/cookieConfig';
@@ -16,9 +16,6 @@ export function useLogin() {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
   const [error, setError] = useState<string | null>(null);
-  const [needsOtpVerification, setNeedsOtpVerification] = useState(false);
-  const [verifyKey, setVerifyKey] = useState<string | null>(null);
-  const router = useRouter();
 
   const { mutate: mutateLogin, isPending: isLoading } = useMutation({
     mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
@@ -49,7 +46,7 @@ export function useLogin() {
 
       // Handle multiple roles - redirect based on priority (Admin > Instructor > Student)
       const roles = Array.isArray(user?.role) ? user?.role : (user?.role ? [user?.role] : []);
-      
+
       if (roles.includes(Roles.Admin)) {
         window.location.href = '/admin/dashboard';
       } else if (roles.includes(Roles.Instructor)) {
@@ -66,9 +63,7 @@ export function useLogin() {
   return {
     mutateLogin,
     isLoading,
-    error,
-    needsOtpVerification,
-    verifyKey,
+    error
   };
 }
 
@@ -83,7 +78,7 @@ export function useRegister() {
       }
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success('Đăng ký thành công! Vui lòng xác thực OTP.');
     },
     onError: (error: LoginResponse) => {
@@ -108,7 +103,7 @@ export function useVerifyOtpRegister() {
       }
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
     },
     onError: (error: LoginResponse) => {
@@ -133,7 +128,7 @@ export function useVerifyOtpForgotPassword() {
       }
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Xác thực OTP thành công!');
     },
@@ -162,7 +157,7 @@ export function useForgotPassword() {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Mã OTP đã được gửi đến email của bạn!');
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       toast.error(error.message || 'Gửi mã thất bại!');
     },
   });
@@ -189,7 +184,7 @@ export function useResetPassword() {
         description: 'Vui lòng đăng nhập lại với mật khẩu mới.',
       });
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       toast.error(error.message || 'Đặt lại mật khẩu thất bại!');
     },
   });
@@ -215,7 +210,7 @@ export function useChangePassword() {
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
       toast.success('Đổi mật khẩu thành công!');
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       toast.error(error.message || 'Đổi mật khẩu thất bại!');
     },
   });
@@ -240,7 +235,7 @@ export function useResendOtp() {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Mã OTP đã được gửi lại đến email của bạn!');
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       toast.error(error.message || 'Gửi lại mã thất bại!');
     },
   });
@@ -274,11 +269,11 @@ export function useRefreshToken() {
         refreshToken: data.data.refreshToken
       }));
       setCookie('authToken', data.data.accessToken, getAuthCookieConfig());
-      
+
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
       queryClient.invalidateQueries({ queryKey: ['instructorProfile'] });
-      
+
       // Reconnect SignalR with new token
       reconnectHubConnection().catch(err => {
         console.error('[SignalR] Failed to reconnect after token refresh:', err);
@@ -315,16 +310,16 @@ export function useLogout() {
       stopHubConnection().catch(err => {
         console.error('[SignalR] Failed to stop connection on logout:', err);
       });
-      
+
       dispatch(logout());
-      
+
       // Delete cookie with same config as when setting
       const cookieConfig = getAuthCookieConfig();
       deleteCookie('authToken', {
         path: cookieConfig.path,
         domain: cookieConfig.domain,
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       toast.success('Đăng xuất thành công!');
       router.push('/login');
