@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Icon } from "@iconify/react";
 import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -15,6 +14,8 @@ import { useCategory } from "@/hooks/useCategory";
 import { Category } from "@/lib/api/services/fetchCategory";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -139,6 +140,7 @@ export function Header() {
   const isMobile = useIsMobile();
   const { isAuthenticated } = useAuth();
   const { userProfile, isLoading } = useUserProfile();
+  const { subscription } = useSubscription();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
 
@@ -375,6 +377,20 @@ export function Header() {
     return 'U';
   };
 
+  const getGradientStyle = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA": 
+        return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
+      case "PRO": 
+        return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
+      case "STANDARD":
+      case "BASIC": 
+        return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
+      default: 
+        return null;
+    }
+  };
+
 
 
   const handleLogout = () => {
@@ -489,16 +505,34 @@ export function Header() {
                 ) : null
               )}
 
+              {subscription?.subscriptionPlan && !isMobile && (
+                <div className="flex items-center">
+                  <Badge 
+                    variant="outline" 
+                    className="border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-all duration-300 animate-in fade-in zoom-in duration-500 font-bold px-3 py-1 text-[12px] uppercase tracking-wider"
+                  >
+                    {subscription.subscriptionPlan.name}
+                  </Badge>
+                </div>
+              )}
+
               {isLoading ? (
                 <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
               ) : (
                 <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
-                  <Avatar className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} border-2 border-purple-200 hover:border-purple-400 transition-colors`}>
-                    <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} />
-                    <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
-                      {getAvatarFallback()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div 
+                    className={`p-[2px] rounded-full ${isMobile ? "w-9 h-9" : "w-11 h-11"} flex items-center justify-center transition-all duration-300 hover:scale-105`}
+                    style={{ 
+                      background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#e5e7eb' // Default to gray-200 equivalent
+                    }}
+                  >
+                    <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'} border-[2px] border-white`}>
+                      <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} className="object-cover" />
+                      <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
+                        {getAvatarFallback()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
                 </Link>
               )}
 

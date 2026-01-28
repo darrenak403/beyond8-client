@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { User, Shield, Lock } from "lucide-react";
+import { User, Shield, Lock, Zap } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import ProfileForm from "./ProfileForm";
 import ProfileInstructorForm from "./ProfileInstructorForm";
 import ResetPasswordForm from "./ResetPasswordForm";
+import ServiceDetail from "./ServiceDetail";
 import type { UserProfile, UpdateUserProfileRequest } from "@/lib/api/services/fetchProfile";
 
 const tabs = [
   { id: 1, label: "Thông tin cá nhân", value: "personal", icon: User },
   { id: 2, label: "Hồ sơ Giảng viên", value: "instructor", icon: Shield },
   { id: 3, label: "Bảo mật", value: "security", icon: Lock },
+  { id: 4, label: "Dịch vụ", value: "service", icon: Zap },
 ];
 
 interface ProfileContentProps {
@@ -94,6 +96,7 @@ export default function ProfileContent({
         )}
         {activeTab === "instructor" && <ProfileInstructorForm />}
         {activeTab === "security" && <ResetPasswordForm />}
+        {activeTab === "service" && <ServiceDetail />}
       </div>
     </div>
   );

@@ -89,7 +89,7 @@ export default function AIUsagePage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-4xl font-black tracking-tighter text-gray-900 uppercase">Lịch sử hoạt động AI</h2>
+                    <h2 className="text-2xl font-black tracking-tighter text-gray-900 uppercase">Lịch sử hoạt động AI</h2>
                     <p className="text-gray-500 font-medium">Theo dõi mức sử dụng và tối ưu hóa chi phí AI của bạn.</p>
                 </div>
             </div>

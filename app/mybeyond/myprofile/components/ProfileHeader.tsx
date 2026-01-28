@@ -9,6 +9,7 @@ import { useUploadImage } from "@/hooks/useUploadImage";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import SafeImage from "@/components/ui/SafeImage";
 import { useHiddenProfile } from "@/hooks/useInstructorRegistration";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useQuery } from "@tanstack/react-query";
 import { instructorRegistrationService } from "@/lib/api/services/fetchInstructorRegistration";
 import {
@@ -40,6 +41,21 @@ export default function ProfileHeader({
   const { uploadAvatar, isUploadingAvatar, uploadCover, isUploadingCover } = useUploadImage();
   const { unhideProfile, isUnhiding } = useHiddenProfile();
   const [showHideDialog, setShowHideDialog] = useState(false);
+  const { subscription } = useSubscription();
+  
+  const getGradientStyle = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA": 
+        return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
+      case "PRO": 
+        return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
+      case "STANDARD":
+      case "BASIC": 
+        return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
+      default: 
+        return null;
+    }
+  };
 
   // Fetch instructor profile to get the ID
   const { data: instructorProfile } = useQuery({
@@ -171,12 +187,14 @@ export default function ProfileHeader({
         >
           {/* Avatar */}
           <div className="relative group cursor-pointer z-20" onClick={handleAvatarClick}>
-            <Avatar
-              className={`border-4 border-purple-400 shadow-lg ${
-                isMobile ? "w-24 h-24" : "w-40 h-40"
-              }`}
+            <div 
+              className={`p-[4px] rounded-full ${isMobile ? "w-24 h-24" : "w-40 h-40"} flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-105`}
+              style={{ 
+                background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to purple-400 equivalent if null
+              }}
             >
-              <AvatarImage src={formatImageUrl(userProfile.avatarUrl)} alt={userProfile.fullName || 'User'} />
+              <Avatar className="w-full h-full border-4 ">
+              <AvatarImage src={formatImageUrl(userProfile.avatarUrl)} alt={userProfile.fullName || 'User'} className="object-cover" />
               <AvatarFallback className="text-4xl bg-purple-100 text-purple-700 font-semibold">
                 {userProfile.fullName
                   ?.split(" ")
@@ -186,6 +204,7 @@ export default function ProfileHeader({
                   .toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
+            </div>
             
             <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
               {isUploadingAvatar ? (

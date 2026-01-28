@@ -54,19 +54,18 @@ export function useSignalRNotifications() {
           requireReLogin?: boolean
         }
       }) => {
-        const { title, message, metadata } = data
+        const { title, metadata } = data
         console.log('[SignalR] Received RequireReLogin:', data.metadata?.requireReLogin)
 
         if (metadata?.requireReLogin) {
           toast.info(
             title || 'Cập nhật quyền truy cập',
             {
-              description: message || 'Tài khoản của bạn đã được duyệt thành công. Đang cập nhật quyền truy cập...',
-              duration: 5000,
+              description:'Tài khoản của bạn đã được duyệt thành công. Đang cập nhật quyền truy cập...',
+              duration: 2000,
             }
           )
 
-          // Refresh token automatically using Redux state
           mutateRefreshToken()
         }
       }
