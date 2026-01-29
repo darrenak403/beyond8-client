@@ -20,9 +20,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import { usePathname } from "next/navigation";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { Badge } from "./badge";
+import { NotificationPanel } from "../widget/notification-panel";
 
 const navItems = [
   { name: "Tổng quan", href: "/instructor/dashboard" },
@@ -37,6 +38,8 @@ export function InstructorHeader() {
   const { mutateLogout } = useLogout();
   const pathname = usePathname();
   const { subscription } = useSubscription();
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
 
   // Refs for animation
   const navRef = useRef<HTMLDivElement>(null);
@@ -237,11 +240,12 @@ export function InstructorHeader() {
                       Hồ sơ
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/notifications" className="flex items-center gap-2">
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
+                    onSelect={() => setIsNotificationOpen(true)}>
+                    <div className="flex items-center gap-2">
                       <Bell className="h-4 w-4" />
                       Thông báo
-                    </Link>
+                    </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
                     <Link href="/" className="flex items-center gap-2">
@@ -273,6 +277,7 @@ export function InstructorHeader() {
           )}
         </div>
       </div>
+      <NotificationPanel open={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
     </header>
   );
 }

@@ -269,10 +269,17 @@ export function useRefreshToken() {
       }));
       setCookie('authToken', data.data.accessToken, getAuthCookieConfig());
 
+      reconnectHubConnection().catch(err => {
+        console.error('[SignalR] Failed to reconnect after login:', err);
+      });
+
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
       queryClient.invalidateQueries({ queryKey: ['instructor-profile'] });
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['instructor-notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['signalr-connection'] });
 
       reconnectHubConnection().catch(err => {
         console.error('[SignalR] Failed to reconnect after token refresh:', err);

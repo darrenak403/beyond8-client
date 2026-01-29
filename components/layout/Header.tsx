@@ -23,6 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationPanel } from "@/components/widget/notification-panel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect, useRef } from "react";
@@ -138,6 +139,7 @@ export function Header() {
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { mutateLogout } = useLogout();
 
@@ -571,11 +573,14 @@ export function Header() {
                       Hồ sơ
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/notifications" className="flex items-center gap-2">
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
+                    onSelect={() => setIsNotificationOpen(true)}
+                  >
+                    <div className="flex items-center gap-2 w-full">
                       <Bell className="h-4 w-4" />
                       Thông báo
-                    </Link>
+                    </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
                     <Link href="/mybeyond?tab=mycourse" className="flex items-center gap-2">
@@ -626,6 +631,7 @@ export function Header() {
           )}
         </nav>
       </div>
+      <NotificationPanel open={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
     </header>
   );
 }
