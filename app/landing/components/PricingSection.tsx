@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useMemo} from "react";
-import { useSubscriptionPlans } from "@/hooks/useSubscription";
+import { useSubscriptionPlans, useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useMobile";
+import { LoginDialog } from "@/components/widget/auth/LoginDialog";
 import { motion } from "framer-motion";
-import { Check, Zap, Shield } from "lucide-react";
+import { Check, Zap, Shield, Crown, Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,8 +29,11 @@ import { cn } from "@/lib/utils";
 
 export function PricingSection() {
   const { plans, isLoading, error } = useSubscriptionPlans();
+  const { subscription } = useSubscription();
+  const { isAuthenticated } = useAuth();
   const isMobile = useIsMobile();
   const [api, setApi] = useState<CarouselApi>();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const initialIndex = useMemo(() => (plans && plans.length > 0) ? Math.floor(plans.length / 2) : 0, [plans]);
   const [current, setCurrent] = useState(initialIndex);
@@ -151,6 +156,7 @@ export function PricingSection() {
               {plans?.map((plan, index) => {
                 const isSelected = index === current;
                 const isPopular = plan.price > 0 && plan.price < 500000;  
+                const isRegistered = subscription?.subscriptionPlan?.code === plan.code;
                 
                 return (
                   <CarouselItem
@@ -185,18 +191,31 @@ export function PricingSection() {
                             <span className="text-2xl font-bold">
                               {plan.name}
                             </span>
-                            {plan.price === 0 ? (
-                              <Shield className="w-6 h-6 text-muted-foreground" />
-                            ) : (
-                              <Zap
-                                className={cn(
-                                  "w-6 h-6",
-                                  isPopular
-                                    ? "text-primary"
-                                    : "text-muted-foreground"
-                                )}
-                              />
-                            )}
+                             {(() => {
+                                switch (plan.code?.toUpperCase()) {
+                                  case "ULTRA":
+                                    return <Crown className="w-6 h-6 text-purple-600" />;
+                                  case "PRO":
+                                    return <Gem className="w-6 h-6 text-purple-600" />;
+                                  case "BASIC":
+                                  case "STANDARD":
+                                    return <Zap className="w-6 h-6 text-purple-600" />;
+                                  default:
+                                     // Fallback for Free/Other
+                                    return plan.price === 0 ? (
+                                      <Shield className="w-6 h-6 text-muted-foreground" />
+                                    ) : (
+                                       <Zap
+                                        className={cn(
+                                          "w-6 h-6",
+                                          isPopular
+                                            ? "text-primary"
+                                            : "text-muted-foreground"
+                                        )}
+                                      />
+                                    );
+                                }
+                             })()}
                           </CardTitle>
                           <CardDescription className="text-base mt-2 min-h-[40px]">
                             {plan.description || "Gói dịch vụ cơ bản"}
@@ -274,14 +293,22 @@ export function PricingSection() {
                           <Button
                             className={cn(
                               "w-full h-12 text-base font-semibold rounded-xl transition-all",
-                              isPopular
+                              isRegistered
+                                ? "bg-gray-300 border-2 text-black cursor-not-allowed"
+                                : isPopular
                                 ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
                                 : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                             )}
+                            disabled={isRegistered}
+                            onClick={() => {
+                                if (!isAuthenticated) {
+                                    setShowLoginDialog(true);
+                                }
+                            }}
                           >
-                            {plan.price === 0
-                              ? "Bắt đầu miễn phí"
-                              : "Đăng ký ngay"}
+                           {isRegistered
+                              ? "Đã đăng ký"
+                              : (plan.price === 0 ? "Bắt đầu miễn phí" : "Đăng ký ngay")}
                           </Button>
                         </CardFooter>
                       </Card>
@@ -298,6 +325,7 @@ export function PricingSection() {
               </>
             )}
           </Carousel>
+          <LoginDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
         </div>
       </div>
     </section>

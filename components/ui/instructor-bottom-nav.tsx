@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Users, Wallet, User, LogOut, Bell } from "lucide-react";
+import { Home, BookOpen, Users, Wallet, User, LogOut, Bell, Crown, Gem, Zap } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { cn } from "@/lib/utils";
 import {
@@ -32,9 +32,23 @@ export function InstructorBottomNav() {
       case "PRO": 
         return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
       case "STANDARD":
-      case "BASIC": 
+      case "PLUS": 
         return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
       default: 
+        return null;
+    }
+  };
+
+  const getPlanIcon = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return <Crown className="w-2 h-2 text-yellow-500 fill-yellow-500" />;
+      case "PRO":
+        return <Gem className="w-2 h-2 text-blue-500 fill-blue-500" />;
+      case "BASIC":
+      case "PLUS":
+        return <Zap className="w-2 h-2 text-purple-500 fill-purple-500" />;
+      default:
         return null;
     }
   };
@@ -75,9 +89,9 @@ export function InstructorBottomNav() {
                 <DropdownMenuTrigger className="flex flex-col items-center justify-center w-full h-full space-y-1 focus:outline-none">
                   <div className={cn("flex flex-col items-center justify-center", isActive ? "text-purple-600" : "text-muted-foreground")}>
                     <div 
-                      className="p-[1.5px] rounded-full w-6 h-6 flex items-center justify-center transition-all duration-300"
+                      className="relative p-[1.5px] rounded-full w-6 h-6 flex items-center justify-center transition-all duration-300"
                       style={{ 
-                        background: getGradientStyle(subscription?.subscriptionPlan?.code) || (isActive ? '#9333ea' : 'currentColor')
+                        background: getGradientStyle(subscription?.subscriptionPlan?.code) || (isActive ? '#9333ea' : '#c084fc')
                       }}
                     >
                       <Avatar className="w-full h-full border-[1.5px] border-white">
@@ -86,6 +100,13 @@ export function InstructorBottomNav() {
                           {getAvatarFallback()}
                         </AvatarFallback>
                       </Avatar>
+
+                      {/* Plan Icon */}
+                      {getPlanIcon(subscription?.subscriptionPlan?.code) && (
+                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-[1px] shadow-sm z-30 flex items-center justify-center border border-gray-100">
+                          {getPlanIcon(subscription?.subscriptionPlan?.code)}
+                        </div>
+                      )}
                     </div>
                     <span className="text-xs font-medium leading-none mt-1">{item.name}</span>
                   </div>
