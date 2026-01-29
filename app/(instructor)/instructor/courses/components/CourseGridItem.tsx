@@ -98,17 +98,18 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
             <h3 className="font-bold text-xl text-primary truncate">
               {course.price === 0 ? 'Miễn phí' : formattedPrice}
             </h3>
-            <div className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
-              <Clock className="w-3.5 h-3.5" />
-              <span className="text-xs font-semibold">{formatDuration(course.totalDurationMinutes)}</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-100 w-fit px-2 py-0.5 rounded-md">
+                <span>{getLevelLabel(course.level)}</span>
+              </div>
+              <div className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                <Clock className="w-3.5 h-3.5" />
+                <span className="text-xs font-semibold">{formatDuration(course.totalDurationMinutes)}</span>
+              </div>
             </div>
           </div>
 
           <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50/50 w-fit px-2 py-0.5 rounded-full">
-              <Home className="w-3 h-3" />
-              <span>{getLevelLabel(course.level)}</span>
-            </div>
             <h3 className="font-semibold text-base line-clamp-2 min-h-[3rem] text-slate-800 group-hover:text-primary transition-colors">
               {course.title}
             </h3>

@@ -35,7 +35,6 @@ export default function Step2Curriculum({ data, onChange }: Step2CurriculumProps
         title: string,
         description: string,
         field: keyof typeof data,
-        placeholder: string
     ) => (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -61,7 +60,6 @@ export default function Step2Curriculum({ data, onChange }: Step2CurriculumProps
                         <Input
                             value={item}
                             onChange={(e) => handleChangeItem(field, index, e.target.value)}
-                            placeholder={placeholder}
                             className="flex-1 h-12 text-base bg-transparent border border-gray-500 rounded-lg focus-visible:ring-0 focus-visible:border-black transition-colors"
                         />
                         {data[field].length > 1 ? (
@@ -100,9 +98,8 @@ export default function Step2Curriculum({ data, onChange }: Step2CurriculumProps
             <div className="space-y-8">
                 {renderListInput(
                     'Học viên sẽ học được gì?',
-                    'Liệt kê ít nhất 3 mục tiêu chính mà học viên sẽ đạt được sau khóa học.',
+                    'Liệt kê ít nhất 1 mục tiêu chính mà học viên sẽ đạt được sau khóa học.',
                     'outcomes',
-                    'VD: Hiểu rõ về React Hooks...'
                 )}
 
                 <div className="h-px bg-gray-100" />
@@ -111,7 +108,6 @@ export default function Step2Curriculum({ data, onChange }: Step2CurriculumProps
                     'Yêu cầu đầu vào',
                     'Liệt kê các kỹ năng hoặc kiến thức cần thiết trước khi tham gia.',
                     'requirements',
-                    'VD: Có kiến thức cơ bản về HTML/CSS...'
                 )}
 
                 <div className="h-px bg-gray-100" />
@@ -120,7 +116,6 @@ export default function Step2Curriculum({ data, onChange }: Step2CurriculumProps
                     'Đối tượng học viên',
                     'Mô tả những ai nên tham gia khóa học này.',
                     'targetAudience',
-                    'VD: Sinh viên CNTT, người mới bắt đầu...'
                 )}
             </div>
         </div>

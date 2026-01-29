@@ -103,7 +103,7 @@ export default function CreateCoursePage() {
                 outcomes: formData.outcomes.filter(i => i.trim() !== ''),
                 requirements: formData.requirements.filter(i => i.trim() !== ''),
                 targetAudience: formData.targetAudience.filter(i => i.trim() !== ''),
-                thumbnailUrl: formData.thumbnailUrl,
+                thumbnailUrl: formatImageUrl(formData.thumbnailUrl) || '',
             })
             router.push('/instructor/courses')
         } catch (error) {

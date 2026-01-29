@@ -1,7 +1,28 @@
 'use client'
 
-import { Input } from '@/components/ui/input'
+
 import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { useState } from 'react'
+
+const SUGGESTED_LANGUAGES = [
+    "Tiếng Việt", "English", "日本語", "한국어", "简体中文", "繁體中文",
+    "Français", "Deutsch", "Español", "Português", "Italiano", "Русский"
+];
+// Removed unused Select imports for Category
 import {
     Select,
     SelectContent,
@@ -23,11 +44,12 @@ interface Step2BasicsProps {
 export default function Step2Basics({ data, onChange }: Step2BasicsProps) {
     const { categories } = useCategory()
 
-    // Flatten categories
-    const flattenedCategories = categories?.data.flatMap(cat => [
-        cat,
-        ...(cat.subCategories || [])
-    ]) || []
+    const [open, setOpen] = useState(false)
+
+    // Find selected category name for display
+    const selectedCategory = categories?.data
+        .flatMap(p => p.subCategories || [])
+        .find(c => c.id === data.categoryId)
 
     return (
         <div className="w-full mx-auto py-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -41,18 +63,68 @@ export default function Step2Basics({ data, onChange }: Step2BasicsProps) {
             <div className="space-y-6">
                 <div className="space-y-4">
                     <Label className="text-base font-semibold">Danh mục</Label>
-                    <Select value={data.categoryId} onValueChange={(value) => onChange({ categoryId: value })}>
-                        <SelectTrigger className="h-12 text-base">
-                            <SelectValue placeholder="Chọn danh mục" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {flattenedCategories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={open}
+                                className="w-full justify-between h-12 text-base font-normal"
+                            >
+                                {selectedCategory
+                                    ? selectedCategory.name
+                                    : "Chọn danh mục..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                            <div className="max-h-[300px] overflow-y-auto p-1">
+                                <Accordion
+                                    type="single"
+                                    collapsible
+                                    className="w-full"
+                                    defaultValue={categories?.data.find(p => p.subCategories?.some(s => s.id === data.categoryId))?.id}
+                                >
+                                    {categories?.data.map((parent) => (
+                                        <AccordionItem key={parent.id} value={parent.id} className="border-b-0 px-2">
+                                            <AccordionTrigger className="hover:no-underline py-2 text-sm font-medium">
+                                                {parent.name}
+                                            </AccordionTrigger>
+                                            <AccordionContent className="pt-0 pb-2">
+                                                <div className="flex flex-col gap-1">
+                                                    {parent.subCategories?.map((sub) => (
+                                                        <Button
+                                                            key={sub.id}
+                                                            variant="ghost"
+                                                            className={cn(
+                                                                "justify-start h-9 px-2 text-sm font-normal",
+                                                                data.categoryId === sub.id && "bg-purple-50 text-purple-700"
+                                                            )}
+                                                            onClick={() => {
+                                                                onChange({ categoryId: sub.id })
+                                                                setOpen(false)
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    data.categoryId === sub.id ? "opacity-100" : "opacity-0"
+                                                                )}
+                                                            />
+                                                            {sub.name}
+                                                        </Button>
+                                                    ))}
+                                                    {(!parent.subCategories || parent.subCategories.length === 0) && (
+                                                        <span className="text-xs text-muted-foreground px-2 py-1">Không có danh mục con</span>
+                                                    )}
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    ))}
+                                </Accordion>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
                 </div>
 
                 <div className="space-y-4">
@@ -94,13 +166,18 @@ export default function Step2Basics({ data, onChange }: Step2BasicsProps) {
 
                 <div className="space-y-4">
                     <Label className="text-base font-semibold">Ngôn ngữ</Label>
-                    <Input
-                        id="language"
-                        placeholder="VD: Tiếng Việt"
-                        value={data.language}
-                        onChange={(e) => onChange({ language: e.target.value })}
-                        className="h-12 text-base"
-                    />
+                    <Select value={data.language} onValueChange={(value) => onChange({ language: value })}>
+                        <SelectTrigger className="h-12 text-base">
+                            <SelectValue placeholder="Chọn ngôn ngữ" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {SUGGESTED_LANGUAGES.map((lang) => (
+                                <SelectItem key={lang} value={lang}>
+                                    {lang}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
         </div>

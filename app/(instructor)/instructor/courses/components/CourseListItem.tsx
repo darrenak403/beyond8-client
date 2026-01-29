@@ -72,6 +72,7 @@ export default function CourseListItem({ course }: CourseListItemProps) {
           alt={course.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
+          unoptimized
         />
 
         {/* Overlay Badges */}
@@ -94,11 +95,7 @@ export default function CourseListItem({ course }: CourseListItemProps) {
                 <Clock className="w-3.5 h-3.5" />
                 <span className="text-xs font-semibold">{formatDuration(course.totalDurationMinutes)}</span>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs font-normal text-slate-500 border-slate-200">
-                <Home className="w-3 h-3 mr-1" />
                 {course.categoryName}
               </Badge>
               <Badge variant="secondary" className="text-xs font-normal bg-slate-100 text-slate-600 hover:bg-slate-200">
@@ -106,12 +103,17 @@ export default function CourseListItem({ course }: CourseListItemProps) {
               </Badge>
             </div>
 
+
+
             <div className="space-y-1">
               <h3 className="font-semibold text-base text-slate-800 group-hover:text-primary transition-colors">
                 {course.title}
               </h3>
               <p className="text-sm text-slate-500">
                 {course.instructorName}
+              </p>
+              <p className="text-sm text-slate-500">
+                {course.shortDescription}
               </p>
             </div>
           </div>
@@ -121,7 +123,7 @@ export default function CourseListItem({ course }: CourseListItemProps) {
         <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Users className="w-4 h-4" />
-            <span>{course.totalStudents} học sinh</span>
+            <span>{course.totalStudents}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />

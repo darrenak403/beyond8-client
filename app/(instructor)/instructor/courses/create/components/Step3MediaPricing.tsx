@@ -45,6 +45,30 @@ export default function Step3MediaPricing({ data, onChange }: Step3MediaPricingP
             </div>
 
             <div className="grid grid-cols-1 gap-8">
+                {/* Pricing Section */}
+                <div className="space-y-4">
+                    <div className="space-y-1">
+                        <Label className="text-base font-semibold">Giá bán</Label>
+                        <p className="text-sm text-muted-foreground">Xác định mức giá cho khóa học của bạn.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <CurrencyInput
+                                value={data.price}
+                                onValueChange={(val) => onChange({ price: val })}
+                                className="pl-10 h-12 text-2xl md:text-2xl font-bold tracking-tight bg-transparent border border-gray-400 focus-visible:border-black rounded-lg"
+                                placeholder="0"
+                            />
+                            <p className="text-sm text-muted-foreground font-medium">
+                                {data.price === 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.price)}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="h-px bg-gray-100" />
+
                 {/* Thumbnail Section */}
                 <div className="space-y-4">
                     <div className="space-y-1">
@@ -94,30 +118,6 @@ export default function Step3MediaPricing({ data, onChange }: Step3MediaPricingP
                                 <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
                             </div>
                         )}
-                    </div>
-                </div>
-
-                <div className="h-px bg-gray-100" />
-
-                {/* Pricing Section */}
-                <div className="space-y-4">
-                    <div className="space-y-1">
-                        <Label className="text-base font-semibold">Giá bán</Label>
-                        <p className="text-sm text-muted-foreground">Xác định mức giá cho khóa học của bạn.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                            <CurrencyInput
-                                value={data.price}
-                                onValueChange={(val) => onChange({ price: val })}
-                                className="pl-10 h-12 text-2xl md:text-2xl font-bold tracking-tight bg-transparent border border-gray-400 focus-visible:border-black rounded-lg"
-                                placeholder="0"
-                            />
-                            <p className="text-sm text-muted-foreground font-medium">
-                                {data.price === 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.price)}
-                            </p>
-                        </div>
                     </div>
                 </div>
             </div>

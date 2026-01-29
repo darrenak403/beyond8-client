@@ -10,13 +10,13 @@ export enum CourseLevel {
 }
 
 export enum CourseStatus {
-    Draft,
-    PendingApproval,
-    Approved,
-    Rejected,
-    Published,
-    Archived,
-    Suspended
+    Draft = "Draft",
+    PendingApproval = "PendingApproval",
+    Approved = "Approved",
+    Rejected = "Rejected",
+    Published = "Published",
+    Archived = "Archived",
+    Suspended = "Suspended"
 }
 
 export interface Course {

@@ -77,7 +77,7 @@ export default function Step1Title({ data, onChange }: Step1TitleProps) {
                 <motion.div layout className={`relative ${isExpanded ? 'max-w-4xl' : 'max-w-3xl mx-auto'}`}>
                     <textarea
                         ref={textareaRef}
-                        placeholder="Nhập môn ReactJS từ con số 0"
+                        placeholder="Nhập tiêu đề của bạn"
                         value={data.title}
                         onChange={(e) => {
                             if (e.target.value.length <= 100) {
@@ -157,7 +157,7 @@ export default function Step1Title({ data, onChange }: Step1TitleProps) {
                                     placeholder="Trình bày chi tiết về nội dung, mục tiêu và đối tượng của khóa học..."
                                     value={data.description}
                                     onChange={(e) => onChange({ description: e.target.value })}
-                                    className="min-h-[300px] text-base leading-relaxed bg-transparent border border-gray-500 rounded-lg focus-visible:ring-0 focus-visible:border-black transition-colors p-4"
+                                    className="min-h-[200px] text-base leading-relaxed bg-transparent border border-gray-500 rounded-lg focus-visible:ring-0 focus-visible:border-black transition-colors p-4"
                                 />
                             </div>
                         </div>

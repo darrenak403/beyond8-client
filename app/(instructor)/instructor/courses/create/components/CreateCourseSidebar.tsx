@@ -57,7 +57,7 @@ export default function CreateCourseSidebar({
     }
 
     return (
-        <aside className={`${isCollapsed ? 'w-[80px] p-4' : 'w-[320px] p-6'} bg-purple-100 h-full hidden lg:flex flex-col justify-between transition-all duration-300 ease-in-out`}>
+        <aside className={`${isCollapsed ? 'w-[80px] py-4' : 'w-[320px] p-6'} bg-purple-100 h-full hidden lg:flex flex-col justify-between transition-all duration-300 ease-in-out`}>
             {/* Top Section */}
             {/* Logo */}
             <div className={`mb-12 h-10 flex items-center flex-shrink-0 ${isCollapsed ? 'justify-center' : ''}`}>
@@ -87,10 +87,9 @@ export default function CreateCourseSidebar({
             </div>
 
             {/* Steps */}
-            <ScrollArea className="flex-1 -mr-2 pr-3" type="scroll">
+            <ScrollArea className={`flex-1 ${isCollapsed ? 'w-full px-0' : '-mr-2 pr-3'}`} type="scroll">
                 <div className="space-y-6 pb-4">
-                    {steps.map((step, index) => {
-                        const isCompleted = stepsValidity[index]
+                    {steps.map((step) => {
                         const isActive = currentStep === step.id
                         const canAccess = isAccessible(step.id)
 
@@ -120,11 +119,7 @@ export default function CreateCourseSidebar({
                                         }
                                     `}
                                 >
-                                    {isActive && !isCollapsed ? (
-                                        <div className="w-2.5 h-2.5 bg-white rounded-full" />
-                                    ) : (
-                                        step.icon && <step.icon className="h-4 w-4" />
-                                    )}
+                                    {step.icon && <step.icon className="h-4 w-4" />}
                                 </div>
 
                                 {/* Content */}
