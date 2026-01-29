@@ -10,7 +10,6 @@ import CourseGridItem from './components/CourseGridItem'
 import CourseListItem from './components/CourseListItem'
 import CourseGridItemSkeleton from './components/CourseGridItemSkeleton'
 import CourseListItemSkeleton from './components/CourseListItemSkeleton'
-import CreateCourseDialog from './components/CreateCourseDialog'
 import { useIsMobile } from '@/hooks/useMobile'
 import { useGetCourseByInstructor } from '@/hooks/useCourse'
 import { useAuth } from '@/hooks/useAuth'
@@ -18,7 +17,6 @@ import { useAuth } from '@/hooks/useAuth'
 export default function InstructorCoursesPage() {
   const [viewModePreference, setViewModePreference] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
 
   const searchParams = useSearchParams()
   const category = searchParams.get('category') || ''
@@ -48,7 +46,6 @@ export default function InstructorCoursesPage() {
 
   return (
     <div className="flex flex-col h-full space-y-6 p-3">
-      <CreateCourseDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
 
       {/* Toolbar */}
       <CourseToolBar
@@ -57,7 +54,6 @@ export default function InstructorCoursesPage() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         isMobile={isMobile}
-        onAdd={() => setIsCreateOpen(true)}
       />
 
       {/* Content */}

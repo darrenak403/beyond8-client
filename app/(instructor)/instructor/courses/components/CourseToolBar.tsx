@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import {
   Search,
@@ -25,7 +26,6 @@ interface CourseToolBarProps {
   searchQuery: string
   setSearchQuery: (query: string) => void
   isMobile: boolean
-  onAdd?: () => void
 }
 
 const categories = [
@@ -63,7 +63,6 @@ export default function CourseToolBar({
   searchQuery,
   setSearchQuery,
   isMobile,
-  onAdd
 }: CourseToolBarProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -143,8 +142,8 @@ export default function CourseToolBar({
             <button
               onClick={() => setViewMode('grid')}
               className={`relative p-2 rounded-2xl transition-colors duration-200 ${viewMode === 'grid'
-                  ? 'text-white'
-                  : 'text-muted-foreground hover:text-foreground'
+                ? 'text-white'
+                : 'text-muted-foreground hover:text-foreground'
                 }`}
             >
               {viewMode === 'grid' && (
@@ -162,8 +161,8 @@ export default function CourseToolBar({
             <button
               onClick={() => setViewMode('list')}
               className={`relative p-2 rounded-2xl transition-colors duration-200 ${viewMode === 'list'
-                  ? 'text-white'
-                  : 'text-muted-foreground hover:text-foreground'
+                ? 'text-white'
+                : 'text-muted-foreground hover:text-foreground'
                 }`}
             >
               {viewMode === 'list' && (
@@ -188,14 +187,15 @@ export default function CourseToolBar({
           <SlidersHorizontal className="w-4 h-4" />
           {!isMobile && 'Bộ lọc'}
         </Button>
-        <Button
-          onClick={onAdd}
-          variant="outline"
-          className="h-10 px-4 gap-2 border-border bg-gray-100 hover:bg-gray-200 rounded-2xl hover:text-black"
-        >
-          <Plus className="w-4 h-4" />
-          {!isMobile && 'Thêm khóa học'}
-        </Button>
+        <Link href="/instructor/courses/create">
+          <Button
+            variant="outline"
+            className="h-10 px-4 gap-2 border-border bg-gray-100 hover:bg-gray-200 rounded-2xl hover:text-black"
+          >
+            <Plus className="w-4 h-4" />
+            {!isMobile && 'Thêm khóa học'}
+          </Button>
+        </Link>
       </div>
     </div>
   )
