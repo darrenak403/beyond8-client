@@ -114,4 +114,18 @@ export const notificationService = {
     );
     return response.data;
   },
+
+  deleteNotification: async (id: string): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.delete<ApiResponse<boolean>>(
+      `/api/v1/notifications/${id}`
+    );
+    return response.data;
+  },
+
+  deleteAllNotifications: async (): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.delete<ApiResponse<boolean>>(
+      "/api/v1/notifications/delete-all"
+    );
+    return response.data;
+  },
 };

@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
-import { useNotification, useInstructorNotification, useMarkAllRead } from "@/hooks/useNotification";
+import { useNotification, useInstructorNotification, useMarkAllRead, useDeleteNotification, useDeleteAllNotifications } from "@/hooks/useNotification";
 import { notificationService, NotificationItem as ApiNotificationItem, NotificationChannel as ApiNotificationChannel, NotificationStatus as ApiNotificationStatus } from "@/lib/api/services/fetchNotification";
 import { formatDistanceToNow, isToday } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -497,6 +497,8 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
 
   const markAllReadMutation = useMarkAllRead();
+  const deleteMutation = useDeleteNotification();
+  const deleteAllMutation = useDeleteAllNotifications();
 
   const markAllAsRead = async () => {
       try {
@@ -507,8 +509,18 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
       }
   };
   const deleteNotification = async (id: string) => {
-      // await notificationService.delete(id);
-      // refetch();
+      try {
+        await deleteMutation.mutateAsync(id);
+      } catch (error) {
+        console.error("Failed to delete notification", error);
+      }
+  };
+  const deleteAllNotifications = async () => {
+      try {
+        await deleteAllMutation.mutateAsync();
+      } catch (error) {
+        console.error("Failed to delete all notifications", error);
+      }
   };
 
   const showSkeleton = (isLoadingInitial && currentPage === 1) || loadingTab;
@@ -532,6 +544,16 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
                   onClick={markAllAsRead}
                 >
                   Đánh dấu đã đọc
+                </Button>
+              )}
+                 {notifications.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full px-3 transition-all"
+                  onClick={deleteAllNotifications}
+                >
+                  Xóa tất cả
                 </Button>
               )}
                 <Button
