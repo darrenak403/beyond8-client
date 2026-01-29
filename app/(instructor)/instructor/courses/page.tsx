@@ -1,44 +1,28 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { AlertCircle, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Pagination } from '@/components/ui/custom-pagination'
 
-import { 
-  topRatedCourses, 
-  newCourses, 
-  languageCourses, 
-  technologyCourses, 
-  designCourses, 
-  marketingCourses 
-} from '@/lib/data/mockCourses'
 import CourseToolBar from './components/CourseToolBar'
 import CourseGridItem from './components/CourseGridItem'
 import CourseListItem from './components/CourseListItem'
 import CourseGridItemSkeleton from './components/CourseGridItemSkeleton'
 import CourseListItemSkeleton from './components/CourseListItemSkeleton'
 import { useIsMobile } from '@/hooks/useMobile'
-
-// Combine all mock courses
-const allCourses = [
-  ...topRatedCourses,
-  ...newCourses,
-  ...languageCourses,
-  ...technologyCourses,
-  ...designCourses,
-  ...marketingCourses
-]
+import { useGetCourseByInstructor } from '@/hooks/useCourse'
+import { useAuth } from '@/hooks/useAuth'
+import { CourseLevel } from '@/lib/api/services/fetchCourse'
 
 export default function InstructorCoursesPage() {
   const [viewModePreference, setViewModePreference] = useState<'grid' | 'list'>('grid')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
 
   const searchParams = useSearchParams()
-  const category = searchParams.get('category') || ''
+  const categoryId = searchParams.get('categoryId') || ''
   const isMobile = useIsMobile()
+  const { user } = useAuth()
 
   // Derive viewMode from mobile state
   const viewMode = isMobile ? 'grid' : viewModePreference
@@ -48,31 +32,72 @@ export default function InstructorCoursesPage() {
     }
   }
 
-  // Simulate API Fetch
-  const fetchData = () => {
-    setIsLoading(true)
-    setIsError(false)
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 800)
+  // Pagination State
+  const pageNumber = parseInt(searchParams.get('pageNumber') || '1')
+  const pageSize = parseInt(searchParams.get('pageSize') || '8')
+  const isDescending = searchParams.get('isDescending') !== 'false'
+  const levelParam = searchParams.get('level')
+
+  let level: CourseLevel | undefined
+  if (levelParam === 'All') {
+    level = CourseLevel.All
+  } else if (levelParam) {
+    // Attempt to parse other levels if they are passed as numbers or strings matching enum
+    // For now, let's assume if it's not 'All', we don't default it or we try to parse it. 
+    // Simply supporting All for now as requested.
   }
 
-  // Initial data fetch
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 800)
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Filter courses by category and search
-  const filteredCourses = allCourses.filter(course => {
-    const matchesCategory = !category || course.category === category
-    const matchesSearch = 
-      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.instructor.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCategory && matchesSearch
+  // Fetch Data
+  const { courses, isLoading, isError, refetch, totalPages, hasNextPage, hasPreviousPage } = useGetCourseByInstructor({
+    instructorId: user?.id,
+    keyword: searchParams.get('keyword') || '',
+    categoryId: categoryId || undefined,
+    pageNumber: pageNumber,
+    pageSize: pageSize,
+    isDescending: isDescending,
+    level: level
   })
+
+  // Ensure params exist in URL
+  const router = useRouter()
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    let hasChanged = false
+
+    if (!searchParams.has('pageNumber')) {
+      params.set('pageNumber', '1')
+      hasChanged = true
+    }
+    if (!searchParams.has('pageSize')) {
+      params.set('pageSize', '8')
+      hasChanged = true
+    }
+    if (!searchParams.has('isDescending')) {
+      params.set('isDescending', 'true')
+      hasChanged = true
+    }
+    if (!searchParams.has('level')) { // Add level=All default
+      params.set('level', 'All')
+      hasChanged = true
+    }
+
+    // Clean up incorrect 'page' param if it exists
+    if (searchParams.has('page')) {
+      params.delete('page')
+      hasChanged = true
+    }
+
+    if (hasChanged) {
+      router.replace(`?${params.toString()}`)
+    }
+  }, [searchParams, router])
+
+  const onPageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('pageNumber', newPage.toString())
+    router.push(`?${params.toString()}`)
+  }
+
 
   return (
     <div className="flex flex-col h-full space-y-6 p-3">
@@ -81,46 +106,59 @@ export default function InstructorCoursesPage() {
       <CourseToolBar
         viewMode={viewMode}
         setViewMode={setViewMode}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
         isMobile={isMobile}
       />
 
       {/* Content */}
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col">
         {isError ? (
-          <ErrorState onRetry={fetchData} />
+          <ErrorState onRetry={refetch} />
         ) : (
-          <div className={`
+          <>
+            <div className={`
             ${viewMode === 'grid'
-              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
-              : 'flex flex-col gap-4'
-            }
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                : 'flex flex-col gap-4'
+              }
           `}>
-            {isLoading ? (
-              // Render Skeletons
-              Array.from({ length: 8 }).map((_, i) => (
-                viewMode === 'grid' ? (
-                  <CourseGridItemSkeleton key={i} />
-                ) : (
-                  <CourseListItemSkeleton key={i} />
-                )
-              ))
-            ) : filteredCourses.length > 0 ? (
-              // Render Courses
-              filteredCourses.map((course) => (
-                viewMode === 'grid' ? (
-                  <CourseGridItem key={course.id} course={course} />
-                ) : (
-                  <CourseListItem key={course.id} course={course} />
-                )
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground">Không tìm thấy khóa học nào</p>
+              {isLoading ? (
+                // Render Skeletons
+                Array.from({ length: 8 }).map((_, i) => (
+                  viewMode === 'grid' ? (
+                    <CourseGridItemSkeleton key={i} />
+                  ) : (
+                    <CourseListItemSkeleton key={i} />
+                  )
+                ))
+              ) : courses.length > 0 ? (
+                // Render Courses
+                courses.map((course) => (
+                  viewMode === 'grid' ? (
+                    <CourseGridItem key={course.id} course={course} />
+                  ) : (
+                    <CourseListItem key={course.id} course={course} />
+                  )
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">Không tìm thấy khóa học nào</p>
+                </div>
+              )}
+            </div>
+
+            {/* Pagination */}
+            {!isLoading && courses.length > 0 && (
+              <div className="mt-auto">
+                <Pagination
+                  currentPage={pageNumber}
+                  totalPages={totalPages}
+                  onPageChange={onPageChange}
+                  hasNextPage={hasNextPage}
+                  hasPreviousPage={hasPreviousPage}
+                />
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>

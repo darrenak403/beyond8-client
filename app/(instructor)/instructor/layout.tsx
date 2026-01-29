@@ -1,7 +1,17 @@
-﻿import { InstructorHeader } from "@/components/ui/instructor-header";
+﻿'use client'
+
+import { usePathname } from "next/navigation";
+import { InstructorHeader } from "@/components/ui/instructor-header";
 import { InstructorBottomNav } from "@/components/ui/instructor-bottom-nav";
 
-export default function InstructorLayout({children}: {children: React.ReactNode}) {
+export default function InstructorLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isCreatePage = pathname === '/instructor/courses/create';
+
+  if (isCreatePage) {
+    return <>{children}</>
+  }
+
   return (
     <div className="min-h-screen pb-16 md:pb-0">
       <InstructorHeader />
