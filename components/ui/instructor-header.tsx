@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, LogOut, User, Bell, BookOpen } from "lucide-react";
+import { Menu, LogOut, User, Bell, BookOpen, Crown, Gem, Zap } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -61,9 +61,23 @@ export function InstructorHeader() {
       case "PRO": 
         return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
       case "STANDARD":
-      case "BASIC": 
+      case "PLUS": 
         return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
       default: 
+        return null;
+    }
+  };
+
+  const getPlanIcon = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return <Crown className="w-3 h-3 text-yellow-500 fill-yellow-500" />;
+      case "PRO":
+        return <Gem className="w-3 h-3 text-blue-500 fill-blue-500" />;
+      case "STANDARD":
+      case "PLUS":
+        return <Zap className="w-3 h-3 text-purple-500 fill-purple-500" />;
+      default:
         return null;
     }
   };
@@ -165,9 +179,9 @@ export function InstructorHeader() {
               ) : (
                 <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
                   <div 
-                    className={`p-[2px] rounded-full ${isMobile ? "w-9 h-9" : "w-11 h-11"} flex items-center justify-center transition-all duration-300 hover:scale-105`}
+                    className={`relative p-[2px] rounded-full ${isMobile ? "w-9 h-9" : "w-11 h-11"} flex items-center justify-center transition-all duration-300 hover:scale-105`}
                     style={{ 
-                      background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#e5e7eb' // Default to gray-200 equivalent
+                      background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to gray-200 equivalent
                     }}
                   >
                     <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'} border-[2px] border-white`}>
@@ -176,6 +190,13 @@ export function InstructorHeader() {
                         {getAvatarFallback()}
                       </AvatarFallback>
                     </Avatar>
+
+                    {/* Plan Icon */}
+                    {getPlanIcon(subscription?.subscriptionPlan?.code) && (
+                      <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm z-30 flex items-center justify-center border border-gray-100">
+                        {getPlanIcon(subscription?.subscriptionPlan?.code)}
+                      </div>
+                    )}
                   </div>
                 </Link>
               )}

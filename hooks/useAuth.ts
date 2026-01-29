@@ -1,8 +1,8 @@
 import { fetchAuth, LoginRequest, LoginResponse, ResetPasswordRequest, VerifyOtpRequest } from '@/lib/api/services/fetchAuth';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks'
-import { selectAuth, selectUser, selectIsAuthenticated, selectRefreshToken, setToken, setTokenWithRefresh, decodeToken, logout } from '@/lib/redux/slices/authSlice'
+import { selectAuth, selectUser, selectIsAuthenticated, selectRefreshToken, setTokenWithRefresh, decodeToken, logout } from '@/lib/redux/slices/authSlice'
 import { Roles } from '@/lib/types/roles'
-import { ApiError, ApiResponse } from '@/types/api';
+import { ApiError } from '@/types/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { deleteCookie, setCookie } from 'cookies-next';
 import { getAuthCookieConfig } from '@/utils/cookieConfig';
@@ -26,7 +26,6 @@ export function useLogin() {
       return response;
     },
     onSuccess: (data) => {
-      // Store both access token and refresh token in Redux
       dispatch(setTokenWithRefresh({
         accessToken: data.data.accessToken,
         refreshToken: data.data.refreshToken
@@ -37,21 +36,22 @@ export function useLogin() {
 
       const user = decodeToken(data.data.accessToken);
 
-      // Reconnect SignalR with new token
       reconnectHubConnection().catch(err => {
         console.error('[SignalR] Failed to reconnect after login:', err);
       });
+      
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['signalr-connection'] });
 
       toast.success('Đăng nhập thành công!');
 
-      // Handle multiple roles - redirect based on priority (Admin > Instructor > Student)
       const roles = Array.isArray(user?.role) ? user?.role : (user?.role ? [user?.role] : []);
 
-      if (roles.includes(Roles.Admin)) {
+      if (roles?.includes(Roles.Admin)) {
         window.location.href = '/admin/dashboard';
-      } else if (roles.includes(Roles.Instructor)) {
+      } else if (roles?.includes(Roles.Instructor)) {
         window.location.href = '/instructor/dashboard';
-      } else if (roles.includes(Roles.Student)) {
+      } else if (roles?.includes(Roles.Student)) {
         window.location.href = '/courses';
       }
     },
@@ -263,7 +263,6 @@ export function useRefreshToken() {
       return response;
     },
     onSuccess: (data) => {
-      // Update both access token and refresh token in Redux
       dispatch(setTokenWithRefresh({
         accessToken: data.data.accessToken,
         refreshToken: data.data.refreshToken
@@ -272,9 +271,9 @@ export function useRefreshToken() {
 
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
-      queryClient.invalidateQueries({ queryKey: ['instructorProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['instructor-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
 
-      // Reconnect SignalR with new token
       reconnectHubConnection().catch(err => {
         console.error('[SignalR] Failed to reconnect after token refresh:', err);
       });
@@ -321,6 +320,8 @@ export function useLogout() {
       });
 
       queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.removeQueries({ queryKey: ['subscription'] });
+      queryClient.removeQueries({ queryKey: ['signalr-connection'] });
       toast.success('Đăng xuất thành công!');
       router.push('/login');
     },

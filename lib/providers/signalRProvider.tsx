@@ -10,7 +10,7 @@ import { useSignalRNotifications } from '@/hooks/useSignalRNotifications'
  * Also sets up automatic toast notifications for SignalR messages.
  */
 export function SignalRProvider({ children }: { children: ReactNode }) {
-  useSignalR(true)
+  useSignalR()
   useSignalRNotifications()
   
   return <>{children}</>

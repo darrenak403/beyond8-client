@@ -3,15 +3,9 @@
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-
-const chartData = [
-  { month: "T1", students: 186, fill: "#f4449b" }, // Brand Pink
-  { month: "T2", students: 305, fill: "#ad1c9a" }, // Brand Magenta
-  { month: "T3", students: 237, fill: "#67178d" }, // Brand Purple
-  { month: "T4", students: 73, fill: "#f4449b" }, // Brand Pink
-  { month: "T5", students: 209, fill: "#ad1c9a" }, // Brand Magenta
-  { month: "T6", students: 214, fill: "#67178d" }, // Brand Purple
-];
+import { useInstructorStats } from "@/hooks/useDashboard";
+import { addMonths, format } from "date-fns";
+import { useMemo } from "react";
 
 const chartConfig = {
   students: {
@@ -21,6 +15,30 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function ChartBarHorizontal() {
+  const { data: stats } = useInstructorStats();
+
+  const chartData = useMemo(() => {
+    if (!stats) return [];
+
+    const today = new Date();
+    const data = [];
+
+    for (let i = 0; i < 6; i++) {
+      const date = addMonths(today, i);
+      const isCurrentMonth = i === 0;
+      const count = isCurrentMonth ? (stats.studentsThisMonth || 0) : 0; 
+      data.push({
+        month: `T${format(date, "M")}`, // T1, T2, ...
+        students: count,
+        fill: i % 2 === 0 ? "#ad1c9a" : "#67178d", 
+      });
+    }
+
+    return data;
+  }, [stats]);
+
+  if (!stats) return null;
+
   return (
     <Card className="border-2 shadow-sm">
       <CardHeader className="pb-3">

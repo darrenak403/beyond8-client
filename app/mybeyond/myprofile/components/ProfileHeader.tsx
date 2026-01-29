@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Camera, EyeOff } from "lucide-react";
+import { Camera, EyeOff, Crown, Gem, Zap } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useUploadImage } from "@/hooks/useUploadImage";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
@@ -50,9 +50,23 @@ export default function ProfileHeader({
       case "PRO": 
         return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
       case "STANDARD":
-      case "BASIC": 
+      case "PLUS": 
         return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
       default: 
+        return null;
+    }
+  };
+
+  const getPlanIcon = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return <Crown className="w-5 h-5 text-yellow-500 fill-yellow-500" />;
+      case "PRO":
+        return <Gem className="w-5 h-5 text-blue-500 fill-blue-500" />;
+      case "BASIC":
+      case "PLUS":
+        return <Zap className="w-5 h-5 text-purple-500 fill-purple-500" />;
+      default:
         return null;
     }
   };
@@ -214,6 +228,13 @@ export default function ProfileHeader({
               )}
             </div>
             
+            {/* Plan Icon */}
+            {getPlanIcon(subscription?.subscriptionPlan?.code) && (
+              <div className={`absolute ${isMobile ? "-top-2 -right-2 p-1" : "top-2 right-2 w-7 h-7"} bg-white rounded-full shadow-md z-30 flex items-center justify-center border border-gray-100`}>
+                {getPlanIcon(subscription?.subscriptionPlan?.code)}
+              </div>
+            )}
+
             {/* Status Indicator */}
             <div className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} rounded-full border-4 border-white ${
               userProfile.isActive ? "bg-green-500" : "bg-gray-400"

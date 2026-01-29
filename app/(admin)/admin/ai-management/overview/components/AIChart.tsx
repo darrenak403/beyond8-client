@@ -2,6 +2,8 @@
 
 import { useAIUsageStatistics } from '@/hooks/useAI';
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import React, { useMemo } from 'react';
+import { addMonths, format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -34,13 +36,22 @@ export function AIChart() {
   const { data: statsData, isLoading } = useAIUsageStatistics();
   const stats = statsData?.data;
 
-  const chartData = [
-    { 
-        month: "Tổng quan", 
-        desktop: stats?.totalInputTokens || 0, 
-        mobile: stats?.totalOutputTokens || 0 
-    },
-  ];
+  const chartData = useMemo(() => {
+    const today = new Date();
+    const data = [];
+
+    for (let i = 0; i < 6; i++) {
+      const date = addMonths(today, i);
+      const isCurrentMonth = i === 0;
+
+      data.push({
+        month: `T${format(date, "M")}`,
+        desktop: isCurrentMonth ? (stats?.totalInputTokens || 0) : 0,
+        mobile: isCurrentMonth ? (stats?.totalOutputTokens || 0) : 0,
+      });
+    }
+    return data;
+  }, [stats]);
 
   return (
     <Card className="col-span-4 shadow-sm border-gray-100 h-full">
