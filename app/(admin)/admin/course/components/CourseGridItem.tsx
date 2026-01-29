@@ -2,23 +2,12 @@ import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-    Star,
-    MoreHorizontal,
-    Edit,
     Trash2,
-    Eye,
-    MapPin,
     Home,
     CheckCircle2,
     Clock
 } from 'lucide-react'
 import type { Course } from '@/lib/data/mockCourses'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 interface CourseGridItemProps {
     course: Course
@@ -36,7 +25,7 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
             {/* Image Section */}
             <div className="relative w-full aspect-[4/3] overflow-hidden">
                 <Image
-                    src={course.image}
+                    src={course.thumbnailUrl}
                     alt={course.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"

@@ -13,7 +13,7 @@ export default function CourseCard({course}: CourseCardProps) {
       {/* Image - Square aspect ratio */}
       <div className="relative w-full aspect-square mb-4 rounded-2xl overflow-hidden">
         <Image
-          src={course.image}
+          src={course.thumbnailUrl}
           alt={course.title}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-300"
