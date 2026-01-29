@@ -89,7 +89,7 @@ export default function Step2Curriculum({ data, onChange }: Step2CurriculumProps
     )
 
     return (
-        <div className="flex flex-col h-full max-w-4xl mx-auto transition-all duration-700 ease-in-out py-8 space-y-8">
+        <div className="flex flex-col h-full w-full mx-auto transition-all duration-700 ease-in-out py-8 space-y-8">
             <div className="space-y-2">
                 <h2 className="text-2xl font-bold tracking-tight">Nội dung khóa học</h2>
                 <p className="text-muted-foreground">

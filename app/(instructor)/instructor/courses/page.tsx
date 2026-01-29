@@ -40,9 +40,6 @@ export default function InstructorCoursesPage() {
     pageSize: 100 // Fetching all for now since pagination isn't implemented in UI yet
   })
 
-  // Filter is handled by API now, but if we want client side instant search with debouncing, we could do that.
-  // For now, let's rely on the API hook's params. 
-  // Note: The hook will re-fetch when params change.
 
   return (
     <div className="flex flex-col h-full space-y-6 p-3">

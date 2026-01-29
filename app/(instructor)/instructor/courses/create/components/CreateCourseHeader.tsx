@@ -1,22 +1,13 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/widget/confirm-dialog'
 
 export default function CreateCourseHeader({ currentStep, totalSteps }: { currentStep: number, totalSteps: number }) {
     const router = useRouter()
+    const [open, setOpen] = useState(false)
 
     const handleExit = () => {
         router.push('/instructor/courses')
@@ -29,28 +20,20 @@ export default function CreateCourseHeader({ currentStep, totalSteps }: { curren
                 <span className="text-sm font-semibold text-gray-500">Bước {currentStep}/{totalSteps}</span>
             </div>
 
+            <Button variant="ghost" className="rounded-full bg-gray-100 hover:bg-gray-200 text-black px-6 font-semibold"
+                onClick={() => setOpen(true)}>
+                Lưu và thoát
+            </Button>
+
             {/* Exit Button */}
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="ghost" className="rounded-full bg-gray-100 hover:bg-gray-200 text-black px-6 font-semibold">
-                        Lưu và thoát
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Thoát tạo khóa học?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Thông tin bạn đã nhập sẽ không được lưu. Bạn có chắc chắn muốn thoát?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel className="rounded-2xl cursor-pointer hover:bg-gray-100 hover:text-black">Hủy</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleExit} className="bg-red-600 hover:bg-red-700 rounded-2xl cursor-pointer">
-                            Thoát
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ConfirmDialog
+                title="Thoát tạo khóa học?"
+                description="Thông tin bạn đã nhập sẽ không được lưu. Bạn có chắc chắn muốn thoát?"
+                onConfirm={handleExit}
+                open={open}
+                onOpenChange={setOpen}
+                variant='destructive'
+            />
         </header>
     )
 }

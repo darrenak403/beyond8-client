@@ -47,7 +47,7 @@ export default function Step1Title({ data, onChange }: Step1TitleProps) {
     }
 
     return (
-        <div className={`flex flex-col flex-1 max-w-4xl w-full mx-auto transition-all duration-700 ease-in-out ${isExpanded ? 'justify-start pt-8' : 'justify-center'}`}>
+        <div className={`flex flex-col flex-1 max-w-4xl w-full mx-auto transition-all duration-700 ease-in-out justify-center min-h-[calc(100vh-300px)]`}>
 
             {/* Title Section */}
             <motion.div
@@ -164,6 +164,6 @@ export default function Step1Title({ data, onChange }: Step1TitleProps) {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     )
 }

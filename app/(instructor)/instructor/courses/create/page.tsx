@@ -16,6 +16,7 @@ import Step2Basics from './components/Step2Basics'
 import Step2Curriculum from './components/Step2Curriculum'
 import Step3MediaPricing from './components/Step3MediaPricing'
 import { useIsMobile } from '@/hooks/useMobile'
+import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 
 const pageVariants = {
     initial: { opacity: 0, x: 20 },
@@ -31,7 +32,6 @@ const pageTransition = {
 
 export default function CreateCoursePage() {
     const router = useRouter()
-    const { user } = useAuth()
     const { createCourse, isPending } = useCreateCourse()
     const isMobile = useIsMobile()
 
@@ -61,7 +61,7 @@ export default function CreateCoursePage() {
         formData.requirements.some(i => i.trim() !== '') &&
         formData.targetAudience.some(i => i.trim() !== '')
     )
-    const isMediaValid = formData.price >= 0
+    const isMediaValid = formData.price >= 0 && !!formData.thumbnailUrl
 
     // Mapping 4 sidebar items 1:1
     const sidebarValidity = [isInfoValid, isBasicsValid, isCurriculumValid, isMediaValid]
@@ -97,18 +97,13 @@ export default function CreateCoursePage() {
 
 
     const handleSubmit = async () => {
-        if (!user?.id) {
-            toast.error('Không tìm thấy thông tin giảng viên')
-            return
-        }
-
         try {
             await createCourse({
                 ...formData,
                 outcomes: formData.outcomes.filter(i => i.trim() !== ''),
                 requirements: formData.requirements.filter(i => i.trim() !== ''),
                 targetAudience: formData.targetAudience.filter(i => i.trim() !== ''),
-                thumbnailUrl: formData.thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+                thumbnailUrl: formData.thumbnailUrl,
             })
             router.push('/instructor/courses')
         } catch (error) {

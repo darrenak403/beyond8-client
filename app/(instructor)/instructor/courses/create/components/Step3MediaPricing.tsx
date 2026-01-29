@@ -1,7 +1,7 @@
 'use client'
 
 import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
+
 import { Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
 import { useMedia } from '@/hooks/useMedia'
@@ -36,7 +36,7 @@ export default function Step3MediaPricing({ data, onChange }: Step3MediaPricingP
     }
 
     return (
-        <div className="space-y-6 max-w-3xl mx-auto py-6">
+        <div className="w-full mx-auto py-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
                 <h2 className="text-2xl font-bold tracking-tight">Hình ảnh & Giá</h2>
                 <p className="text-muted-foreground">
@@ -53,7 +53,7 @@ export default function Step3MediaPricing({ data, onChange }: Step3MediaPricingP
                     </div>
 
                     <div
-                        className="relative w-full md:w-[600px] aspect-video bg-gray-50 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 hover:border-gray-400 group cursor-pointer transition-colors"
+                        className="relative w-full aspect-video bg-gray-50 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 hover:border-gray-400 group cursor-pointer transition-colors"
                         onClick={() => fileInputRef.current?.click()}
                     >
                         <input
