@@ -25,6 +25,7 @@ interface CourseToolBarProps {
   searchQuery: string
   setSearchQuery: (query: string) => void
   isMobile: boolean
+  onAdd?: () => void
 }
 
 const categories = [
@@ -61,7 +62,8 @@ export default function CourseToolBar({
   setViewMode,
   searchQuery,
   setSearchQuery,
-  isMobile
+  isMobile,
+  onAdd
 }: CourseToolBarProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -140,11 +142,10 @@ export default function CourseToolBar({
           <div className="flex items-center bg-white rounded-2xl border border-border h-10 gap-1 p-2">
             <button
               onClick={() => setViewMode('grid')}
-              className={`relative p-2 rounded-2xl transition-colors duration-200 ${
-                viewMode === 'grid'
+              className={`relative p-2 rounded-2xl transition-colors duration-200 ${viewMode === 'grid'
                   ? 'text-white'
                   : 'text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               {viewMode === 'grid' && (
                 <motion.div
@@ -160,11 +161,10 @@ export default function CourseToolBar({
 
             <button
               onClick={() => setViewMode('list')}
-              className={`relative p-2 rounded-2xl transition-colors duration-200 ${
-                viewMode === 'list'
+              className={`relative p-2 rounded-2xl transition-colors duration-200 ${viewMode === 'list'
                   ? 'text-white'
                   : 'text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               {viewMode === 'list' && (
                 <motion.div
@@ -179,17 +179,18 @@ export default function CourseToolBar({
             </button>
           </div>
         )}
-        
+
         {/* Filter Button */}
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="h-10 px-4 gap-2 border-border bg-white hover:bg-muted rounded-2xl hover:text-black"
         >
           <SlidersHorizontal className="w-4 h-4" />
           {!isMobile && 'Bộ lọc'}
         </Button>
-        <Button 
-          variant="outline" 
+        <Button
+          onClick={onAdd}
+          variant="outline"
           className="h-10 px-4 gap-2 border-border bg-gray-100 hover:bg-gray-200 rounded-2xl hover:text-black"
         >
           <Plus className="w-4 h-4" />

@@ -1,44 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { AlertCircle, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-import { 
-  topRatedCourses, 
-  newCourses, 
-  languageCourses, 
-  technologyCourses, 
-  designCourses, 
-  marketingCourses 
-} from '@/lib/data/mockCourses'
 import CourseToolBar from './components/CourseToolBar'
 import CourseGridItem from './components/CourseGridItem'
 import CourseListItem from './components/CourseListItem'
 import CourseGridItemSkeleton from './components/CourseGridItemSkeleton'
 import CourseListItemSkeleton from './components/CourseListItemSkeleton'
+import CreateCourseDialog from './components/CreateCourseDialog'
 import { useIsMobile } from '@/hooks/useMobile'
-
-// Combine all mock courses
-const allCourses = [
-  ...topRatedCourses,
-  ...newCourses,
-  ...languageCourses,
-  ...technologyCourses,
-  ...designCourses,
-  ...marketingCourses
-]
+import { useGetCourseByInstructor } from '@/hooks/useCourse'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function InstructorCoursesPage() {
   const [viewModePreference, setViewModePreference] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
 
   const searchParams = useSearchParams()
   const category = searchParams.get('category') || ''
   const isMobile = useIsMobile()
+  const { user } = useAuth()
 
   // Derive viewMode from mobile state
   const viewMode = isMobile ? 'grid' : viewModePreference
@@ -48,34 +33,22 @@ export default function InstructorCoursesPage() {
     }
   }
 
-  // Simulate API Fetch
-  const fetchData = () => {
-    setIsLoading(true)
-    setIsError(false)
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 800)
-  }
-
-  // Initial data fetch
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 800)
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Filter courses by category and search
-  const filteredCourses = allCourses.filter(course => {
-    const matchesCategory = !category || course.category === category
-    const matchesSearch = 
-      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.instructor.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCategory && matchesSearch
+  // Fetch Data
+  const { courses, isLoading, isError, refetch } = useGetCourseByInstructor({
+    instructorId: user?.id,
+    keyword: searchQuery,
+    categoryId: category || undefined,
+    pageNumber: 1,
+    pageSize: 100 // Fetching all for now since pagination isn't implemented in UI yet
   })
+
+  // Filter is handled by API now, but if we want client side instant search with debouncing, we could do that.
+  // For now, let's rely on the API hook's params. 
+  // Note: The hook will re-fetch when params change.
 
   return (
     <div className="flex flex-col h-full space-y-6 p-3">
+      <CreateCourseDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
 
       {/* Toolbar */}
       <CourseToolBar
@@ -84,12 +57,13 @@ export default function InstructorCoursesPage() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         isMobile={isMobile}
+        onAdd={() => setIsCreateOpen(true)}
       />
 
       {/* Content */}
       <div className="flex-1">
         {isError ? (
-          <ErrorState onRetry={fetchData} />
+          <ErrorState onRetry={refetch} />
         ) : (
           <div className={`
             ${viewMode === 'grid'
@@ -106,9 +80,9 @@ export default function InstructorCoursesPage() {
                   <CourseListItemSkeleton key={i} />
                 )
               ))
-            ) : filteredCourses.length > 0 ? (
+            ) : courses.length > 0 ? (
               // Render Courses
-              filteredCourses.map((course) => (
+              courses.map((course) => (
                 viewMode === 'grid' ? (
                   <CourseGridItem key={course.id} course={course} />
                 ) : (
