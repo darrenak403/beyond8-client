@@ -5,7 +5,6 @@ import {
   Star,
   Edit,
   Eye,
-  Home,
   Clock,
   Users
 } from 'lucide-react'

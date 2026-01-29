@@ -21,6 +21,7 @@ import { notificationService, NotificationItem as ApiNotificationItem, Notificat
 import { formatDistanceToNow, isToday } from "date-fns";
 import { vi } from "date-fns/locale";
 
+
 // Mock Data Types (Updated to match component needs, mapped from API)
 type NotificationType = "message" | "like" | "system" | "warning" | "success" | "star";
 
@@ -248,9 +249,8 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
       return { ...base, isRead: false };
     }
     return base;
-  }, [activeTab]); // Removed 'page' dependency
+  }, [activeTab]); 
 
-  // Separate query for Unread Count (for Badge)
   const { 
     data: instructorUnreadData
   } = useInstructorNotification({
@@ -274,7 +274,6 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     ? (instructorUnreadData?.userNotifications?.totalCount || 0)
     : (studentUnreadCount || 0);
 
-  // Regular Queries (Page 1 Only)
   const { 
     data: instructorData, 
     isLoading: loadingInstructor 
@@ -288,10 +287,9 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
   const isLoadingInitial = isInstructor ? loadingInstructor : loadingStudent;
 
-  // Sync Initial Data (Page 1) from Query to State
   useEffect(() => {
     if (!open) return;
-    if (currentPage > 1) return; // Don't overwrite if we already loaded more pages
+    if (currentPage > 1) return; 
 
     let totalCount = 0;
 
@@ -303,7 +301,6 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
        totalCount = studentTotal;
     }
 
-    // Check if there are more items to load based on first page
     if (totalCount > 0) {
        const firstPageLength = isInstructor 
          ? (instructorData?.userNotifications?.items?.length || 0)
@@ -322,7 +319,6 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
   }, [isInstructor, instructorData, studentList, studentTotal, open, currentPage]);
 
 
-  // Manual Load More Function
   const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore || !open) {
       return;
@@ -403,7 +399,6 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     }
   }, [isLoadingMore, hasMore, open, currentPage, isInstructor, activeTab, instructorData, studentList, allNotifications]);
 
-  // Callback ref to capture sentinel element when it mounts
   const sentinelRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
       observerRef.current = node;
@@ -411,7 +406,6 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     }
   }, []);
 
-  // Intersection Observer calls handleLoadMore
   useEffect(() => {
     if (!open || !sentinelElement) {
       if (!sentinelElement) {
@@ -429,7 +423,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
       },
       { 
         threshold: 0.1,
-        rootMargin: '100px' // Trigger 100px before reaching sentinel
+        rootMargin: '100px'
       }
     );
 
@@ -440,13 +434,11 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     };
   }, [hasMore, isLoadingMore, isLoadingInitial, handleLoadMore, open, currentPage, sentinelElement]);
 
-  // Reset state on tab change
   const handleTabChange = (value: string) => {
     if (value === activeTab) return;
     setLoadingTab(true);
     setActiveTab(value);
     
-    // Reset pagination state
     setCurrentPage(1);
     setAllNotifications([]);
     setHasMore(true);
@@ -459,20 +451,16 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
 
 
-  // Quyết định hiển thị data nào dựa trên currentPage (pattern từ CommentPanel)
   const notifications = useMemo(() => {
     if (currentPage === 1) {
-      // Page 1: dùng data từ query
       return isInstructor 
         ? (instructorData?.userNotifications?.items || [])
         : (studentList || []);
     } else {
-      // Page > 1: dùng allNotifications
       return allNotifications;
     }
   }, [currentPage, isInstructor, instructorData, studentList, allNotifications]);
 
-  // Map to UI Model
   const mapToNotification = (item: ApiNotificationItem): Notification => {
     const created = new Date(item.createdAt);
     const dateType: "today" | "earlier" = isToday(created) ? "today" : "earlier";
@@ -503,7 +491,6 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
   const markAllAsRead = async () => {
       try {
         await markAllReadMutation.mutateAsync();
-        // Optimistic update or refetch handled by query invalidation in hook
       } catch (error) {
         console.error("Failed to mark all as read", error);
       }
@@ -527,42 +514,46 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md p-0 overflow-hidden bg-white/95 backdrop-blur-2xl border-l border-gray-100 shadow-[0_0_50px_-12px_rgba(0,0,0,0.15)] focus:outline-none">
-        <div className="h-full flex flex-col">
+      <AnimatePresence mode="wait">
+        {open && (
+          <SheetContent 
+            forceMount 
+            className="w-full sm:max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none data-[state=open]:animate-none data-[state=closed]:animate-none focus:outline-none"
+          >
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="h-full w-full flex flex-col bg-white/95 backdrop-blur-2xl border-l border-gray-100 shadow-[0_0_50px_-12px_rgba(0,0,0,0.15)]"
+            >
+              <div className="h-full flex flex-col">
           {/* Header */}
           <div className="px-6 py-5 border-b border-gray-100/80 bg-white/80 backdrop-blur-xl sticky top-0 z-30">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-start gap-8 mb-3">
                 <SheetTitle className="text-2xl font-bold text-gray-900 tracking-tight">
                   Thông báo
                 </SheetTitle>
-                <div className="flex items-center gap-2">
-                 {realUnreadCount > 0 && (
+                <div className="flex items-center">
+                
                 <Button
                   variant="ghost"
                   size="sm"
+                  disabled={realUnreadCount === 0}
                   className="h-8 text-xs font-semibold text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-full px-3 transition-all"
                   onClick={markAllAsRead}
                 >
                   Đánh dấu đã đọc
                 </Button>
-              )}
-                 {notifications.length > 0 && (
+
                 <Button
                   variant="ghost"
                   size="sm"
+                  disabled={notifications.length === 0}
                   className="h-8 text-xs font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full px-3 transition-all"
                   onClick={deleteAllNotifications}
                 >
                   Xóa tất cả
-                </Button>
-              )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
-                  onClick={() => onOpenChange(false)}
-                >
-                  <X className="h-4 w-4" />
                 </Button>
                 </div>
             </div>
@@ -638,7 +629,10 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
             </ScrollArea>
           </Tabs>
         </div>
-      </SheetContent>
+            </motion.div>
+          </SheetContent>
+        )}
+      </AnimatePresence>
     </Sheet>
   );
 }

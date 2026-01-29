@@ -109,7 +109,7 @@ export const notificationService = {
 
   markAllRead: async (): Promise<ApiResponse<boolean>> => {
     const response = await apiService.put<ApiResponse<boolean>>(
-      "/api/v1/notifications/read",
+      "/api/v1/notifications/read-all",
       {}
     );
     return response.data;
