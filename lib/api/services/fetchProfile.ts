@@ -1,6 +1,25 @@
 import type { ApiResponse } from "@/types/api";
 import apiService from "../core";
 
+export interface SubscriptionPlan {
+  code: string;
+  name: string;
+  description: string | null;
+  price: number;
+  currency: string;
+  durationDays: number;
+  totalRequestsInPeriod: number;
+  maxRequestsPerWeek: number;
+  includes: string[];
+}
+
+export interface Subscription {
+  remainingRequests: number;
+  isRequestLimitedReached: boolean;
+  requestLimitedEndsAt: string | null;
+  subscriptionPlan: SubscriptionPlan;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -20,6 +39,7 @@ export interface UserProfile {
   timezone: string;
   locale: string;
   status: "Active" | "Inactive" | "Suspended";
+  subscription: Subscription | null;
 }
 
 export interface UpdateUserProfileRequest {
