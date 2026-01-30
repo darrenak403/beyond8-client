@@ -54,6 +54,7 @@ export function middleware(request: NextRequest) {
     "/register",
     "/reset-password",
     "/forgot-password",
+    "/supscription"
   ];
 
   // Static files and XML sitemaps should always be accessible
@@ -236,6 +237,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (images, xml, etc.)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp4|xml)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp4|xml|glb)$).*)",
   ],
 };

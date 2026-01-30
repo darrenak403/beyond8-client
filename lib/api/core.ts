@@ -18,6 +18,11 @@ export interface RequestParams {
 class ApiService {
   private client: AxiosInstance
   private authToken: string | null = null
+  private isRefreshing = false
+  private failedQueue: Array<{
+    resolve: (token: string) => void
+    reject: (error: any) => void
+  }> = []
 
   constructor(baseURL: string, timeout = 10000) {
     this.client = axios.create({
@@ -29,6 +34,18 @@ class ApiService {
     })
 
     this.setupInterceptors()
+  }
+
+  private processQueue(error: any, token: string | null = null) {
+    this.failedQueue.forEach((prom) => {
+      if (error) {
+        prom.reject(error)
+      } else {
+        prom.resolve(token!)
+      }
+    })
+
+    this.failedQueue = []
   }
 
   private setupInterceptors() {
@@ -55,14 +72,88 @@ class ApiService {
     this.client.interceptors.response.use(
       (response) => response,
       async (error) => {
-        // Handle 401 Unauthorized
-        if (error.response?.status === 401) {
-          deleteCookie('authToken', { path: '/' })
-          store.dispatch(logout())
+        const originalRequest = error.config
 
-          // Dispatch logout event for other tabs/windows
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new Event('logout'))
+        // Handle 401 Unauthorized
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          if (this.isRefreshing) {
+            return new Promise(function (resolve, reject) {
+              apiService.failedQueue.push({ resolve, reject })
+            })
+              .then((token) => {
+                originalRequest.headers['Authorization'] = 'Bearer ' + token
+                return apiService.client(originalRequest)
+              })
+              .catch((err) => {
+                return Promise.reject(err)
+              })
+          }
+
+          originalRequest._retry = true
+          this.isRefreshing = true
+
+          try {
+            const refreshToken = store.getState().auth.refreshToken
+
+            if (!refreshToken) {
+              throw new Error('No refresh token available')
+            }
+
+            // Call refresh token API directly using axios to avoid circular dependency
+            // Use a new instance or basic axios to prevent interceptor loops if this fails (though 401 on refresh should fail)
+            const response = await axios.post(
+              `${process.env.NEXT_PUBLIC_API_URL}api/v1/auth/refresh-token`,
+              { refreshToken },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              }
+            )
+
+            if (response.data?.data?.accessToken) {
+              const { accessToken, refreshToken: newRefreshToken } = response.data.data
+              
+              const { setTokenWithRefresh } = await import('@/lib/redux/slices/authSlice');
+              const { setCookie } = await import('cookies-next');
+              const { getAuthCookieConfig } = await import('@/utils/cookieConfig');
+
+              store.dispatch(setTokenWithRefresh({ accessToken, refreshToken: newRefreshToken }))
+              setCookie('authToken', accessToken, getAuthCookieConfig())
+              
+              this.setAuthToken(accessToken)
+              
+              // Process queue
+              this.processQueue(null, accessToken)
+              this.isRefreshing = false
+
+              // Retry original request
+              originalRequest.headers['Authorization'] = 'Bearer ' + accessToken
+              return this.client(originalRequest)
+            } else {
+                throw new Error('Invalid refresh response')
+            }
+
+          } catch (refreshError) {
+            this.isRefreshing = false
+            this.processQueue(refreshError, null)
+            
+            deleteCookie('authToken', { path: '/' })
+            store.dispatch(logout())
+
+            // Dispatch logout event for other tabs/windows
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new Event('logout'))
+            }
+             
+             // Standardize error format
+            const apiError: ApiError = {
+                code: error.response?.status,
+                message: 'Session expired. Please login again.',
+                status: false,
+                data: error.response?.data,
+            }
+            return Promise.reject(apiError)
           }
         }
 
