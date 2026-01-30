@@ -22,7 +22,7 @@ import { usePathname } from "next/navigation";
 
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { Badge } from "./badge";
+// import { Badge } from "./badge";
 import { NotificationPanel } from "../widget/notification-panel";
 
 const navItems = [
@@ -164,17 +164,31 @@ export function InstructorHeader() {
         )}
 
         {/* Right: User Menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          
           {isAuthenticated ? (
             <>
+             {!isMobile && (
+            <Link href="/supscription">
+              <div className="relative group cursor-pointer mr-2">
+                <Button 
+                  className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
+                  variant="ghost"
+                >
+                  <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
+                </Button>
+              </div>
+            </Link>
+          )}
             {subscription?.subscriptionPlan && !isMobile && (
                 <div className="flex items-center">
-                  <Badge 
+                  {/* <Badge 
                     variant="outline" 
                     className="border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-all duration-300 animate-in fade-in zoom-in duration-500 font-bold px-3 py-1 text-[12px] uppercase tracking-wider"
                   >
                     {subscription.subscriptionPlan.name}
-                  </Badge>
+                  </Badge> */}
                 </div>
               )}
               {isLoading ? (
@@ -187,7 +201,7 @@ export function InstructorHeader() {
                       background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to gray-200 equivalent
                     }}
                   >
-                    <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'} border-[2px] border-white`}>
+                    <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'}`}>
                       <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} className="object-cover" />
                       <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
                         {getAvatarFallback()}

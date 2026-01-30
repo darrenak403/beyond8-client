@@ -15,7 +15,7 @@ import { Category } from "@/lib/api/services/fetchCategory";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -482,7 +482,7 @@ export function Header() {
                 <Link href="/courses">
                   <button
                     type="button"
-                    className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition-colors border border-purple-500 cursor-pointer"
+                    className="p-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-colors border border-purple-500 cursor-pointer"
                   >
                     <Search className="h-4 w-4 text-white" />
                   </button>
@@ -493,6 +493,20 @@ export function Header() {
         )}
 
         <nav ref={navRef} className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} ${isMobile ? '' : 'justify-end'}`}>
+          {!isMobile && (
+            <Link href="/supscription">
+              <div className="relative group cursor-pointer mr-2">
+                <Button 
+                  className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
+                  variant="ghost"
+                >
+                  <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
+                </Button>
+              </div>
+            </Link>
+          )}
+
           {isAuthenticated ? (
             <>
               {!isMobile && (
@@ -513,7 +527,7 @@ export function Header() {
                 ) : null
               )}
 
-              {subscription?.subscriptionPlan && !isMobile && (
+              {/* {subscription?.subscriptionPlan && !isMobile && (
                 <div className="flex items-center">
                   <Badge 
                     variant="outline" 
@@ -522,7 +536,7 @@ export function Header() {
                     {subscription.subscriptionPlan.name}
                   </Badge>
                 </div>
-              )}
+              )} */}
 
               {isLoading ? (
                 <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
@@ -534,7 +548,7 @@ export function Header() {
                       background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to gray-200 equivalent
                     }}
                   >
-                    <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'} border-[2px] border-white`}>
+                    <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'}`}>
                       <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} className="object-cover" />
                       <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
                         {getAvatarFallback()}
