@@ -71,16 +71,12 @@ export default function CourseActionHeader({
                     <Button
                         disabled={isSubmitting}
                         onClick={onSave}
-                        className="rounded-full px-6 font-semibold"
+                        className="rounded-full px-6 font-semibold bg-gray-200 hover:bg-gray-300 hover:text-black"
+                        variant={'outline'}
                     >
-                        {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+                        {isSubmitting ? 'Đang lưu...' : 'Lưu và thoát'}
                     </Button>
                 )}
-
-                <Button variant="ghost" className="rounded-full bg-gray-100 hover:bg-gray-200 text-black px-6 font-semibold"
-                    onClick={() => setOpen(true)}>
-                    Thoát
-                </Button>
             </div>
 
             <ConfirmDialog

@@ -23,22 +23,20 @@ export default function ActionFooter({
                 variant="ghost"
                 onClick={onBack}
                 disabled={isFirstStep}
-                className={`font-medium text-gray-600 hover:text-gray-900 ${isFirstStep ? 'opacity-0 pointer-events-none' : ''}`}
+                className="font-medium rounded-full hover:bg-gray-100 hover:text-black "
             >
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Quay lại
             </Button>
 
-            {!isLastStep && (
-                <Button
-                    onClick={onNext}
-                    disabled={!isValid}
-                    className="bg-black hover:bg-gray-800 text-white font-medium px-8"
-                >
-                    Tiếp tục
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
-            )}
+            <Button
+                onClick={onNext}
+                disabled={!isValid}
+                className="font-medium rounded-full"
+            >
+                {isLastStep ? 'Nội dung khóa học' : 'Tiếp tục'}
+                {!isLastStep && <ChevronRight className="h-4 w-4 ml-2" />}
+            </Button>
         </div>
     )
 }

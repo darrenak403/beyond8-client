@@ -4,7 +4,6 @@ export interface CreateSectionRequest {
     courseId: string;
     title: string;
     description: string;
-    orderIndex: number;
     assignmentId: string
 }
 

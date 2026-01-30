@@ -81,7 +81,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
                 categoryId: initialData.categoryId || '',
                 level: initialData.level || '',
                 language: initialData.language || 'Tiếng Việt',
-                outcomes: [''], // API needs to return these details if we want to edit them. Assuming separate fetch or part of details
+                outcomes: [''], 
                 requirements: [''],
                 targetAudience: [''],
                 price: initialData.price || 0,
@@ -140,6 +140,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
             }
         } else {
             toast.info("Update logic not yet implemented")
+            router.back()
         }
     }
 
@@ -154,6 +155,9 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
     const handleNext = () => {
         if (currentStep === 3) {
             setCurrentStep(5)
+        } else if (currentStep === 5) {
+            // Last step: Switch to Content mode (Manage Course)
+            handleViewModeChange('content')
         } else {
             setCurrentStep(prev => Math.min(5, prev + 1))
         }
@@ -212,6 +216,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
                                                 <Step1_Title
                                                     data={formData}
                                                     onChange={(data) => setFormData(prev => ({ ...prev, ...data }))}
+                                                    isEditMode={isEditMode}
                                                 />
                                             )}
                                             {currentStep === 2 && (
