@@ -7,7 +7,7 @@ import {
     CheckCircle2,
     Clock
 } from 'lucide-react'
-import type { Course } from '@/lib/data/mockCourses'
+import { Course } from '@/lib/api/services/fetchCourse'
 
 interface CourseListItemProps {
     course: Course
@@ -19,6 +19,9 @@ export default function CourseListItem({ course }: CourseListItemProps) {
         style: 'currency',
         currency: 'VND',
     }).format(course.price)
+
+    // Format duration from minutes to hours
+    const formattedDuration = `${Math.floor(course.totalDurationMinutes / 60)} giờ`
 
     return (
         <div className="group flex bg-white rounded-xl overflow-hidden border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all duration-300 p-3 gap-4">
@@ -56,14 +59,14 @@ export default function CourseListItem({ course }: CourseListItemProps) {
                             </h3>
                             <div className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
                                 <Clock className="w-3.5 h-3.5" />
-                                <span className="text-xs font-semibold">{course.duration}</span>
+                                <span className="text-xs font-semibold">{formattedDuration}</span>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs font-normal text-slate-500 border-slate-200">
                                 <Home className="w-3 h-3 mr-1" />
-                                {course.category}
+                                {course.categoryName}
                             </Badge>
                             <Badge variant="secondary" className="text-xs font-normal bg-slate-100 text-slate-600 hover:bg-slate-200">
                                 Bán
@@ -75,7 +78,7 @@ export default function CourseListItem({ course }: CourseListItemProps) {
                                 {course.title}
                             </h3>
                             <p className="text-sm text-slate-500">
-                                {course.instructor}
+                                {course.instructorName}
                             </p>
                         </div>
                     </div>

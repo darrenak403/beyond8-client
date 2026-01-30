@@ -11,60 +11,48 @@ import CourseToolbar from './components/CourseToolbar'
 import CoursePagination from './components/CoursePagination'
 
 import { useIsMobile } from '@/hooks/useMobile'
+import { Course, CourseStatus, CourseLevel } from '@/lib/api/services/fetchCourse'
+import { useGetCourseByInstructor } from '@/hooks/useCourse'
 
-// Combine mock data for demo
 const ITEMS_PER_PAGE = 12
 
 export default function CourseManagementPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
 
+  // Fetch courses with pagination
+  const { 
+    courses, 
+    isLoading, 
+    isError, 
+    refetch,
+    totalPages: serverTotalPages,
+    count
+  } = useGetCourseByInstructor({
+    pageNumber: currentPage,
+    pageSize: ITEMS_PER_PAGE,
+    level: CourseLevel.All
+  })
+ 
   const isMobile = useIsMobile()
 
-  // Force grid view on mobile
-  useEffect(() => {
-    if (isMobile) {
-      setViewMode('grid')
-    }
-  }, [isMobile])
+  // Force grid view on mobile by deriving the actual view mode
+  const actualViewMode = isMobile ? 'grid' : viewMode
 
-  // Simulate API Fetch
-  const fetchData = () => {
-    setIsLoading(true)
-    setIsError(false)
-    setTimeout(() => {
-      // Randomly simulate error (10% chance) for demo purpose
-      if (Math.random() < 0.1) {
-        setIsError(true)
-      }
-      setIsLoading(false)
-    }, 1500)
-  }
+  // Filter courses based on search (client-side filtering)
+  const filteredCourses = searchQuery
+    ? courses.filter(course =>
+        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.instructorName.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : courses
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  // Filter courses based on search
-  const filteredCourses = allCourses.filter(course =>
-    course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    course.instructor.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE)
-  const currentCourses = filteredCourses.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
-
-  // Reset to page 1 when search changes
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery])
+  // Use filtered courses for display
+  const currentCourses = filteredCourses
+  const totalPages = searchQuery 
+    ? Math.ceil(filteredCourses.length / ITEMS_PER_PAGE)
+    : serverTotalPages
 
   return (
     <div className="flex flex-col h-full p-2 space-y-4">
@@ -79,23 +67,23 @@ export default function CourseManagementPage() {
 
       {/* Toolbar */}
       <CourseToolbar
-        viewMode={viewMode}
+        viewMode={actualViewMode}
         setViewMode={setViewMode}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        totalCount={filteredCourses.length}
+        totalCount={count}
         isMobile={isMobile}
-        onRefresh={fetchData}
+        onRefresh={refetch}
         isLoading={isLoading}
       />
 
       {/* Content */}
       <div className="flex-1">
         {isError ? (
-          <ErrorState onRetry={fetchData} />
+          <ErrorState onRetry={refetch} />
         ) : (
           <div className={`
-                ${viewMode === 'grid'
+                ${actualViewMode === 'grid'
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
               : 'flex flex-col gap-4'
             }
@@ -103,7 +91,7 @@ export default function CourseManagementPage() {
             {isLoading ? (
               // Render Skeletons
               Array.from({ length: 8 }).map((_, i) => (
-                viewMode === 'grid' ? (
+                actualViewMode === 'grid' ? (
                   <CourseGridItemSkeleton key={i} />
                 ) : (
                   <CourseListItemSkeleton key={i} />
@@ -112,7 +100,7 @@ export default function CourseManagementPage() {
             ) : (
               // Render Courses
               currentCourses.map((course) => (
-                viewMode === 'grid' ? (
+                actualViewMode === 'grid' ? (
                   <CourseGridItem key={course.id} course={course} />
                 ) : (
                   <CourseListItem key={course.id} course={course} />
