@@ -64,7 +64,7 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
   }
 
   return (
-    <div className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all duration-300">
+    <div className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-border/40 hover:shadow-lg transition-all duration-300">
       {/* Image Section */}
       <div className="relative w-full aspect-[4/3] overflow-hidden">
         <Image
@@ -135,11 +135,9 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
         {/* Footer Actions */}
         <div className="mt-auto pt-2 flex gap-2">
           <Button variant="outline" className="flex-1 h-9 rounded-xl" onClick={() => window.location.href = `/instructor/courses/action/${course.id}`}>
-            <Edit className="w-4 h-4 mr-2" />
             Chỉnh sửa
           </Button>
           <Button className="flex-1 h-9 rounded-xl">
-            <Eye className="w-4 h-4 mr-2" />
             Xem
           </Button>
         </div>
