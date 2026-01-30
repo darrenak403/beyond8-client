@@ -2,11 +2,11 @@ import apiService, { RequestParams } from "../core"
 import { Metadata } from "./fetchUsers"
 
 export enum CourseLevel {
-    Beginner,
-    Intermediate,
-    Advanced,
-    Expert,
-    All
+    Beginner = "Beginner",
+    Intermediate = "Intermediate",
+    Advanced = "Advanced",
+    Expert = "Expert",
+    All = "All"
 }
 
 export enum CourseStatus {
@@ -39,6 +39,9 @@ export interface Course {
     totalDurationMinutes: number
     avgRating: string;
     totalReviews: number
+    outcomes?: string[]
+    requirements?: string[]
+    targetAudience?: string[]
     createdAt: string
     updatedAt: string
 }
@@ -57,6 +60,20 @@ export interface CourseRequest {
     targetAudience: string[]
 }
 
+export interface CourseUpdateRequest {
+    categoryId?: string
+    title?: string
+    description?: string
+    language?: string
+    level?: CourseLevel
+    outcomes?: string[]
+    price?: number
+    requirements?: string[]
+    shortDescription?: string
+    targetAudience?: string[]
+    thumbnailUrl?: string
+}
+
 export interface CourseResponse {
     isSuccess: boolean
     message: string
@@ -66,10 +83,10 @@ export interface CourseResponse {
 
 export interface CourseParams {
     keyword?: string
-    categoryId?: string
+    categoryName?: string
     instructorId?: string
     status?: CourseStatus
-    level?: CourseLevel
+    level: CourseLevel
     language?: string
     minPrice?: number
     maxPrice?: number
@@ -80,13 +97,14 @@ export interface CourseParams {
     pageNumber?: number
     pageSize?: number
     isDescending?: boolean
+    sortBy?: string
 }
 
 const convertParamsToQuery = (params?: CourseParams): RequestParams => {
     if (!params) return {};
     const query: RequestParams = {};
     if (params.keyword) query.keyword = params.keyword;
-    if (params.categoryId) query.categoryId = params.categoryId;
+    if (params.categoryName) query.categoryName = params.categoryName;
     if (params.instructorId) query.instructorId = params.instructorId;
     if (params.status) query.status = params.status;
     if (params.level) query.level = params.level;
@@ -100,6 +118,7 @@ const convertParamsToQuery = (params?: CourseParams): RequestParams => {
     if (params.pageNumber) query.pageNumber = params.pageNumber;
     if (params.pageSize) query.pageSize = params.pageSize;
     if (params.isDescending) query.isDescending = params.isDescending;
+    if (params.sortBy) query.sortBy = params.sortBy;
     return query;
 }
 
@@ -115,4 +134,14 @@ export const fetchCourse = {
         const response = await apiService.get<CourseResponse>("api/v1/courses/instructor", params);
         return response.data;
     },
+
+    getCourseById: async (id: string): Promise<CourseResponse> => {
+        const response = await apiService.get<CourseResponse>(`api/v1/courses/${id}`);
+        return response.data;
+    },
+
+    updateCourse: async (id: string, courseData: CourseUpdateRequest): Promise<CourseResponse> => {
+        const response = await apiService.patch<CourseResponse>(`api/v1/courses/${id}/metadata`, courseData);
+        return response.data;
+    }
 }

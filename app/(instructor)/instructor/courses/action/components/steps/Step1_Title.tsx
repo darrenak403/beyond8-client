@@ -14,11 +14,12 @@ interface Step1TitleProps {
         description: string
     }
     onChange: (data: Partial<Step1TitleProps['data']>) => void
+    isEditMode?: boolean
 }
 
-export default function Step1Title({ data, onChange }: Step1TitleProps) {
-    // If we already have descriptions, default to expanded view
-    const [isExpanded, setIsExpanded] = useState(!!(data.shortDescription || data.description))
+export default function Step1Title({ data, onChange, isEditMode }: Step1TitleProps) {
+    // If we already have descriptions or are in edit mode, default to expanded view
+    const [isExpanded, setIsExpanded] = useState(!!(data.shortDescription || data.description) || isEditMode)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     const adjustHeight = () => {

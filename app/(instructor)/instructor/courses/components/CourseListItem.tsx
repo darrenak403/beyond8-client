@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import {
   Star,
   Edit,
-  Home,
+
   Clock,
   Eye,
   Users
@@ -64,7 +64,7 @@ export default function CourseListItem({ course }: CourseListItemProps) {
   }
 
   return (
-    <div className="group flex bg-white rounded-xl overflow-hidden border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all duration-300 p-3 gap-4">
+    <div className="group flex bg-white rounded-xl overflow-hidden border border-border/40 hover:shadow-lg transition-all duration-300 p-3 gap-4">
       {/* Image Section */}
       <div className="relative w-72 shrink-0 aspect-[16/9] rounded-lg overflow-hidden">
         <Image
@@ -134,12 +134,10 @@ export default function CourseListItem({ course }: CourseListItemProps) {
 
       {/* Action Section (Right) */}
       <div className="flex flex-col justify-center gap-2 shrink-0 w-auto pl-4 border-l border-border/50 my-1">
-        <Button variant="outline" className="h-8 text-xs px-3 rounded-xl">
-          <Edit className="w-3.5 h-3.5 mr-1.5" />
+        <Button variant="outline" className="h-8 text-xs px-3 rounded-xl" onClick={() => window.location.href = `/instructor/courses/action/${course.id}`}>
           Chỉnh sửa
         </Button>
         <Button variant="default" className="h-8 text-xs px-3 rounded-xl">
-          <Eye className="w-3.5 h-3.5 mr-1.5" />
           Xem chi tiết
         </Button>
       </div>

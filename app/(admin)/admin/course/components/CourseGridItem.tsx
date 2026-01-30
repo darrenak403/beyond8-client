@@ -7,7 +7,7 @@ import {
     CheckCircle2,
     Clock
 } from 'lucide-react'
-import type { Course } from '@/lib/data/mockCourses'
+import { Course } from '@/lib/api/services/fetchCourse'
 
 interface CourseGridItemProps {
     course: Course
@@ -21,7 +21,7 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
     }).format(course.price)
 
     return (
-        <div className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-border/40 hover:border-primary/50 hover:shadow-lg transition-all duration-300">
+        <div className="group flex flex-col h-full bg-white rounded-xl overflow-hidden hover:shadow-black/10 transition-all duration-300">
             {/* Image Section */}
             <div className="relative w-full aspect-[4/3] overflow-hidden">
                 <Image
@@ -40,7 +40,7 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
 
                 <div className="absolute top-3 right-3">
                     <Badge variant="secondary" className="backdrop-blur-md bg-white/90 text-primary font-semibold shadow-sm">
-                        {course.category}
+                        {course.categoryName}
                     </Badge>
                 </div>
             </div>
@@ -56,7 +56,7 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
                         </h3>
                         <div className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
                             <Clock className="w-3.5 h-3.5" />
-                            <span className="text-xs font-semibold">{course.duration}</span>
+                            <span className="text-xs font-semibold">{course.totalDurationMinutes}</span>
                         </div>
                     </div>
 

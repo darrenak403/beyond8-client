@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, BookOpen, Users, Wallet, User, LogOut, Bell, Crown, Gem, Zap } from "lucide-react";
-import { useIsMobile } from "@/hooks/useMobile";
+
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -19,7 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 
 export function InstructorBottomNav() {
-  const isMobile = useIsMobile();
+
   const pathname = usePathname();
   const { userProfile } = useUserProfile();
   const { mutateLogout } = useLogout();
@@ -27,14 +27,14 @@ export function InstructorBottomNav() {
 
   const getGradientStyle = (code?: string) => {
     switch (code?.toUpperCase()) {
-      case "ULTRA": 
+      case "ULTRA":
         return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
-      case "PRO": 
+      case "PRO":
         return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
       case "STANDARD":
-      case "PLUS": 
+      case "PLUS":
         return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
-      default: 
+      default:
         return null;
     }
   };
@@ -64,9 +64,6 @@ export function InstructorBottomNav() {
     mutateLogout();
   };
 
-  // Only show on mobile
-  if (!isMobile) return null;
-
   const navItems = [
     { name: "Tổng quan", href: "/instructor/dashboard", icon: Home },
     { name: "Khóa học", href: "/instructor/courses", icon: BookOpen },
@@ -76,7 +73,7 @@ export function InstructorBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe lg:hidden">
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -88,9 +85,9 @@ export function InstructorBottomNav() {
               <DropdownMenu key={item.href}>
                 <DropdownMenuTrigger className="flex flex-col items-center justify-center w-full h-full space-y-1 focus:outline-none">
                   <div className={cn("flex flex-col items-center justify-center", isActive ? "text-purple-600" : "text-muted-foreground")}>
-                    <div 
+                    <div
                       className="relative p-[1.5px] rounded-full w-6 h-6 flex items-center justify-center transition-all duration-300"
-                      style={{ 
+                      style={{
                         background: getGradientStyle(subscription?.subscriptionPlan?.code) || (isActive ? '#9333ea' : '#c084fc')
                       }}
                     >
