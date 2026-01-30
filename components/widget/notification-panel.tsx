@@ -228,6 +228,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
   const { isInstructor } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
   const [loadingTab, setLoadingTab] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const observerRef = useRef<HTMLDivElement>(null);
   const [sentinelElement, setSentinelElement] = useState<HTMLDivElement | null>(null);
   
@@ -434,6 +435,18 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     };
   }, [hasMore, isLoadingMore, isLoadingInitial, handleLoadMore, open, currentPage, sentinelElement]);
 
+  const handleClose = () => {
+    setIsClosing(true);
+  };
+
+  const handleOpenChangeInternal = (newOpen: boolean) => {
+    if (!newOpen) {
+      handleClose();
+    } else {
+      onOpenChange(newOpen);
+    }
+  };
+
   const handleTabChange = (value: string) => {
     if (value === activeTab) return;
     setLoadingTab(true);
@@ -513,18 +526,24 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
   const showSkeleton = (isLoadingInitial && currentPage === 1) || loadingTab;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChangeInternal}>
       <AnimatePresence mode="wait">
-        {open && (
           <SheetContent 
             forceMount 
             className="w-full sm:max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none data-[state=open]:animate-none data-[state=closed]:animate-none focus:outline-none"
           >
             <motion.div
+              key="notification-panel"
               initial={{ x: "100%" }}
-              animate={{ x: 0 }}
+              animate={isClosing ? { x: "100%" } : { x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onAnimationComplete={() => {
+                if (isClosing) {
+                  onOpenChange(false);
+                  setIsClosing(false);
+                }
+              }}
               className="h-full w-full flex flex-col bg-white/95 backdrop-blur-2xl border-l border-gray-100 shadow-[0_0_50px_-12px_rgba(0,0,0,0.15)]"
             >
               <div className="h-full flex flex-col">
@@ -631,7 +650,6 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
         </div>
             </motion.div>
           </SheetContent>
-        )}
       </AnimatePresence>
     </Sheet>
   );

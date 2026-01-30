@@ -20,7 +20,6 @@ export default function InstructorCoursesPage() {
   const [viewModePreference, setViewModePreference] = useState<'grid' | 'list'>('grid')
 
   const searchParams = useSearchParams()
-  const categoryId = searchParams.get('categoryId') || ''
   const isMobile = useIsMobile()
   const { user } = useAuth()
 
@@ -36,26 +35,21 @@ export default function InstructorCoursesPage() {
   const pageNumber = parseInt(searchParams.get('pageNumber') || '1')
   const pageSize = parseInt(searchParams.get('pageSize') || '8')
   const isDescending = searchParams.get('isDescending') !== 'false'
-  const levelParam = searchParams.get('level')
+  const sortBy = searchParams.get('sortBy') || 'createdAt'
+  const level = searchParams.get('level') || 'All'
+  const categoryName = searchParams.get('categoryName') || ''
 
-  let level: CourseLevel | undefined
-  if (levelParam === 'All') {
-    level = CourseLevel.All
-  } else if (levelParam) {
-    // Attempt to parse other levels if they are passed as numbers or strings matching enum
-    // For now, let's assume if it's not 'All', we don't default it or we try to parse it. 
-    // Simply supporting All for now as requested.
-  }
 
   // Fetch Data
   const { courses, isLoading, isError, refetch, totalPages, hasNextPage, hasPreviousPage } = useGetCourseByInstructor({
     instructorId: user?.id,
     keyword: searchParams.get('keyword') || '',
-    categoryId: categoryId || undefined,
+    categoryName: categoryName || undefined,
     pageNumber: pageNumber,
     pageSize: pageSize,
     isDescending: isDescending,
-    level: level
+    sortBy: sortBy,
+    level: level as CourseLevel
   })
 
   // Ensure params exist in URL
@@ -76,14 +70,12 @@ export default function InstructorCoursesPage() {
       params.set('isDescending', 'true')
       hasChanged = true
     }
-    if (!searchParams.has('level')) { // Add level=All default
+    if (!searchParams.has('level')) {
       params.set('level', 'All')
       hasChanged = true
     }
-
-    // Clean up incorrect 'page' param if it exists
-    if (searchParams.has('page')) {
-      params.delete('page')
+    if (!searchParams.has('sortBy')) {
+      params.set('sortBy', 'createdAt')
       hasChanged = true
     }
 
@@ -106,7 +98,6 @@ export default function InstructorCoursesPage() {
       <CourseToolBar
         viewMode={viewMode}
         setViewMode={setViewMode}
-        isMobile={isMobile}
       />
 
       {/* Content */}

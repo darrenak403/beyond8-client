@@ -34,7 +34,7 @@ export function useGetCourseByInstructor(filterParams?: CourseParams) {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
     }>({
-        queryKey: ["courses", "instructor", filterParams],
+        queryKey: ["courses", "instructor", "instructor-stats", filterParams],
         queryFn: () => fetchCourse.getCourseByInstructor(filterParams),
         select: (data) => ({
             courses: data.data,
@@ -60,5 +60,21 @@ export function useGetCourseByInstructor(filterParams?: CourseParams) {
         refetch,
         isFetching,
         isError
+    }
+}
+
+export function useGetCourseById(id: string) {
+    const { data, isLoading, isError, refetch } = useQuery<CourseResponse, Error, Course>({
+        queryKey: ["course", id],
+        queryFn: () => fetchCourse.getCourseById(id),
+        select: (data) => data.data[0] || data.data as unknown as Course,
+        enabled: !!id
+    })
+
+    return {
+        course: data,
+        isLoading,
+        isError,
+        refetch
     }
 }

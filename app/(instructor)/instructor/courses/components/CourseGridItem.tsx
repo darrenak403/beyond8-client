@@ -134,7 +134,7 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
 
         {/* Footer Actions */}
         <div className="mt-auto pt-2 flex gap-2">
-          <Button variant="outline" className="flex-1 h-9 rounded-xl">
+          <Button variant="outline" className="flex-1 h-9 rounded-xl" onClick={() => window.location.href = `/instructor/courses/action/${course.id}`}>
             <Edit className="w-4 h-4 mr-2" />
             Chỉnh sửa
           </Button>

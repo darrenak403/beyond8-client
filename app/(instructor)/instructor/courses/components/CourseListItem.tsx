@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import {
   Star,
   Edit,
-  Home,
+
   Clock,
   Eye,
   Users
@@ -134,7 +134,7 @@ export default function CourseListItem({ course }: CourseListItemProps) {
 
       {/* Action Section (Right) */}
       <div className="flex flex-col justify-center gap-2 shrink-0 w-auto pl-4 border-l border-border/50 my-1">
-        <Button variant="outline" className="h-8 text-xs px-3 rounded-xl">
+        <Button variant="outline" className="h-8 text-xs px-3 rounded-xl" onClick={() => window.location.href = `/instructor/courses/action/${course.id}`}>
           <Edit className="w-3.5 h-3.5 mr-1.5" />
           Chỉnh sửa
         </Button>

@@ -5,7 +5,6 @@ import { AlertCircle, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from "@/components/ui/skeleton"
 
-import { topRatedCourses, newCourses } from '@/lib/data/mockCourses'
 import CourseGridItem from './components/CourseGridItem'
 import CourseListItem from './components/CourseListItem'
 import CourseToolbar from './components/CourseToolbar'
@@ -14,7 +13,6 @@ import CoursePagination from './components/CoursePagination'
 import { useIsMobile } from '@/hooks/useMobile'
 
 // Combine mock data for demo
-const allCourses = [...topRatedCourses, ...newCourses]
 const ITEMS_PER_PAGE = 12
 
 export default function CourseManagementPage() {

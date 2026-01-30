@@ -59,14 +59,14 @@ export function InstructorHeader() {
 
   const getGradientStyle = (code?: string) => {
     switch (code?.toUpperCase()) {
-      case "ULTRA": 
+      case "ULTRA":
         return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
-      case "PRO": 
+      case "PRO":
         return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
       case "STANDARD":
-      case "PLUS": 
+      case "PLUS":
         return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
-      default: 
+      default:
         return null;
     }
   };
@@ -116,7 +116,7 @@ export function InstructorHeader() {
     }
   }, [pathname]);
 
-  if (isMobile) return null;
+
 
   return (
     <header className="border-b bg-background/95 sticky top-0 z-50">
@@ -135,42 +135,40 @@ export function InstructorHeader() {
         </div>
 
         {/* Center: Navigation Tabs (Desktop only) */}
-        {!isMobile && (
-          <nav ref={navRef} className="flex items-center gap-4 relative">
-            {/* Animated Underline */}
-            <div
-              ref={activeTabRef}
-              className="absolute bg-purple-600 h-0.5 bottom-0 left-0 pointer-events-none"
-              style={{ width: 0, opacity: 0 }} // Initial state
-            />
+        <nav ref={navRef} className="hidden lg:flex items-center gap-4 relative">
+          {/* Animated Underline */}
+          <div
+            ref={activeTabRef}
+            className="absolute bg-purple-600 h-0.5 bottom-0 left-0 pointer-events-none"
+            style={{ width: 0, opacity: 0 }} // Initial state
+          />
 
-            {navItems.map((item, index) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  ref={el => {
-                    tabRefs.current[index] = el;
-                  }}
-                  className={`relative z-10 py-2 text-base font-medium transition-colors ${isActive ? "text-purple-600" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
+          {navItems.map((item, index) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                ref={el => {
+                  tabRefs.current[index] = el;
+                }}
+                className={`relative z-10 py-2 text-base font-medium transition-colors ${isActive ? "text-purple-600" : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
 
         {/* Right: User Menu */}
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
             <>
-            {subscription?.subscriptionPlan && !isMobile && (
-                <div className="flex items-center">
-                  <Badge 
-                    variant="outline" 
+              {subscription?.subscriptionPlan && (
+                <div className="hidden lg:flex items-center">
+                  <Badge
+                    variant="outline"
                     className="border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-all duration-300 animate-in fade-in zoom-in duration-500 font-bold px-3 py-1 text-[12px] uppercase tracking-wider"
                   >
                     {subscription.subscriptionPlan.name}
@@ -181,9 +179,9 @@ export function InstructorHeader() {
                 <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
               ) : (
                 <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
-                  <div 
+                  <div
                     className={`relative p-[2px] rounded-full ${isMobile ? "w-9 h-9" : "w-11 h-11"} flex items-center justify-center transition-all duration-300 hover:scale-105`}
-                    style={{ 
+                    style={{
                       background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to gray-200 equivalent
                     }}
                   >
@@ -201,10 +199,10 @@ export function InstructorHeader() {
                       </div>
                     )}
                     {userProfile?.isActive && (
-                    <span className="absolute bottom-0 right-0 w-3 h-3 flex z-10">
+                      <span className="absolute bottom-0 right-0 w-3 h-3 flex z-10">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
-                    </span>
+                      </span>
                     )}
                   </div>
                 </Link>
