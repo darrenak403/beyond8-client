@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/useMobile";
 import ModelViewer from "./ModelViewer";
 import AnimatedGrid from "./AnimatedGrid";
 
@@ -11,6 +12,7 @@ import AnimatedGrid from "./AnimatedGrid";
 export default function HeroSection() {
   const badgeText = "Nền tảng cung cấp khóa học toàn diện.";
   const [displayedText, setDisplayedText] = useState("");
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Typing effect

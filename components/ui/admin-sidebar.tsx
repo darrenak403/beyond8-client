@@ -19,6 +19,7 @@ import {
   ChevronRight,
   LayoutList,
   MessageSquare,
+  Bell,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -39,6 +40,8 @@ import { useLogout } from '@/hooks/useAuth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { cn } from '@/lib/utils';
 import { formatImageUrl } from '@/lib/utils/formatImageUrl';
+import { useNotificationStatus } from "@/hooks/useNotification";
+import { NotificationPanel } from "../widget/notification-panel";
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
@@ -69,6 +72,8 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
   const isMobile = useIsMobile();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const { status: notificationStatus } = useNotificationStatus();
 
   const toggleMenu = (href: string) => {
     setExpandedMenu(expandedMenu === href ? null : href);
@@ -366,6 +371,26 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                       Hồ sơ
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
+                    onSelect={() => setIsNotificationOpen(true)}>
+                    <div className="flex flex-row justify-between items-center gap-2 ">
+                      <div className="flex flex-row items-center gap-2">
+                        <div className="flex">
+                          <Bell className="h-4 w-4" />
+                        </div>
+                        Thông báo
+                        </div> 
+                        <div>
+                        {notificationStatus && notificationStatus.unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
+                            <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white text-[10px] font-bold text-white">
+                              {notificationStatus.unreadCount > 99 ? '99+' : notificationStatus.unreadCount}
+                            </span>
+                          </span>
+                        )}
+                        </div>                   
+                    </div>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => mutateLogout()}
@@ -380,6 +405,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
           </div>
         </div>
       </div>
+      <NotificationPanel open={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
     </aside>
   );
 }

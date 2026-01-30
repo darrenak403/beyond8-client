@@ -22,10 +22,7 @@ export interface Notification {
   isRead: boolean;
   createdAt: string;
   type?: string; 
-  sender?: {
-      name: string;
-      avatar: string;
-  }
+
 }
 
 export interface NotificationResponse {
@@ -66,7 +63,7 @@ export interface NotificationItem {
   readAt: string | null;
   isRead: boolean | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string | null;
 }
 
 export interface PaginatedNotifications {
@@ -81,15 +78,20 @@ export interface InstructorNotificationsData {
   instructorNotifications: PaginatedNotifications;
 }
 
+export interface NotificationStatusData {
+  isRead: boolean;
+  unreadCount: number;
+}
+
 
 
 
 export const notificationService = {
   getMyNotifications: async (
     params: NotificationParams
-  ): Promise<ApiResponse<NotificationResponse>> => {
+  ): Promise<ApiResponse<NotificationItem[]>> => {
     const query = convertParamsToQuery(params);
-    const response = await apiService.get<ApiResponse<NotificationResponse>>(
+    const response = await apiService.get<ApiResponse<NotificationItem[]>>(
       "/api/v1/notifications/my-notifications",
       query
     );
@@ -125,6 +127,13 @@ export const notificationService = {
   deleteAllNotifications: async (): Promise<ApiResponse<boolean>> => {
     const response = await apiService.delete<ApiResponse<boolean>>(
       "/api/v1/notifications/delete-all"
+    );
+    return response.data;
+  },
+
+  getNotificationStatus: async (): Promise<ApiResponse<NotificationStatusData>> => {
+    const response = await apiService.get<ApiResponse<NotificationStatusData>>(
+      "/api/v1/notifications/status"
     );
     return response.data;
   },

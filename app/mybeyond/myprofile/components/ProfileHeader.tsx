@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface ProfileHeaderProps {
   userProfile: {
@@ -95,13 +96,13 @@ export default function ProfileHeader({
       if (file) {
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          alert("Kích thước file không được vượt quá 5MB");
+          toast.error("Kích thước file không được vượt quá 5MB");
           return;
         }
         
         // Validate file type
         if (!file.type.startsWith("image/")) {
-          alert("Vui lòng chọn file ảnh");
+          toast.error("Vui lòng chọn file ảnh");
           return;
         }
         
@@ -122,13 +123,13 @@ export default function ProfileHeader({
       if (file) {
         // Validate file size (max 10MB for cover)
         if (file.size > 10 * 1024 * 1024) {
-          alert("Kích thước file không được vượt quá 10MB");
+          toast.error("Kích thước file không được vượt quá 10MB");
           return;
         }
         
         // Validate file type
         if (!file.type.startsWith("image/")) {
-          alert("Vui lòng chọn file ảnh");
+          toast.error("Vui lòng chọn file ảnh");
           return;
         }
         

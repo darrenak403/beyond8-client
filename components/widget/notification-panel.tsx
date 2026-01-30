@@ -272,7 +272,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
   }, { enabled: !isInstructor && open });
 
   const realUnreadCount = isInstructor 
-    ? (instructorUnreadData?.userNotifications?.totalCount || 0)
+    ? (instructorUnreadData?.userNotifications?.totalCount || 0) + (instructorUnreadData?.instructorNotifications?.totalCount || 0)
     : (studentUnreadCount || 0);
 
   const { 
@@ -295,8 +295,8 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     let totalCount = 0;
 
     if (isInstructor) {
-      if (instructorData?.userNotifications) {
-        totalCount = instructorData.userNotifications.totalCount;
+      if (instructorData) {
+        totalCount = (instructorData.userNotifications?.totalCount || 0) + (instructorData.instructorNotifications?.totalCount || 0);
       }
     } else {
        totalCount = studentTotal;
@@ -304,7 +304,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
     if (totalCount > 0) {
        const firstPageLength = isInstructor 
-         ? (instructorData?.userNotifications?.items?.length || 0)
+         ? ((instructorData?.userNotifications?.items?.length || 0) + (instructorData?.instructorNotifications?.items?.length || 0))
          : (studentList?.length || 0);
        const hasMoreItems = firstPageLength < totalCount;
        setHasMore(hasMoreItems);
@@ -351,22 +351,30 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
           
           if (isInstructor) {
               // @ts-expect-error - Handling conditional types from two different endpoints
-              newItems = response.data.userNotifications?.items || [];
+              const userItems = response.data.userNotifications?.items || [];
+              // @ts-expect-error - Handling conditional types from two different endpoints
+              const instructorItems = response.data.instructorNotifications?.items || [];
+              newItems = [...userItems, ...instructorItems].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+              
               // @ts-expect-error - Getting total count
-              totalCount = response.data.userNotifications?.totalCount || 0;
+              totalCount = (response.data.userNotifications?.totalCount || 0) + (response.data.instructorNotifications?.totalCount || 0);
           } else {
-              // @ts-expect-error - Handling conditional types
-              newItems = response.data.notifications || [];
-              // @ts-expect-error - Getting total count
-              totalCount = response.data.totalCount || 0;
+              // @ts-expect-error - Handling types
+              newItems = response.data || [];
+              totalCount = newItems.length > 0 ? 1000 : 0; 
           }
 
 
           if (newItems.length > 0) {
               if (currentPage === 1) {
-                  const firstPageData = isInstructor 
-                    ? (instructorData?.userNotifications?.items || [])
-                    : (studentList || []);
+                  let firstPageData: ApiNotificationItem[] = [];
+                  if (isInstructor) {
+                     const userItems = instructorData?.userNotifications?.items || [];
+                     const instructorItems = instructorData?.instructorNotifications?.items || [];
+                     firstPageData = [...userItems, ...instructorItems];
+                  } else {
+                     firstPageData = studentList || [];
+                  }
                   const existingIds = new Set(firstPageData.map(n => n.id));
                   const uniqueNew = newItems.filter(n => !existingIds.has(n.id));
                   setAllNotifications([...firstPageData, ...uniqueNew]);
@@ -381,7 +389,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
               setCurrentPage(nextPage);
               
               const currentDataLength = currentPage === 1 
-                ? ((isInstructor ? (instructorData?.userNotifications?.items?.length || 0) : (studentList?.length || 0)))
+                ? ((isInstructor ? ((instructorData?.userNotifications?.items?.length || 0) + (instructorData?.instructorNotifications?.items?.length || 0)) : (studentList?.length || 0)))
                 : allNotifications.length;
               const totalLoaded = currentDataLength + newItems.length;
               const hasMoreItems = totalLoaded < totalCount;
@@ -466,9 +474,12 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
   const notifications = useMemo(() => {
     if (currentPage === 1) {
-      return isInstructor 
-        ? (instructorData?.userNotifications?.items || [])
-        : (studentList || []);
+      if (isInstructor) {
+        const userItems = instructorData?.userNotifications?.items || [];
+        const instructorItems = instructorData?.instructorNotifications?.items || [];
+        return [...userItems, ...instructorItems].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      }
+      return studentList || [];
     } else {
       return allNotifications;
     }
