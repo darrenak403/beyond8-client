@@ -16,8 +16,8 @@ export function useNotification(params: NotificationParams, options?: { enabled?
   });
 
   return {
-    notifications: data?.notifications || [],
-    totalCount: data?.totalCount || 0,
+    notifications: data || [],
+    totalCount: data?.length || 0,
     isLoading,
     error,
     refetch,
@@ -60,7 +60,7 @@ export function useMarkAllRead() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["instructor-notifications"] });
-      
+      queryClient.invalidateQueries({ queryKey: ["notification-status"] });
     },
   });
 }
@@ -79,6 +79,7 @@ export function useDeleteNotification() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["instructor-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notification-status"] });
     },
   });
 }
@@ -97,6 +98,29 @@ export function useDeleteAllNotifications() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["instructor-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notification-status"] });
     },
   });
+}
+
+export function useNotificationStatus(options?: { enabled?: boolean }) {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["notification-status"],
+    queryFn: async () => {
+      const response = await notificationService.getNotificationStatus();
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    refetchInterval: 30000,
+    enabled: options?.enabled,
+  });
+
+  return {
+    status: data,
+    isLoading,
+    error,
+    refetch,
+  };
 }

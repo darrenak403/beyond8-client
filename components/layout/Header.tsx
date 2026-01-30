@@ -8,6 +8,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useQuery } from "@tanstack/react-query";
 import { instructorRegistrationService } from "@/lib/api/services/fetchInstructorRegistration";
+import { useNotificationStatus } from "@/hooks/useNotification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCategory } from "@/hooks/useCategory";
@@ -135,6 +136,7 @@ export function Header() {
   const { isAuthenticated } = useAuth();
   const { userProfile, isLoading } = useUserProfile();
   const { subscription } = useSubscription();
+  const { status: notificationStatus } = useNotificationStatus({ enabled: isAuthenticated });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
 
@@ -573,8 +575,13 @@ export function Header() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
+                  <Button variant="ghost" size="icon" className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
                     <Menu className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                    {notificationStatus && (notificationStatus.isRead || notificationStatus.unreadCount > 0) && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 flex z-10">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
+                      </span>                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -597,9 +604,22 @@ export function Header() {
                     className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
                     onSelect={() => setIsNotificationOpen(true)}
                   >
-                    <div className="flex items-center gap-2 w-full">
-                      <Bell className="h-4 w-4" />
-                      Thông báo
+                    <div className="flex flex-row justify-between items-center gap-2 ">
+                      <div className="flex flex-row items-center gap-2">
+                        <div className="flex">
+                          <Bell className="h-4 w-4" />
+                        </div>
+                        Thông báo
+                        </div> 
+                        <div>
+                        {notificationStatus && notificationStatus.unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
+                            <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white text-[10px] font-bold text-white">
+                              {notificationStatus.unreadCount > 99 ? '99+' : notificationStatus.unreadCount}
+                            </span>
+                          </span>
+                        )}
+                        </div>                   
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">

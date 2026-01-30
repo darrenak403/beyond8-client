@@ -280,6 +280,7 @@ export function useRefreshToken() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['instructor-notifications'] });
       queryClient.invalidateQueries({ queryKey: ['signalr-connection'] });
+      queryClient.invalidateQueries({ queryKey: ['notification-status'] });
 
       reconnectHubConnection().catch(err => {
         console.error('[SignalR] Failed to reconnect after token refresh:', err);
