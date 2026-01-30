@@ -236,9 +236,15 @@ export default function ProfileHeader({
             )}
 
             {/* Status Indicator */}
-            <div className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} rounded-full border-4 border-white ${
+            {/* <div className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} rounded-full border-4 border-white ${
               userProfile.isActive ? "bg-green-500" : "bg-gray-400"
-            } shadow-lg z-30`} />
+            } shadow-lg z-30`} /> */}
+            {userProfile.isActive && (
+             <span className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} flex z-10`}>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className={`relative inline-flex rounded-full ${isMobile ? "w-5 h-5" : "w-7 h-7"} bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white`}></span>
+            </span>
+            )}
           </div>
 
           {/* Name & Email */}

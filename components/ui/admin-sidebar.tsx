@@ -318,12 +318,21 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                 </Tooltip>
               </TooltipProvider>
             ) : (
-              <Avatar className="h-8 w-8 rounded-lg flex-shrink-0">
-                <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
-                <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
-                  {getAvatarFallback()}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative flex items-center gap-2">
+                  <Avatar className="h-8 w-8 rounded-lg flex-shrink-0">
+                    <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
+                    <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
+                      {getAvatarFallback()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {userProfile?.isActive && (
+                    <span className="absolute bottom-0 -right-1 w-3 h-3 flex z-10">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
+                    </span>
+                  )}
+              </div>
+             
             )}
 
             <div className={cn(

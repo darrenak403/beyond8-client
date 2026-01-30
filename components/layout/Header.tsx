@@ -547,6 +547,12 @@ export function Header() {
                         {getPlanIcon(subscription?.subscriptionPlan?.code)}
                       </div>
                     )}
+                    {userProfile?.isActive && (
+                    <span className="absolute bottom-0 right-0 w-3 h-3 flex z-10">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
+                    </span>
+                    )}
                   </div>
                 </Link>
               )}
