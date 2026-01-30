@@ -15,7 +15,6 @@ export function AIPagination({
     totalPages,
     onPageChange,
 }: AIPaginationProps) {
-    // We assume pageIndex is 1-based here as it comes from searchParams directly in AIPromptsPage
     const currentPage = pageIndex; 
 
     return (
@@ -41,10 +40,6 @@ export function AIPagination({
                 </Button>
 
                 <div className="flex items-center gap-1">
-                   {/* Simple render current page for now, full pagination logic like UserTable is complex to replicate cleanly without totalPages data from API which we might not be using fully in useAI yet. Assuming we just have next/prev from older hook context? 
-                   Actually the AIPrompt endpoint returns generic PagedResult usually. 
-                   If promptsRes has TotalPages, we can render buttons. 
-                   Let's assume we pass pageCount. */}
                    <Button
                         variant="default"
                         className="h-8 w-8 p-0"

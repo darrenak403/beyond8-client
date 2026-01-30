@@ -3,12 +3,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Camera, EyeOff } from "lucide-react";
+import { Camera, EyeOff, Crown, Gem, Zap } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useUploadImage } from "@/hooks/useUploadImage";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import SafeImage from "@/components/ui/SafeImage";
 import { useHiddenProfile } from "@/hooks/useInstructorRegistration";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useQuery } from "@tanstack/react-query";
 import { instructorRegistrationService } from "@/lib/api/services/fetchInstructorRegistration";
 import {
@@ -40,6 +41,35 @@ export default function ProfileHeader({
   const { uploadAvatar, isUploadingAvatar, uploadCover, isUploadingCover } = useUploadImage();
   const { unhideProfile, isUnhiding } = useHiddenProfile();
   const [showHideDialog, setShowHideDialog] = useState(false);
+  const { subscription } = useSubscription();
+  
+  const getGradientStyle = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA": 
+        return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
+      case "PRO": 
+        return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
+      case "STANDARD":
+      case "PLUS": 
+        return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
+      default: 
+        return null;
+    }
+  };
+
+  const getPlanIcon = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return <Crown className="w-5 h-5 text-yellow-500 fill-yellow-500" />;
+      case "PRO":
+        return <Gem className="w-5 h-5 text-blue-500 fill-blue-500" />;
+      case "BASIC":
+      case "PLUS":
+        return <Zap className="w-5 h-5 text-purple-500 fill-purple-500" />;
+      default:
+        return null;
+    }
+  };
 
   // Fetch instructor profile to get the ID
   const { data: instructorProfile } = useQuery({
@@ -171,12 +201,14 @@ export default function ProfileHeader({
         >
           {/* Avatar */}
           <div className="relative group cursor-pointer z-20" onClick={handleAvatarClick}>
-            <Avatar
-              className={`border-4 border-purple-400 shadow-lg ${
-                isMobile ? "w-24 h-24" : "w-40 h-40"
-              }`}
+            <div 
+              className={`p-[4px] rounded-full ${isMobile ? "w-24 h-24" : "w-40 h-40"} flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-105`}
+              style={{ 
+                background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to purple-400 equivalent if null
+              }}
             >
-              <AvatarImage src={formatImageUrl(userProfile.avatarUrl)} alt={userProfile.fullName || 'User'} />
+              <Avatar className="w-full h-full border-4 ">
+              <AvatarImage src={formatImageUrl(userProfile.avatarUrl)} alt={userProfile.fullName || 'User'} className="object-cover" />
               <AvatarFallback className="text-4xl bg-purple-100 text-purple-700 font-semibold">
                 {userProfile.fullName
                   ?.split(" ")
@@ -186,6 +218,7 @@ export default function ProfileHeader({
                   .toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
+            </div>
             
             <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
               {isUploadingAvatar ? (
@@ -195,10 +228,23 @@ export default function ProfileHeader({
               )}
             </div>
             
+            {/* Plan Icon */}
+            {getPlanIcon(subscription?.subscriptionPlan?.code) && (
+              <div className={`absolute ${isMobile ? "-top-2 -right-2 p-1" : "top-2 right-2 w-7 h-7"} bg-white rounded-full shadow-md z-30 flex items-center justify-center border border-gray-100`}>
+                {getPlanIcon(subscription?.subscriptionPlan?.code)}
+              </div>
+            )}
+
             {/* Status Indicator */}
-            <div className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} rounded-full border-4 border-white ${
+            {/* <div className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} rounded-full border-4 border-white ${
               userProfile.isActive ? "bg-green-500" : "bg-gray-400"
-            } shadow-lg z-30`} />
+            } shadow-lg z-30`} /> */}
+            {userProfile.isActive && (
+             <span className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} flex z-10`}>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className={`relative inline-flex rounded-full ${isMobile ? "w-5 h-5" : "w-7 h-7"} bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white`}></span>
+            </span>
+            )}
           </div>
 
           {/* Name & Email */}

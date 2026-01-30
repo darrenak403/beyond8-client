@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, LogOut, User, Bell, BookOpen } from "lucide-react";
+import { Menu, LogOut, User, Bell, BookOpen, Crown, Gem, Zap } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,8 +20,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import { usePathname } from "next/navigation";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+// import { Badge } from "./badge";
+import { NotificationPanel } from "../widget/notification-panel";
 
 const navItems = [
   { name: "Tổng quan", href: "/instructor/dashboard" },
@@ -34,11 +37,15 @@ export function InstructorHeader() {
   const { userProfile, isLoading } = useUserProfile();
   const { mutateLogout } = useLogout();
   const pathname = usePathname();
+  const { subscription } = useSubscription();
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
 
   // Refs for animation
   const navRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+
 
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
@@ -48,6 +55,34 @@ export function InstructorHeader() {
       return userProfile.email.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
     }
     return 'U';
+  };
+
+  const getGradientStyle = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA": 
+        return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
+      case "PRO": 
+        return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
+      case "STANDARD":
+      case "PLUS": 
+        return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
+      default: 
+        return null;
+    }
+  };
+
+  const getPlanIcon = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return <Crown className="w-3 h-3 text-yellow-500 fill-yellow-500" />;
+      case "PRO":
+        return <Gem className="w-3 h-3 text-blue-500 fill-blue-500" />;
+      case "STANDARD":
+      case "PLUS":
+        return <Zap className="w-3 h-3 text-purple-500 fill-purple-500" />;
+      default:
+        return null;
+    }
   };
 
   const handleLogout = () => {
@@ -129,19 +164,63 @@ export function InstructorHeader() {
         )}
 
         {/* Right: User Menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          
           {isAuthenticated ? (
             <>
+             {!isMobile && (
+            <Link href="/supscription">
+              <div className="relative group cursor-pointer mr-2">
+                <Button 
+                  className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
+                  variant="ghost"
+                >
+                  <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
+                </Button>
+              </div>
+            </Link>
+          )}
+            {subscription?.subscriptionPlan && !isMobile && (
+                <div className="flex items-center">
+                  {/* <Badge 
+                    variant="outline" 
+                    className="border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-all duration-300 animate-in fade-in zoom-in duration-500 font-bold px-3 py-1 text-[12px] uppercase tracking-wider"
+                  >
+                    {subscription.subscriptionPlan.name}
+                  </Badge> */}
+                </div>
+              )}
               {isLoading ? (
                 <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
               ) : (
                 <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
-                  <Avatar className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} border-2 border-purple-200 hover:border-purple-400 transition-colors`}>
-                    <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} />
-                    <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
-                      {getAvatarFallback()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div 
+                    className={`relative p-[2px] rounded-full ${isMobile ? "w-9 h-9" : "w-11 h-11"} flex items-center justify-center transition-all duration-300 hover:scale-105`}
+                    style={{ 
+                      background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to gray-200 equivalent
+                    }}
+                  >
+                    <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'}`}>
+                      <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} className="object-cover" />
+                      <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
+                        {getAvatarFallback()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    {/* Plan Icon */}
+                    {getPlanIcon(subscription?.subscriptionPlan?.code) && (
+                      <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm z-30 flex items-center justify-center border border-gray-100">
+                        {getPlanIcon(subscription?.subscriptionPlan?.code)}
+                      </div>
+                    )}
+                    {userProfile?.isActive && (
+                    <span className="absolute bottom-0 right-0 w-3 h-3 flex z-10">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
+                    </span>
+                    )}
+                  </div>
                 </Link>
               )}
 
@@ -181,11 +260,12 @@ export function InstructorHeader() {
                       Hồ sơ
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/notifications" className="flex items-center gap-2">
+                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
+                    onSelect={() => setIsNotificationOpen(true)}>
+                    <div className="flex items-center gap-2">
                       <Bell className="h-4 w-4" />
                       Thông báo
-                    </Link>
+                    </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
                     <Link href="/" className="flex items-center gap-2">
@@ -217,6 +297,7 @@ export function InstructorHeader() {
           )}
         </div>
       </div>
+      <NotificationPanel open={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
     </header>
   );
 }

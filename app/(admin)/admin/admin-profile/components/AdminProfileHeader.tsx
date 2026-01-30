@@ -107,10 +107,16 @@ export default function AdminProfileHeader({ userProfile }: AdminProfileHeaderPr
                 {userProfile.fullName?.split(" ").map((n) => n[0]).join("").toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
-            {/* Status Indicator */}
-            <div className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} rounded-full border-4 border-white ${
+             {/* Status Indicator */}
+            {userProfile.isActive && (
+             <span className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} flex z-10`}>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className={`relative inline-flex rounded-full ${isMobile ? "w-5 h-5" : "w-7 h-7"} bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white`}></span>
+            </span>
+            )}
+            {/* <div className={`absolute ${isMobile ? "bottom-1 right-1 w-5 h-5" : "bottom-2 right-2 w-7 h-7"} rounded-full border-4 border-white ${
               userProfile.isActive ? "bg-green-500" : "bg-gray-400"
-            } z-30`} />
+            } z-30`} /> */}
             <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
               {isUploadingAvatar ? (
                 <Skeleton className={`rounded-full bg-white/20 ${isMobile ? "w-6 h-6" : "w-8 h-8"}`} />

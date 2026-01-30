@@ -117,6 +117,11 @@ export const fetchAI = {
     return response.data;
   },
 
+  getAllHistory: async (params?: GetUsageHistoryParams): Promise<ApiResponse<AIUsageRecord[]>> => {
+      const response = await apiService.get<ApiResponse<AIUsageRecord[]>>("api/v1/ai-usage/all", params);
+      return response.data;
+  },
+
   // Prompts
   getPrompts: async (params: GetAIPromptsParams): Promise<ApiResponse<AIPrompt[]>> => {
     const response = await apiService.get<ApiResponse<AIPrompt[]>>("api/v1/ai-prompts", params);
@@ -135,6 +140,16 @@ export const fetchAI = {
 
   updatePrompt: async (id: string, data: UpdateAIPromptRequest): Promise<ApiResponse<AIPrompt>> => {
     const response = await apiService.put<ApiResponse<AIPrompt>>(`api/v1/ai-prompts/${id}`, data);
+    return response.data;
+  },
+
+  deletePrompt: async (id: string): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.delete<ApiResponse<boolean>>(`api/v1/ai-prompts/${id}`);
+    return response.data;
+  },
+
+  toggleStatus: async (id: string): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.patch<ApiResponse<boolean>>(`api/v1/ai-prompts/${id}/toggle-status`, {});
     return response.data;
   },
 };

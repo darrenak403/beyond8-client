@@ -94,8 +94,8 @@ export const fetchUsers = {
         return response.data;
     },
 
-    deleteUser: async (id: string): Promise<any> => {
-        const response = await apiService.delete<any>(`/api/v1/users/${id}`);
+    deleteUser: async (id: string): Promise<UserResponse> => {
+        const response = await apiService.delete<UserResponse>(`/api/v1/users/${id}`);
         return response.data;
     },
 

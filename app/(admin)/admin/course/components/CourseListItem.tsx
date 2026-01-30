@@ -25,7 +25,7 @@ export default function CourseListItem({ course }: CourseListItemProps) {
             {/* Image Section */}
             <div className="relative w-72 shrink-0 aspect-[16/9] rounded-lg overflow-hidden">
                 <Image
-                    src={course.image}
+                    src={course.thumbnailUrl}
                     alt={course.title}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"

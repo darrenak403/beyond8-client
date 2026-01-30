@@ -26,6 +26,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 import { DataTablePagination } from "./data-table-pagination"
 import { DataTableViewOptions } from "./data-table-view-options"
 
@@ -38,6 +39,8 @@ interface DataTableProps<TData, TValue> {
     rowCount?: number
     pagination?: PaginationState
     onPaginationChange?: OnChangeFn<PaginationState>
+    className?: string
+    fullHeight?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -49,6 +52,8 @@ export function DataTable<TData, TValue>({
     rowCount,
     pagination,
     onPaginationChange,
+    className,
+    fullHeight = true,
 }: DataTableProps<TData, TValue>) {
     const [rowSelection, setRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] =
@@ -86,7 +91,11 @@ export function DataTable<TData, TValue>({
     })
 
     return (
-        <div className="space-y-2 min-h-[calc(100vh-75px)] flex flex-col">
+        <div className={cn(
+            "space-y-4 flex flex-col",
+            fullHeight && "min-h-[calc(100vh-75px)]",
+            className
+        )}>
             {children ? children(table) : (<DataTableViewOptions table={table} />)}
             <div className="rounded-md border">
                 <Table>
@@ -140,7 +149,7 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            <div className="mt-auto">
+            <div className={cn(fullHeight && "mt-auto")}>
                 <DataTablePagination table={table} />
             </div>
         </div>

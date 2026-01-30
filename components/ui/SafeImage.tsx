@@ -24,7 +24,7 @@ function SafeImageInner({
   fill,
   className,
   priority,
-  fallbackSrc = '/banner_website.jpg',
+  fallbackSrc = '/bg-web.jpg',
   onError,
 }: SafeImageProps) {
   const [imageSrc, setImageSrc] = useState(src);
