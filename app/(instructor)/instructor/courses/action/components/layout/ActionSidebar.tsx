@@ -65,11 +65,11 @@ export default function CourseActionSidebar({
     }
 
     return (
-        <aside className={`${isCollapsed ? 'w-[80px] py-4' : 'w-[320px] p-6'} bg-purple-100 h-full hidden lg:flex flex-col justify-between transition-all duration-300 ease-in-out`}>
+        <aside className={`${isCollapsed ? 'w-20 py-4' : 'w-[320px] p-6'} bg-purple-100 h-full hidden lg:flex flex-col justify-between transition-all duration-300 ease-in-out`}>
             {/* Top Section */}
-            <div className={`mb-12 h-10 flex items-center flex-shrink-0 ${isCollapsed ? 'justify-center' : ''}`}>
+            <div className={`mb-12 h-10 flex items-center shrink-0 ${isCollapsed ? 'justify-center' : ''}`}>
                 <Link href="/instructor/dashboard" className={`flex items-center gap-2 overflow-hidden ${isCollapsed ? 'justify-center w-full' : ''}`}>
-                    <div className="flex-shrink-0 relative">
+                    <div className="shrink-0 relative">
                         {isCollapsed ? (
                             <Image src="/icon-logo.png" alt="Beyond 8" width={40} height={40} className="h-10 w-10 object-contain" priority />
                         ) : (
@@ -94,13 +94,13 @@ export default function CourseActionSidebar({
                                 className={`
                                     flex items-center text-left transition-all group rounded-xl relative
                                     ${isCollapsed ? 'w-12 h-12 justify-center mx-auto p-0' : 'w-full gap-4 p-3'}
-                                    ${isActive ? 'bg-purple-50' : 'hover:bg-gray-50'}
+                                    ${isActive ? 'bg-purple-50 border-2' : 'hover:bg-gray-50'}
                                     ${!canAccess ? 'opacity-50 cursor-not-allowed' : 'opacity-100'}
                                 `}
                                 title={isCollapsed ? step.title : undefined}
                             >
                                 <div className={`
-                                    flex items-center justify-center w-8 h-8 rounded-full border-2 flex-shrink-0 transition-colors
+                                    flex items-center justify-center w-8 h-8 rounded-full border-2 shrink-0 transition-colors
                                     ${isActive ? 'border-purple-600 bg-purple-600 text-white' : 'border-gray-300 text-gray-400 group-hover:border-gray-400'}
                                 `}>
                                     {step.icon && <step.icon className="h-4 w-4" />}

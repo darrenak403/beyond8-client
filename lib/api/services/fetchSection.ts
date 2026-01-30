@@ -7,6 +7,13 @@ export interface CreateSectionRequest {
     assignmentId: string
 }
 
+export interface UpdateSectionRequest {
+    title?: string;
+    description?: string;
+    isPublished?: boolean;
+    assignmentId?: string
+}
+
 export interface Section {
     id: string
     courseId: string
@@ -45,4 +52,14 @@ export const fetchSection = {
         const response = await apiService.get<SectionResponse>(`api/v1/sections/course/${courseId}`);
         return response.data;
     },
+
+    updateSection: async (sectionId: string, section: UpdateSectionRequest): Promise<SectionResponse> => {
+        const response = await apiService.patch<SectionResponse>(`api/v1/sections/${sectionId}`, section);
+        return response.data;
+    },
+
+    deleteSection: async (sectionId: string): Promise<SectionResponse> => {
+        const response = await apiService.delete<SectionResponse>(`api/v1/sections/${sectionId}`);
+        return response.data;
+    }
 }

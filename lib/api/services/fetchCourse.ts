@@ -39,6 +39,9 @@ export interface Course {
     totalDurationMinutes: number
     avgRating: string;
     totalReviews: number
+    outcomes?: string[]
+    requirements?: string[]
+    targetAudience?: string[]
     createdAt: string
     updatedAt: string
 }
@@ -55,6 +58,20 @@ export interface CourseRequest {
     outcomes: string[]
     requirements: string[]
     targetAudience: string[]
+}
+
+export interface CourseUpdateRequest {
+    categoryId?: string
+    title?: string
+    description?: string
+    language?: string
+    level?: CourseLevel
+    outcomes?: string[]
+    price?: number
+    requirements?: string[]
+    shortDescription?: string
+    targetAudience?: string[]
+    thumbnailUrl?: string
 }
 
 export interface CourseResponse {
@@ -122,4 +139,9 @@ export const fetchCourse = {
         const response = await apiService.get<CourseResponse>(`api/v1/courses/${id}`);
         return response.data;
     },
+
+    updateCourse: async (id: string, courseData: CourseUpdateRequest): Promise<CourseResponse> => {
+        const response = await apiService.patch<CourseResponse>(`api/v1/courses/${id}/metadata`, courseData);
+        return response.data;
+    }
 }
