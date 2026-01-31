@@ -10,8 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useGetSectionsByCourseId, useCreateSection } from "@/hooks/useSection";
-import { useGetLessonBySectionId } from "@/hooks/useLesson";
+import { useGetSectionsByCourseId, useCreateSection, useReoderSection } from "@/hooks/useSection";
+import { useGetLessonBySectionId, useReorderLessonInSection, useReorderLessonOtherSection } from "@/hooks/useLesson";
 import { cn } from "@/lib/utils";
 import { Lesson } from "@/lib/api/services/fetchLesson";
 
@@ -54,7 +54,7 @@ interface SectionItemProps {
   onDragOver: (e: React.DragEvent, sectionId: string) => void;
   onDragLeave: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, sectionId: string) => void;
-  onLessonDragStart: (lessonId: string) => void;
+  onLessonDragStart: (lessonId: string, sectionId: string) => void;
   onLessonDragOver: (e: React.DragEvent, lessonId: string) => void;
   onLessonDragLeave: (e: React.DragEvent) => void;
   onLessonDrop: (e: React.DragEvent, sectionId: string, lessonId: string, lessons: Lesson[]) => void;
@@ -83,7 +83,7 @@ const SectionItem = ({
   const [isDraggingLesson, setIsDraggingLesson] = React.useState<string | null>(null);
 
   return (
-    <div 
+    <div
       className="border-b border-gray-200 last:border-0 transition-all duration-200"
       draggable
       onDragStart={() => onDragStart(section.id)}
@@ -146,14 +146,21 @@ const SectionItem = ({
                   <div
                     key={lesson.id}
                     draggable
-                    onDragStart={() => {
+                    onDragStart={(e) => {
+                      e.stopPropagation();
                       setIsDraggingLesson(lesson.id);
-                      onLessonDragStart(lesson.id);
+                      onLessonDragStart(lesson.id, section.id);
                     }}
                     onDragEnd={() => setIsDraggingLesson(null)}
-                    onDragOver={(e) => onLessonDragOver(e, lesson.id)}
+                    onDragOver={(e) => {
+                      e.stopPropagation();
+                      onLessonDragOver(e, lesson.id);
+                    }}
                     onDragLeave={onLessonDragLeave}
-                    onDrop={(e) => onLessonDrop(e, section.id, lesson.id, lessons)}
+                    onDrop={(e) => {
+                      e.stopPropagation();
+                      onLessonDrop(e, section.id, lesson.id, lessons);
+                    }}
                     className={cn(
                       "flex items-center gap-2 px-4 mx-2 py-2.5 pl-12 cursor-pointer transition-all duration-200 hover:bg-gray-100 group",
                       selectedLessonId === lesson.id && "bg-purple-100 hover:bg-purple-100 rounded-lg"
@@ -185,9 +192,43 @@ const SectionItem = ({
                     </button>
                   </div>
                 ))}
+                {/* Invisible drop zone for end of list */}
+                <div
+                  className="h-6 w-full transition-all duration-200"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.currentTarget.classList.add('border-t-4', 'border-purple-500');
+                  }}
+                  onDragLeave={(e) => {
+                    e.currentTarget.classList.remove('border-t-4', 'border-purple-500');
+                  }}
+                  onDrop={(e) => {
+                    e.stopPropagation();
+                    e.currentTarget.classList.remove('border-t-4', 'border-purple-500');
+                    onLessonDrop(e, section.id, "END_OF_LIST", lessons);
+                  }}
+                />
               </div>
             ) : (
-              <div className="px-4 py-2 pl-12 text-sm text-gray-400">Chưa có bài học</div>
+              <div
+                className="px-4 py-2 pl-12 text-sm text-gray-400 transition-all duration-200"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.currentTarget.classList.add('bg-purple-50', 'text-purple-500');
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.classList.remove('bg-purple-50', 'text-purple-500');
+                }}
+                onDrop={(e) => {
+                  e.stopPropagation();
+                  e.currentTarget.classList.remove('bg-purple-50', 'text-purple-500');
+                  onLessonDrop(e, section.id, "END_OF_LIST", lessons || []);
+                }}
+              >
+                Chưa có bài học
+              </div>
             )}
           </motion.div>
         )}
@@ -208,9 +249,13 @@ export default function CompactSectionList({
   const [isCreatingSection, setIsCreatingSection] = useState(false);
   const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
   const [draggedLessonId, setDraggedLessonId] = useState<string | null>(null);
+  const [draggedLessonSectionId, setDraggedLessonSectionId] = useState<string | null>(null);
   const [dragOverTimeout, setDragOverTimeout] = useState<NodeJS.Timeout | null>(null);
   const { sections, isLoading } = useGetSectionsByCourseId(courseId);
   const { createSection, isPending: isCreating } = useCreateSection();
+  const { reorderSection } = useReoderSection(courseId);
+  const { reorderLessonInSection } = useReorderLessonInSection();
+  const { reorderLessonOtherSection } = useReorderLessonOtherSection();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -262,7 +307,7 @@ export default function CompactSectionList({
 
   const handleSectionDragOver = (e: React.DragEvent, targetSectionId: string) => {
     e.preventDefault();
-    
+
     // If dragging a lesson over a closed section, auto-expand it after a delay
     if (draggedLessonId && !expandedSections.has(targetSectionId)) {
       if (dragOverTimeout) {
@@ -273,7 +318,7 @@ export default function CompactSectionList({
       }, 500); // 500ms delay before auto-expanding
       setDragOverTimeout(timeout);
     }
-    
+
     // Only show visual indicator when dragging sections, not lessons
     if (draggedSectionId && draggedSectionId !== targetSectionId) {
       // Add visual drop zone indicator
@@ -296,22 +341,44 @@ export default function CompactSectionList({
       setDragOverTimeout(null);
     }
     e.currentTarget.classList.remove('border-t-4', 'border-purple-500', 'mt-2');
-    
+
     if (draggedSectionId && draggedSectionId !== targetSectionId && sections) {
       const draggedIndex = sections.findIndex((s) => s.id === draggedSectionId);
       const targetIndex = sections.findIndex((s) => s.id === targetSectionId);
 
       if (draggedIndex !== -1 && targetIndex !== -1) {
-        // TODO: Call API to update section order
-        console.log('Reorder section:', { from: draggedIndex, to: targetIndex });
+        if (draggedIndex !== -1 && targetIndex !== -1) {
+          let newOrderIndex = targetIndex;
+          if (draggedIndex < targetIndex) {
+            newOrderIndex = targetIndex;
+          }
+
+          reorderSection({
+            sectionId: draggedSectionId,
+            newOrderIndex: Math.max(0, newOrderIndex) + 1
+          });
+        }
       }
+    } else if (draggedLessonId) {
+      // Handle dropping a lesson onto a section header (move to that section)
+      if (draggedLessonSectionId) {
+        reorderLessonOtherSection({
+          lessonId: draggedLessonId,
+          newSectionId: targetSectionId,
+          newOrderIndex: 0, // Move to top of the section
+          oldSectionId: draggedLessonSectionId
+        });
+      }
+      // Wait! We don't have source section id in state.
+      // I should update state to store draggedLessonSectionId.
     }
     setDraggedSectionId(null);
   };
 
   // Lesson drag & drop handlers
-  const handleLessonDragStart = (lessonId: string) => {
+  const handleLessonDragStart = (lessonId: string, sectionId: string) => {
     setDraggedLessonId(lessonId);
+    setDraggedLessonSectionId(sectionId);
   };
 
   const handleLessonDragOver = (e: React.DragEvent, targetLessonId: string) => {
@@ -332,17 +399,43 @@ export default function CompactSectionList({
       setDragOverTimeout(null);
     }
     e.currentTarget.classList.remove('border-t-4', 'border-purple-500', 'mt-1');
-    
-    if (draggedLessonId && draggedLessonId !== targetLessonId) {
+
+    if (draggedLessonId) {
       const draggedIndex = lessons.findIndex((l) => l.id === draggedLessonId);
-      const targetIndex = lessons.findIndex((l) => l.id === targetLessonId);
+      let targetIndex: number;
+
+      if (targetLessonId === "END_OF_LIST") {
+        targetIndex = lessons.length;
+      } else {
+        targetIndex = lessons.findIndex((l) => l.id === targetLessonId);
+      }
 
       if (draggedIndex !== -1 && targetIndex !== -1) {
-        // TODO: Call API to update lesson order
-        console.log('Reorder lesson in section:', { sectionId, from: draggedIndex, to: targetIndex });
+        // Same section reorder
+        let newOrderIndex = targetIndex;
+        if (draggedIndex < targetIndex) {
+          // No adjustment needed, backend expects the target index directly
+          newOrderIndex = targetIndex;
+        }
+
+        reorderLessonInSection({
+          lessonId: draggedLessonId,
+          newOrderIndex: Math.max(0, newOrderIndex) + 1,
+          sectionId: sectionId
+        });
+      } else if (draggedIndex === -1 && targetIndex !== -1 && draggedLessonSectionId) {
+        // Cross-section reorder (dropped on specific lesson)
+        // Insert before target
+        reorderLessonOtherSection({
+          lessonId: draggedLessonId,
+          newSectionId: sectionId, // Target section ID
+          newOrderIndex: targetIndex + 1,
+          oldSectionId: draggedLessonSectionId
+        });
       }
     }
     setDraggedLessonId(null);
+    setDraggedLessonSectionId(null);
   };
 
   if (isLoading) {
@@ -358,9 +451,9 @@ export default function CompactSectionList({
       {/* Header */}
       <div className="border-b bg-gray-50/50 px-4 py-2 shrink-0 flex items-center justify-between">
         <h3 className="font-semibold text-base text-gray-900">Nội dung khóa học</h3>
-        <Button 
-          onClick={() => setIsCreatingSection(!isCreatingSection)} 
-          size="sm" 
+        <Button
+          onClick={() => setIsCreatingSection(!isCreatingSection)}
+          size="sm"
           variant="outline"
           className="h-8"
         >
@@ -533,7 +626,7 @@ export default function CompactSectionList({
       {/* Footer */}
       <div className="border-t bg-gray-50/50 px-4 py-3 shrink-0">
         <Button
-          onClick={() => router.push('/instructor/courses')} 
+          onClick={() => router.push('/instructor/courses')}
           variant="outline"
           className="w-full rounded-full hover:bg-gray-100 hover:text-gray-900"
           size="sm"

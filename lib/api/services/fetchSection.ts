@@ -28,6 +28,11 @@ export interface Section {
     updatedAt: string
 }
 
+export interface ReoderSectionRequest {
+    sectionId: string;
+    newOrderIndex: number;
+}
+
 export interface SectionResponse {
     isSuccess: boolean
     message: string
@@ -60,6 +65,11 @@ export const fetchSection = {
 
     deleteSection: async (sectionId: string): Promise<SectionResponse> => {
         const response = await apiService.delete<SectionResponse>(`api/v1/sections/${sectionId}`);
+        return response.data;
+    },
+
+    reoderSection: async (data: ReoderSectionRequest): Promise<SectionResponse> => {
+        const response = await apiService.post<SectionResponse>(`api/v1/lessons/reorder-section`, data);
         return response.data;
     }
 }

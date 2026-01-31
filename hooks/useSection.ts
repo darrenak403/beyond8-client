@@ -1,4 +1,4 @@
-import { CreateSectionRequest, fetchSection, Section, SectionResponse, UpdateSectionRequest } from "@/lib/api/services/fetchSection"
+import { CreateSectionRequest, fetchSection, ReoderSectionRequest, Section, SectionResponse, UpdateSectionRequest } from "@/lib/api/services/fetchSection"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ApiError } from "next/dist/server/api-utils"
 import { toast } from "sonner"
@@ -44,7 +44,7 @@ export function useGetSectionsByCourseId(courseId: string) {
 export function useUpdateSection(courseId: string) {
     const queryClient = useQueryClient()
     const { mutateAsync, isPending } = useMutation({
-        mutationFn: ({sectionId, data } : {sectionId: string, data: UpdateSectionRequest}) =>
+        mutationFn: ({ sectionId, data }: { sectionId: string, data: UpdateSectionRequest }) =>
             fetchSection.updateSection(sectionId, data),
         onSuccess: () => {
             queryClient.invalidateQueries({
@@ -55,7 +55,7 @@ export function useUpdateSection(courseId: string) {
         onError: (error: ApiError) => {
             toast.error(error?.message || "Cập nhật chương thất bại!")
         }
-    })  
+    })
     return {
         updateSection: mutateAsync,
         isPending
@@ -75,9 +75,28 @@ export function useDeleteSection(courseId: string) {
         onError: (error: ApiError) => {
             toast.error(error?.message || "Xoá chương thất bại!")
         }
-    })  
+    })
     return {
         deleteSection: mutateAsync,
+        isPending
+    }
+}
+
+export function useReoderSection(courseId: string) {
+    const queryClient = useQueryClient()
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: (data: ReoderSectionRequest) => fetchSection.reoderSection(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["sections", courseId]
+            })
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Sắp xếp chương thất bại!")
+        }
+    })
+    return {
+        reorderSection: mutateAsync,
         isPending
     }
 }

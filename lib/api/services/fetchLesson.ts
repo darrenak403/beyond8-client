@@ -68,7 +68,6 @@ export interface UpdateLessonVideoRequest {
     isPreview?: boolean;
     videoOriginalUrl?: string;
     videoThumbnailUrl?: string;
-    isPublished?: boolean;
     videoQualities?: string;
 }
 
@@ -86,7 +85,6 @@ export interface UpdateLessonTextRequest {
     content?: string;
     title?: string;
     isPreview?: boolean;
-    isPublished?: boolean;
 }
 
 export interface CreateLessonQuizRequest {
@@ -102,8 +100,22 @@ export interface UpdateLessonQuizRequest {
     description?: string;
     title?: string;
     isPreview?: boolean;
-    isPublished?: boolean;
     quizId?: string;
+}
+
+export interface ActivalessonRequest {
+    isPublished: boolean;
+}
+
+export interface ReoderLessonInSectionRequest {
+    lessonId: string;
+    newOrderIndex: number;
+}
+
+export interface ReoderLessonOtherSectionRequest {
+    lessonId: string;
+    newSectionId: string;
+    newOrderIndex: number;
 }
 
 export interface LessonResponse {
@@ -124,33 +136,48 @@ export const fetchLession = {
         return response.data;
     },
 
-    createVideoLesson : async (request: CreateLessonVideoRequest): Promise<LessonResponse> => {
+    createVideoLesson: async (request: CreateLessonVideoRequest): Promise<LessonResponse> => {
         const response = await apiService.post<LessonResponse, CreateLessonVideoRequest>(`api/v1/lessons/video`, request);
         return response.data;
     },
 
-    updateVideoLesson : async (id: string, request: UpdateLessonVideoRequest): Promise<LessonResponse> => {
+    updateVideoLesson: async (id: string, request: UpdateLessonVideoRequest): Promise<LessonResponse> => {
         const response = await apiService.patch<LessonResponse, UpdateLessonVideoRequest>(`api/v1/lessons/${id}/video`, request);
         return response.data;
     },
 
-    createTextLesson : async (request: CreateLessonTextRequest): Promise<LessonResponse> => {
+    createTextLesson: async (request: CreateLessonTextRequest): Promise<LessonResponse> => {
         const response = await apiService.post<LessonResponse, CreateLessonTextRequest>(`api/v1/lessons/text`, request);
         return response.data;
     },
 
-    updateTextLesson : async (id: string, request: UpdateLessonTextRequest): Promise<LessonResponse> => {
+    updateTextLesson: async (id: string, request: UpdateLessonTextRequest): Promise<LessonResponse> => {
         const response = await apiService.patch<LessonResponse, UpdateLessonTextRequest>(`api/v1/lessons/${id}/text`, request);
         return response.data;
     },
 
-    createQuizLesson : async (request: CreateLessonQuizRequest): Promise<LessonResponse> => {
+    createQuizLesson: async (request: CreateLessonQuizRequest): Promise<LessonResponse> => {
         const response = await apiService.post<LessonResponse, CreateLessonQuizRequest>(`api/v1/lessons/quiz`, request);
         return response.data;
-    },  
+    },
 
-    updateQuizLesson : async (id: string, request: UpdateLessonQuizRequest): Promise<LessonResponse> => {
+    updateQuizLesson: async (id: string, request: UpdateLessonQuizRequest): Promise<LessonResponse> => {
         const response = await apiService.patch<LessonResponse, UpdateLessonQuizRequest>(`api/v1/lessons/${id}/quiz`, request);
+        return response.data;
+    },
+
+    activationLesson: async (id: string, request: ActivalessonRequest): Promise<LessonResponse> => {
+        const response = await apiService.patch<LessonResponse, ActivalessonRequest>(`api/v1/lessons/${id}/activation`, request);
+        return response.data;
+    },
+
+    reorderLessonInSection: async (request: ReoderLessonInSectionRequest): Promise<LessonResponse> => {
+        const response = await apiService.post<LessonResponse, ReoderLessonInSectionRequest>(`api/v1/lessons/reorder-lesson-in-section`, request);
+        return response.data;
+    },
+
+    reorderLessonOtherSection: async (request: ReoderLessonOtherSectionRequest): Promise<LessonResponse> => {
+        const response = await apiService.post<LessonResponse, ReoderLessonOtherSectionRequest>(`api/v1/lessons/move-lesson-to-section`, request);
         return response.data;
     },
 }

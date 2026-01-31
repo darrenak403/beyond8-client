@@ -1,31 +1,34 @@
-import { 
-    fetchLession, 
+import {
+    fetchLession,
     CreateLessonVideoRequest,
     CreateLessonTextRequest,
     CreateLessonQuizRequest,
     UpdateLessonVideoRequest,
     UpdateLessonTextRequest,
     UpdateLessonQuizRequest,
-    LessonType
+    LessonType,
+    ActivalessonRequest,
+    ReoderLessonInSectionRequest,
+    ReoderLessonOtherSectionRequest
 } from "@/lib/api/services/fetchLesson";
 import { ApiError } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // Union type for creating lessons with type discriminator
-type CreateLessonRequest = 
+type CreateLessonRequest =
     | ({ type: LessonType.Video } & CreateLessonVideoRequest)
     | ({ type: LessonType.Text } & CreateLessonTextRequest)
     | ({ type: LessonType.Quiz } & CreateLessonQuizRequest);
 
 // Union type for updating lessons
-type UpdateLessonRequest = 
+type UpdateLessonRequest =
     | ({ type: LessonType.Video } & UpdateLessonVideoRequest)
     | ({ type: LessonType.Text } & UpdateLessonTextRequest)
     | ({ type: LessonType.Quiz } & UpdateLessonQuizRequest);
 
 
-export function useCreateLesson () {
+export function useCreateLesson() {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async (lesson: CreateLessonRequest) => {
@@ -65,7 +68,7 @@ export function useCreateLesson () {
     };
 }
 
-export function useGetLessonBySectionId (sectionId: string) {
+export function useGetLessonBySectionId(sectionId: string) {
     const { data, isLoading, isError, refetch } = useQuery({
         queryKey: ["lessons", sectionId],
         queryFn: () => fetchLession.getLessonsBySection(sectionId),
@@ -79,7 +82,7 @@ export function useGetLessonBySectionId (sectionId: string) {
     };
 }
 
-export function useUpdateLesson (sectionId: string) {
+export function useUpdateLesson(sectionId: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async ({ lessonId, lessonType, data }: { lessonId: string; lessonType: LessonType; data: Partial<UpdateLessonRequest> }) => {
@@ -111,7 +114,7 @@ export function useUpdateLesson (sectionId: string) {
     };
 }
 
-export function useDeleteLesson (sectionId: string) {
+export function useDeleteLesson(sectionId: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: (lessonId: string) => fetchLession.deleteLesson(lessonId),
@@ -123,9 +126,74 @@ export function useDeleteLesson (sectionId: string) {
         onError: (error: ApiError) => {
             toast.error(error?.message || "Lỗi khi xóa bài học!");
         }
-    }); 
+    });
     return {
         deleteLesson: mutateAsync,
+        isPending
+    };
+}
+
+export function useActivationLesson(sectionId: string) {
+    const queryClient = useQueryClient();
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: async ({ lessonId, request }: { lessonId: string; request: ActivalessonRequest }) => fetchLession.activationLesson(lessonId, request),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["lessons", sectionId]
+            });
+            toast.success("Thay đổi trạng thái bài học thành công!");
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Lỗi khi thay đổi trạng thái bài học!");
+        }
+    });
+    return {
+        activationLesson: mutateAsync,
+        isPending
+    };
+}
+
+export function useReorderLessonInSection() {
+    const queryClient = useQueryClient();
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: async ({ sectionId, ...request }: ReoderLessonInSectionRequest & { sectionId: string }) => {
+            return fetchLession.reorderLessonInSection(request);
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ["lessons", variables.sectionId]
+            });
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Lỗi khi thay đổi vị trí bài học!");
+        }
+    });
+    return {
+        reorderLessonInSection: mutateAsync,
+        isPending
+    };
+}
+
+export function useReorderLessonOtherSection() {
+    const queryClient = useQueryClient();
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: async ({ oldSectionId, ...request }: ReoderLessonOtherSectionRequest & { oldSectionId: string }) => {
+            return fetchLession.reorderLessonOtherSection(request);
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ["lessons", variables.oldSectionId]
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["lessons", variables.newSectionId]
+            });
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Lỗi khi thay đổi vị trí bài học!");
+        }
+    });
+    return {
+        reorderLessonOtherSection: mutateAsync,
         isPending
     };
 }
