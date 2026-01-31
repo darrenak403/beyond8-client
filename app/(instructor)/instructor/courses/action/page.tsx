@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 // import { v4 as uuidv4 } from 'uuid'; // Removed unused
 
 import { useCreateCourse, useUpdateCourse } from "@/hooks/useCourse";
@@ -12,7 +11,7 @@ import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 
 import ActionHeader from "./components/layout/ActionHeader";
 import ActionSidebar from "./components/layout/ActionSidebar";
-import SectionList from "./components/content/SectionList";
+import TwoPanelLayout from "./components/layout/TwoPanelLayout";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useIsMobile } from "@/hooks/useMobile";
 
@@ -162,102 +161,104 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
   };
 
   return (
-    <div className="flex h-screen w-full bg-purple-100 overflow-hidden font-sans">
-      {/* Sidebar */}
-      {!isMobile && (
-        <ActionSidebar
-          currentStep={currentStep}
-          onStepClick={setCurrentStep}
-          stepsValidity={sidebarValidity}
-          isEditMode={isEditMode}
-          viewMode={viewMode}
+    <>
+      {viewMode === "content" && initialData?.id ? (
+        // Two-panel layout for content mode
+        <TwoPanelLayout 
+          courseId={initialData.id} 
+          onBackToInfo={() => handleViewModeChange("info")}
         />
-      )}
+      ) : (
+        // Original layout for info mode
+        <div className="flex h-screen w-full bg-purple-100 overflow-hidden font-sans">
+          {/* Sidebar */}
+          {!isMobile && (
+            <ActionSidebar
+              currentStep={currentStep}
+              onStepClick={setCurrentStep}
+              stepsValidity={sidebarValidity}
+              isEditMode={isEditMode}
+              viewMode={viewMode}
+            />
+          )}
 
-      {/* Main Content */}
-      <div
-        className={`flex-1 flex flex-col bg-white relative transition-all duration-300 ${!isMobile ? "h-[calc(100vh-24px)] rounded-[30px] m-3 shadow-sm border border-purple-100 overflow-hidden" : "h-full"}`}
-      >
-        <ActionHeader
-          currentStep={currentStep}
-          totalSteps={5}
-          onSave={handleSave}
-          isSubmitting={isPending}
-          isEditMode={isEditMode}
-          viewMode={viewMode}
-          onChangeViewMode={handleViewModeChange}
-          disableContent={!isEditMode && !initialData?.id} // Only enable content if edit mode or ID exists
-        />
+          {/* Main Content */}
+          <div
+            className={`flex-1 flex flex-col bg-white relative transition-all duration-300 ${!isMobile ? "h-[calc(100vh-24px)] rounded-[30px] m-3 shadow-sm border border-purple-100 overflow-hidden" : "h-full"}`}
+          >
+            <ActionHeader
+              currentStep={currentStep}
+              totalSteps={5}
+              onSave={handleSave}
+              isSubmitting={isPending}
+              isEditMode={isEditMode}
+              viewMode={viewMode}
+              onChangeViewMode={handleViewModeChange}
+              disableContent={!isEditMode && !initialData?.id} // Only enable content if edit mode or ID exists
+            />
 
-        <ScrollArea className="flex-1" type="scroll">
-          <div className="min-h-full w-full flex flex-col px-6 md:px-12 py-4">
-            <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col justify-center">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentStep}
-                  initial="initial"
-                  animate="in"
-                  exit="out"
-                  variants={pageVariants}
-                  transition={pageTransition}
-                  className="w-full flex-1 flex flex-col"
-                >
-                  {viewMode === "info" && (
-                    <>
-                      {currentStep === 1 && (
-                        <Step1_Title
-                          data={formData}
-                          onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
-                          isEditMode={isEditMode}
-                        />
+            <ScrollArea className="flex-1" type="scroll">
+              <div className="min-h-full w-full flex flex-col px-6 md:px-12 py-4">
+                <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col justify-center">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentStep}
+                      initial="initial"
+                      animate="in"
+                      exit="out"
+                      variants={pageVariants}
+                      transition={pageTransition}
+                      className="w-full flex-1 flex flex-col"
+                    >
+                      {viewMode === "info" && (
+                        <>
+                          {currentStep === 1 && (
+                            <Step1_Title
+                              data={formData}
+                              onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
+                              isEditMode={isEditMode}
+                            />
+                          )}
+                          {currentStep === 2 && (
+                            <Step2_Basics
+                              data={formData}
+                              onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
+                            />
+                          )}
+                          {currentStep === 3 && (
+                            <Step3_Goals
+                              data={formData}
+                              onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
+                            />
+                          )}
+                          {/* Note: Step 4 is now in Content mode */}
+                          {currentStep === 5 && (
+                            <Step5_MediaPricing
+                              data={formData}
+                              onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
+                            />
+                          )}
+                        </>
                       )}
-                      {currentStep === 2 && (
-                        <Step2_Basics
-                          data={formData}
-                          onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
-                        />
-                      )}
-                      {currentStep === 3 && (
-                        <Step3_Goals
-                          data={formData}
-                          onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
-                        />
-                      )}
-                      {/* Note: Step 4 is now in Content mode */}
-                      {currentStep === 5 && (
-                        <Step5_MediaPricing
-                          data={formData}
-                          onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
-                        />
-                      )}
-                    </>
-                  )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
+            </ScrollArea>
 
-                  {viewMode === "content" &&
-                    // Directly render SectionList for content mode
-                    // We can wrap it in a "Step" container if needed for consistent styling
-                    (initialData?.id ? (
-                      <SectionList courseId={initialData.id} />
-                    ) : (
-                      <div>Lỗi: Không tìm thấy ID khóa học</div>
-                    ))}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+            {viewMode === "info" && (
+              <ActionFooter
+                onBack={handleBack}
+                onNext={handleNext}
+                isFirstStep={currentStep === 1}
+                isLastStep={currentStep === 5}
+                isValid={isCurrentStepValid()}
+              />
+            )}
           </div>
-        </ScrollArea>
-
-        {viewMode === "info" && (
-          <ActionFooter
-            onBack={handleBack}
-            onNext={handleNext}
-            isFirstStep={currentStep === 1}
-            isLastStep={currentStep === 5}
-            isValid={isCurrentStepValid()}
-          />
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 }
 

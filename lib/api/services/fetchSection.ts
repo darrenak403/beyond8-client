@@ -4,7 +4,7 @@ export interface CreateSectionRequest {
     courseId: string;
     title: string;
     description: string;
-    assignmentId: string
+    assignmentId: string | null;
 }
 
 export interface UpdateSectionRequest {
