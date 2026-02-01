@@ -3,6 +3,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { ArrowLeft, Trash2, Video, FileText, ClipboardList } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { HeaderPortal } from "./HeaderPortal";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 
 import { useUpdateLesson, useDeleteLesson, useActivationLesson } from "@/hooks/useLesson";
 import { Lesson, LessonType } from "@/lib/api/services/fetchLesson";
+import { useRouter } from "next/navigation";
 
 export interface LessonEditorRef {
     hasUnsavedChanges: () => boolean;
@@ -33,6 +35,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         const [lessonDescriptionValue, setLessonDescriptionValue] = useState("");
         const [isPreview, setIsPreview] = useState(false);
         const [isPublished, setIsPublished] = useState(false);
+        const router = useRouter();
 
         // Video specific
         const [isDownloadable, setIsDownloadable] = useState(false);
@@ -170,79 +173,116 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         const getLessonIcon = (type?: string) => {
             switch (type) {
                 case "Video":
-                    return <Video className="h-5 w-5 text-blue-500" />;
+                    return <Video className="h-8 w-8 text-gray-500" />;
                 case "Quiz":
-                    return <ClipboardList className="h-5 w-5 text-green-500" />;
+                    return <ClipboardList className="h-8 w-8 text-gray-500" />;
                 default:
-                    return <FileText className="h-5 w-5 text-gray-500" />;
+                    return <FileText className="h-8 w-8 text-gray-500" />;
             }
         };
 
         if (!selectedLesson) return null;
 
         return (
-            <div className="flex-1 flex flex-col bg-white rounded-[30px] shadow-sm border border-purple-100 overflow-hidden relative">
-                {/* Header with Tab Switcher */}
-                <div className="flex items-center justify-between px-16 py-6 border-b bg-white relative">
-                    <div className="flex items-center gap-3">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={onBack}
-                            className="gap-2 rounded-full hover:bg-gray-100 hover:text-gray-900"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Quay lại chương
-                        </Button>
-                    </div>
-
-                    {/* Tab Switcher in Center */}
-                    {onBackToInfo && (
-                        <div className="absolute left-1/2 -translate-x-1/2">
-                            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-full">
-                                <button
-                                    onClick={onBackToInfo}
-                                    className="px-6 py-2 text-sm font-medium rounded-full transition-all text-gray-500 hover:text-gray-900"
-                                >
-                                    Thông tin khóa học
-                                </button>
-                                <button
-                                    className="px-6 py-2 text-sm font-medium rounded-full transition-all bg-white text-black shadow-sm"
-                                >
-                                    Nội dung khóa học
-                                </button>
-                            </div>
+            <div className="flex-1 flex flex-col h-full overflow-hidden bg-white relative">
+                <HeaderPortal>
+                    {/* Header with Tab Switcher */}
+                    <div className="flex items-center justify-between px-8 py-3 h-14 bg-white w-full border-b">
+                        <div className="flex items-center gap-3">
+                            <Button
+                                onClick={() => router.push('/instructor/courses')}
+                                variant="outline"
+                                className="w-full rounded-full hover:bg-gray-100 hover:text-gray-900"
+                                size="sm"
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Thoát
+                            </Button>
                         </div>
-                    )}
 
-                    {/* Update button - only show when there are changes */}
-                    <div className="flex items-center gap-2">
-                        <AnimatePresence>
-                            {hasLessonChanges && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.8 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={handleLessonSave}
-                                        disabled={isUpdatingLesson}
-                                        className="gap-2 rounded-full"
+                        {/* Tab Switcher in Center */}
+                        {onBackToInfo && (
+                            <div className="absolute left-1/2 -translate-x-1/2">
+                                <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-full">
+                                    <button
+                                        onClick={onBackToInfo}
+                                        className="px-6 py-2 text-sm font-medium rounded-full transition-all text-gray-500 hover:text-gray-900"
                                     >
-                                        {isUpdatingLesson ? "Đang cập nhật..." : "Cập nhật"}
+                                        Thông tin khóa học
+                                    </button>
+                                    <button
+                                        className="px-6 py-2 text-sm font-medium rounded-full transition-all bg-white text-black shadow-sm"
+                                    >
+                                        Nội dung khóa học
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Update button - only show when there are changes */}
+                        <div className="flex items-center gap-2">
+                            {/* Delete Button */}
+                            <ConfirmDialog
+                                open={isDeleteLessonDialogOpen}
+                                onOpenChange={setIsDeleteLessonDialogOpen}
+                                onConfirm={handleLessonDelete}
+                                title="Xóa bài học"
+                                description={`Bạn có chắc chắn muốn xóa bài học "${selectedLesson?.title}" không? Hành động này không thể hoàn tác.`}
+                                confirmText="Xóa"
+                                cancelText="Hủy"
+                                variant="destructive"
+                                isLoading={isDeletingLesson}
+                                trigger={
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        Xóa
                                     </Button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                }
+                            />
+
+                            <AnimatePresence>
+                                {hasLessonChanges && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={handleLessonSave}
+                                            disabled={isUpdatingLesson}
+                                            className="gap-2 rounded-full"
+                                        >
+                                            {isUpdatingLesson ? "Đang cập nhật..." : "Cập nhật"}
+                                        </Button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
-                </div>
+                </HeaderPortal>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto pb-20 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400">
                     <div className="max-w-4xl mx-auto px-16 py-12">
+                        <div className="mb-6 -ml-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={onBack}
+                                className="gap-2 text-gray-500 hover:text-gray-900 pl-2 pr-4 rounded-full hover:bg-gray-100 hover:text-gray-900"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                                Quay lại chương
+                            </Button>
+                        </div>
+
                         {/* Lesson Content */}
                         <div className="space-y-6">
                             {/* Title - Editable */}
@@ -501,30 +541,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                     </div>
                 </div>
 
-                {/* Delete Lesson Button - Bottom Left Fixed */}
-                <div className="absolute bottom-8 left-16 z-10">
-                    <ConfirmDialog
-                        open={isDeleteLessonDialogOpen}
-                        onOpenChange={setIsDeleteLessonDialogOpen}
-                        onConfirm={handleLessonDelete}
-                        title="Xóa bài học"
-                        description={`Bạn có chắc chắn muốn xóa bài học "${selectedLesson?.title}" không? Hành động này không thể hoàn tác.`}
-                        confirmText="Xóa"
-                        cancelText="Hủy"
-                        variant="destructive"
-                        isLoading={isDeletingLesson}
-                        trigger={
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                                Xóa bài học
-                            </Button>
-                        }
-                    />
-                </div>
+
             </div>
         );
     }

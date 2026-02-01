@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { Plus, Video, FileText, ClipboardList, ChevronRight, Trash2 } from "lucide-react";
+import { Plus, Video, FileText, ClipboardList, ChevronRight, Trash2, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,12 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
+import { HeaderPortal } from "./HeaderPortal";
 
 import { useUpdateSection, useDeleteSection } from "@/hooks/useSection";
 import { useCreateLesson, useGetLessonBySectionId } from "@/hooks/useLesson";
 import { LessonType } from "@/lib/api/services/fetchLesson";
+import { useRouter } from "next/navigation";
 
 export interface SectionEditorRef {
     hasUnsavedChanges: () => boolean;
@@ -35,6 +37,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const [titleValue, setTitleValue] = useState(section.title);
         const [descriptionValue, setDescriptionValue] = useState(section.description || "");
         const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+        const router = useRouter();
 
         const { updateSection, isPending: isUpdating } = useUpdateSection(courseId);
         const { deleteSection, isPending: isDeleting } = useDeleteSection(courseId);
@@ -113,9 +116,9 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const getLessonIcon = (type?: string) => {
             switch (type) {
                 case "Video":
-                    return <Video className="h-5 w-5 text-blue-500" />;
+                    return <Video className="h-5 w-5 text-gray-500" />;
                 case "Quiz":
-                    return <ClipboardList className="h-5 w-5 text-green-500" />;
+                    return <ClipboardList className="h-5 w-5 text-gray-500" />;
                 default:
                     return <FileText className="h-5 w-5 text-gray-500" />;
             }
@@ -141,59 +144,90 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         }, [descriptionValue]);
 
         return (
-            <div className="flex-1 flex flex-col bg-white rounded-[30px] shadow-sm border border-purple-100 overflow-hidden relative">
-                {/* Header with Tab Switcher */}
-                <div className="flex items-center justify-between px-16 py-6 border-b bg-white relative">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-xl font-semibold text-gray-900">
-                            Chương {section.orderIndex}
-                        </h2>
-                    </div>
-
-                    {/* Tab Switcher in Center */}
-                    {onBackToInfo && (
-                        <div className="absolute left-1/2 -translate-x-1/2">
-                            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-full">
-                                <button
-                                    onClick={onBackToInfo}
-                                    className="px-6 py-2 text-sm font-medium rounded-full transition-all text-gray-500 hover:text-gray-900"
-                                >
-                                    Thông tin khóa học
-                                </button>
-                                <button className="px-6 py-2 text-sm font-medium rounded-full transition-all bg-white text-black shadow-sm">
-                                    Nội dung khóa học
-                                </button>
-                            </div>
+            <div className="flex-1 flex flex-col h-full overflow-hidden bg-white relative">
+                <HeaderPortal>
+                    {/* Header with Tab Switcher */}
+                    <div className="flex items-center justify-between px-8 py-3 h-14 bg-white w-full">
+                        <div className="flex items-center gap-4">
+                            <Button
+                                onClick={() => router.push('/instructor/courses')}
+                                variant="outline"
+                                className="w-full rounded-full hover:bg-gray-100 hover:text-gray-900"
+                                size="sm"
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Thoát
+                            </Button>
                         </div>
-                    )}
 
-                    {/* Update button - only show when there are changes */}
-                    <div className="flex items-center gap-2">
-                        <AnimatePresence>
-                            {hasChanges && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.8 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={handleSave}
-                                        disabled={isUpdating}
-                                        className="gap-2 rounded-full"
+                        {/* Tab Switcher in Center */}
+                        {onBackToInfo && (
+                            <div className="absolute left-1/2 -translate-x-1/2">
+                                <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-full">
+                                    <button
+                                        onClick={onBackToInfo}
+                                        className="px-6 py-2 text-sm font-medium rounded-full transition-all text-gray-500 hover:text-gray-900"
                                     >
-                                        {isUpdating ? "Đang cập nhật..." : "Cập nhật"}
+                                        Thông tin khóa học
+                                    </button>
+                                    <button className="px-6 py-2 text-sm font-medium rounded-full transition-all bg-white text-black shadow-sm">
+                                        Nội dung khóa học
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Update button - only show when there are changes */}
+                        <div className="flex items-center gap-2">
+                            {/* Delete Button */}
+                            <ConfirmDialog
+                                open={isDeleteDialogOpen}
+                                onOpenChange={setIsDeleteDialogOpen}
+                                onConfirm={handleDelete}
+                                title="Xóa chương"
+                                description={`Bạn có chắc chắn muốn xóa chương "${section.title}" không? Hành động này không thể hoàn tác.`}
+                                confirmText="Xóa"
+                                cancelText="Hủy"
+                                variant="destructive"
+                                isLoading={isDeleting}
+                                trigger={
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        Xóa
                                     </Button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                }
+                            />
+
+                            <AnimatePresence>
+                                {hasChanges && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={handleSave}
+                                            disabled={isUpdating}
+                                            className="gap-2 rounded-full"
+                                        >
+                                            {isUpdating ? "Đang cập nhật..." : "Cập nhật"}
+                                        </Button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
-                </div>
+                </HeaderPortal>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto pb-20 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400">
                     <div className="max-w-4xl mx-auto px-16 py-12">
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
@@ -231,7 +265,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                                     className="w-full text-base text-gray-600 border-none focus:ring-0 focus:outline-none placeholder:text-gray-300 resize-none bg-transparent overflow-hidden break-words"
                                     rows={3}
                                     style={{
-                                        minHeight: "100px",
+                                        minHeight: "50px",
                                     }}
                                     onInput={(e) => {
                                         const target = e.target as HTMLTextAreaElement;
@@ -240,6 +274,8 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                                     }}
                                 />
                             </div>
+
+
 
                             {/* Lesson Count */}
                             <div className="flex items-center gap-3 mb-6 pb-6 border-b">
@@ -310,9 +346,9 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
 
                                                 {/* Meta info */}
                                                 <div className="flex items-center gap-3 text-xs text-gray-400">
-                                                    {lesson.type === "Video" && lesson.durationSeconds && (
+                                                    {/* {lesson.type === "Video" && lesson.durationSeconds && (
                                                         <span>{Math.floor(lesson.durationSeconds / 60)}phút</span>
-                                                    )}
+                                                    )} */}
                                                     {!lesson.isPublished ? (
                                                         <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded">
                                                             Đã ẩn
@@ -336,32 +372,32 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                                     </div>
                                 )}
                             </div>
-                        </motion.div>
 
-                        {/* Delete Button - Bottom Left Fixed */}
-                        <div className="absolute bottom-8 left-16 z-10">
-                            <ConfirmDialog
-                                open={isDeleteDialogOpen}
-                                onOpenChange={setIsDeleteDialogOpen}
-                                onConfirm={handleDelete}
-                                title="Xóa chương"
-                                description={`Bạn có chắc chắn muốn xóa chương "${section.title}" không? Hành động này không thể hoàn tác.`}
-                                confirmText="Xóa"
-                                cancelText="Hủy"
-                                variant="destructive"
-                                isLoading={isDeleting}
-                                trigger={
+                            {/* Assignment Section - Placeholder */}
+                            <div className="mt-12">
+                                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+                                    Bài tập cuối chương
+                                </h2>
+                                <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors">
+                                    <ClipboardList className="h-8 w-8 text-gray-300 mb-2" />
+                                    <p className="text-sm text-gray-500 mb-4">Chưa có bài tập nào cho chương này</p>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        className="gap-2"
+                                        onClick={() => {
+                                            // Placeholder action
+                                            console.log("Create assignment clicked");
+                                        }}
                                     >
-                                        <Trash2 className="h-4 w-4" />
-                                        Xóa chương
+                                        <Plus className="h-4 w-4" />
+                                        Tạo bài tập
                                     </Button>
-                                }
-                            />
-                        </div>
+                                </div>
+                            </div>
+                        </motion.div>
+
+
                     </div>
                 </div>
             </div>

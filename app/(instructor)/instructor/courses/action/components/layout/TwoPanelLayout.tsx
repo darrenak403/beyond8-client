@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Eye, Settings, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -138,38 +138,62 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
 
   return (
     <>
-      <div className="flex h-screen w-full bg-purple-100 overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 20 }}
-          transition={{ duration: 0.4, ease: "easeInOut" }}
-          className={`flex flex-1 gap-3 overflow-hidden ${!isMobile ? "h-[calc(100vh-24px)] m-3" : "h-full"}`}
-        >
-          {/* Left Panel - Desktop */}
-          {!isMobile && (
-            <CompactSectionList
-              courseId={courseId}
-              selectedSectionId={selectedSectionId}
-              selectedLessonId={selectedLessonId}
-              onSelectSection={handleSelectSection}
-              onSelectLesson={handleSelectLesson}
-              onCreateSection={handleCreateSection}
-            />
-          )}
+      <div className="flex flex-col h-screen w-full bg-purple-100 p-4 overflow-hidden">
 
-          {/* Right Panel - Content Editor */}
-          <ContentEditor
-            ref={editorRef}
-            courseId={courseId}
-            selectedSectionId={selectedSectionId}
-            selectedLessonId={selectedLessonId}
-            section={selectedSection}
-            onDeleted={handleSectionDeleted}
-            onLessonSelect={handleLessonSelect}
-            onBackToInfo={onBackToInfo}
-          />
-        </motion.div>
+        {/* Main Card Container */}
+        <div className="flex flex-col flex-1 bg-white rounded-[30px] shadow-sm border border-purple-100 overflow-hidden">
+          {/* Header Portal Target */}
+          <div id="course-editor-header-root" className="shrink-0 w-full bg-white border-b z-20" />
+
+          <div className="flex-1 flex overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className={`flex flex-1 gap-3 overflow-hidden ${!isMobile ? "h-[calc(100vh-24px)] mx-3 mb-3" : "h-full"}`}
+            >
+              {/* Left Panel - Desktop */}
+              {!isMobile && (
+                <CompactSectionList
+                  courseId={courseId}
+                  selectedSectionId={selectedSectionId}
+                  selectedLessonId={selectedLessonId}
+                  onSelectSection={handleSelectSection}
+                  onSelectLesson={handleSelectLesson}
+                  onCreateSection={handleCreateSection}
+                />
+              )}
+
+              {/* Right Panel Wrapper with Toolbar */}
+              <div className="flex flex-1 overflow-hidden">
+                <ContentEditor
+                  ref={editorRef}
+                  courseId={courseId}
+                  selectedSectionId={selectedSectionId}
+                  selectedLessonId={selectedLessonId}
+                  section={selectedSection}
+                  onDeleted={handleSectionDeleted}
+                  onLessonSelect={handleLessonSelect}
+                  onBackToInfo={onBackToInfo}
+                />
+
+                {/* Right Toolbar */}
+                <div className="w-14 border-l bg-gray-50 flex flex-col items-center py-4 gap-4 shrink-0 z-10">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Xem trước">
+                    <Eye className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Cài đặt">
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Trợ giúp">
+                    <HelpCircle className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
 
         {/* Mobile FAB Button */}
         {isMobile && (

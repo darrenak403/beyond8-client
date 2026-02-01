@@ -93,7 +93,7 @@ const SectionItem = ({
     >
       <div
         className={cn(
-          "flex items-center gap-2 px-3 py-2.5 cursor-pointer transition-colors hover:bg-gray-100 group",
+          "flex items-center gap-2 px-3 py-3.5 cursor-pointer transition-colors hover:bg-gray-100 group",
           isSelected && !selectedLessonId && "bg-purple-50 hover:bg-purple-100"
         )}
         onClick={() => onSelect(section.id)}
@@ -112,7 +112,7 @@ const SectionItem = ({
           )}
         </button>
         <BookOpen className="h-4 w-4 text-purple-600 shrink-0" />
-        <span className={cn("text-sm font-medium flex-1 truncate min-w-0", isSelected && !selectedLessonId && "text-purple-700")}>
+        <span className={cn("text-base font-medium flex-1 truncate min-w-0", isSelected && !selectedLessonId && "text-purple-700")}>
           Chương {section.orderIndex}: {section.title}
         </span>
         {isLoading && <Loader2 className="h-3 w-3 animate-spin text-gray-400 shrink-0" />}
@@ -162,7 +162,7 @@ const SectionItem = ({
                       onLessonDrop(e, section.id, lesson.id, lessons);
                     }}
                     className={cn(
-                      "flex items-center gap-2 px-4 mx-2 py-2.5 pl-12 cursor-pointer transition-all duration-200 hover:bg-gray-100 group",
+                      "flex items-center gap-2 px-4 mx-2 py-2.5 pl-8 cursor-pointer transition-all duration-200 hover:bg-gray-100 group",
                       selectedLessonId === lesson.id && "bg-purple-100 hover:bg-purple-100 rounded-lg"
                     )}
                     onClick={(e) => {
@@ -170,13 +170,13 @@ const SectionItem = ({
                       onSelectLesson(section.id, lesson.id);
                     }}
                   >
-                    <span className="text-gray-400 text-xs font-medium min-w-5">{index + 1}</span>
+                    <span className="text-gray-400 text-sm font-medium min-w-5">{index + 1}</span>
                     <span className={cn("text-purple-500", selectedLessonId === lesson.id && "text-purple-700")}>
                       {getLessonIcon(lesson.type)}
                     </span>
                     <span
                       className={cn(
-                        "text-sm flex-1 truncate min-w-0",
+                        "text-base flex-1 truncate min-w-0",
                         selectedLessonId === lesson.id ? "text-purple-700 font-medium" : "text-gray-700"
                       )}
                     >
@@ -212,7 +212,7 @@ const SectionItem = ({
               </div>
             ) : (
               <div
-                className="px-4 py-2 pl-12 text-sm text-gray-400 transition-all duration-200"
+                className="px-4 py-2 pl-8 text-sm text-gray-400 transition-all duration-200"
                 onDragOver={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -257,6 +257,22 @@ export default function CompactSectionList({
   const { reorderLessonInSection } = useReorderLessonInSection();
   const { reorderLessonOtherSection } = useReorderLessonOtherSection();
   const router = useRouter();
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleAutoScroll = (clientY: number) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const { top, bottom } = container.getBoundingClientRect();
+    const threshold = 60;
+    const scrollSpeed = 15;
+
+    if (clientY < top + threshold) {
+      container.scrollTop -= scrollSpeed;
+    } else if (clientY > bottom - threshold) {
+      container.scrollTop += scrollSpeed;
+    }
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -307,6 +323,7 @@ export default function CompactSectionList({
 
   const handleSectionDragOver = (e: React.DragEvent, targetSectionId: string) => {
     e.preventDefault();
+    handleAutoScroll(e.clientY);
 
     // If dragging a lesson over a closed section, auto-expand it after a delay
     if (draggedLessonId && !expandedSections.has(targetSectionId)) {
@@ -362,6 +379,11 @@ export default function CompactSectionList({
     } else if (draggedLessonId) {
       // Handle dropping a lesson onto a section header (move to that section)
       if (draggedLessonSectionId) {
+        if (draggedLessonId === selectedLessonId) {
+          onSelectSection(targetSectionId);
+          onSelectLesson(targetSectionId, draggedLessonId);
+        }
+
         reorderLessonOtherSection({
           lessonId: draggedLessonId,
           newSectionId: targetSectionId,
@@ -383,6 +405,7 @@ export default function CompactSectionList({
 
   const handleLessonDragOver = (e: React.DragEvent, targetLessonId: string) => {
     e.preventDefault();
+    handleAutoScroll(e.clientY);
     if (draggedLessonId && draggedLessonId !== targetLessonId) {
       e.currentTarget.classList.add('border-t-4', 'border-purple-500', 'mt-1');
     }
@@ -426,6 +449,11 @@ export default function CompactSectionList({
       } else if (draggedIndex === -1 && targetIndex !== -1 && draggedLessonSectionId) {
         // Cross-section reorder (dropped on specific lesson)
         // Insert before target
+        if (draggedLessonId === selectedLessonId) {
+          onSelectSection(sectionId);
+          onSelectLesson(sectionId, draggedLessonId);
+        }
+
         reorderLessonOtherSection({
           lessonId: draggedLessonId,
           newSectionId: sectionId, // Target section ID
@@ -440,17 +468,17 @@ export default function CompactSectionList({
 
   if (isLoading) {
     return (
-      <div className="w-96 border-r bg-white flex items-center justify-center h-screen">
+      <div className="w-80 border-r bg-white flex items-center justify-center h-screen">
         <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
       </div>
     );
   }
 
   return (
-    <aside className="w-96 bg-white flex flex-col h-full rounded-[30px] shadow-sm border border-purple-100 overflow-hidden">
+    <aside className="w-80 bg-white flex flex-col h-[calc(100vh-100px)] overflow-hidden border-r border-gray-100">
       {/* Header */}
       <div className="border-b bg-gray-50/50 px-4 py-2 shrink-0 flex items-center justify-between">
-        <h3 className="font-semibold text-base text-gray-900">Nội dung khóa học</h3>
+        <h3 className="font-semibold text-base text-gray-900">Danh sách các chương</h3>
         <Button
           onClick={() => setIsCreatingSection(!isCreatingSection)}
           size="sm"
@@ -467,7 +495,14 @@ export default function CompactSectionList({
       </div>
 
       {/* Sections List */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Sections List */}
+      <div
+        ref={scrollContainerRef}
+        onDragOver={(e) => {
+          e.preventDefault();
+          handleAutoScroll(e.clientY);
+        }}
+        className="flex-1 overflow-y-auto pb-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400">
         {sections && sections.length > 0 ? (
           <>
             {/* Inline Create Form */}
@@ -621,19 +656,6 @@ export default function CompactSectionList({
             )}
           </>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="border-t bg-gray-50/50 px-4 py-3 shrink-0">
-        <Button
-          onClick={() => router.push('/instructor/courses')}
-          variant="outline"
-          className="w-full rounded-full hover:bg-gray-100 hover:text-gray-900"
-          size="sm"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Thoát
-        </Button>
       </div>
     </aside>
   );
