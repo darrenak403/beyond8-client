@@ -61,7 +61,7 @@ export function useSignalRNotifications() {
           toast.info(
             title || 'Cập nhật quyền truy cập',
             {
-              description:'Tài khoản của bạn đã được duyệt thành công. Đang cập nhật quyền truy cập...',
+              description: 'Tài khoản của bạn đã được duyệt thành công. Đang cập nhật quyền truy cập...',
               duration: 2000,
             }
           )
@@ -70,12 +70,35 @@ export function useSignalRNotifications() {
         }
       }
 
+      const handleTranscodingVideoSuccess = (data: {
+        title?: string
+        message?: string
+        metadata?: {
+          lessonId?: string
+        }
+      }) => {
+        const { title, metadata, message } = data
+        console.log('[SignalR] Received TranscodingVideoSuccess:', data.metadata?.lessonId)
+
+        if (metadata?.lessonId) {
+          toast.info(
+            title || 'Xử lí video thành công',
+            {
+              description: message,
+              duration: 2000,
+            }
+          )
+        }
+      }
+
       connection.on('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
       connection.on('RequireReLogin', handleRequireReLogin)
+      connection.on('TranscodingVideoSuccess', handleTranscodingVideoSuccess)
 
       const cleanup = () => {
         connection.off('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
         connection.off('RequireReLogin', handleRequireReLogin)
+        connection.off('TranscodingVideoSuccess', handleTranscodingVideoSuccess)
       }
       handlersRef.current.push(cleanup)
     }
@@ -88,7 +111,7 @@ export function useSignalRNotifications() {
           setupListeners()
           clearInterval(checkInterval)
         }
-      }, 100) 
+      }, 100)
 
       const timeoutId = setTimeout(() => {
         clearInterval(checkInterval)

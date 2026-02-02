@@ -88,7 +88,7 @@ export interface UpdateLessonTextRequest {
 }
 
 export interface CreateLessonQuizRequest {
-    quizId: string;
+    quizId: string | null;
     sectionId: string;
     title: string;
     description: string;

@@ -5,6 +5,7 @@ import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as Ima
 import { motion, AnimatePresence } from "framer-motion";
 import { HeaderPortal } from "./HeaderPortal";
 import { Progress } from "@/components/ui/progress";
+import { getHubConnection } from "@/lib/realtime/signalr";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -45,6 +46,8 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         const [isDownloadable, setIsDownloadable] = useState(false);
         const [videoOriginalUrl, setVideoOriginalUrl] = useState("");
         const [videoThumbnailUrl, setVideoThumbnailUrl] = useState("");
+        const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
+        const [isSaving, setIsSaving] = useState(false);
 
         // Text specific
         const [textContent, setTextContent] = useState("");
@@ -67,10 +70,13 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         const videoInputRef = React.useRef<HTMLInputElement>(null);
         const thumbnailInputRef = React.useRef<HTMLInputElement>(null);
 
+        // Track the last successfully saved state to handle stale props delay
+        const savedLessonRef = React.useRef<Lesson | null>(null);
+
         // Upload state
         const [uploadProgress, setUploadProgress] = useState(0);
         const [isFakeLoading, setIsFakeLoading] = useState(false);
-        const { uploadThumnailVideoLesson, isUploadingThumnailVideoLesson, uploadVideoLesson, isUploadingVideoLesson } = useMediaVideoLesson();
+        const { uploadThumnailVideoLesson, isUploadingThumnailVideoLesson, uploadVideoLessonAsync, isUploadingVideoLesson } = useMediaVideoLesson();
 
         const handleThumbnailUpload = async (file: File) => {
             if (!file) return;
@@ -101,36 +107,12 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                 return;
             }
 
-            // Start fake progress
-            setIsFakeLoading(true);
-            setUploadProgress(0);
-
-            // Fake progress interval
-            const interval = setInterval(() => {
-                setUploadProgress((prev) => {
-                    if (prev >= 90) return prev;
-                    return prev + Math.floor(Math.random() * 5) + 1;
-                });
-            }, 500);
-
-            uploadVideoLesson(file, {
-                onSuccess: (data) => {
-                    clearInterval(interval);
-                    setUploadProgress(100);
-
-                    // Delay slightly to show 100% before showing result
-                    setTimeout(() => {
-                        setVideoOriginalUrl(formatImageUrl(data.fileUrl) || data.fileUrl);
-                        setIsFakeLoading(false);
-                    }, 800);
-                },
-                onError: (error) => {
-                    clearInterval(interval);
-                    setIsFakeLoading(false);
-                    setUploadProgress(0);
-                    console.error("Upload video failed", error);
-                }
-            });
+            // Create local preview
+            const objectUrl = URL.createObjectURL(file);
+            setVideoOriginalUrl(objectUrl);
+            setPendingVideoFile(file);
+            setUploadProgress(100); // Show as full for preview
+            setIsFakeLoading(false);
         };
 
         // Auto-resize on value change
@@ -159,7 +141,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
 
                 if (selectedLesson.type === "Video") {
                     setIsDownloadable(selectedLesson.isDownloadable || false);
-                    setVideoOriginalUrl(selectedLesson.videoOriginalUrl || "");
+                    setVideoOriginalUrl(selectedLesson.videoOriginalUrl ? (formatImageUrl(selectedLesson.videoOriginalUrl) || selectedLesson.videoOriginalUrl) : "");
                     setVideoThumbnailUrl(selectedLesson.videoThumbnailUrl || "");
                 } else if (selectedLesson.type === "Text") {
                     setTextContent(selectedLesson.textContent || "");
@@ -167,23 +149,28 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                     setQuizId(selectedLesson.quizId || "");
                 }
             }
+            setPendingVideoFile(null);
+            savedLessonRef.current = null; // Reset saved ref when prop updates
         }, [selectedLesson]);
 
-        const hasLessonChanges = selectedLesson && (
-            lessonTitleValue !== selectedLesson.title ||
-            lessonDescriptionValue !== (selectedLesson.description || "") ||
-            isPreview !== selectedLesson.isPreview ||
-            isPublished !== selectedLesson.isPublished ||
-            (selectedLesson.type === "Video" && (
-                isDownloadable !== (selectedLesson.isDownloadable || false) ||
-                videoOriginalUrl !== (selectedLesson.videoOriginalUrl || "") ||
-                videoThumbnailUrl !== (selectedLesson.videoThumbnailUrl || "")
+        const baseLesson = savedLessonRef.current || selectedLesson;
+
+        const hasLessonChanges = baseLesson && (
+            lessonTitleValue !== baseLesson.title ||
+            lessonDescriptionValue !== (baseLesson.description || "") ||
+            isPreview !== baseLesson.isPreview ||
+            isPublished !== baseLesson.isPublished ||
+            (baseLesson.type === "Video" && (
+                isDownloadable !== (baseLesson.isDownloadable || false) ||
+                // Compare with potentially formatted state
+                videoOriginalUrl !== (savedLessonRef.current ? (baseLesson.videoOriginalUrl || "") : (baseLesson.videoOriginalUrl ? (formatImageUrl(baseLesson.videoOriginalUrl) || baseLesson.videoOriginalUrl) : "")) ||
+                videoThumbnailUrl !== (baseLesson.videoThumbnailUrl || "")
             )) ||
-            (selectedLesson.type === "Text" && (
-                textContent !== (selectedLesson.textContent || "")
+            (baseLesson.type === "Text" && (
+                textContent !== (baseLesson.textContent || "")
             )) ||
-            (selectedLesson.type === "Quiz" && (
-                quizId !== (selectedLesson.quizId || "")
+            (baseLesson.type === "Quiz" && (
+                quizId !== (baseLesson.quizId || "")
             ))
         );
 
@@ -192,39 +179,119 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                 return;
             }
 
-            const commonData = {
-                id: lessonId,
-                title: lessonTitleValue,
-                description: lessonDescriptionValue,
-                isPreview,
-                isPublished,
-            };
+            try {
+                setIsSaving(true);
+                let finalVideoUrl = videoOriginalUrl;
 
-            let specificData = {};
-            if (selectedLesson.type === "Video") {
-                specificData = {
-                    isDownloadable,
-                    videoOriginalUrl,
-                    videoThumbnailUrl,
-                };
-            } else if (selectedLesson.type === "Text") {
-                specificData = {
-                    content: textContent,
-                };
-            } else if (selectedLesson.type === "Quiz") {
-                specificData = {
-                    quizId,
-                };
-            }
+                // Upload video if pending
+                if (pendingVideoFile) {
+                    // Start fake progress for real upload
+                    setIsFakeLoading(true);
+                    setUploadProgress(0);
+                    const interval = setInterval(() => {
+                        setUploadProgress((prev) => {
+                            if (prev >= 90) return prev;
+                            return prev + Math.floor(Math.random() * 5) + 1;
+                        });
+                    }, 500);
 
-            await updateLesson({
-                lessonId: lessonId,
-                lessonType: selectedLesson.type as LessonType,
-                data: {
-                    ...commonData,
-                    ...specificData
+                    const data = await uploadVideoLessonAsync(pendingVideoFile);
+                    finalVideoUrl = data.fileUrl; // Use the raw path returned from server
+                    clearInterval(interval);
+                    setUploadProgress(95);
+                    // Keep isFakeLoading true to show progress bar
                 }
-            });
+
+                const commonData = {
+                    id: lessonId,
+                    title: lessonTitleValue,
+                    description: lessonDescriptionValue,
+                    isPreview,
+                    isPublished,
+                };
+
+                let specificData = {};
+                if (selectedLesson.type === "Video") {
+                    specificData = {
+                        isDownloadable,
+                        videoOriginalUrl: finalVideoUrl, // Use the uploaded URL
+                        videoThumbnailUrl,
+                    };
+                } else if (selectedLesson.type === "Text") {
+                    specificData = {
+                        content: textContent,
+                    };
+                } else if (selectedLesson.type === "Quiz") {
+                    specificData = {
+                        quizId,
+                    };
+                }
+
+                await updateLesson({
+                    lessonId: lessonId,
+                    lessonType: selectedLesson.type as LessonType,
+                    data: {
+                        ...commonData,
+                        ...specificData
+                    }
+                });
+
+                // If we uploaded a video, wait for transcoding success signal
+                if (pendingVideoFile) {
+                    await new Promise<void>((resolve) => {
+                        const connection = getHubConnection();
+                        const timeout = setTimeout(() => {
+                            resolve();
+                        }, 60000); // 1 minute timeout
+
+                        // Define handler with type matching the event
+                        const handler = (data: { metadata?: { lessonId?: string } }) => {
+                            if (data?.metadata?.lessonId === lessonId) {
+                                clearTimeout(timeout);
+                                connection.off("TranscodingVideoSuccess", handler);
+                                resolve();
+                            }
+                        };
+
+                        connection.on("TranscodingVideoSuccess", handler);
+                    });
+                    setUploadProgress(100);
+                }
+
+                // Clear pending state on success
+                setPendingVideoFile(null);
+
+                // Update saved ref to match current state (Clean State)
+                const newVideoUrl = finalVideoUrl ? (formatImageUrl(finalVideoUrl) || finalVideoUrl) : "";
+                // Update local state to match the "Clean" formatted URL immediately
+                if (selectedLesson.type === "Video") {
+                    setVideoOriginalUrl(newVideoUrl);
+                }
+
+                savedLessonRef.current = {
+                    ...selectedLesson,
+                    title: lessonTitleValue,
+                    description: lessonDescriptionValue,
+                    isPreview,
+                    isPublished,
+                    ...(selectedLesson.type === "Video" ? {
+                        isDownloadable,
+                        videoOriginalUrl: newVideoUrl, // Store FORMATTED url to match state
+                        videoThumbnailUrl
+                    } : {}),
+                    ...(selectedLesson.type === "Text" ? {
+                        textContent
+                    } : {}),
+                    ...(selectedLesson.type === "Quiz" ? {
+                        quizId
+                    } : {})
+                };
+
+            } finally {
+                setIsSaving(false);
+                setIsFakeLoading(false);
+                setUploadProgress(0);
+            }
         };
 
         const handleLessonDelete = async () => {
@@ -328,10 +395,10 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                             variant="default"
                                             size="sm"
                                             onClick={handleLessonSave}
-                                            disabled={isUpdatingLesson}
+                                            disabled={isUpdatingLesson || isSaving}
                                             className="gap-2 rounded-full"
                                         >
-                                            {isUpdatingLesson ? "Đang cập nhật..." : "Cập nhật"}
+                                            {isUpdatingLesson || isSaving ? "Đang cập nhật..." : "Cập nhật"}
                                         </Button>
                                     </motion.div>
                                 )}
@@ -682,16 +749,6 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                                         )}
                                                     </div>
                                                 )}
-                                            </div>
-                                        )}
-
-                                        {/* Read-only technical fields */}
-                                        {selectedLesson.hlsVariants && (
-                                            <div className="space-y-2 pt-4 border-t border-gray-100">
-                                                <p className="text-sm font-medium text-gray-700">HLS Variants (Debug)</p>
-                                                <div className="p-4 bg-gray-50 rounded-lg border">
-                                                    <code className="text-xs text-gray-600 break-all">{selectedLesson.hlsVariants}</code>
-                                                </div>
                                             </div>
                                         )}
                                     </div>
