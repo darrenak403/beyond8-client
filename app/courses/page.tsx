@@ -1,128 +1,162 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 import { useIsMobile } from '@/hooks/useMobile'
 import CourseList from './components/CourseList'
 import CourseFilter from './components/CourseFilter'
-import {
-  topRatedCourses,
-  newCourses,
-  languageCourses,
-  technologyCourses,
-  aiCourses,
-  designCourses,
-  marketingCourses,
-  type Course,
-} from '@/lib/data/mockCourses'
+import { useGetCourses } from '@/hooks/useCourse'
+import { CourseLevel } from '@/lib/api/services/fetchCourse'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
-
-// Combine all courses
-const allCourses: Course[] = [
-  ...topRatedCourses,
-  ...newCourses,
-  ...languageCourses,
-  ...technologyCourses,
-  ...aiCourses,
-  ...designCourses,
-  ...marketingCourses,
-]
+import CoursePagination from './components/CoursePagination'
 
 export default function CoursesPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const isMobile = useIsMobile()
 
-  const filteredCourses = useMemo(() => {
-    let filtered = [...allCourses]
+  // Build filter params from URL
+  const filterParams = useMemo(() => {
+    const params: {
+      keyword?: string
+      categoryName?: string
+      instructorName?: string
+      level?: CourseLevel
+      language?: string
+      minPrice?: number
+      maxPrice?: number
+      minRating?: number
+      minStudents?: number
+      isDescendingPrice?: boolean
+      isRandom?: boolean
+      pageNumber?: number
+      pageSize?: number
+      isDescending?: boolean
+    } = {}
 
-    // Search filter
-    const search = searchParams.get('search')?.toLowerCase()
-    if (search) {
-      filtered = filtered.filter(
-        (course) =>
-          course.title.toLowerCase().includes(search) ||
-          course.instructor.toLowerCase().includes(search) ||
-          course.description?.toLowerCase().includes(search) ||
-          course.shortDescription?.toLowerCase().includes(search)
-      )
+    const keyword = searchParams.get('search')
+    if (keyword) params.keyword = keyword
+
+    const categoryName = searchParams.get('category')
+    if (categoryName && categoryName !== 'all' && categoryName !== '') {
+      params.categoryName = categoryName
     }
 
-    // Category filter
-    const category = searchParams.get('category')
-    if (category && category !== 'all') {
-      filtered = filtered.filter((course) => course.category === category)
-    }
+    const instructorName = searchParams.get('instructorName')
+    if (instructorName) params.instructorName = instructorName
 
-    // Level filter
     const level = searchParams.get('level')
-    if (level && level !== 'all') {
-      filtered = filtered.filter((course) => course.level === level)
+    if (level && level !== 'all' && level !== 'All') {
+      params.level = level as CourseLevel
     }
 
-    // Price filter
+    const language = searchParams.get('language')
+    if (language && language !== '') {
+      params.language = language
+    }
+
     const minPrice = searchParams.get('minPrice')
-    const maxPrice = searchParams.get('maxPrice')
     if (minPrice) {
-      filtered = filtered.filter((course) => course.price >= parseInt(minPrice))
-    }
-    if (maxPrice) {
-      filtered = filtered.filter((course) => course.price <= parseInt(maxPrice))
+      const price = parseInt(minPrice)
+      if (!isNaN(price) && price > 0) params.minPrice = price
     }
 
-    // Rating filter
+    const maxPrice = searchParams.get('maxPrice')
+    if (maxPrice) {
+      const price = parseInt(maxPrice)
+      if (!isNaN(price)) params.maxPrice = price
+    }
+
     const minRating = searchParams.get('minRating')
     if (minRating && minRating !== 'all') {
       const rating = parseFloat(minRating)
-      filtered = filtered.filter((course) => course.rating >= rating)
+      if (!isNaN(rating)) params.minRating = rating
     }
 
-    // Language filter
-    const language = searchParams.get('language')
-    if (language) {
-      filtered = filtered.filter((course) => course.language === language)
+    const minStudents = searchParams.get('minStudents')
+    if (minStudents) {
+      const students = parseInt(minStudents)
+      if (!isNaN(students)) params.minStudents = students
     }
 
-    // Sort
-    const sortBy = searchParams.get('sortBy') || 'createdDate'
-    const isDescending = searchParams.get('isDescending') !== 'false'
+    const isDescendingPrice = searchParams.get('isDescendingPrice')
+    if (isDescendingPrice === 'true') {
+      params.isDescendingPrice = true
+    }
 
-    filtered.sort((a, b) => {
-      let comparison = 0
-      switch (sortBy) {
-        case 'price':
-          comparison = a.price - b.price
-          break
-        case 'rating':
-          comparison = a.rating - b.rating
-          break
-        case 'students':
-          comparison = a.students - b.students
-          break
-        default:
-          // Default sort by title
-          comparison = a.title.localeCompare(b.title)
-      }
-      return isDescending ? -comparison : comparison
-    })
+    const isRandom = searchParams.get('isRandom')
+    if (isRandom === 'true') {
+      params.isRandom = true
+    }
 
-    return filtered
+    const pageNumber = searchParams.get('pageNumber')
+    if (pageNumber) {
+      const page = parseInt(pageNumber)
+      if (!isNaN(page) && page > 0) params.pageNumber = page
+    } else {
+      params.pageNumber = 1
+    }
+
+    const pageSize = searchParams.get('pageSize')
+    if (pageSize) {
+      const size = parseInt(pageSize)
+      if (!isNaN(size) && size > 0) params.pageSize = size
+    } else {
+      params.pageSize = 10
+    }
+
+    const isDescending = searchParams.get('isDescending')
+    if (isDescending !== null && isDescending !== undefined) {
+      params.isDescending = isDescending !== 'false'
+    }
+
+    return params
   }, [searchParams])
+
+  // Fetch courses from API
+  const {
+    courses,
+    isLoading,
+    page,
+    totalPages,
+    pageSize,
+    count,
+  } = useGetCourses(filterParams)
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('pageNumber', newPage.toString())
+    router.push(`?${params.toString()}`)
+  }
 
   return (
     <div className="flex flex-col h-full">
-       <Header />
+      <Header />
       <div className={`space-y-16 py-12 ${
         isMobile ? 'px-4 py-8 space-y-8' : 'px-12 sm:px-16 lg:px-20'
       }`}>
-
         {/* Filters */}
         <div className="mb-8">
           <CourseFilter />
         </div>
 
         {/* Course List */}
-        <CourseList courses={filteredCourses} />
+        <CourseList courses={courses} isLoading={isLoading} />
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 mb-4">
+            <CoursePagination
+              currentPage={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={count}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </div>
       <Footer />
     </div>

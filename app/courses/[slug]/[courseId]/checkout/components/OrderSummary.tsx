@@ -13,9 +13,11 @@ interface OrderSummaryProps {
     price: number;
     rating? : number;
   };
+  slug: string;
+  courseId: string;
 }
 
-export default function OrderSummary({ course }: OrderSummaryProps) {
+export default function OrderSummary({ course, slug, courseId }: OrderSummaryProps) {
   const originalPrice = course.price * 1.5;
   const discount = originalPrice - course.price;
 

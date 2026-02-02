@@ -1,6 +1,6 @@
 'use client'
 
-import { Course } from '@/lib/data/mockCourses'
+import { Course } from '@/lib/api/services/fetchCourse'
 import CourseCard from './CourseCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useIsMobile } from '@/hooks/useMobile'

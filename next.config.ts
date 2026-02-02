@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "utfs.io", // Adding likely used domain (uploadthing) just in case, or just stick to unsplash
+      },
+      {
+        protocol: "https",
+        hostname: "github.com",
       }
     ],
   },

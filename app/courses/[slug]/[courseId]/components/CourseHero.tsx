@@ -15,19 +15,30 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import SafeImage from '@/components/ui/SafeImage'
 import { formatNumber } from '@/lib/utils/formatCurrency'
-import type { CourseDetail } from '@/lib/data/mockCourseDetail'
-import { formatImageUrl } from '@/lib/utils/formatImageUrl'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/services/fetchCourse'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 interface CourseHeroProps {
-  course: CourseDetail
+  course: CourseSummary | CourseDetailType
+}
+
+// Format duration from minutes to readable string
+const formatDuration = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours > 0 && mins > 0) {
+    return `${hours}h ${mins}m`
+  } else if (hours > 0) {
+    return `${hours}h`
+  }
+  return `${mins}m`
 }
 
 export default function CourseHero({ course }: CourseHeroProps) {
   const params = useParams()
   // Ensure we have params before constructing URL, fallback to '#' if not
   const profileUrl = params?.slug && params?.courseId 
-    ? `/courses/${params.slug}/${params.courseId}/instructor/${course.instructor.id}` 
+    ? `/courses/${params.slug}/${params.courseId}/instructor/${course.instructorId}` 
     : '#'
 
   const levelColors: Record<string, string> = {
@@ -45,6 +56,31 @@ export default function CourseHero({ course }: CourseHeroProps) {
   }
 
   const levelColor = levelColors[course.level] || 'bg-white/10 text-white border-white/20'
+  
+  // Parse rating from string to number
+  const rating = course.avgRating ? parseFloat(course.avgRating) : 0
+  const displayRating = rating > 0 ? rating.toFixed(1) : '0.0'
+  
+  // Format duration
+  const duration = formatDuration(course.totalDurationMinutes)
+  
+  // Format updated date
+  const updatedDate = course.updatedAt 
+    ? formatDateForDisplay(course.updatedAt)
+    : course.createdAt 
+    ? formatDateForDisplay(course.createdAt)
+    : 'Th11 2025'
+  
+  // Format date helper
+  function formatDateForDisplay(dateString: string): string {
+    try {
+      const date = new Date(dateString)
+      const months = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12']
+      return `${months[date.getMonth()]} ${date.getFullYear()}`
+    } catch {
+      return 'Th11 2025'
+    }
+  }
 
   return (
     <div className="relative w-full overflow-hidden bg-brand-dark min-h-[500px] flex items-center">
@@ -66,7 +102,7 @@ export default function CourseHero({ course }: CourseHeroProps) {
           <div className="flex items-center gap-3 text-sm font-medium text-brand-pink/90">
             <span className="uppercase tracking-wider">Khóa học</span>
             <span>/</span>
-            <span className="uppercase tracking-wider text-white/80">{course.category}</span>
+            <span className="uppercase tracking-wider text-white/80">{course.categoryName}</span>
           </div>
 
           {/* Title and Badges */}
@@ -78,7 +114,7 @@ export default function CourseHero({ course }: CourseHeroProps) {
               {course.title}
             </h1>
             <p className="text-lg md:text-xl text-white/80 line-clamp-2 max-w-2xl leading-relaxed">
-              {course.shortDescription || course.description}
+              {course.shortDescription || 'Khóa học chất lượng cao'}
             </p>
           </div>
 
@@ -90,10 +126,10 @@ export default function CourseHero({ course }: CourseHeroProps) {
               </span>
               <div>
                 <div className="font-bold flex items-center gap-1">
-                  {course.rating}
+                  {displayRating}
                   <span className="text-xs text-white/50 font-normal">/ 5.0</span>
                 </div>
-                <div className="text-xs text-white/60">Đánh giá</div>
+                <div className="text-xs text-white/60">Đánh giá ({formatNumber(course.totalReviews)})</div>
               </div>
             </div>
 
@@ -102,7 +138,7 @@ export default function CourseHero({ course }: CourseHeroProps) {
                 <Users className="w-5 h-5 text-blue-400" />
               </span>
               <div>
-                <div className="font-bold">{formatNumber(course.students)}</div>
+                <div className="font-bold">{formatNumber(course.totalStudents)}</div>
                 <div className="text-xs text-white/60">Học viên</div>
               </div>
             </div>
@@ -112,7 +148,7 @@ export default function CourseHero({ course }: CourseHeroProps) {
                 <Clock className="w-5 h-5 text-purple-400" />
               </span>
               <div>
-                 <div className="font-bold">{course.duration}</div>
+                 <div className="font-bold">{duration}</div>
                  <div className="text-xs text-white/60">Thời lượng</div>
               </div>
             </div>
@@ -123,8 +159,7 @@ export default function CourseHero({ course }: CourseHeroProps) {
               </span>
               <div>
                  <div className="font-bold">Cập nhật</div>
-                 <div className="text-xs text-white/60">Th11 2025</div> 
-                 {/* Note: updatedAt isn't in mock data, using static or prop if available in future */}
+                 <div className="text-xs text-white/60">{updatedDate}</div>
               </div>
             </div>
              
@@ -146,15 +181,14 @@ export default function CourseHero({ course }: CourseHeroProps) {
              <div className="flex items-center gap-3">
                 <Link href={profileUrl}>
                    <Avatar className="h-10 w-10 ring-2 ring-brand-purple/50 cursor-pointer hover:ring-brand-pink transition-all">
-                      <AvatarImage src={formatImageUrl(course.instructor.avatarUrl)} />
-                      <AvatarFallback>{course.instructor.fullName.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{course.instructorName.charAt(0)}</AvatarFallback>
                    </Avatar>
                 </Link>
                 <div>
                    <div className="text-xs text-white/50">Được tạo bởi</div>
                    <Link href={profileUrl}>
                       <div className="text-sm font-semibold text-white hover:text-brand-pink cursor-pointer transition-colors">
-                         {course.instructor.fullName}
+                         {course.instructorName}
                       </div>
                    </Link>
                 </div>

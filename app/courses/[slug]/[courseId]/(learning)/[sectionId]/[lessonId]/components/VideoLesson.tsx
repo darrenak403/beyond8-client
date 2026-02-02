@@ -10,6 +10,7 @@ import {
   Controls,
   useMediaState
 } from '@vidstack/react'
+import type { MediaPlayerInstance } from '@vidstack/react'
 import '@vidstack/react/player/styles/base.css'
 import { 
   Play, 
@@ -63,18 +64,82 @@ function CustomFullscreenButton() {
   )
 }
 
-interface VideoLessonProps {
-  title: string
-  videoUrl?: string
+// Time Display Component
+function TimeDisplay({ durationSeconds }: { durationSeconds?: number | null }) {
+  const currentTime = useMediaState('currentTime')
+  const duration = useMediaState('duration')
+  
+  const finalDuration = duration || (durationSeconds || 0)
+  
+  const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return '0:00'
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${String(secs).padStart(2, '0')}`
+  }
+  
+  return (
+    <div className="flex items-center gap-1 text-white text-xs font-medium">
+      <span>{formatTime(currentTime)}</span>
+      <span className="text-white/50">/</span>
+      <span className="text-white/70">{formatTime(finalDuration)}</span>
+    </div>
+  )
 }
 
-export default function VideoLesson({ title, videoUrl }: VideoLessonProps) {
+interface VideoLessonProps {
+  title: string
+  description?: string | null
+  videoUrl?: string
+  durationSeconds?: number | null
+}
+
+export default function VideoLesson({ title, description, videoUrl, durationSeconds }: VideoLessonProps) {
   const [isMounted, setIsMounted] = useState(false)
+  const playerRef = React.useRef<MediaPlayerInstance>(null)
 
   useEffect(() => {
     //eslint-disable-next-line
     setIsMounted(true)
   }, [])
+
+  // Set duration from durationSeconds if available and ensure currentTime starts at 0
+  useEffect(() => {
+    if (!playerRef.current) return
+    
+    const player = playerRef.current
+    
+    // Function to reset currentTime to 0
+    const resetCurrentTime = () => {
+      if (player.currentTime > 0) {
+        player.currentTime = 0
+      }
+    }
+    
+    // Reset immediately and after delays to catch async updates
+    resetCurrentTime()
+    const resetTimer1 = setTimeout(resetCurrentTime, 50)
+    const resetTimer2 = setTimeout(resetCurrentTime, 200)
+    
+    // Set duration if video hasn't loaded its own duration yet
+    if (durationSeconds && durationSeconds > 0) {
+      if (!player.duration || player.duration === 0) {
+        // Set duration and ensure currentTime is 0
+        try {
+          // @ts-expect-error - internal API to set duration
+          player.mediaStore?.setState?.({ duration: durationSeconds, currentTime: 0 })
+        } catch (e) {
+          // Fallback if internal API is not available
+          console.warn('Could not set duration via internal API', e)
+        }
+      }
+    }
+    
+    return () => {
+      clearTimeout(resetTimer1)
+      clearTimeout(resetTimer2)
+    }
+  }, [durationSeconds, videoUrl])
 
   if (!isMounted) {
     return (
@@ -89,6 +154,8 @@ export default function VideoLesson({ title, videoUrl }: VideoLessonProps) {
   return (
     <div className="w-full mb-8 group relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-black aspect-video">
       <MediaPlayer 
+        key={finalUrl}
+        ref={playerRef}
         title={title}
         src={finalUrl}
         playsInline
@@ -107,14 +174,17 @@ export default function VideoLesson({ title, videoUrl }: VideoLessonProps) {
            <div className="p-4 md:p-6 w-full space-y-4 pointer-events-auto">
               
               {/* Progress Bar (TimeSlider) */}
-              <TimeSlider.Root className="group/slider relative flex items-center select-none touch-none w-full h-4 cursor-pointer">
-                 <TimeSlider.Track className="relative ring-brand-purple bg-white/20 rounded-full w-full h-1 group-hover/slider:h-2 transition-all duration-300">
-                    <TimeSlider.TrackFill className="bg-brand-gradient absolute h-full rounded-full will-change-[width]" />
-                    <TimeSlider.Progress className="bg-white/30 absolute h-full rounded-full will-change-[width]" />
-                 </TimeSlider.Track>
-                 <TimeSlider.Thumb className="block w-4 h-4 bg-white rounded-full shadow-lg ring-2 ring-brand-purple opacity-0 group-hover/slider:opacity-100 transition-opacity transform scale-0 group-hover/slider:scale-100 transition-transform duration-200" />
-                 {/* Preview implementation would go here if thumbnails available */}
-              </TimeSlider.Root>
+              <div className="flex items-center gap-3">
+                <TimeSlider.Root className="group/slider relative flex items-center select-none touch-none w-full h-4 cursor-pointer">
+                   <TimeSlider.Track className="relative ring-brand-purple bg-white/20 rounded-full w-full h-1 group-hover/slider:h-2 transition-all duration-300">
+                      <TimeSlider.TrackFill className="bg-brand-gradient absolute h-full rounded-full will-change-[width]" />
+                      <TimeSlider.Progress className="bg-white/30 absolute h-full rounded-full will-change-[width]" />
+                   </TimeSlider.Track>
+                   <TimeSlider.Thumb className="block w-4 h-4 bg-white rounded-full shadow-lg ring-2 ring-brand-purple opacity-0 group-hover/slider:opacity-100 transition-opacity transform scale-0 group-hover/slider:scale-100 transition-transform duration-200" />
+                   {/* Preview implementation would go here if thumbnails available */}
+                </TimeSlider.Root>
+                <TimeDisplay durationSeconds={durationSeconds} />
+              </div>
 
               {/* Bottom Bar: Play | Volume | Spacer | Title | Settings | Fullscreen */}
               <div className="flex items-center justify-between gap-4">
@@ -122,7 +192,9 @@ export default function VideoLesson({ title, videoUrl }: VideoLessonProps) {
                     <CustomPlayButton />
 
                     <div className="hidden md:block">
-                        <h3 className="text-white text-sm font-medium line-clamp-1 max-w-[200px]">{title}</h3>
+                        <h3 className="text-white text-sm font-medium line-clamp-1 max-w-[200px]">
+                          {description || title}
+                        </h3>
                     </div>
                  </div>
 

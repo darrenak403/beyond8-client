@@ -14,15 +14,28 @@ import {
 } from "@/components/ui/accordion"
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { CourseDetail } from '@/lib/data/mockCourseDetail'
+import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/services/fetchCourse'
 
 interface CourseCurriculumProps {
-  course: CourseDetail
+  course: CourseSummary | CourseDetailType
+}
+
+// Format duration from minutes to readable string
+const formatDuration = (minutes: number | null | undefined): string => {
+  if (!minutes) return '0m'
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours > 0 && mins > 0) {
+    return `${hours}h ${mins}m`
+  } else if (hours > 0) {
+    return `${hours}h`
+  }
+  return `${mins}m`
 }
 
 export default function CourseCurriculum({ course }: CourseCurriculumProps) {
-  const totalLessons = course.sections.reduce((sum, section) => sum + section.lessons.length, 0)
-  const totalDuration = course.duration // Assuming this is string like "10h 30m"
+  const totalLessons = course.totalLessons || course.sections.reduce((sum, section) => sum + section.lessons.length, 0)
+  const totalDuration = formatDuration(course.totalDurationMinutes)
   const params = useParams()
   const slug = params?.slug as string || 'course-slug'
   const courseId = params?.courseId as string || course.id
@@ -39,7 +52,7 @@ export default function CourseCurriculum({ course }: CourseCurriculumProps) {
            </div>
         </div>
       </CardHeader>
-      <CardContent className="px-0">
+      <CardContent className="px-0 pb-0">
         <Accordion type="single" collapsible className="w-full space-y-4" defaultValue={course.sections[0]?.id}>
           {course.sections.map((section, index) => (
             <AccordionItem 
@@ -65,10 +78,16 @@ export default function CourseCurriculum({ course }: CourseCurriculumProps) {
                    </div>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="px-0 pb-0">
+              <AccordionContent className="px-0 pb-0 ">
                 <div className="divide-y">
                    {section.lessons.map((lesson) => {
                       const lessonUrl = `/courses/${slug}/${courseId}/${section.id}/${lesson.id}`
+                      // Handle both Lesson (from summary) and LessonDetail (from details)
+                      const lessonDuration = 'durationSeconds' in lesson && lesson.durationSeconds
+                        ? formatDuration(Math.floor(lesson.durationSeconds / 60))
+                        : 'duration' in lesson && typeof lesson.duration === 'string'
+                        ? lesson.duration
+                        : '0m'
 
                       return (
                         <Link 
@@ -109,7 +128,7 @@ export default function CourseCurriculum({ course }: CourseCurriculumProps) {
                                    </Badge>
                                 )}
                                 <span className="text-xs text-muted-foreground tabular-nums opacity-70">
-                                   {lesson.duration}
+                                   {lessonDuration}
                                 </span>
                              </div>
                           </div>

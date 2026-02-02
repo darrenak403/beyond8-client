@@ -28,26 +28,35 @@ import {
 import { useDebounce } from '@/hooks/useDebounce'
 import { CourseFilterSheet } from '@/components/widget/CourseFilterSheet'
 import { useIsMobile } from '@/hooks/useMobile'
-
-// Static categories from mockdata
-const STATIC_CATEGORIES = [
-  { id: 'all', label: 'Tất cả', value: '' },
-  { id: 'ai', label: 'AI', value: 'AI' },
-  { id: 'technology', label: 'Technology', value: 'Technology' },
-  { id: 'design', label: 'Design', value: 'Design' },
-  { id: 'marketing', label: 'Marketing', value: 'Marketing' },
-  { id: 'language', label: 'Language', value: 'Language' },
-  { id: 'backend', label: 'Backend', value: 'Backend' },
-]
+import { useCategory } from '@/hooks/useCategory'
+import { Category } from '@/lib/api/services/fetchCategory'
 
 export default function CourseFilter() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const currentCategory = searchParams.get('category') || ''
   const isMobile = useIsMobile()
+  const { categories, isLoading: isLoadingCategories } = useCategory()
 
   const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
   const debouncedSearch = useDebounce(searchValue, 500)
+
+  // Transform categories from API to the format expected by the component
+  const categoriesList = useMemo(() => {
+    const allOption = { id: 'all', label: 'Tất cả', value: '' }
+    
+    if (!categories?.data) {
+      return [allOption]
+    }
+
+    const mappedCategories = categories.data.map((category: Category) => ({
+      id: category.id,
+      label: category.name,
+      value: category.name,
+    }))
+
+    return [allOption, ...mappedCategories]
+  }, [categories])
 
   // Sort State
   const sortBy = searchParams.get('sortBy') || 'createdDate'
@@ -144,7 +153,7 @@ export default function CourseFilter() {
   const getPlaceholder = (categoryValue: string) => {
     if (isMobile) return 'Tìm khóa học...'
     
-    const selected = STATIC_CATEGORIES.find((c) => c.value === categoryValue)
+    const selected = categoriesList.find((c) => c.value === categoryValue)
     return selected && selected.value !== ''
       ? `Tìm khóa học ${selected.label.toLowerCase()}...`
       : 'Tìm kiếm khóa học...'
@@ -162,35 +171,43 @@ export default function CourseFilter() {
           className="w-full"
         >
           <CarouselContent className="-ml-1">
-            {STATIC_CATEGORIES.map((category) => {
-              const isActive = currentCategory === category.value
-              return (
-                <CarouselItem key={category.id} className="basis-1/3 sm:basis-1/4 pl-1">
-                  <button
-                    onClick={() => handleCategoryChange(category.value)}
-                    className={`
-                      relative w-full px-2 py-2 text-md font-medium whitespace-nowrap transition-colors cursor-pointer text-center
-                      ${
-                        isActive
-                          ? 'text-brand-magenta'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }
-                      `}
-                  >
-                    <span className="relative z-10 inline-block">
-                      {category.label}
-                      {isActive && (
-                        <motion.div
-                          layoutId="category-underline"
-                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-magenta"
-                          transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                        />
-                      )}
-                    </span>
-                  </button>
-                </CarouselItem>
-              )
-            })}
+            {isLoadingCategories ? (
+              <CarouselItem className="basis-1/3 sm:basis-1/4 pl-1">
+                <div className="w-full px-2 py-2 text-md text-muted-foreground text-center">
+                  Đang tải...
+                </div>
+              </CarouselItem>
+            ) : (
+              categoriesList.map((category) => {
+                const isActive = currentCategory === category.value
+                return (
+                  <CarouselItem key={category.id} className="basis-1/3 sm:basis-1/4 pl-1">
+                    <button
+                      onClick={() => handleCategoryChange(category.value)}
+                      className={`
+                        relative w-full px-2 py-2 text-md font-medium whitespace-nowrap transition-colors cursor-pointer text-center
+                        ${
+                          isActive
+                            ? 'text-brand-magenta'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }
+                        `}
+                    >
+                      <span className="relative z-10 inline-block">
+                        {category.label}
+                        {isActive && (
+                          <motion.div
+                            layoutId="category-underline"
+                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-magenta"
+                            transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                          />
+                        )}
+                      </span>
+                    </button>
+                  </CarouselItem>
+                )
+              })
+            )}
           </CarouselContent>
           <CarouselPrevious className="hidden md:flex -left-9 h-8 w-8" />
           <CarouselNext className="hidden md:flex -right-9 h-8 w-8" />

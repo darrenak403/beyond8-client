@@ -4,7 +4,7 @@ import { Menu, X, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { CourseDetail } from '@/lib/data/mockCourseDetail'
+import { CourseDetail } from '@/lib/api/services/fetchCourse'
 
 interface LessonHeaderProps {
   course: CourseDetail

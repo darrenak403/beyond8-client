@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell, Crown, Gem, Zap } from "lucide-react";
+import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell, Crown, Gem, Zap, DollarSign } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -16,6 +16,9 @@ import { Category } from "@/lib/api/services/fetchCategory";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
+import { Slider } from "@/components/ui/slider";
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { useRouter } from "next/navigation";
 // import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -131,6 +134,290 @@ const CategoryMenu = ({
   );
 };
 
+const PriceFilterMenu = ({
+  minPrice,
+  maxPrice,
+  onPriceChange,
+  onApply,
+  onClear,
+  onPriceDisplayChange
+}: {
+  minPrice: number;
+  maxPrice: number;
+  onPriceChange: (min: number, max: number) => void;
+  onApply: () => void;
+  onClear: () => void;
+  onPriceDisplayChange?: (display: string) => void;
+}) => {
+  const router = useRouter();
+  const MAX_PRICE = 5000000; // 5 triệu
+  const [localMinPrice, setLocalMinPrice] = useState(minPrice);
+  const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice);
+
+  // Mock data for price distribution chart
+  const priceDistributionData = [
+    { price: 0, count: 0 },
+    { price: 0.5, count: 150 },
+    { price: 1, count: 200 },
+    { price: 1.5, count: 180 },
+    { price: 2, count: 120 },
+    { price: 2.5, count: 80 },
+    { price: 3, count: 40 },
+    { price: 3.5, count: 20 },
+    { price: 4, count: 10 },
+    { price: 4.5, count: 5 },
+    { price: 5, count: 2 },
+  ];
+
+  const formatPrice = (price: number) => {
+    if (price >= 1000000) {
+      return `${(price / 1000000).toFixed(0)}tr`;
+    }
+    return `${price.toLocaleString()}`;
+  };
+
+  const formatPriceInput = (price: number) => {
+    if (price === 0) return '';
+    return price.toLocaleString('vi-VN');
+  };
+
+  const presetRanges = [
+    { label: 'Dưới 1tr', min: 0, max: 1000000 },
+    { label: '1-2tr', min: 1000000, max: 2000000 },
+    { label: '2-3tr', min: 2000000, max: 3000000 },
+    { label: '3-4tr', min: 3000000, max: 4000000 },
+    { label: '4-5tr', min: 4000000, max: 5000000 },
+    { label: 'Tất cả', min: 0, max: MAX_PRICE },
+  ];
+
+  const formatPriceDisplay = (min: number, max: number) => {
+    if (min === 0 && max === MAX_PRICE) {
+      return "Mức giá";
+    }
+    const formatPrice = (p: number) => {
+      if (p >= 1000000) return `${(p / 1000000).toFixed(0)}tr`;
+      return `${p.toLocaleString()}`;
+    };
+    return `${formatPrice(min)} - ${formatPrice(max)}`;
+  };
+
+  const handleSliderChange = (values: number[]) => {
+    const newMin = values[0];
+    const newMax = values[1];
+    setLocalMinPrice(newMin);
+    setLocalMaxPrice(newMax);
+    if (onPriceDisplayChange) {
+      onPriceDisplayChange(formatPriceDisplay(newMin, newMax));
+    }
+  };
+
+  const handlePresetClick = (min: number, max: number) => {
+    setLocalMinPrice(min);
+    setLocalMaxPrice(max);
+    if (onPriceDisplayChange) {
+      onPriceDisplayChange(formatPriceDisplay(min, max));
+    }
+  };
+
+  const handleApply = () => {
+    onPriceChange(localMinPrice, localMaxPrice);
+    onApply();
+    
+    // Navigate to courses page with current filters
+    const params = new URLSearchParams();
+    if (localMinPrice > 0) {
+      params.set('minPrice', localMinPrice.toString());
+    }
+    if (localMaxPrice < 5000000) {
+      params.set('maxPrice', localMaxPrice.toString());
+    }
+    router.push(`/courses?${params.toString()}`);
+  };
+
+  const handleClear = () => {
+    setLocalMinPrice(0);
+    setLocalMaxPrice(MAX_PRICE);
+    onPriceChange(0, MAX_PRICE);
+    onClear();
+  };
+
+  const handleMinPriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value === '') {
+      const newMin = 0;
+      setLocalMinPrice(newMin);
+      if (onPriceDisplayChange) {
+        onPriceDisplayChange(formatPriceDisplay(newMin, localMaxPrice));
+      }
+      return;
+    }
+    const numValue = parseInt(value) || 0;
+    const clampedValue = Math.min(Math.max(numValue, 0), localMaxPrice);
+    setLocalMinPrice(clampedValue);
+    if (onPriceDisplayChange) {
+      onPriceDisplayChange(formatPriceDisplay(clampedValue, localMaxPrice));
+    }
+  };
+
+  const handleMaxPriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value === '') {
+      const newMax = MAX_PRICE;
+      setLocalMaxPrice(newMax);
+      if (onPriceDisplayChange) {
+        onPriceDisplayChange(formatPriceDisplay(localMinPrice, newMax));
+      }
+      return;
+    }
+    const numValue = parseInt(value) || MAX_PRICE;
+    const clampedValue = Math.max(Math.min(numValue, MAX_PRICE), localMinPrice);
+    setLocalMaxPrice(clampedValue);
+    if (onPriceDisplayChange) {
+      onPriceDisplayChange(formatPriceDisplay(localMinPrice, clampedValue));
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      className="w-[400px] bg-background rounded-lg border shadow-lg p-6"
+    >
+      <h3 className="text-lg font-semibold mb-4 text-foreground">Mức giá</h3>
+
+      {/* Price Input Fields */}
+      <div className="flex flex-row gap-4 mb-6">
+        <div className="flex-1">
+          <label className="text-sm text-muted-foreground mb-2 block">Giá tối thiểu</label>
+          <div className="relative">
+            <Input
+              type="text"
+              value={formatPriceInput(localMinPrice)}
+              onChange={handleMinPriceInput}
+              className="pr-12"
+              placeholder="Từ"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground z-10">VND</span>
+          </div>
+        </div>
+
+        <div className="flex-1">
+          <label className="text-sm text-muted-foreground mb-2 block">Giá tối đa</label>
+          <div className="relative">
+            <Input
+              type="text"
+              value={formatPriceInput(localMaxPrice)}
+              onChange={handleMaxPriceInput}
+              className="pr-12"
+              placeholder="Đến"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground z-10">VND</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Price Distribution Chart */}
+      <div className="mb-6">
+        <div className="h-24 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={priceDistributionData}>
+              <defs>
+                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#9333ea" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="#9333ea"
+                fillOpacity={1}
+                fill="url(#colorPrice)"
+              />
+              <XAxis dataKey="price" hide />
+              <YAxis hide />
+              <Tooltip 
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    const priceInMillion = data.price;
+                    const count = data.count;
+                    return (
+                      <div className="bg-background border rounded-lg shadow-lg p-3">
+                        <p className="text-sm font-semibold text-foreground">
+                          {priceInMillion} triệu VND
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Tổng số course: <span className="font-semibold text-foreground">{count}</span>
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Price Range Slider */}
+      <div className="mb-6">
+        <Slider
+          value={[localMinPrice, localMaxPrice]}
+          onValueChange={handleSliderChange}
+          min={0}
+          max={MAX_PRICE}
+          step={100000}
+          className="w-full"
+        />
+        <div className="flex justify-between text-xs text-muted-foreground mt-2">
+          <span>0</span>
+          <span>{formatPrice(MAX_PRICE)}</span>
+        </div>
+      </div>
+
+      {/* Preset Price Range Buttons */}
+      <div className="grid grid-cols-3 gap-2 mb-6">
+        {presetRanges.map((preset) => (
+          <Button
+            key={preset.label}
+            variant="outline"
+            size="sm"
+            onClick={() => handlePresetClick(preset.min, preset.max)}
+            className={cn(
+              "text-xs",
+              localMinPrice === preset.min && localMaxPrice === preset.max
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "hover:bg-gray-200 hover:text-black"
+            )}
+          >
+            {preset.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          onClick={handleClear}
+          className="flex-1 hover:bg-gray-200 hover:text-black"
+        >
+          Xóa tất cả
+        </Button>
+        <Button
+          onClick={handleApply}
+          className="flex-1 "
+        >
+          Áp dụng
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
+
 export function Header() {
   const isMobile = useIsMobile();
   const { isAuthenticated } = useAuth();
@@ -139,10 +426,13 @@ export function Header() {
   const { status: notificationStatus } = useStudentNotificationStatus({ enabled: isAuthenticated });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(5000000);
+  const [priceDisplay, setPriceDisplay] = useState("Mức giá");
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { mutateLogout } = useLogout();
 
   const headerRef = useRef<HTMLElement>(null);
@@ -407,9 +697,28 @@ export function Header() {
     mutateLogout();
   };
 
+  const router = useRouter();
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Searching for:", searchQuery, "Category:", selectedCategory);
+    // Navigate to courses page with default params (no filters)
+    router.push(`/courses`);
+  };
+
+  const handlePriceChange = (min: number, max: number) => {
+    setMinPrice(min);
+    setMaxPrice(max);
+    
+    // Update display text
+    if (min === 0 && max === 5000000) {
+      setPriceDisplay("Mức giá");
+    } else {
+      const formatPrice = (p: number) => {
+        if (p >= 1000000) return `${(p / 1000000).toFixed(0)}tr`;
+        return `${p.toLocaleString()}`;
+      };
+      setPriceDisplay(`${formatPrice(min)} - ${formatPrice(max)}`);
+    }
   };
 
 
@@ -436,7 +745,7 @@ export function Header() {
         {!isMobile && (
           <form onSubmit={handleSearch} className="flex justify-center" id="search-form" ref={searchFormRef}>
             <div ref={searchContainerRef} className="relative flex items-center rounded-full bg-background overflow-hidden shadow-lg">
-              <div className="w-1/2 flex items-center pl-4" id="search-input-section">
+              <div className="flex-1 flex items-center pl-4" id="search-input-section">
                 <Input
                   type="search"
                   placeholder="Tìm kiếm khóa học..."
@@ -448,30 +757,17 @@ export function Header() {
 
               <div className="h-8 w-px bg-border" />
 
-              <div className="w-1/2 flex items-center justify-between pr-1">
+              <div className="flex items-center justify-between pr-1">
                 <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
                   <DropdownMenuTrigger
-                    className="flex items-center justify-between w-full px-3 py-2 text-sm focus:outline-none cursor-pointer"
-                    onMouseEnter={() => {
-                      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-                      setIsOpen(true);
-                    }}
-                    onMouseLeave={() => {
-                      timeoutRef.current = setTimeout(() => setIsOpen(false), 100);
-                    }}
+                    className="flex items-center justify-between px-3 py-2 text-sm focus:outline-none cursor-pointer min-w-[120px]"
                   >
-                    <span className="truncate max-w-[120px]">{selectedCategory}</span>
+                    <span className="truncate max-w-[100px]">{selectedCategory}</span>
                     <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="center"
                     sideOffset={10}
-                    onMouseEnter={() => {
-                      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-                    }}
-                    onMouseLeave={() => {
-                      timeoutRef.current = setTimeout(() => setIsOpen(false), 100);
-                    }}
                     className="p-0 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200 !overflow-visible border-none bg-transparent shadow-none w-auto"
                   >
                     <CategoryMenu Content={categoryData?.data} onSelect={(name) => {
@@ -481,14 +777,41 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <Link href="/courses">
-                  <button
-                    type="button"
-                    className="p-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-colors border border-purple-500 cursor-pointer"
+                <div className="h-8 w-px bg-border" />
+
+                <DropdownMenu open={isPriceOpen} onOpenChange={setIsPriceOpen} modal={false}>
+                  <DropdownMenuTrigger
+                    className="flex items-center justify-between px-3 py-2 text-sm focus:outline-none cursor-pointer min-w-[120px]"
                   >
-                    <Search className="h-4 w-4 text-white" />
-                  </button>
-                </Link>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <span className="truncate max-w-[100px]">{priceDisplay}</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="center"
+                    sideOffset={10}
+                    className="p-0 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200 !overflow-visible border-none bg-transparent shadow-none w-auto"
+                  >
+                    <PriceFilterMenu
+                      key={`${minPrice}-${maxPrice}`}
+                      minPrice={minPrice}
+                      maxPrice={maxPrice}
+                      onPriceChange={handlePriceChange}
+                      onApply={() => setIsPriceOpen(false)}
+                      onClear={() => setIsPriceOpen(false)}
+                      onPriceDisplayChange={setPriceDisplay}
+                    />
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <button
+                  type="submit"
+                  className="p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border border-purple-500 cursor-pointer ml-1"
+                >
+                  <Search className="h-4 w-4 text-white" />
+                </button>
               </div>
             </div>
           </form>

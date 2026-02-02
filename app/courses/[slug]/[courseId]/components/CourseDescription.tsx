@@ -7,10 +7,10 @@ import {
   Users
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { CourseDetail } from '@/lib/data/mockCourseDetail'
+import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/services/fetchCourse'
 
 interface CourseDescriptionProps {
-  course: CourseDetail
+  course: CourseSummary | CourseDetailType
 }
 
 export default function CourseDescription({ course }: CourseDescriptionProps) {
@@ -42,7 +42,7 @@ export default function CourseDescription({ course }: CourseDescriptionProps) {
       <div className="prose prose-lg dark:prose-invert max-w-none text-foreground/80">
         <h2 className="text-2xl font-bold text-foreground mb-4">Mô tả khóa học</h2>
         <div className="whitespace-pre-line leading-relaxed">
-          {course.description || "Chưa có mô tả chi tiết cho khóa học này."}
+          {course.shortDescription || "Chưa có mô tả chi tiết cho khóa học này."}
         </div>
       </div>
 

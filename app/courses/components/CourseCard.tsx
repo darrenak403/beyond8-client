@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import SafeImage from '@/components/ui/SafeImage'
 import { formatCurrency, formatNumber } from '@/lib/utils/formatCurrency'
 import { generateSlug } from '@/lib/utils/generateSlug'
-import type { Course } from '@/lib/data/mockCourses'
+import type { Course } from '@/lib/api/services/fetchCourse'
 
 interface CourseCardProps {
   course: Course
@@ -15,6 +15,22 @@ interface CourseCardProps {
 export default function CourseCard({ course }: CourseCardProps) {
   const slug = course.slug || generateSlug(course.title)
   const courseUrl = `/courses/${slug}/${course.id}`
+
+  // Format duration from minutes to hours
+  const formatDuration = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    if (hours > 0 && mins > 0) {
+      return `${hours} giờ ${mins} phút`
+    } else if (hours > 0) {
+      return `${hours} giờ`
+    }
+    return `${mins} phút`
+  }
+
+  // Parse rating from string to number, default to 0 if null or invalid
+  const rating = course.avgRating ? parseFloat(course.avgRating) : 0
+  const displayRating = rating > 0 ? rating.toFixed(1) : '0.0'
 
   return (
     <Link href={courseUrl} target="_blank" className="block h-full">
@@ -28,7 +44,7 @@ export default function CourseCard({ course }: CourseCardProps) {
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <Badge className="absolute top-2 right-2 bg-primary rounded-lg text-xs px-1.5 py-0.5">
-            {course.category}
+            {course.categoryName}
           </Badge>
         </div>
 
@@ -38,21 +54,24 @@ export default function CourseCard({ course }: CourseCardProps) {
             {course.title}
           </h3>
           <p className="text-xs text-muted-foreground mb-2 group-hover:text-primary/80 transition-colors duration-300">
-            {course.instructor}
+            {course.instructorName}
           </p>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 group-hover:text-primary/70 transition-colors duration-300">
             <div className="flex items-center gap-0.5">
               <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{course.rating}</span>
+              <span className="font-medium">{displayRating}</span>
+              {course.totalReviews > 0 && (
+                <span className="text-muted-foreground/70">({formatNumber(course.totalReviews)})</span>
+              )}
             </div>
             <div className="flex items-center gap-0.5">
               <Users className="w-3 h-3" />
-              <span>{formatNumber(course.students)}</span>
+              <span>{formatNumber(course.totalStudents)}</span>
             </div>
             <div className="flex items-center gap-0.5">
               <Clock className="w-3 h-3" />
-              <span>{course.duration}</span>
+              <span>{formatDuration(course.totalDurationMinutes)}</span>
             </div>
           </div>
 

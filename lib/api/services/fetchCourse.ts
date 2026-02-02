@@ -19,6 +19,13 @@ export enum CourseStatus {
     Suspended = "Suspended"
 }
 
+export enum LessonType {
+    Video = "Video",
+    Quiz = "Quiz",
+    Text = "Text",
+    Assignment = "Assignment"
+}
+
 export interface Course {
     id: string
     title: string
@@ -100,6 +107,155 @@ export interface CourseParams {
     sortBy?: string
 }
 
+export interface PublicCourseParams {
+    keyword?: string
+    categoryName?: string
+    instructorName?: string
+    level?: CourseLevel
+    language?: string
+    minPrice?: number
+    maxPrice?: number
+    minRating?: number
+    minStudents?: number
+    isDescendingPrice?: boolean
+    isRandom?: boolean
+    pageNumber?: number
+    pageSize?: number
+    isDescending?: boolean
+}
+
+export interface PublicCourseResponse {
+    isSuccess: boolean
+    message: string
+    data: Course[]
+    metadata: Metadata | null
+}
+
+export interface Lesson {
+    id: string
+    title: string
+    description: string | null
+    type: LessonType
+    order: number
+    isPreview: boolean
+    durationSeconds: number | null
+    videoThumbnailUrl: string | null
+    quizId: string | null
+    hasTextContent: boolean
+}
+
+export interface Section {
+    id: string
+    title: string
+    description: string | null
+    order: number
+    totalLessons: number
+    totalDurationMinutes: number
+    lessons: Lesson[]
+}
+
+export interface CourseSummary {
+    id: string
+    title: string
+    slug: string
+    shortDescription: string | null
+    categoryId: string
+    categoryName: string
+    instructorId: string
+    instructorName: string
+    status: CourseStatus
+    level: CourseLevel
+    language: string
+    price: number
+    thumbnailUrl: string
+    totalStudents: number
+    totalSections: number
+    totalLessons: number
+    totalDurationMinutes: number
+    avgRating: string | null
+    totalReviews: number
+    outcomes?: string[]
+    requirements?: string[]
+    targetAudience?: string[]
+    createdAt: string
+    updatedAt: string | null
+    sections: Section[]
+}
+
+export interface CourseSummaryResponse {
+    isSuccess: boolean
+    message: string
+    data: CourseSummary
+    metadata: Metadata | null
+}
+
+export interface LessonDetail {
+    id: string
+    sectionId: string
+    title: string
+    description: string | null
+    type: LessonType
+    orderIndex: number
+    isPreview: boolean
+    isPublished: boolean
+    hlsVariants: string | null
+    videoOriginalUrl: string | null
+    durationSeconds?: number | null
+    videoThumbnailUrl?: string | null
+    quizId?: string | null
+    hasTextContent?: boolean
+    [key: string]: unknown // For additional properties
+}
+
+export interface SectionDetail {
+    id: string
+    courseId: string
+    title: string
+    description: string | null
+    orderIndex: number
+    isPublished: boolean
+    totalLessons: number
+    totalDurationMinutes: number
+    assignmentId: string | null
+    lessons: LessonDetail[]
+    [key: string]: unknown // For additional properties
+}
+
+export interface CourseDetail {
+    id: string
+    title: string
+    slug: string
+    shortDescription: string | null
+    categoryId: string
+    categoryName: string
+    instructorId: string
+    instructorName: string
+    status: CourseStatus
+    level: CourseLevel
+    language: string
+    price: number
+    thumbnailUrl: string
+    totalStudents: number
+    totalSections: number
+    totalLessons: number
+    totalDurationMinutes: number
+    avgRating: string | null
+    totalReviews: number
+    outcomes?: string[]
+    requirements?: string[]
+    targetAudience?: string[]
+    createdAt: string
+    updatedAt: string | null
+    sections: SectionDetail[]
+}
+
+export interface CourseDetailResponse {
+    isSuccess: boolean
+    message: string
+    data: CourseDetail
+    metadata: Metadata | null
+}
+
 const convertParamsToQuery = (params?: CourseParams): RequestParams => {
     if (!params) return {};
     const query: RequestParams = {};
@@ -122,10 +278,36 @@ const convertParamsToQuery = (params?: CourseParams): RequestParams => {
     return query;
 }
 
+const convertPublicCourseParamsToQuery = (params?: PublicCourseParams): RequestParams => {
+    if (!params) return {};
+    const query: RequestParams = {};
+    if (params.keyword) query.keyword = params.keyword;
+    if (params.categoryName) query.categoryName = params.categoryName;
+    if (params.instructorName) query.instructorName = params.instructorName;
+    if (params.level) query.level = params.level;
+    if (params.language) query.language = params.language;
+    if (params.minPrice) query.minPrice = params.minPrice;
+    if (params.maxPrice) query.maxPrice = params.maxPrice;
+    if (params.minRating) query.minRating = params.minRating;
+    if (params.minStudents) query.minStudents = params.minStudents;
+    if (params.isDescendingPrice !== undefined) query.isDescendingPrice = params.isDescendingPrice;
+    if (params.isRandom) query.isRandom = params.isRandom;
+    if (params.pageNumber) query.pageNumber = params.pageNumber;
+    if (params.pageSize) query.pageSize = params.pageSize;
+    if (params.isDescending) query.isDescending = params.isDescending;
+    return query;
+}
+
 
 export const fetchCourse = {
     createNewCourse: async (course: CourseRequest): Promise<CourseResponse> => {
         const response = await apiService.post<CourseResponse>("api/v1/courses", course);
+        return response.data;
+    },
+
+    getCourses: async (filterParams?: PublicCourseParams): Promise<PublicCourseResponse> => {
+        const params = convertPublicCourseParamsToQuery(filterParams);
+        const response = await apiService.get<PublicCourseResponse>("api/v1/courses", params);
         return response.data;
     },
 
@@ -137,6 +319,16 @@ export const fetchCourse = {
 
     getCourseById: async (id: string): Promise<CourseResponse> => {
         const response = await apiService.get<CourseResponse>(`api/v1/courses/${id}`);
+        return response.data;
+    },
+
+    getCourseSummary: async (id: string): Promise<CourseSummaryResponse> => {
+        const response = await apiService.get<CourseSummaryResponse>(`api/v1/courses/${id}/summary`);
+        return response.data;
+    },
+
+    getCourseDetails: async (id: string): Promise<CourseDetailResponse> => {
+        const response = await apiService.get<CourseDetailResponse>(`api/v1/courses/${id}/details`);
         return response.data;
     },
 

@@ -1,9 +1,15 @@
 import {
   Course,
+  CourseDetail,
+  CourseDetailResponse,
   CourseParams,
   CourseRequest,
   CourseResponse,
+  CourseSummary,
+  CourseSummaryResponse,
   CourseUpdateRequest,
+  PublicCourseParams,
+  PublicCourseResponse,
   fetchCourse,
 } from "@/lib/api/services/fetchCourse";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +34,49 @@ export function useCreateCourse() {
   return {
     createCourse: mutateAsync,
     isPending,
+  };
+}
+
+export function useGetCourses(filterParams?: PublicCourseParams) {
+  const { data, isLoading, refetch, isFetching, isError } = useQuery<
+    PublicCourseResponse,
+    Error,
+    {
+      courses: Course[];
+      count: number;
+      page: number;
+      pageSize: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    }
+  >({
+    queryKey: ["courses", "public", filterParams],
+    queryFn: () => fetchCourse.getCourses(filterParams),
+    select: (data) => ({
+      courses: data.data,
+      count: data.metadata?.totalItems ?? 0,
+      page: data.metadata?.pageNumber ?? 1,
+      pageSize: data.metadata?.pageSize ?? 10,
+      totalPages: data.metadata?.totalPages ?? 0,
+      hasNextPage: data.metadata?.hasNextPage ?? false,
+      hasPreviousPage: data.metadata?.hasPreviousPage ?? false,
+    }),
+    placeholderData: keepPreviousData,
+  });
+
+  return {
+    courses: data?.courses ?? [],
+    count: data?.count ?? 0,
+    page: data?.page ?? 1,
+    pageSize: data?.pageSize ?? 10,
+    totalPages: data?.totalPages ?? 0,
+    hasNextPage: data?.hasNextPage ?? false,
+    hasPreviousPage: data?.hasPreviousPage ?? false,
+    isLoading,
+    refetch,
+    isFetching,
+    isError,
   };
 }
 
@@ -84,6 +133,38 @@ export function useGetCourseById(id: string) {
 
   return {
     course: data,
+    isLoading,
+    isError,
+    refetch,
+  };
+}
+
+export function useGetCourseSummary(id: string) {
+  const { data, isLoading, isError, refetch } = useQuery<CourseSummaryResponse, Error, CourseSummary>({
+    queryKey: ["course", "summary", id],
+    queryFn: () => fetchCourse.getCourseSummary(id),
+    select: (data) => data.data,
+    enabled: !!id,
+  });
+
+  return {
+    courseSummary: data,
+    isLoading,
+    isError,
+    refetch,
+  };
+}
+
+export function useGetCourseDetails(id: string) {
+  const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>({
+    queryKey: ["course", "details", id],
+    queryFn: () => fetchCourse.getCourseDetails(id),
+    select: (data) => data.data,
+    enabled: !!id,
+  });
+
+  return {
+    courseDetails: data,
     isLoading,
     isError,
     refetch,

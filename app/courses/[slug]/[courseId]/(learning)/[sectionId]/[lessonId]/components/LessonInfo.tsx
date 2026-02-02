@@ -2,19 +2,19 @@
 
 import { ChevronLeft, ChevronRight, Download, FileText, MessageCircle, Share2, ThumbsUp } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { useParams } from 'next/navigation'
+import SafeImage from '@/components/ui/SafeImage'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CourseDetail, Lesson } from '@/lib/data/mockCourseDetail'
+import { CourseDetail, LessonDetail } from '@/lib/api/services/fetchCourse'
 
 interface LessonInfoProps {
   course: CourseDetail
-  currentLesson: Lesson
+  currentLesson: LessonDetail
+  slug: string
+  courseId: string
 }
 
-export default function LessonInfo({ course, currentLesson }: LessonInfoProps) {
-  const params = useParams() as { slug: string; courseId: string; sectionId: string; lessonId: string }
+export default function LessonInfo({ course, currentLesson, slug, courseId }: LessonInfoProps) {
 
   // Find prev/next lesson
   const allLessons = course.sections.flatMap(s => s.lessons.map(l => ({ ...l, sectionId: s.id })))
@@ -32,7 +32,7 @@ export default function LessonInfo({ course, currentLesson }: LessonInfoProps) {
           
           <div className="flex items-center gap-3 shrink-0">
             {prevLesson ? (
-              <Link href={`/courses/${params.slug}/${params.courseId}/${prevLesson.sectionId}/${prevLesson.id}`}>
+              <Link href={`/courses/${slug}/${courseId}/${prevLesson.sectionId}/${prevLesson.id}`}>
                 <Button variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 hover:text-white text-white/70">
                   <ChevronLeft className="w-4 h-4 mr-2" /> Bài trước
                 </Button>
@@ -44,7 +44,7 @@ export default function LessonInfo({ course, currentLesson }: LessonInfoProps) {
             )}
 
             {nextLesson ? (
-              <Link href={`/courses/${params.slug}/${params.courseId}/${nextLesson.sectionId}/${nextLesson.id}`}>
+              <Link href={`/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}`}>
                 <Button className="bg-brand-gradient hover:opacity-90 text-white border-none shadow-brand-glow">
                   Bài tiếp theo <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -92,8 +92,8 @@ export default function LessonInfo({ course, currentLesson }: LessonInfoProps) {
 
             <div className="flex items-center gap-4 py-8 border-t border-white/10">
               <div className="flex items-center gap-2 text-white/50">
-                <Image 
-                  src={course.instructor.avatarUrl || "https://github.com/shadcn.png"} 
+                <SafeImage 
+                  src="https://github.com/shadcn.png" 
                   alt="Instructor" 
                   width={40}
                   height={40}
@@ -101,7 +101,7 @@ export default function LessonInfo({ course, currentLesson }: LessonInfoProps) {
                 />
                 <div>
                   <div className="text-sm font-medium text-white">Giảng viên</div>
-                  <div className="text-xs">{course.instructor.fullName}</div>
+                  <div className="text-xs">{course.instructorName}</div>
                 </div>
               </div>
               <div className="ml-auto flex gap-2">

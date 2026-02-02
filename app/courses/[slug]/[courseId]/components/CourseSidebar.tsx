@@ -13,10 +13,22 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/lib/utils/formatCurrency'
-import type { CourseDetail } from '@/lib/data/mockCourseDetail'
+import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/services/fetchCourse'
 
 interface CourseSidebarProps {
-  course: CourseDetail
+  course: CourseSummary | CourseDetailType
+}
+
+// Format duration from minutes to readable string
+const formatDuration = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours > 0 && mins > 0) {
+    return `${hours}h ${mins}m`
+  } else if (hours > 0) {
+    return `${hours}h`
+  }
+  return `${mins}m`
 }
 
 export default function CourseSidebar({ course }: CourseSidebarProps) {
@@ -29,13 +41,21 @@ export default function CourseSidebar({ course }: CourseSidebarProps) {
   //    ? `/courses/${slug}/${course.id}/${firstSectionId}/${firstLessonId}`
   //    : '#'
 
-  const totalLessons = course.sections.reduce((sum, section) => sum + section.lessons.length, 0)
+  const totalLessons = course.totalLessons || course.sections.reduce((sum, section) => sum + section.lessons.length, 0)
+  const duration = formatDuration(course.totalDurationMinutes)
   
   const originalPrice = course.price * 1.5
   const discountParams = Math.round(((originalPrice - course.price) / originalPrice) * 100)
+  
+  const levelText: Record<string, string> = {
+    Beginner: 'Cơ bản',
+    Intermediate: 'Trung bình',
+    Advanced: 'Nâng cao',
+    Expert: 'Chuyên gia',
+  }
 
   return (
-    <Card className="sticky top-20 overflow-hidden border-brand-magenta/20 shadow-xl shadow-brand-magenta/5 backdrop-blur-xl bg-white/80 dark:bg-black/80">
+    <Card className="sticky top-24 overflow-hidden border-brand-magenta/20 shadow-xl shadow-brand-magenta/5 backdrop-blur-xl bg-white/80 dark:bg-black/80">
       <div className="h-2 bg-gradient-to-r from-brand-pink via-brand-magenta to-brand-purple" />
       <CardContent className="p-6 space-y-6">
         {/* Price Section */}
@@ -82,7 +102,7 @@ export default function CourseSidebar({ course }: CourseSidebarProps) {
           <ul className="space-y-3 text-sm text-muted-foreground">
             <li className="flex items-center gap-3">
               <MonitorPlay className="w-5 h-5 text-brand-purple" />
-              <span>{course.duration} video bài giảng</span>
+              <span>{duration} video bài giảng</span>
             </li>
             <li className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-brand-purple" />
@@ -107,7 +127,7 @@ export default function CourseSidebar({ course }: CourseSidebarProps) {
         <div className="bg-muted/30 -mx-6 -mb-6 p-4 border-t mt-6">
            <div className="flex justify-between text-center">
               <div>
-                 <div className="font-bold text-brand-dark">{course.level === 'Beginner' ? 'Cơ bản' : course.level}</div>
+                 <div className="font-bold text-brand-dark">{levelText[course.level] || course.level}</div>
                  <div className="text-xs text-muted-foreground">Trình độ</div>
               </div>
               <div className="w-px bg-border h-auto" />

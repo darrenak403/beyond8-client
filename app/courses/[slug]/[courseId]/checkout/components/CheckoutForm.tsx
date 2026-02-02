@@ -5,7 +5,12 @@ import { QrCode, Copy, Check, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
-export default function CheckoutForm() {
+interface CheckoutFormProps {
+  slug: string;
+  courseId: string;
+}
+
+export default function CheckoutForm({ slug, courseId }: CheckoutFormProps) {
   const [isManual, setIsManual] = useState(false);
   const [isLayoutSplit, setIsLayoutSplit] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);

@@ -1,40 +1,64 @@
-import { redirect } from 'next/navigation'
-import { getCourseDetailById } from '@/lib/data/mockCourseDetail'
+'use client'
+
+import { useParams, useRouter } from 'next/navigation'
+import { useGetCourseDetails } from '@/hooks/useCourse'
 import VideoLesson from './components/VideoLesson'
 import LessonInfo from './components/LessonInfo'
+import { Skeleton } from '@/components/ui/skeleton'
 
-interface LessonPageProps {
-  params: Promise<{
-    slug: string
-    courseId: string
-    sectionId: string
-    lessonId: string
-  }>
-}
+export default function LessonPage() {
+  const params = useParams()
+  const router = useRouter()
+  const courseId = params?.courseId as string
+  const slug = params?.slug as string
+  const sectionId = params?.sectionId as string
+  const lessonId = params?.lessonId as string
 
-export default async function LessonPage({ params }: LessonPageProps) {
-  const resolvedParams = await params
-  const course = getCourseDetailById(resolvedParams.courseId)
-  
-  if (!course) {
-    redirect('/courses')
+  // Fetch course data from API (hooks must be called before early returns)
+  const {
+    courseDetails,
+    isLoading,
+    isError,
+  } = useGetCourseDetails(courseId || "")
+
+  // Check if params exist
+  if (!courseId || !slug || !sectionId || !lessonId) {
+    router.push('/courses')
+    return null
+  }
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-[1600px] mx-auto p-0 lg:p-6">
+        <Skeleton className="w-full aspect-video mb-8" />
+        <Skeleton className="w-full h-64" />
+      </div>
+    )
+  }
+
+  if (isError || !courseDetails) {
+    router.push('/courses')
+    return null
   }
 
   // Find current section and lesson
-  const section = course.sections.find(s => s.id === resolvedParams.sectionId)
-  const lesson = section?.lessons.find(l => l.id === resolvedParams.lessonId)
+  const section = courseDetails.sections.find(s => s.id === sectionId)
+  const lesson = section?.lessons.find(l => l.id === lessonId)
 
   if (!section || !lesson) {
-    redirect(`/courses/${resolvedParams.slug}/${resolvedParams.courseId}`)
+    router.push(`/courses/${slug}/${courseId}`)
+    return null
   }
 
   return (
     <div className="w-full max-w-[1600px] mx-auto p-0 lg:p-6">
       <VideoLesson 
         title={lesson.title}
-        videoUrl={lesson.videoUrl}
+        description={lesson.description}
+        videoUrl={lesson.hlsVariants || lesson.videoOriginalUrl || undefined}
+        durationSeconds={lesson.durationSeconds}
       />
-      <LessonInfo course={course} currentLesson={lesson} />
+      <LessonInfo course={courseDetails} currentLesson={lesson} slug={slug} courseId={courseId} />
     </div>
   )
 }

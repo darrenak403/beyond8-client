@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CourseDetail, getCourseDetailById } from '@/lib/data/mockCourseDetail'
+import { CourseDetail } from '@/lib/api/services/fetchCourse'
 import LessonHeader from '@/components/ui/lesson-header'
 import LessonSidebar from '@/components/ui/lesson-sidebar'
 
 interface LearningLayoutClientProps {
   courseId: string
+  slug: string
+  course: CourseDetail
   params: {
     slug: string
     courseId: string
@@ -15,10 +17,9 @@ interface LearningLayoutClientProps {
   children: React.ReactNode
 }
 
-export default function LearningLayoutClient({ courseId, params: initialParams, children }: LearningLayoutClientProps) {
+export default function LearningLayoutClient({ course, params: initialParams, children }: LearningLayoutClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
-  const course = getCourseDetailById(courseId) as CourseDetail
 
   // Handle responsive sidebar
   useEffect(() => {
@@ -56,6 +57,8 @@ export default function LearningLayoutClient({ courseId, params: initialParams, 
 
       <LessonSidebar 
         course={course}
+        slug={initialParams.slug}
+        courseId={initialParams.courseId}
         isSidebarOpen={isSidebarOpen}
         isMobile={isMobile}
         onClose={() => setIsSidebarOpen(false)}
