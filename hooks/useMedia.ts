@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 export function useMedia() {
   const queryClient = useQueryClient();
-  
+
   // Upload avatar mutation
   const uploadAvatarMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -73,3 +73,50 @@ export function useMedia() {
     uploadedIntroVideo: uploadIntroVideoMutation.data,
   };
 }
+
+export function useMediaVideoLesson() {
+  const queryClient = useQueryClient();
+
+  const uploadThumnailVideoLessonMutation = useMutation({
+    mutationFn: async (file: File) => {
+      return await mediaService.uploadThumnailVideoLesson(file);
+    },
+    onSuccess: (data: MediaFile) => {
+      toast.success("Upload ảnh thumbnail video bài học thành công!");
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      return data;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Upload ảnh thumbnail video thất bại!");
+    },
+  });
+
+  const uploadVideoLessonMutation = useMutation({
+    mutationFn: async (file: File) => {
+      return await mediaService.uploadVideoLesson(file);
+    },
+    onSuccess: (data: MediaFile) => {
+      toast.success("Upload video bài học thành công!");
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      return data;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Upload video thất bại!");
+    },
+  });
+
+  return {
+    uploadThumnailVideoLesson: uploadThumnailVideoLessonMutation.mutate,
+    uploadThumnailVideoLessonAsync: uploadThumnailVideoLessonMutation.mutateAsync,
+    isUploadingThumnailVideoLesson: uploadThumnailVideoLessonMutation.isPending,
+    uploadThumnailVideoLessonError: uploadThumnailVideoLessonMutation.error,
+    uploadedThumnailVideoLesson: uploadThumnailVideoLessonMutation.data,
+
+    uploadVideoLesson: uploadVideoLessonMutation.mutate,
+    uploadVideoLessonAsync: uploadVideoLessonMutation.mutateAsync,
+    isUploadingVideoLesson: uploadVideoLessonMutation.isPending,
+    uploadVideoLessonError: uploadVideoLessonMutation.error,
+    uploadedVideoLesson: uploadVideoLessonMutation.data,
+  };
+}
+

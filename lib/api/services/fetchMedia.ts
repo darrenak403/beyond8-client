@@ -315,4 +315,87 @@ export const mediaService = {
 
     return mediaResponse.data;
   },
+
+
+  getThumnailVideoLessonPresignedUrl: async (
+    request: PresignedUrlRequest
+  ): Promise<ApiResponse<PresignedUrlResponse>> => {
+    const response = await apiService.post<ApiResponse<PresignedUrlResponse>>(
+      "api/v1/media/course-thumbnail/presigned-url",
+      request
+    );
+    return response.data;
+  },
+
+  getVideoLessonPresignedUrl: async (
+    request: PresignedUrlRequest
+  ): Promise<ApiResponse<PresignedUrlResponse>> => {
+    const response = await apiService.post<ApiResponse<PresignedUrlResponse>>(
+      "api/v1/media/course-video/presigned-url",
+      request
+    );
+    return response.data;
+  },
+
+  uploadThumnailVideoLesson: async (file: File): Promise<MediaFile> => {
+    const presignedResponse = await mediaService.getThumnailVideoLessonPresignedUrl({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      metadata: null,
+    });
+
+    if (!presignedResponse.isSuccess || !presignedResponse.data) {
+      throw new Error(presignedResponse.message || "Không thể lấy URL tải lên video");
+    }
+
+    const { fileId, presignedUrl } = presignedResponse.data;
+
+    await mediaService.uploadToPresignedUrl(presignedUrl, file);
+
+    const confirmResponse = await mediaService.confirmUpload({ fileId });
+
+    if (!confirmResponse.isSuccess || !confirmResponse.data) {
+      throw new Error(confirmResponse.message || "Không thể xác nhận tải lên video");
+    }
+
+    const mediaResponse = await mediaService.getMediaFile(fileId);
+
+    if (!mediaResponse.isSuccess || !mediaResponse.data) {
+      throw new Error(mediaResponse.message || "Không thể lấy thông tin file video");
+    }
+
+    return mediaResponse.data;
+  },
+
+  uploadVideoLesson: async (file: File): Promise<MediaFile> => {
+    const presignedResponse = await mediaService.getVideoLessonPresignedUrl({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      metadata: null,
+    });
+
+    if (!presignedResponse.isSuccess || !presignedResponse.data) {
+      throw new Error(presignedResponse.message || "Không thể lấy URL tải lên video");
+    }
+
+    const { fileId, presignedUrl } = presignedResponse.data;
+
+    await mediaService.uploadToPresignedUrl(presignedUrl, file);
+
+    const confirmResponse = await mediaService.confirmUpload({ fileId });
+
+    if (!confirmResponse.isSuccess || !confirmResponse.data) {
+      throw new Error(confirmResponse.message || "Không thể xác nhận tải lên video");
+    }
+
+    const mediaResponse = await mediaService.getMediaFile(fileId);
+
+    if (!mediaResponse.isSuccess || !mediaResponse.data) {
+      throw new Error(mediaResponse.message || "Không thể lấy thông tin file video");
+    }
+
+    return mediaResponse.data;
+  },
 };

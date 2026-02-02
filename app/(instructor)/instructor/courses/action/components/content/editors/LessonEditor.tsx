@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { ArrowLeft, Trash2, Video, FileText, ClipboardList } from "lucide-react";
+import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HeaderPortal } from "./HeaderPortal";
+import { Progress } from "@/components/ui/progress";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,9 @@ import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 
 import { useUpdateLesson, useDeleteLesson, useActivationLesson } from "@/hooks/useLesson";
+import { useMediaVideoLesson } from "@/hooks/useMedia";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
+import SafeImage from "@/components/ui/SafeImage";
 import { Lesson, LessonType } from "@/lib/api/services/fetchLesson";
 import { useRouter } from "next/navigation";
 
@@ -60,6 +64,74 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         // Refs
         const titleRef = React.useRef<HTMLTextAreaElement>(null);
         const descriptionRef = React.useRef<HTMLTextAreaElement>(null);
+        const videoInputRef = React.useRef<HTMLInputElement>(null);
+        const thumbnailInputRef = React.useRef<HTMLInputElement>(null);
+
+        // Upload state
+        const [uploadProgress, setUploadProgress] = useState(0);
+        const [isFakeLoading, setIsFakeLoading] = useState(false);
+        const { uploadThumnailVideoLesson, isUploadingThumnailVideoLesson, uploadVideoLesson, isUploadingVideoLesson } = useMediaVideoLesson();
+
+        const handleThumbnailUpload = async (file: File) => {
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                // alert('Please upload an image file');
+                return;
+            }
+
+            uploadThumnailVideoLesson(file, {
+                onSuccess: (data) => {
+                    setVideoThumbnailUrl(formatImageUrl(data.fileUrl) || data.fileUrl);
+                },
+                onError: (error) => {
+                    console.error("Upload thumbnail failed", error);
+                }
+            });
+        };
+
+        const handleVideoUpload = async (file: File) => {
+            if (!file) return;
+
+            // Validate file type
+            const validTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo'];
+            if (!validTypes.includes(file.type)) {
+                // alert('Please upload a valid video file (MP4, MOV, AVI)');
+                return;
+            }
+
+            // Start fake progress
+            setIsFakeLoading(true);
+            setUploadProgress(0);
+
+            // Fake progress interval
+            const interval = setInterval(() => {
+                setUploadProgress((prev) => {
+                    if (prev >= 90) return prev;
+                    return prev + Math.floor(Math.random() * 5) + 1;
+                });
+            }, 500);
+
+            uploadVideoLesson(file, {
+                onSuccess: (data) => {
+                    clearInterval(interval);
+                    setUploadProgress(100);
+
+                    // Delay slightly to show 100% before showing result
+                    setTimeout(() => {
+                        setVideoOriginalUrl(formatImageUrl(data.fileUrl) || data.fileUrl);
+                        setIsFakeLoading(false);
+                    }, 800);
+                },
+                onError: (error) => {
+                    clearInterval(interval);
+                    setIsFakeLoading(false);
+                    setUploadProgress(0);
+                    console.error("Upload video failed", error);
+                }
+            });
+        };
 
         // Auto-resize on value change
         useEffect(() => {
@@ -452,58 +524,173 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                     <div className="space-y-6">
                                         <h3 className="text-lg font-semibold text-gray-900">Nội dung Video</h3>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="video-url">URL Video Gốc</Label>
-                                            <Input
-                                                id="video-url"
-                                                value={videoOriginalUrl}
-                                                onChange={(e) => setVideoOriginalUrl(e.target.value)}
-                                                placeholder="https://example.com/video.mp4"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="video-thumbnail">URL Thumbnail</Label>
-                                            <Input
-                                                id="video-thumbnail"
-                                                value={videoThumbnailUrl}
-                                                onChange={(e) => setVideoThumbnailUrl(e.target.value)}
-                                                placeholder="https://example.com/thumbnail.jpg"
-                                            />
-                                        </div>
-
-                                        {selectedLesson.videoOriginalUrl && (
-                                            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center p-6 border-2 border-dashed border-gray-300">
-                                                <div className="text-center">
-                                                    <Video className="h-16 w-16 text-gray-400 mx-auto mb-3" />
-                                                    <p className="text-sm text-gray-600 font-medium mb-1">Preview Video Gốc</p>
-                                                    <a
-                                                        href={selectedLesson.videoOriginalUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-sm text-blue-600 hover:underline break-all"
+                                        {/* Thumbnail Upload Section - Step 1 */}
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium text-gray-700">Thumbnail Video <span className="text-red-500">*</span></Label>
+                                            <div className="flex gap-6">
+                                                {/* Left: Upload Area */}
+                                                <div className="flex-1">
+                                                    <input
+                                                        ref={thumbnailInputRef}
+                                                        type="file"
+                                                        accept="image/png,image/jpeg,image/jpg"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) handleThumbnailUpload(file);
+                                                        }}
+                                                    />
+                                                    <div
+                                                        onClick={() => !isUploadingThumnailVideoLesson && thumbnailInputRef.current?.click()}
+                                                        className={`
+                                                                border-2 border-dashed rounded-xl p-2 transition-all cursor-pointer group flex flex-col items-center justify-center text-center h-full max-w-sm aspect-video
+                                                                ${videoThumbnailUrl
+                                                                ? "border-purple-200 bg-purple-50/30 hover:bg-purple-50 hover:border-purple-300"
+                                                                : "border-gray-300 hover:border-purple-400 hover:bg-purple-50/30"
+                                                            }
+                                                            `}
                                                     >
-                                                        {selectedLesson.videoOriginalUrl}
-                                                    </a>
+                                                        {isUploadingThumnailVideoLesson ? (
+                                                            <div className="flex flex-col items-center">
+                                                                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mb-3 animate-pulse">
+                                                                    <Upload className="w-5 h-5 text-purple-600" />
+                                                                </div>
+                                                                <p className="text-sm font-medium text-purple-700">Đang tải ảnh lên...</p>
+                                                            </div>
+                                                        ) : videoThumbnailUrl ? (
+                                                            <div className="relative w-full aspect-video rounded-lg overflow-hidden group-hover:opacity-90 transition-opacity">
+                                                                <SafeImage
+                                                                    src={videoThumbnailUrl}
+                                                                    alt="Thumbnail preview"
+                                                                    className="w-full h-full object-cover"
+                                                                    width={500}
+                                                                    height={280}
+                                                                />
+                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <div className="bg-white/90 p-2 rounded-full shadow-lg">
+                                                                        <Upload className="w-5 h-5 text-purple-600" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="space-y-2">
+                                                                <div className="w-12 h-12 rounded-full bg-gray-100 group-hover:bg-purple-100 flex items-center justify-center mb-2 mx-auto transition-colors">
+                                                                    <ImageIcon className="w-6 h-6 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <p className="text-sm font-semibold text-gray-700 group-hover:text-purple-700 transition-colors">
+                                                                        Tải ảnh bìa (Thumbnail)
+                                                                    </p>
+                                                                    <p className="text-xs text-gray-500">
+                                                                        Kéo thả hoặc click để chọn ảnh (JPG, PNG)
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
+
+                                                {/* Right: Helper Text or Info */}
+                                                <div className="w-80 text-sm text-gray-500 space-y-3 pt-2">
+                                                    <p>Ảnh bìa giúp bài học của bạn thu hút hơn. Nên sử dụng ảnh có tỷ lệ 16:9.</p>
+                                                    <p className="text-xs text-gray-400">Kích thước khuyến nghị: 1280x720.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Video Upload Section - Step 2 (Only visible if Thumbnail exists) */}
+                                        {videoThumbnailUrl && (
+                                            <div className="space-y-3 pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                                <Label className="text-sm font-medium text-gray-700">Video Bài Học <span className="text-red-500">*</span></Label>
+
+                                                <input
+                                                    ref={videoInputRef}
+                                                    type="file"
+                                                    accept="video/mp4,video/mov,video/avi"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) handleVideoUpload(file);
+                                                    }}
+                                                />
+
+                                                {!videoOriginalUrl && !isFakeLoading ? (
+                                                    <div
+                                                        onClick={() => videoInputRef.current?.click()}
+                                                        className="border-2 border-dashed border-gray-300 rounded-xl p-10 hover:border-purple-400 hover:bg-purple-50/30 transition-all cursor-pointer group flex flex-col items-center justify-center text-center"
+                                                    >
+                                                        <div className="w-16 h-16 rounded-full bg-purple-50 group-hover:bg-purple-100 flex items-center justify-center mb-4 transition-colors">
+                                                            <Video className="w-8 h-8 text-purple-500 group-hover:text-purple-600 transition-colors" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <p className="text-lg font-semibold text-gray-700 group-hover:text-purple-700 transition-colors">
+                                                                Tải video bài học
+                                                            </p>
+                                                            <p className="text-sm text-gray-500">
+                                                                Hỗ trợ MP4, MOV, AVI. Tối đa 2GB.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    // Uploading State or Result
+                                                    <div className="space-y-4">
+                                                        {(isFakeLoading || isUploadingVideoLesson) ? (
+                                                            <div className="border border-purple-100 bg-purple-50/50 rounded-xl p-6 space-y-4">
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center">
+                                                                            <Video className="w-5 h-5 text-purple-600 animate-pulse" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="font-medium text-gray-900">Đang tải video lên...</p>
+                                                                            <p className="text-xs text-gray-500">Vui lòng không tắt trình duyệt</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <span className="font-bold text-purple-600">{uploadProgress}%</span>
+                                                                </div>
+                                                                <Progress value={uploadProgress} className="h-2 bg-purple-200" />
+                                                            </div>
+                                                        ) : (
+                                                            // Video Preview
+                                                            <div className="relative rounded-xl overflow-hidden bg-gray-900 aspect-video group">
+                                                                <video
+                                                                    src={videoOriginalUrl}
+                                                                    controls
+                                                                    className="w-full h-full"
+                                                                    poster={videoThumbnailUrl}
+                                                                />
+                                                                {/* Change Video Button - Overlay */}
+                                                                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="bg-white/90 h-8 px-3 shadow-sm hover:bg-gray-100 hover:text-gray-900"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setVideoOriginalUrl("");
+                                                                            if (videoInputRef.current) {
+                                                                                videoInputRef.current.value = '';
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4 text-red-500 mr-1" />
+                                                                        <span className="text-xs">Xóa</span>
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 
                                         {/* Read-only technical fields */}
                                         {selectedLesson.hlsVariants && (
-                                            <div className="space-y-2">
-                                                <p className="text-sm font-medium text-gray-700">HLS Variants (Read-only)</p>
+                                            <div className="space-y-2 pt-4 border-t border-gray-100">
+                                                <p className="text-sm font-medium text-gray-700">HLS Variants (Debug)</p>
                                                 <div className="p-4 bg-gray-50 rounded-lg border">
                                                     <code className="text-xs text-gray-600 break-all">{selectedLesson.hlsVariants}</code>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {selectedLesson.videoQualities && (
-                                            <div className="space-y-2">
-                                                <p className="text-sm font-medium text-gray-700">Video Qualities</p>
-                                                <div className="p-4 bg-gray-50 rounded-lg border">
-                                                    <code className="text-xs text-gray-600">{selectedLesson.videoQualities}</code>
                                                 </div>
                                             </div>
                                         )}
@@ -540,8 +727,6 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                         </div>
                     </div>
                 </div>
-
-
             </div>
         );
     }

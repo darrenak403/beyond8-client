@@ -84,8 +84,8 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                 await createLesson({
                     type: LessonType.Video,
                     ...baseData,
-                    videoOriginalUrl: "URL",
-                    videoThumbnailUrl: "",
+                    videoOriginalUrl: "url",
+                    videoThumbnailUrl: "url",
                     durationSeconds: 1,
                     isDownloadable: false,
                 });
@@ -93,7 +93,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                 await createLesson({
                     type: LessonType.Text,
                     ...baseData,
-                    content: "Bài học mới",
+                    content: "",
                 });
             } else if (type === "Quiz") {
                 await createLesson({

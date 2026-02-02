@@ -1,24 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Video, FileText, ClipboardList, Loader2, Plus, BookOpen, GripVertical, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useGetSectionsByCourseId, useCreateSection, useReoderSection } from "@/hooks/useSection";
 import { useGetLessonBySectionId, useReorderLessonInSection, useReorderLessonOtherSection } from "@/hooks/useLesson";
 import { cn } from "@/lib/utils";
 import { Lesson } from "@/lib/api/services/fetchLesson";
 
-const formSchema = z.object({
-  title: z.string().min(1, "Tiêu đề không được để trống"),
-  description: z.string().optional(),
-});
+
 
 interface CompactSectionListProps {
   courseId: string;
@@ -246,7 +238,6 @@ export default function CompactSectionList({
   onCreateSection,
 }: CompactSectionListProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [isCreatingSection, setIsCreatingSection] = useState(false);
   const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
   const [draggedLessonId, setDraggedLessonId] = useState<string | null>(null);
   const [draggedLessonSectionId, setDraggedLessonSectionId] = useState<string | null>(null);
@@ -274,23 +265,13 @@ export default function CompactSectionList({
     }
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-    },
-  });
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleCreateDefaultSection = async () => {
     const newSection = await createSection({
       courseId,
-      title: values.title,
-      description: values.description || "",
+      title: "Chương mới",
+      description: "",
       assignmentId: null,
     });
-    setIsCreatingSection(false);
-    form.reset();
     // Auto-select the newly created section
     if (newSection?.data?.[0]?.id) {
       onSelectSection(newSection.data[0].id);
@@ -310,8 +291,9 @@ export default function CompactSectionList({
   };
 
   // Auto-expand selected section
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedSectionId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedSections((prev) => new Set(prev).add(selectedSectionId));
     }
   }, [selectedSectionId]);
@@ -480,21 +462,20 @@ export default function CompactSectionList({
       <div className="border-b bg-gray-50/50 px-4 py-2 shrink-0 flex items-center justify-between">
         <h3 className="font-semibold text-base text-gray-900">Danh sách các chương</h3>
         <Button
-          onClick={() => setIsCreatingSection(!isCreatingSection)}
+          onClick={handleCreateDefaultSection}
           size="sm"
           variant="outline"
           className="h-8"
+          disabled={isCreating}
         >
-          <motion.div
-            animate={{ rotate: isCreatingSection ? 45 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
+          {isCreating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
             <Plus className="h-4 w-4" />
-          </motion.div>
+          )}
         </Button>
       </div>
 
-      {/* Sections List */}
       {/* Sections List */}
       <div
         ref={scrollContainerRef}
@@ -505,72 +486,7 @@ export default function CompactSectionList({
         className="flex-1 overflow-y-auto pb-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400">
         {sections && sections.length > 0 ? (
           <>
-            {/* Inline Create Form */}
-            <AnimatePresence>
-              {isCreatingSection && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden border-t bg-white"
-                >
-                  <div className="p-3">
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-gray-700">
-                            Chương {sections.length + 1}
-                          </span>
-                          <Button
-                            type="submit"
-                            size="sm"
-                            disabled={isCreating}
-                            className="h-7 px-3 rounded-full"
-                          >
-                            {isCreating ? "Đang thêm..." : "Thêm chương"}
-                          </Button>
-                        </div>
 
-                        <FormField
-                          control={form.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem className="space-y-1">
-                              <FormControl>
-                                <Input
-                                  placeholder="Tiêu đề chương"
-                                  className="h-9 text-sm"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="description"
-                          render={({ field }) => (
-                            <FormItem className="space-y-1">
-                              <FormControl>
-                                <Input
-                                  placeholder="Mô tả (tùy chọn)"
-                                  className="h-9 text-sm"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage className="text-xs" />
-                            </FormItem>
-                          )}
-                        />
-                      </form>
-                    </Form>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {sections.map((section) => (
               <SectionItem
@@ -595,66 +511,18 @@ export default function CompactSectionList({
             ))}
           </>
         ) : (
-          <>
-            {isCreatingSection ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="p-4"
-              >
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-gray-700">Chương 1</span>
-                      <Button
-                        type="submit"
-                        size="sm"
-                        disabled={isCreating}
-                        className="h-7 px-3"
-                      >
-                        {isCreating ? "Đang lưu..." : "Thêm"}
-                      </Button>
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="title"
-                      render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormControl>
-                            <Input placeholder="Tiêu đề chương" className="h-9 text-sm" {...field} />
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormControl>
-                            <Input placeholder="Mô tả (tùy chọn)" className="h-9 text-sm" {...field} />
-                          </FormControl>
-                          <FormMessage className="text-xs" />
-                        </FormItem>
-                      )}
-                    />
-                  </form>
-                </Form>
-              </motion.div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full px-6 text-center">
-                <BookOpen className="h-12 w-12 text-gray-300 mb-3" />
-                <p className="text-sm text-gray-500 mb-4">Chưa có chương nào</p>
-                <Button onClick={() => setIsCreatingSection(true)} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Tạo chương đầu tiên
-                </Button>
-              </div>
-            )}
-          </>
+          <div className="flex flex-col items-center justify-center h-full px-6 text-center">
+            <BookOpen className="h-12 w-12 text-gray-300 mb-3" />
+            <p className="text-sm text-gray-500 mb-4">Chưa có chương nào</p>
+            <Button onClick={handleCreateDefaultSection} size="sm" disabled={isCreating}>
+              {isCreating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4 mr-2" />
+              )}
+              Tạo chương đầu tiên
+            </Button>
+          </div>
         )}
       </div>
     </aside>
