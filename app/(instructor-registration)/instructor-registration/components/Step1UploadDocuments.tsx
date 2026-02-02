@@ -36,6 +36,13 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
   const [frontPreview, setFrontPreview] = useState<string>("");
   const [backPreview, setBackPreview] = useState<string>("");
 
+  // Chỉ cho phép upload mặt sau khi mặt trước đã upload & phân loại thành công
+  const canUploadBack =
+    !!data.frontImg &&
+    !!data.frontFileId &&
+    !!data.frontClassifyResult &&
+    !isUploadingFront;
+
   // Initialize preview from data when component mounts or data changes
   useEffect(() => {
     if (data.frontImg) {
@@ -126,7 +133,7 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full h-full space-y-6 overflow-y-auto scrollbar-hide">
       <div className="text-center space-y-2">
         <h2 className={`font-bold text-primary ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Tải lên CCCD</h2>
         <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>Vui lòng tải lên ảnh chụp rõ ràng mặt trước và mặt sau của CCCD</p>
@@ -196,7 +203,11 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
             <h3 className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>Mặt sau</h3>
             {data.backImg && !isUploadingBack && <CheckCircle2 className="w-5 h-5 text-green-600" />}
           </div>
-          <p className="text-sm text-gray-600">Tải lên ảnh mặt sau CCCD</p>
+          <p className="text-sm text-gray-600">
+            {canUploadBack
+              ? "Tải lên ảnh mặt sau CCCD"
+              : "Vui lòng tải lên và xác thực mặt trước trước khi tiếp tục"}
+          </p>
           
           {isUploadingBack ? (
             <div className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-purple-300 rounded-lg bg-purple-50 ${isMobile ? 'h-48' : 'h-64'}`}>
@@ -205,7 +216,11 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
               <span className="text-xs text-gray-500 mt-1">Kiểm tra tính hợp lệ</span>
             </div>
           ) : !backPreview ? (
-            <label className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition ${isMobile ? 'h-48' : 'h-64'}`}>
+            <label
+              className={`flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg transition ${
+                isMobile ? 'h-48' : 'h-64'
+              } ${canUploadBack ? 'cursor-pointer hover:bg-gray-50' : 'cursor-not-allowed opacity-60 pointer-events-none'}`}
+            >
               <Upload className="w-12 h-12 text-gray-400 mb-2" />
               <span className="text-sm text-gray-600">Click để tải ảnh lên</span>
               <span className="text-xs text-gray-500 mt-1">Sẽ tự động kiểm tra</span>
@@ -213,6 +228,7 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
                 type="file"
                 className="hidden"
                 accept="image/*"
+                disabled={!canUploadBack}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) handleFileSelect(file, 'back');
