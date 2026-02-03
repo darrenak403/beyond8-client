@@ -50,7 +50,7 @@ export function CreateQuestionMethodDialog({
     },
     {
       id: "pdf",
-      title: "Tạo câu hỏi bằng PDF",
+      title: "Upload file PDF",
       description: "Upload file PDF để tự động tạo câu hỏi",
       icon: FileUp,
       gradient: "from-amber-500 to-orange-500",
@@ -95,7 +95,7 @@ export function CreateQuestionMethodDialog({
                   </div>
 
                   {/* Content */}
-                  <div className="space-y-2 text-left">
+                  <div className="space-y-2 text-center">
                     <h3 className="text-lg font-bold text-foreground group-hover:text-brand-magenta transition-colors">
                       {method.title}
                     </h3>
