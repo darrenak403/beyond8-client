@@ -1,11 +1,12 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Download, FileText, MessageCircle, Share2, ThumbsUp } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, FileText, MessageCircle, Share2, ThumbsUp, Play, Clock, Trophy, Target, AlertTriangle, Loader2, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CourseDetail, LessonDetail } from '@/lib/api/services/fetchCourse'
+import { useGetQuizById } from '@/hooks/useQuiz'
 
 interface LessonInfoProps {
   course: CourseDetail
@@ -22,6 +23,10 @@ export default function LessonInfo({ course, currentLesson, slug, courseId }: Le
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
 
+  // Fetch quiz details if present
+  const { quiz, isLoading: isLoadingQuiz } = useGetQuizById(currentLesson.quizId || "")
+  const isQuizLesson = currentLesson.type === 'Quiz' || !!currentLesson.quizId;
+
   return (
     <div className="px-4 lg:px-0 pb-20">
       <div className="w-full">
@@ -29,7 +34,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId }: Le
           <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
             {currentLesson.title}
           </h1>
-          
+
           <div className="flex items-center gap-3 shrink-0">
             {prevLesson ? (
               <Link href={`/courses/${slug}/${courseId}/${prevLesson.sectionId}/${prevLesson.id}`}>
@@ -79,7 +84,68 @@ export default function LessonInfo({ course, currentLesson, slug, courseId }: Le
               <p className="text-white/70 text-lg leading-relaxed">
                 {currentLesson.description || "Chào mừng bạn đến với bài học này. Hãy xem video kỹ lưỡng và đừng quên làm bài tập thực hành cuối bài."}
               </p>
-              
+
+              {isQuizLesson && quiz && (
+                <div className="my-8 p-6 rounded-2xl bg-gradient-to-br from-brand-purple/20 to-brand-magenta/10 border border-brand-purple/30 backdrop-blur-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between gap-4 mb-6">
+                      <div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-magenta/20 text-brand-pink text-xs font-bold mb-2 border border-brand-magenta/20">
+                          <Trophy className="w-3 h-3" /> Bài kiểm tra
+                        </div>
+                        <h4 className="text-2xl font-bold text-white mb-2">{quiz.title}</h4>
+                        <p className="text-white/60">{quiz.description || "Hãy hoàn thành bài kiểm tra để đánh giá kiến thức của bạn."}</p>
+                      </div>
+                      {/* Only show badge if needed */}
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                      <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
+                        <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
+                          <Clock className="w-4 h-4" /> Thời gian
+                        </div>
+                        <div className="text-xl font-bold text-white">{quiz.timeLimitMinutes} phút</div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
+                        <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
+                          <HelpCircle className="w-4 h-4" /> Câu hỏi
+                        </div>
+                        <div className="text-xl font-bold text-white">{quiz.questionCount} câu</div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
+                        <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
+                          <Target className="w-4 h-4" /> Điểm đạt
+                        </div>
+                        <div className="text-xl font-bold text-white">{quiz.passScorePercent}%</div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
+                        <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
+                          <Play className="w-4 h-4" /> Số lần làm
+                        </div>
+                        <div className="text-xl font-bold text-white">3 lần</div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <Button size="lg" className="bg-brand-gradient hover:opacity-90 text-white font-bold px-8 shadow-lg shadow-brand-purple/20 border-none">
+                        <Play className="w-5 h-5 mr-2 fill-current" /> Bắt đầu làm bài
+                      </Button>
+                      <Button size="lg" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-white">
+                        Xem lịch sử làm bài
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isQuizLesson && !quiz && isLoadingQuiz && (
+                <div className="my-8 h-48 rounded-2xl bg-white/5 animate-pulse flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+                </div>
+              )}
+
               <div className="my-8 p-6 rounded-2xl bg-white/5 border border-white/10">
                 <h4 className="font-semibold text-white mb-2">Mục tiêu bài học:</h4>
                 <ul className="list-disc list-inside space-y-2 text-white/70">
@@ -92,12 +158,12 @@ export default function LessonInfo({ course, currentLesson, slug, courseId }: Le
 
             <div className="flex items-center gap-4 py-8 border-t border-white/10">
               <div className="flex items-center gap-2 text-white/50">
-                <SafeImage 
-                  src="https://github.com/shadcn.png" 
-                  alt="Instructor" 
+                <SafeImage
+                  src="https://github.com/shadcn.png"
+                  alt="Instructor"
                   width={40}
                   height={40}
-                  className="w-10 h-10 rounded-full object-cover border border-white/20" 
+                  className="w-10 h-10 rounded-full object-cover border border-white/20"
                 />
                 <div>
                   <div className="text-sm font-medium text-white">Giảng viên</div>
@@ -148,7 +214,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId }: Le
               <Button variant="link" className="text-brand-pink mt-2">Đặt câu hỏi đầu tiên</Button>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="notes">
             <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
               <p className="text-white/60">Tính năng ghi chú đang được phát triển.</p>

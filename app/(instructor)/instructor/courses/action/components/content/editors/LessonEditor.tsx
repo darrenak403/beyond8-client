@@ -35,6 +35,9 @@ import {
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { QuestionBankDialog } from "@/components/widget/QuestionBankDialog";
+import { CreateQuizDialog } from "@/components/widget/CreateQuizDialog";
+import { useParams } from "next/navigation";
+import { useGetQuizById } from "@/hooks/useQuiz";
 
 export interface LessonEditorRef {
     hasUnsavedChanges: () => boolean;
@@ -51,13 +54,25 @@ interface LessonEditorProps {
 
 export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
     ({ lessonId, selectedSectionId, lessons, onBack, onBackToInfo }, ref) => {
+        const selectedLesson = lessons?.find((l) => l.id === lessonId);
+
         // Local State
         const [lessonTitleValue, setLessonTitleValue] = useState("");
         const [lessonDescriptionValue, setLessonDescriptionValue] = useState("");
         const [isPreview, setIsPreview] = useState(false);
         const [isPublished, setIsPublished] = useState(false);
         const [isQuestionBankDialogOpen, setIsQuestionBankDialogOpen] = useState(false);
+        const [isCreateQuizDialogOpen, setIsCreateQuizDialogOpen] = useState(false);
+        const [selectedQuestionBankIds, setSelectedQuestionBankIds] = useState<string[]>([]);
+
+        // Quiz specific
+        const [quizId, setQuizId] = useState("");
+
         const router = useRouter();
+        const params = useParams();
+        const courseId = params.courseId as string;
+
+        const { quiz } = useGetQuizById(quizId || "");
 
         // Video specific
         const [isDownloadable, setIsDownloadable] = useState(false);
@@ -68,9 +83,6 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
 
         // Text specific
         const [textContent, setTextContent] = useState("");
-
-        // Quiz specific
-        const [quizId, setQuizId] = useState("");
 
         const [isDeleteLessonDialogOpen, setIsDeleteLessonDialogOpen] = useState(false);
 
@@ -94,8 +106,6 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         const { deleteLessonDocument } = useDeleteLessonDocument();
         const { toggleDownloadLessonDocument } = useToggleDownloadLessonDocument();
         const { uploadDocumentCourseAsync, isUploadingDocumentCourse } = useMediaDocumentCourse();
-
-        const selectedLesson = lessons?.find((l) => l.id === lessonId);
 
         // Refs
         const titleRef = React.useRef<HTMLTextAreaElement>(null);
@@ -1041,23 +1051,35 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="rounded-xl border border-purple-200 bg-purple-50/30 p-6 flex flex-col items-center text-center gap-4">
-                                                <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center">
-                                                    <CheckCircle2 className="w-8 h-8 text-purple-600" />
+                                            <div className="rounded-xl border border-purple-200 bg-purple-50/30 p-6 flex flex-col items-start gap-4 text-left">
+                                                <div className="flex items-center gap-4 w-full">
+                                                    <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+                                                        <CheckCircle2 className="w-8 h-8 text-purple-600" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="font-bold text-gray-900 text-lg">{quiz?.title || "Bài kiểm tra"}</h4>
+                                                        <p className="text-sm text-gray-500 line-clamp-2">{quiz?.description}</p>
+                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                            <span className="text-xs bg-white px-2 py-1 rounded border font-medium text-gray-600">
+                                                                {quiz?.questionCount || 0} câu hỏi
+                                                            </span>
+                                                            <span className="text-xs bg-white px-2 py-1 rounded border font-medium text-gray-600">
+                                                                {quiz?.timeLimitMinutes || 0} phút
+                                                            </span>
+                                                            <span className="text-xs bg-white px-2 py-1 rounded border font-medium text-gray-600">
+                                                                Pass: {quiz?.passScorePercent || 0}%
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            // Future impl: Edit quiz or View details
+                                                        }}
+                                                    >
+                                                        Chi tiết
+                                                    </Button>
                                                 </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-gray-900 mb-1">Đã chọn câu hỏi</h4>
-                                                    <p className="text-sm text-gray-500 font-mono bg-white px-3 py-1 rounded border inline-block mt-2">ID: {quizId}</p>
-                                                </div>
-                                                <Button
-                                                    variant="outline"
-                                                    className="mt-2"
-                                                    onClick={() => {
-                                                        // Future impl: Open preview of the question
-                                                    }}
-                                                >
-                                                    Xem chi tiết
-                                                </Button>
                                             </div>
                                         )}
 
@@ -1067,17 +1089,27 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                             selectionMode="multiple"
                                             onSelectMultiple={(ids) => {
                                                 if (ids.length > 0) {
-                                                    setQuizId(ids[0])
-                                                    if (ids.length > 1) {
-                                                        // alert("Hiện tại mỗi bài học chỉ hỗ trợ 1 câu hỏi. Đã chọn câu hỏi đầu tiên.")
-                                                        // Ideally use a Toast here
-                                                    }
+                                                    setSelectedQuestionBankIds(ids)
+                                                    setIsQuestionBankDialogOpen(false)
+                                                    setIsCreateQuizDialogOpen(true)
                                                 }
-                                                setIsQuestionBankDialogOpen(false)
                                             }}
                                             onSelect={(id) => {
-                                                setQuizId(id)
+                                                // For single select mode if we ever fallback, but we're mostly using multiple now
+                                                setSelectedQuestionBankIds([id])
                                                 setIsQuestionBankDialogOpen(false)
+                                                setIsCreateQuizDialogOpen(true)
+                                            }}
+                                        />
+
+                                        <CreateQuizDialog
+                                            open={isCreateQuizDialogOpen}
+                                            onOpenChange={setIsCreateQuizDialogOpen}
+                                            questionIds={selectedQuestionBankIds}
+                                            courseId={courseId}
+                                            lessonId={lessonId}
+                                            onConfirm={(newQuizId) => {
+                                                setQuizId(newQuizId)
                                             }}
                                         />
                                     </div>
