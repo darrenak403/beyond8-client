@@ -4,10 +4,11 @@ import CoursesPageClient from './CoursesPageClient'
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: { search?: string; category?: string }
+  searchParams: Promise<{ search?: string; category?: string }>
 }): Promise<Metadata> {
-  const keyword = searchParams.search
-  const category = searchParams.category
+  const params = await searchParams
+  const keyword = params.search
+  const category = params.category
 
   const baseTitle = 'Khóa học online - Beyond8'
 
