@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { User, BookOpen, Image as ImageIcon, LayoutList, Paperclip } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -52,7 +52,7 @@ export default function CourseActionSidebar({
     isEditMode = false,
     viewMode = 'info'
 }: CourseActionSidebarProps) {
-    const steps = React.useMemo(() => {
+    const steps = useMemo(() => {
         if (viewMode === 'info') {
             const baseSteps = [...infoSteps]
             // Add Document step if in edit mode
