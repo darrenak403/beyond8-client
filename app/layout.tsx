@@ -17,6 +17,7 @@ const quicksand = Quicksand({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://beyond8.io.vn'),
   title: 'Beyond8 - Nền Tảng Học Tập Trực Tuyến Với AI',
   description:
     'Beyond8 là nền tảng học tập trực tuyến ứng dụng AI, giúp học viên và giảng viên kết nối, quản lý khóa học, và cá nhân hóa trải nghiệm học tập một cách hiệu quả.',
