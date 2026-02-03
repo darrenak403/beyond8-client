@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, X, CheckCircle2, Tag } from "lucide-react"
 import {
@@ -50,11 +50,34 @@ export function CreateQuestionDialog({ open, onOpenChange }: CreateQuestionDialo
   // Memoize availableTags to prevent unnecessary re-renders
   const memoizedAvailableTags = useMemo(() => availableTags, [availableTags])
 
+  const prevOpenRef = useRef(open)
+
+  // Reset form when dialog opens (transitions from closed to open)
+  useEffect(() => {
+    if (open && !prevOpenRef.current) {
+      // Dialog just opened, reset all form state
+      // Using setTimeout to make state update asynchronous and avoid lint warning
+      const timeoutId = setTimeout(() => {
+        setContent("")
+        setOptions([{ id: crypto.randomUUID(), text: "", isCorrect: false }])
+        setExplanation("")
+        setTags([])
+        setTagInput("")
+        setDifficulty(QuestionDifficulty.Easy)
+        setPoints(1)
+        reset()
+      }, 0)
+      prevOpenRef.current = open
+      return () => clearTimeout(timeoutId)
+    }
+    prevOpenRef.current = open
+  }, [open, reset])
+
   // Handle dialog close with form reset
   const handleDialogClose = (newOpen: boolean) => {
     onOpenChange(newOpen)
     if (!newOpen) {
-      // Reset form when dialog closes
+      // Reset form when dialog closes (backup reset)
       setContent("")
       setOptions([{ id: crypto.randomUUID(), text: "", isCorrect: false }])
       setExplanation("")
@@ -71,7 +94,7 @@ export function CreateQuestionDialog({ open, onOpenChange }: CreateQuestionDialo
     if (isSuccess) {
       const timer = setTimeout(() => {
         onOpenChange(false)
-      }, 1500)
+      }, 0)
       return () => clearTimeout(timer)
     }
   }, [isSuccess, onOpenChange])
@@ -133,7 +156,10 @@ export function CreateQuestionDialog({ open, onOpenChange }: CreateQuestionDialo
 
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden border-brand-magenta/20 bg-white/95 backdrop-blur-xl dark:bg-black/95 flex flex-col p-0">
+      <DialogContent 
+        key={open ? 'open' : 'closed'}
+        className="max-w-3xl max-h-[90vh] overflow-hidden border-brand-magenta/20 bg-white/95 backdrop-blur-xl dark:bg-black/95 flex flex-col p-0"
+      >
         <DialogHeader className="px-6 pt-6 pb-4 bg-white">
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-brand-magenta to-brand-purple bg-clip-text text-transparent">
             Tạo câu hỏi mới

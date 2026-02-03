@@ -10,7 +10,9 @@ import {
   GenerateQuestionsFromPDFResponse,
   ImportQuestionsFromAIRequest,
   ImportQuestionsFromAIResponse,
-  DeleteQuestionResponse
+  DeleteQuestionResponse,
+  BulkCreateQuestionRequest,
+  BulkCreateQuestionResponse
 } from "@/lib/api/services/fetchQuestion"
 
 export function useGetQuestionTagsCount() {
@@ -141,6 +143,32 @@ export function useDeleteQuestion() {
   return {
     deleteQuestion: mutation.mutate,
     deleteQuestionAsync: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    error: mutation.error,
+    isSuccess: mutation.isSuccess,
+    data: mutation.data,
+    reset: mutation.reset,
+  }
+}
+
+export function useBulkCreateQuestions() {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation<BulkCreateQuestionResponse, Error, BulkCreateQuestionRequest>({
+    mutationFn: (data: BulkCreateQuestionRequest) => questionService.bulkCreateQuestions(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["questions"] })
+      queryClient.invalidateQueries({ queryKey: ["question-tags-count"] })
+      toast.success("Tạo câu hỏi hàng loạt thành công!")
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Tạo câu hỏi hàng loạt thất bại!")
+    },
+  })
+
+  return {
+    bulkCreateQuestions: mutation.mutate,
+    bulkCreateQuestionsAsync: mutation.mutateAsync,
     isLoading: mutation.isPending,
     error: mutation.error,
     isSuccess: mutation.isSuccess,

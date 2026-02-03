@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Upload, FileText, X, CheckCircle2, ChevronLeft, Trash2, Plus, Tag } from "lucide-react"
 import {
@@ -35,6 +35,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
   const [globalTags, setGlobalTags] = useState<string[]>([])
   const [globalTagInput, setGlobalTagInput] = useState("")
   const [tagsApplied, setTagsApplied] = useState(false)
+  const [tagInputs, setTagInputs] = useState<Record<string, string>>({})
   
   const {
     generateQuestions,
@@ -53,6 +54,31 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
   } = useImportQuestionsFromAI()
 
   const { tags: availableTags } = useGetQuestionTagsCount()
+
+  const prevOpenRef = useRef(open)
+
+  // Reset form when dialog opens (transitions from closed to open)
+  useEffect(() => {
+    if (open && !prevOpenRef.current) {
+      // Dialog just opened, reset all form state
+      // Using setTimeout to make state update asynchronous and avoid lint warning
+      const timeoutId = setTimeout(() => {
+        setStep(1)
+        setFile(null)
+        setUploadProgress(0)
+        setQuestionsData(null)
+        setGlobalTags([])
+        setGlobalTagInput("")
+        setTagsApplied(false)
+        setTagInputs({})
+        resetUpload()
+        resetImport()
+      }, 0)
+      prevOpenRef.current = open
+      return () => clearTimeout(timeoutId)
+    }
+    prevOpenRef.current = open
+  }, [open, resetUpload, resetImport])
 
   useEffect(() => {
     if (isUploadSuccess && uploadData?.data && uploadData.data.length > 0) {
@@ -89,7 +115,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isUploadSuccess, uploadError])
 
-  const handleDialogClose = useCallback((newOpen: boolean) => {
+  const handleDialogClose = (newOpen: boolean) => {
     onOpenChange(newOpen)
     if (!newOpen) {
       setStep(1)
@@ -99,40 +125,32 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
       setGlobalTags([])
       setGlobalTagInput("")
       setTagsApplied(false)
+      setTagInputs({})
       resetUpload()
       resetImport()
     }
-  }, [onOpenChange, resetUpload, resetImport])
+  }
 
   useEffect(() => {
     if (isImportSuccess) {
       const timer = setTimeout(() => {
-        setStep(1)
-        setFile(null)
-        setUploadProgress(0)
-        setQuestionsData(null)
-        setGlobalTags([])
-        setGlobalTagInput("")
-        setTagsApplied(false)
-        resetUpload()
-        resetImport()
         onOpenChange(false)
-      }, 1500)
+      }, 0)
       return () => clearTimeout(timer)
     }
-  }, [isImportSuccess, onOpenChange, resetUpload, resetImport])
+  }, [isImportSuccess, onOpenChange])
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
-  }, [])
+  }
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-  }, [])
+  }
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
     
@@ -142,7 +160,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
       resetUpload()
       setUploadProgress(0)
     }
-  }, [resetUpload])
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -171,52 +189,45 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
     setGlobalTags([])
     setGlobalTagInput("")
     setTagsApplied(false)
+    setTagInputs({})
     resetUpload()
   }
 
-  const addGlobalTag = useCallback((tag: string) => {
-    const trimmedTag = tag.trim()
-    if (trimmedTag && !globalTags.includes(trimmedTag)) {
-      setGlobalTags((prev) => [...prev, trimmedTag])
-      setTagsApplied(false) 
+  const addGlobalTag = () => {
+    const tag = globalTagInput.trim()
+    if (tag && !globalTags.includes(tag)) {
+      setGlobalTags([...globalTags, tag])
+      setGlobalTagInput("")
+      setTagsApplied(false)
     }
-  }, [globalTags])
+  }
 
-  const removeGlobalTag = useCallback((tag: string) => {
-    setGlobalTags((prev) => prev.filter(t => t !== tag))
-    setTagsApplied(false) 
-  }, [])
+  const removeGlobalTag = (tag: string) => {
+    setGlobalTags(globalTags.filter((t) => t !== tag))
+    setTagsApplied(false)
+  }
 
-  const applyGlobalTagsToAll = useCallback(() => {
+  const applyGlobalTagsToAll = () => {
     if (!questionsData || globalTags.length === 0) return
     
-    setQuestionsData((prev) => {
-      if (!prev) return prev
-      const updated = { ...prev }
-      
-      // Apply global tags to all questions
-      updated.easy = updated.easy.map(q => ({
+    setQuestionsData({
+      easy: questionsData.easy.map(q => ({
+        ...q,
+        tags: [...new Set([...q.tags, ...globalTags])]
+      })),
+      medium: questionsData.medium.map(q => ({
+        ...q,
+        tags: [...new Set([...q.tags, ...globalTags])]
+      })),
+      hard: questionsData.hard.map(q => ({
         ...q,
         tags: [...new Set([...q.tags, ...globalTags])]
       }))
-      
-      updated.medium = updated.medium.map(q => ({
-        ...q,
-        tags: [...new Set([...q.tags, ...globalTags])]
-      }))
-      
-      updated.hard = updated.hard.map(q => ({
-        ...q,
-        tags: [...new Set([...q.tags, ...globalTags])]
-      }))
-      
-      return updated
     })
     
-    // Show success toast and hide button
     toast.success("Đã áp dụng tags cho tất cả câu hỏi thành công!")
     setTagsApplied(true)
-  }, [questionsData, globalTags])
+  }
 
   const handleImportQuestions = () => {
     if (!questionsData) return
@@ -281,192 +292,119 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
     importQuestions(cleanQuestions)
   }
 
-  const addTagToQuestion = useCallback((
+  const addTagToQuestion = (
     difficulty: "easy" | "medium" | "hard",
     questionIndex: number,
     tag: string
   ) => {
-    setQuestionsData((prev) => {
-      if (!prev) return prev
-      const currentQuestion = prev[difficulty][questionIndex]
-      if (!currentQuestion.tags.includes(tag)) {
-        const updated = { ...prev }
-        const updatedQuestion = { ...updated[difficulty][questionIndex] }
-        updatedQuestion.tags = [...updatedQuestion.tags, tag]
-        updated[difficulty][questionIndex] = updatedQuestion
-        return updated
-      }
-      return prev
-    })
-  }, [])
+    if (!questionsData) return
+    const currentQuestion = questionsData[difficulty][questionIndex]
+    if (currentQuestion.tags.includes(tag)) return
+    
+    const updated = { ...questionsData }
+    const updatedQuestion = { ...updated[difficulty][questionIndex] }
+    updatedQuestion.tags = [...updatedQuestion.tags, tag]
+    updated[difficulty][questionIndex] = updatedQuestion
+    setQuestionsData(updated)
+  }
 
-  const removeTagFromQuestion = useCallback((
+  const removeTagFromQuestion = (
     difficulty: "easy" | "medium" | "hard",
     questionIndex: number,
     tag: string
   ) => {
-    setQuestionsData((prev) => {
-      if (!prev) return prev
-      const updated = { ...prev }
-      const updatedQuestion = { ...updated[difficulty][questionIndex] }
-      updatedQuestion.tags = updatedQuestion.tags.filter(t => t !== tag)
-      updated[difficulty][questionIndex] = updatedQuestion
-      return updated
-    })
-  }, [])
+    if (!questionsData) return
+    const updated = { ...questionsData }
+    const updatedQuestion = { ...updated[difficulty][questionIndex] }
+    updatedQuestion.tags = updatedQuestion.tags.filter(t => t !== tag)
+    updated[difficulty][questionIndex] = updatedQuestion
+    setQuestionsData(updated)
+  }
 
-  const updateQuestion = useCallback((
+  const updateQuestion = (
     difficulty: "easy" | "medium" | "hard",
     index: number,
     field: keyof GeneratedQuestion,
     value: string | null
   ) => {
-    setQuestionsData((prev) => {
-      if (!prev) return prev
-      const updated = { ...prev }
-      const question = { ...updated[difficulty][index] }
-      if (field === "content") {
-        question.content = value || ""
-      } else if (field === "explanation") {
-        question.explanation = value
-      }
-      updated[difficulty][index] = question
-      return updated
-    })
-  }, [])
+    if (!questionsData) return
+    const updated = { ...questionsData }
+    const question = { ...updated[difficulty][index] }
+    if (field === "content") {
+      question.content = value || ""
+    } else if (field === "explanation") {
+      question.explanation = value
+    }
+    updated[difficulty][index] = question
+    setQuestionsData(updated)
+  }
 
-  const updateOption = useCallback((
+  const updateOption = (
     difficulty: "easy" | "medium" | "hard",
     questionIndex: number,
     optionIndex: number,
     field: "text" | "isCorrect",
     value: string | boolean
   ) => {
-    setQuestionsData((prev) => {
-      if (!prev) return prev
-      const updated = { ...prev }
-      const question = { ...updated[difficulty][questionIndex] }
-      const options = [...question.options]
-      if (field === "text") {
-        options[optionIndex] = { ...options[optionIndex], text: value as string }
-      } else {
-        options[optionIndex] = { ...options[optionIndex], isCorrect: value as boolean }
-      }
-      question.options = options
-      updated[difficulty][questionIndex] = question
-      return updated
-    })
-  }, [])
+    if (!questionsData) return
+    const updated = { ...questionsData }
+    const question = { ...updated[difficulty][questionIndex] }
+    const options = [...question.options]
+    if (field === "text") {
+      options[optionIndex] = { ...options[optionIndex], text: value as string }
+    } else {
+      options[optionIndex] = { ...options[optionIndex], isCorrect: value as boolean }
+    }
+    question.options = options
+    updated[difficulty][questionIndex] = question
+    setQuestionsData(updated)
+  }
 
-  const removeQuestion = useCallback((difficulty: "easy" | "medium" | "hard", index: number) => {
-    setQuestionsData((prev) => {
-      if (!prev) return prev
-      const updated = { ...prev }
-      updated[difficulty] = updated[difficulty].filter((_, i) => i !== index)
-      return updated
-    })
-  }, [])
-
-  const addOption = useCallback((difficulty: "easy" | "medium" | "hard", questionIndex: number) => {
-    setQuestionsData((prev) => {
-      if (!prev) return prev
-      const updated = { ...prev }
-      const question = { ...updated[difficulty][questionIndex] }
-      question.options = [
-        ...question.options,
-        { id: crypto.randomUUID(), text: "", isCorrect: false }
-      ]
-      updated[difficulty][questionIndex] = question
-      return updated
-    })
-  }, [])
-
-  const removeOption = useCallback((
+  const toggleCorrect = (
     difficulty: "easy" | "medium" | "hard",
     questionIndex: number,
     optionIndex: number
   ) => {
-    setQuestionsData((prev) => {
-      if (!prev) return prev
-      const updated = { ...prev }
-      const question = { ...updated[difficulty][questionIndex] }
-      question.options = question.options.filter((_, i) => i !== optionIndex)
-      updated[difficulty][questionIndex] = question
-      return updated
-    })
-  }, [])
-
-  // Memoize availableTags to prevent unnecessary re-renders
-  const memoizedAvailableTags = useMemo(() => availableTags, [availableTags])
-
-  interface QuestionEditorProps {
-    question: GeneratedQuestion
-    difficulty: "easy" | "medium" | "hard"
-    questionIndex: number
-    onUpdateQuestion: (difficulty: "easy" | "medium" | "hard", index: number, field: keyof GeneratedQuestion, value: string | null) => void
-    onUpdateOption: (difficulty: "easy" | "medium" | "hard", questionIndex: number, optionIndex: number, field: "text" | "isCorrect", value: string | boolean) => void
-    onAddTag: (difficulty: "easy" | "medium" | "hard", questionIndex: number, tag: string) => void
-    onRemoveTag: (difficulty: "easy" | "medium" | "hard", questionIndex: number, tag: string) => void
-    onAddOption: (difficulty: "easy" | "medium" | "hard", questionIndex: number) => void
-    onRemoveOption: (difficulty: "easy" | "medium" | "hard", questionIndex: number, optionIndex: number) => void
-    onRemoveQuestion: (difficulty: "easy" | "medium" | "hard", index: number) => void
-    availableTags: typeof availableTags
+    if (!questionsData) return
+    const question = questionsData[difficulty][questionIndex]
+    updateOption(difficulty, questionIndex, optionIndex, "isCorrect", !question.options[optionIndex].isCorrect)
   }
 
-  const QuestionEditor = ({
-    question,
-    difficulty,
-    questionIndex,
-    onUpdateQuestion,
-    onUpdateOption,
-    onAddTag,
-    onRemoveTag,
-    onAddOption,
-    onRemoveOption,
-    onRemoveQuestion,
-    availableTags: tags,
-  }: QuestionEditorProps) => {
-    const [tagInput, setTagInput] = useState("")
-    const [localContent, setLocalContent] = useState(question.content)
-    const [localExplanation, setLocalExplanation] = useState(question.explanation || "")
-    const [localOptions, setLocalOptions] = useState(question.options)
-    const questionTags = question.tags || []
+  const removeQuestion = (difficulty: "easy" | "medium" | "hard", index: number) => {
+    if (!questionsData) return
+    const updated = { ...questionsData }
+    updated[difficulty] = updated[difficulty].filter((_, i) => i !== index)
+    setQuestionsData(updated)
+  }
 
-    // Sync local state when question prop changes
-    useEffect(() => {
-      setLocalContent(question.content)
-      setLocalExplanation(question.explanation || "")
-      setLocalOptions(question.options)
-    }, [question.content, question.explanation, question.options])
+  const addOption = (difficulty: "easy" | "medium" | "hard", questionIndex: number) => {
+    if (!questionsData) return
+    const updated = { ...questionsData }
+    const question = { ...updated[difficulty][questionIndex] }
+    question.options = [
+      ...question.options,
+      { id: crypto.randomUUID(), text: "", isCorrect: false }
+    ]
+    updated[difficulty][questionIndex] = question
+    setQuestionsData(updated)
+  }
 
-    const handleAddTag = () => {
-      const tag = tagInput.trim()
-      if (tag && !questionTags.includes(tag)) {
-        onAddTag(difficulty, questionIndex, tag)
-        setTagInput("")
-      }
-    }
+  const removeOption = (
+    difficulty: "easy" | "medium" | "hard",
+    questionIndex: number,
+    optionIndex: number
+  ) => {
+    if (!questionsData) return
+    const updated = { ...questionsData }
+    const question = { ...updated[difficulty][questionIndex] }
+    question.options = question.options.filter((_, i) => i !== optionIndex)
+    updated[difficulty][questionIndex] = question
+    setQuestionsData(updated)
+  }
 
-    const handleContentBlur = () => {
-      if (localContent !== question.content) {
-        onUpdateQuestion(difficulty, questionIndex, "content", localContent)
-      }
-    }
-
-    const handleExplanationBlur = () => {
-      if (localExplanation !== (question.explanation || "")) {
-        onUpdateQuestion(difficulty, questionIndex, "explanation", localExplanation || null)
-      }
-    }
-
-    const handleOptionBlur = (optIndex: number) => {
-      if (localOptions[optIndex]?.text !== question.options[optIndex]?.text) {
-        onUpdateOption(difficulty, questionIndex, optIndex, "text", localOptions[optIndex].text)
-      }
-    }
-
-    // Difficulty badge styling
-    const difficultyConfig = {
+  // Difficulty badge styling helper
+  const getDifficultyConfig = (difficulty: "easy" | "medium" | "hard") => {
+    const configs = {
       easy: {
         label: "Dễ",
         gradient: "from-emerald-500 to-green-500",
@@ -489,225 +427,18 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
         text: "text-rose-700 dark:text-rose-300"
       }
     }
-
-    const config = difficultyConfig[difficulty]
-
-    return (
-      <div
-        className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
-      >
-        {/* Gradient accent line */}
-        <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
-        
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 space-y-4">
-            {/* Header with difficulty badge */}
-            <div className="flex items-center gap-3">
-              <div className={`rounded-full border px-3 py-1 text-xs font-semibold ${config.border} ${config.bg} ${config.text}`}>
-                {config.label}
-              </div>
-              <span className="text-xs text-muted-foreground">
-                Câu hỏi #{questionIndex + 1}
-              </span>
-            </div>
-
-            {/* Question Content */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">
-                Nội dung câu hỏi <span className="text-red-500">*</span>
-              </label>
-              <Textarea
-                value={localContent}
-                onChange={(e) => setLocalContent(e.target.value)}
-                onBlur={handleContentBlur}
-                placeholder="Nhập nội dung câu hỏi..."
-                className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/80 backdrop-blur-sm transition-all focus:border-brand-magenta focus:ring-2 focus:ring-brand-magenta/20 dark:bg-black/80"
-              />
-            </div>
-            
-            {/* Options */}
-            <div className="space-y-3">
-              <label className="text-sm font-semibold text-foreground">
-                Các lựa chọn <span className="text-red-500">*</span>
-              </label>
-              <div className="space-y-2">
-                {localOptions.map((option, optIndex) => (
-                  <div
-                    key={optIndex}
-                    className="flex items-center gap-3 rounded-xl border border-brand-magenta/10 bg-white/60 p-3 backdrop-blur-sm transition-all hover:border-brand-magenta/30 hover:bg-white/80 dark:bg-black/60 dark:hover:bg-black/80"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = [...localOptions]
-                        updated[optIndex] = { ...updated[optIndex], isCorrect: !updated[optIndex].isCorrect }
-                        setLocalOptions(updated)
-                        onUpdateOption(difficulty, questionIndex, optIndex, "isCorrect", !option.isCorrect)
-                      }}
-                      className={`group/check flex-shrink-0 rounded-full p-1.5 transition-all ${
-                        option.isCorrect
-                          ? "bg-gradient-to-br from-emerald-500 to-green-500 text-white shadow-lg shadow-emerald-500/30"
-                          : "border-2 border-gray-300 text-gray-300 hover:border-emerald-500 hover:text-emerald-500 dark:border-gray-600"
-                      }`}
-                    >
-                      <CheckCircle2 className="h-4 w-4 transition-transform group-hover/check:scale-110" />
-                    </button>
-                    <Input
-                      value={option.text}
-                      onChange={(e) => {
-                        const updated = [...localOptions]
-                        updated[optIndex] = { ...updated[optIndex], text: e.target.value }
-                        setLocalOptions(updated)
-                      }}
-                      onBlur={() => handleOptionBlur(optIndex)}
-                      placeholder={`Lựa chọn ${optIndex + 1}`}
-                      className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                    />
-                    {localOptions.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = localOptions.filter((_, i) => i !== optIndex)
-                          setLocalOptions(updated)
-                          onRemoveOption(difficulty, questionIndex, optIndex)
-                        }}
-                        className="group/delete flex-shrink-0 rounded-full p-1.5 text-red-500 transition-all hover:bg-red-50 dark:hover:bg-red-950/30"
-                      >
-                        <X className="h-4 w-4 transition-transform group-hover/delete:rotate-90" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  const newOption = { id: crypto.randomUUID(), text: "", isCorrect: false }
-                  setLocalOptions([...localOptions, newOption])
-                  onAddOption(difficulty, questionIndex)
-                }}
-                className="group/add w-full rounded-xl border-brand-magenta/20 bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm transition-all hover:border-brand-magenta hover:bg-brand-magenta/10 hover:text-black"
-              >
-                <Plus className="mr-2 h-4 w-4 transition-transform group-hover/add:rotate-90" />
-                Thêm lựa chọn
-              </Button>
-            </div>
-
-            {/* Tags Selection */}
-            <div className="space-y-3">
-              <label className="text-sm font-semibold text-foreground">
-                Tags <span className="text-red-500">*</span>
-              </label>
-              
-              {/* Tag Input */}
-              <div className="flex gap-2">
-                <Input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddTag())}
-                  placeholder="Nhập tag và nhấn Enter..."
-                  className="flex-1 rounded-xl border-brand-magenta/20 bg-white/80 backdrop-blur-sm dark:bg-black/80"
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleAddTag}
-                  className="rounded-full bg-brand-magenta text-white"
-                >
-                  <Plus className="mr-1 h-3 w-3" />
-                  Thêm
-                </Button>
-              </div>
-
-              {/* Available Tags */}
-              {tags.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Tags có sẵn:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tagData) => (
-                      <button
-                        key={tagData.tag}
-                        type="button"
-                        onClick={() => onAddTag(difficulty, questionIndex, tagData.tag)}
-                        disabled={questionTags.includes(tagData.tag)}
-                        className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                          questionTags.includes(tagData.tag)
-                            ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
-                            : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
-                        }`}
-                      >
-                        <Tag className="mr-1 inline h-3 w-3" />
-                        {tagData.tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Selected Tags */}
-              {questionTags.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Tags đã chọn:</p>
-                  <div className="flex flex-wrap gap-2">
-                    <AnimatePresence mode="popLayout">
-                      {questionTags.map((tag) => (
-                        <motion.div
-                          key={tag}
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                          className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-gradient-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
-                        >
-                          <Tag className="h-3 w-3" />
-                          <span>{tag}</span>
-                          <button
-                            type="button"
-                            onClick={() => onRemoveTag(difficulty, questionIndex, tag)}
-                            className="ml-1 rounded-full transition-all hover:bg-brand-purple/20"
-                          >
-                            <X className="h-3 w-3 transition-transform group-hover/selected:rotate-90" />
-                          </button>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Explanation */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">
-                Giải thích <span className="text-xs text-muted-foreground">(Tùy chọn)</span>
-              </label>
-              <Textarea
-                value={localExplanation}
-                onChange={(e) => setLocalExplanation(e.target.value)}
-                onBlur={handleExplanationBlur}
-                placeholder="Thêm giải thích cho câu hỏi..."
-                className="min-h-[80px] resize-none rounded-xl border-brand-magenta/20 bg-white/80 backdrop-blur-sm dark:bg-black/80"
-              />
-            </div>
-          </div>
-          
-          {/* Delete Button */}
-          <button
-            type="button"
-            onClick={() => onRemoveQuestion(difficulty, questionIndex)}
-            className="group/delete flex-shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20 dark:hover:bg-red-950/30"
-          >
-            <Trash2 className="h-5 w-5 transition-transform group-hover/delete:scale-110" />
-          </button>
-        </div>
-      </div>
-    )
+    return configs[difficulty]
   }
+
+  // Memoize availableTags to prevent unnecessary re-renders
+  const memoizedAvailableTags = useMemo(() => availableTags, [availableTags])
 
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden border-brand-magenta/20 bg-white/95 backdrop-blur-xl dark:bg-black/95 flex flex-col p-0">
+      <DialogContent 
+        key={open ? 'open' : 'closed'}
+        className="max-w-4xl max-h-[90vh] overflow-hidden border-brand-magenta/20 bg-white/95 backdrop-blur-xl dark:bg-black/95 flex flex-col p-0"
+      >
         <DialogHeader className="px-6 pt-6 pb-4 bg-white">
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-brand-magenta to-brand-purple bg-clip-text text-transparent">
             {step === 1 ? "Tạo câu hỏi từ PDF" : "Chỉnh sửa và tạo câu hỏi"}
@@ -879,11 +610,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault()
-                              const tag = globalTagInput.trim()
-                              if (tag) {
-                                addGlobalTag(tag)
-                                setGlobalTagInput("")
-                              }
+                              addGlobalTag()
                             }
                           }}
                           placeholder="Nhập tag và nhấn Enter..."
@@ -892,13 +619,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
                         <Button
                           type="button"
                           size="sm"
-                          onClick={() => {
-                            const tag = globalTagInput.trim()
-                            if (tag) {
-                              addGlobalTag(tag)
-                              setGlobalTagInput("")
-                            }
-                          }}
+                          onClick={addGlobalTag}
                           className="rounded-full bg-brand-magenta text-white"
                         >
                           <Plus className="mr-1 h-3 w-3" />
@@ -915,7 +636,12 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
                               <button
                                 key={tagData.tag}
                                 type="button"
-                                onClick={() => addGlobalTag(tagData.tag)}
+                                onClick={() => {
+                                  if (!globalTags.includes(tagData.tag)) {
+                                    setGlobalTags([...globalTags, tagData.tag])
+                                    setTagsApplied(false)
+                                  }
+                                }}
                                 disabled={globalTags.includes(tagData.tag)}
                                 className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                                   globalTags.includes(tagData.tag)
@@ -985,22 +711,208 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
                           </h3>
                           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
                         </div>
-                        {questionsData.easy.map((question, index) => (
-                          <QuestionEditor
-                            key={`easy-${index}`}
-                            question={question}
-                            difficulty="easy"
-                            questionIndex={index}
-                            onUpdateQuestion={updateQuestion}
-                            onUpdateOption={updateOption}
-                            onAddTag={addTagToQuestion}
-                            onRemoveTag={removeTagFromQuestion}
-                            onAddOption={addOption}
-                            onRemoveOption={removeOption}
-                            onRemoveQuestion={removeQuestion}
-                            availableTags={memoizedAvailableTags}
-                          />
-                        ))}
+                        {questionsData.easy.map((question, index) => {
+                          const config = getDifficultyConfig("easy")
+                          const questionKey = `easy-${index}`
+                          const tagInput = tagInputs[questionKey] || ""
+                          
+                          const setTagInput = (value: string) => {
+                            setTagInputs({ ...tagInputs, [questionKey]: value })
+                          }
+
+                          const addTag = () => {
+                            const tag = tagInput.trim()
+                            if (tag && !question.tags.includes(tag)) {
+                              addTagToQuestion("easy", index, tag)
+                              setTagInput("")
+                            }
+                          }
+
+                          return (
+                            <div
+                              key={questionKey}
+                              className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
+                            >
+                              <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
+                              
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 space-y-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`rounded-full border px-3 py-1 text-xs font-semibold ${config.border} ${config.bg} ${config.text}`}>
+                                      {config.label}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">
+                                      Câu hỏi #{index + 1}
+                                    </span>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Nội dung câu hỏi <span className="text-red-500">*</span>
+                                    </label>
+                                    <Textarea
+                                      value={question.content}
+                                      onChange={(e) => updateQuestion("easy", index, "content", e.target.value)}
+                                      placeholder="Nhập nội dung câu hỏi..."
+                                      className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                    />
+                                  </div>
+                                  
+                                  <div className="space-y-3">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Các lựa chọn <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="space-y-2">
+                                      {question.options.map((option, optIndex) => (
+                                        <div
+                                          key={optIndex}
+                                          className="flex items-center gap-2"
+                                        >
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleCorrect("easy", index, optIndex)}
+                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${
+                                              option.isCorrect
+                                                ? "bg-green-500 text-white"
+                                                : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
+                                            }`}
+                                          >
+                                            <CheckCircle2 className="h-5 w-5" />
+                                          </button>
+                                          
+                                          <Input
+                                            value={option.text}
+                                            onChange={(e) => updateOption("easy", index, optIndex, "text", e.target.value)}
+                                            placeholder={`Lựa chọn ${optIndex + 1}`}
+                                            className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                          />
+
+                                          {question.options.length > 1 && (
+                                            <button
+                                              type="button"
+                                              onClick={() => removeOption("easy", index, optIndex)}
+                                              className="flex-shrink-0 rounded-full p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                            >
+                                              <X className="h-5 w-5" />
+                                            </button>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => addOption("easy", index)}
+                                      className="w-full rounded-full border-brand-magenta/20"
+                                    >
+                                      <Plus className="mr-2 h-4 w-4" />
+                                      Thêm lựa chọn
+                                    </Button>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Tags <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="flex gap-2">
+                                      <Input
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                                        placeholder="Nhập tag và nhấn Enter..."
+                                        className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                      />
+                                      <Button
+                                        type="button"
+                                        onClick={addTag}
+                                        variant="outline"
+                                        className="rounded-full bg-brand-magenta text-white hover:bg-brand-magenta/80"
+                                      >
+                                        Thêm
+                                      </Button>
+                                    </div>
+
+                                    {memoizedAvailableTags.length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-xs font-medium text-muted-foreground">Tags có sẵn:</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {memoizedAvailableTags.map((tagData) => (
+                                            <button
+                                              key={tagData.tag}
+                                              type="button"
+                                              onClick={() => {
+                                                if (!question.tags.includes(tagData.tag)) {
+                                                  addTagToQuestion("easy", index, tagData.tag)
+                                                }
+                                              }}
+                                              disabled={question.tags.includes(tagData.tag)}
+                                              className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                                                question.tags.includes(tagData.tag)
+                                                  ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
+                                                  : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                              }`}
+                                            >
+                                              <Tag className="mr-1 inline h-3 w-3" />
+                                              {tagData.tag}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {question.tags.length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-xs font-medium text-muted-foreground">Tags đã chọn:</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {question.tags.map((tag) => (
+                                            <motion.div
+                                              key={tag}
+                                              initial={{ scale: 0 }}
+                                              animate={{ scale: 1 }}
+                                              exit={{ scale: 0 }}
+                                              className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-gradient-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
+                                            >
+                                              <Tag className="h-3 w-3" />
+                                              <span>{tag}</span>
+                                              <button
+                                                type="button"
+                                                onClick={() => removeTagFromQuestion("easy", index, tag)}
+                                                className="ml-1 rounded-full transition-all hover:bg-brand-purple/20"
+                                              >
+                                                <X className="h-3 w-3 transition-transform group-hover/selected:rotate-90" />
+                                              </button>
+                                            </motion.div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Giải thích (tùy chọn)
+                                    </label>
+                                    <Textarea
+                                      value={question.explanation || ""}
+                                      onChange={(e) => updateQuestion("easy", index, "explanation", e.target.value || null)}
+                                      placeholder="Nhập giải thích cho câu hỏi..."
+                                      className="min-h-[80px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <button
+                                  type="button"
+                                  onClick={() => removeQuestion("easy", index)}
+                                  className="group/delete flex-shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20 dark:hover:bg-red-950/30"
+                                >
+                                  <Trash2 className="h-5 w-5 transition-transform group-hover/delete:scale-110" />
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
 
@@ -1016,22 +928,208 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
                           </h3>
                           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
                         </div>
-                        {questionsData.medium.map((question, index) => (
-                          <QuestionEditor
-                            key={`medium-${index}`}
-                            question={question}
-                            difficulty="medium"
-                            questionIndex={index}
-                            onUpdateQuestion={updateQuestion}
-                            onUpdateOption={updateOption}
-                            onAddTag={addTagToQuestion}
-                            onRemoveTag={removeTagFromQuestion}
-                            onAddOption={addOption}
-                            onRemoveOption={removeOption}
-                            onRemoveQuestion={removeQuestion}
-                            availableTags={memoizedAvailableTags}
-                          />
-                        ))}
+                        {questionsData.medium.map((question, index) => {
+                          const config = getDifficultyConfig("medium")
+                          const questionKey = `medium-${index}`
+                          const tagInput = tagInputs[questionKey] || ""
+                          
+                          const setTagInput = (value: string) => {
+                            setTagInputs({ ...tagInputs, [questionKey]: value })
+                          }
+
+                          const addTag = () => {
+                            const tag = tagInput.trim()
+                            if (tag && !question.tags.includes(tag)) {
+                              addTagToQuestion("medium", index, tag)
+                              setTagInput("")
+                            }
+                          }
+
+                          return (
+                            <div
+                              key={questionKey}
+                              className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
+                            >
+                              <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
+                              
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 space-y-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`rounded-full border px-3 py-1 text-xs font-semibold ${config.border} ${config.bg} ${config.text}`}>
+                                      {config.label}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">
+                                      Câu hỏi #{index + 1}
+                                    </span>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Nội dung câu hỏi <span className="text-red-500">*</span>
+                                    </label>
+                                    <Textarea
+                                      value={question.content}
+                                      onChange={(e) => updateQuestion("medium", index, "content", e.target.value)}
+                                      placeholder="Nhập nội dung câu hỏi..."
+                                      className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                    />
+                                  </div>
+                                  
+                                  <div className="space-y-3">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Các lựa chọn <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="space-y-2">
+                                      {question.options.map((option, optIndex) => (
+                                        <div
+                                          key={optIndex}
+                                          className="flex items-center gap-2"
+                                        >
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleCorrect("medium", index, optIndex)}
+                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${
+                                              option.isCorrect
+                                                ? "bg-green-500 text-white"
+                                                : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
+                                            }`}
+                                          >
+                                            <CheckCircle2 className="h-5 w-5" />
+                                          </button>
+                                          
+                                          <Input
+                                            value={option.text}
+                                            onChange={(e) => updateOption("medium", index, optIndex, "text", e.target.value)}
+                                            placeholder={`Lựa chọn ${optIndex + 1}`}
+                                            className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                          />
+
+                                          {question.options.length > 1 && (
+                                            <button
+                                              type="button"
+                                              onClick={() => removeOption("medium", index, optIndex)}
+                                              className="flex-shrink-0 rounded-full p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                            >
+                                              <X className="h-5 w-5" />
+                                            </button>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => addOption("medium", index)}
+                                      className="w-full rounded-full border-brand-magenta/20"
+                                    >
+                                      <Plus className="mr-2 h-4 w-4" />
+                                      Thêm lựa chọn
+                                    </Button>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Tags <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="flex gap-2">
+                                      <Input
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                                        placeholder="Nhập tag và nhấn Enter..."
+                                        className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                      />
+                                      <Button
+                                        type="button"
+                                        onClick={addTag}
+                                        variant="outline"
+                                        className="rounded-full bg-brand-magenta text-white hover:bg-brand-magenta/80"
+                                      >
+                                        Thêm
+                                      </Button>
+                                    </div>
+
+                                    {memoizedAvailableTags.length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-xs font-medium text-muted-foreground">Tags có sẵn:</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {memoizedAvailableTags.map((tagData) => (
+                                            <button
+                                              key={tagData.tag}
+                                              type="button"
+                                              onClick={() => {
+                                                if (!question.tags.includes(tagData.tag)) {
+                                                  addTagToQuestion("medium", index, tagData.tag)
+                                                }
+                                              }}
+                                              disabled={question.tags.includes(tagData.tag)}
+                                              className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                                                question.tags.includes(tagData.tag)
+                                                  ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
+                                                  : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                              }`}
+                                            >
+                                              <Tag className="mr-1 inline h-3 w-3" />
+                                              {tagData.tag}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {question.tags.length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-xs font-medium text-muted-foreground">Tags đã chọn:</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {question.tags.map((tag) => (
+                                            <motion.div
+                                              key={tag}
+                                              initial={{ scale: 0 }}
+                                              animate={{ scale: 1 }}
+                                              exit={{ scale: 0 }}
+                                              className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-gradient-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
+                                            >
+                                              <Tag className="h-3 w-3" />
+                                              <span>{tag}</span>
+                                              <button
+                                                type="button"
+                                                onClick={() => removeTagFromQuestion("medium", index, tag)}
+                                                className="ml-1 rounded-full transition-all hover:bg-brand-purple/20"
+                                              >
+                                                <X className="h-3 w-3 transition-transform group-hover/selected:rotate-90" />
+                                              </button>
+                                            </motion.div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Giải thích (tùy chọn)
+                                    </label>
+                                    <Textarea
+                                      value={question.explanation || ""}
+                                      onChange={(e) => updateQuestion("medium", index, "explanation", e.target.value || null)}
+                                      placeholder="Nhập giải thích cho câu hỏi..."
+                                      className="min-h-[80px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <button
+                                  type="button"
+                                  onClick={() => removeQuestion("medium", index)}
+                                  className="group/delete flex-shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20 dark:hover:bg-red-950/30"
+                                >
+                                  <Trash2 className="h-5 w-5 transition-transform group-hover/delete:scale-110" />
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
 
@@ -1047,22 +1145,208 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
                           </h3>
                           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-500/30 to-transparent" />
                         </div>
-                        {questionsData.hard.map((question, index) => (
-                          <QuestionEditor
-                            key={`hard-${index}`}
-                            question={question}
-                            difficulty="hard"
-                            questionIndex={index}
-                            onUpdateQuestion={updateQuestion}
-                            onUpdateOption={updateOption}
-                            onAddTag={addTagToQuestion}
-                            onRemoveTag={removeTagFromQuestion}
-                            onAddOption={addOption}
-                            onRemoveOption={removeOption}
-                            onRemoveQuestion={removeQuestion}
-                            availableTags={memoizedAvailableTags}
-                          />
-                        ))}
+                        {questionsData.hard.map((question, index) => {
+                          const config = getDifficultyConfig("hard")
+                          const questionKey = `hard-${index}`
+                          const tagInput = tagInputs[questionKey] || ""
+                          
+                          const setTagInput = (value: string) => {
+                            setTagInputs({ ...tagInputs, [questionKey]: value })
+                          }
+
+                          const addTag = () => {
+                            const tag = tagInput.trim()
+                            if (tag && !question.tags.includes(tag)) {
+                              addTagToQuestion("hard", index, tag)
+                              setTagInput("")
+                            }
+                          }
+
+                          return (
+                            <div
+                              key={questionKey}
+                              className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
+                            >
+                              <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
+                              
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 space-y-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`rounded-full border px-3 py-1 text-xs font-semibold ${config.border} ${config.bg} ${config.text}`}>
+                                      {config.label}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">
+                                      Câu hỏi #{index + 1}
+                                    </span>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Nội dung câu hỏi <span className="text-red-500">*</span>
+                                    </label>
+                                    <Textarea
+                                      value={question.content}
+                                      onChange={(e) => updateQuestion("hard", index, "content", e.target.value)}
+                                      placeholder="Nhập nội dung câu hỏi..."
+                                      className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                    />
+                                  </div>
+                                  
+                                  <div className="space-y-3">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Các lựa chọn <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="space-y-2">
+                                      {question.options.map((option, optIndex) => (
+                                        <div
+                                          key={optIndex}
+                                          className="flex items-center gap-2"
+                                        >
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleCorrect("hard", index, optIndex)}
+                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${
+                                              option.isCorrect
+                                                ? "bg-green-500 text-white"
+                                                : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
+                                            }`}
+                                          >
+                                            <CheckCircle2 className="h-5 w-5" />
+                                          </button>
+                                          
+                                          <Input
+                                            value={option.text}
+                                            onChange={(e) => updateOption("hard", index, optIndex, "text", e.target.value)}
+                                            placeholder={`Lựa chọn ${optIndex + 1}`}
+                                            className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                          />
+
+                                          {question.options.length > 1 && (
+                                            <button
+                                              type="button"
+                                              onClick={() => removeOption("hard", index, optIndex)}
+                                              className="flex-shrink-0 rounded-full p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                            >
+                                              <X className="h-5 w-5" />
+                                            </button>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => addOption("hard", index)}
+                                      className="w-full rounded-full border-brand-magenta/20"
+                                    >
+                                      <Plus className="mr-2 h-4 w-4" />
+                                      Thêm lựa chọn
+                                    </Button>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Tags <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="flex gap-2">
+                                      <Input
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                                        placeholder="Nhập tag và nhấn Enter..."
+                                        className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                      />
+                                      <Button
+                                        type="button"
+                                        onClick={addTag}
+                                        variant="outline"
+                                        className="rounded-full bg-brand-magenta text-white hover:bg-brand-magenta/80"
+                                      >
+                                        Thêm
+                                      </Button>
+                                    </div>
+
+                                    {memoizedAvailableTags.length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-xs font-medium text-muted-foreground">Tags có sẵn:</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {memoizedAvailableTags.map((tagData) => (
+                                            <button
+                                              key={tagData.tag}
+                                              type="button"
+                                              onClick={() => {
+                                                if (!question.tags.includes(tagData.tag)) {
+                                                  addTagToQuestion("hard", index, tagData.tag)
+                                                }
+                                              }}
+                                              disabled={question.tags.includes(tagData.tag)}
+                                              className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                                                question.tags.includes(tagData.tag)
+                                                  ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
+                                                  : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                              }`}
+                                            >
+                                              <Tag className="mr-1 inline h-3 w-3" />
+                                              {tagData.tag}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {question.tags.length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-xs font-medium text-muted-foreground">Tags đã chọn:</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {question.tags.map((tag) => (
+                                            <motion.div
+                                              key={tag}
+                                              initial={{ scale: 0 }}
+                                              animate={{ scale: 1 }}
+                                              exit={{ scale: 0 }}
+                                              className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-gradient-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
+                                            >
+                                              <Tag className="h-3 w-3" />
+                                              <span>{tag}</span>
+                                              <button
+                                                type="button"
+                                                onClick={() => removeTagFromQuestion("hard", index, tag)}
+                                                className="ml-1 rounded-full transition-all hover:bg-brand-purple/20"
+                                              >
+                                                <X className="h-3 w-3 transition-transform group-hover/selected:rotate-90" />
+                                              </button>
+                                            </motion.div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-foreground">
+                                      Giải thích (tùy chọn)
+                                    </label>
+                                    <Textarea
+                                      value={question.explanation || ""}
+                                      onChange={(e) => updateQuestion("hard", index, "explanation", e.target.value || null)}
+                                      placeholder="Nhập giải thích cho câu hỏi..."
+                                      className="min-h-[80px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <button
+                                  type="button"
+                                  onClick={() => removeQuestion("hard", index)}
+                                  className="group/delete flex-shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20 dark:hover:bg-red-950/30"
+                                >
+                                  <Trash2 className="h-5 w-5 transition-transform group-hover/delete:scale-110" />
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     )}
 

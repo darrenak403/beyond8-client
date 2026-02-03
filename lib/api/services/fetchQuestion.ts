@@ -123,6 +123,15 @@ export interface DeleteQuestionResponse extends ApiResponse<boolean> {
   metadata: null | unknown
 }
 
+export type BulkCreateQuestionRequest = CreateQuestionRequest[]
+
+export interface BulkCreateQuestionResponse extends ApiResponse<Question> {
+  isSuccess: boolean
+  message: string
+  data: Question
+  metadata: null | unknown
+}
+
 const convertQuestionParamsToQuery = (params?: QuestionParams): RequestParams => {
   if (!params) return {}
   const query: RequestParams = {}
@@ -165,6 +174,11 @@ export const questionService = {
 
   deleteQuestion: async (id: string): Promise<DeleteQuestionResponse> => {
     const response = await apiService.delete<DeleteQuestionResponse>(`api/v1/questions/${id}`)
+    return response.data
+  },
+
+  bulkCreateQuestions: async (data: BulkCreateQuestionRequest): Promise<BulkCreateQuestionResponse> => {
+    const response = await apiService.post<BulkCreateQuestionResponse, BulkCreateQuestionRequest>("api/v1/questions/bulk", data)
     return response.data
   },
 }

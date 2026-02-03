@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronRight, Home, FolderOpen, Plus, FileUp } from "lucide-react"
+import { ChevronRight, Home, FolderOpen, Plus } from "lucide-react"
 import { TagFolderCard } from "./TagFolderCard"
 import { QuestionCard } from "./QuestionCard"
 import { useGetQuestionTagsCount, useGetQuestions } from "@/hooks/useQuestion"
@@ -11,13 +11,17 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { CreateQuestionDialog } from "@/components/widget/CreateQuestionDialog"
 import { CreateQuestionPDFDialog } from "@/components/widget/CreateQuestionPDFDialog"
+import { CreateBulkQuestionDialog } from "@/components/widget/CreateBulkQuestionDialog"
+import { CreateQuestionMethodDialog } from "@/components/widget/CreateQuestionMethodDialog"
 import { Pagination } from "@/components/ui/custom-pagination"
 
 export function QuestionBankExplorer() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
+  const [isMethodDialogOpen, setIsMethodDialogOpen] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false)
   const [isPDFDialogOpen, setIsPDFDialogOpen] = useState(false)
 
   // Read params from URL (URL is the source of truth)
@@ -148,20 +152,11 @@ export function QuestionBankExplorer() {
           className="flex items-center gap-3"
         >
           <Button
-            onClick={() => setIsCreateDialogOpen(true)}
+            onClick={() => setIsMethodDialogOpen(true)}
             className="group relative rounded-full bg-brand-magenta text-white"
           >
             <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
-            Tạo câu hỏi thủ công
-          </Button>
-          
-          <Button
-            onClick={() => setIsPDFDialogOpen(true)}
-            variant="outline"
-            className="group relative rounded-full overflow-hidden border-brand-magenta/30 bg-white/80 backdrop-blur-sm hover:bg-brand-magenta/5 hover:border-brand-magenta hover:text-black transition-all duration-300"
-          >
-            <FileUp className="h-4 w-4 transition-transform group-hover:-translate-y-1" />
-            Tạo câu hỏi từ PDF
+            Tạo câu hỏi
           </Button>
         </motion.div>
       </div>
@@ -267,9 +262,20 @@ export function QuestionBankExplorer() {
       </AnimatePresence>
 
       {/* Dialogs */}
+      <CreateQuestionMethodDialog
+        open={isMethodDialogOpen}
+        onOpenChange={setIsMethodDialogOpen}
+        onSelectSingle={() => setIsCreateDialogOpen(true)}
+        onSelectBulk={() => setIsBulkDialogOpen(true)}
+        onSelectPDF={() => setIsPDFDialogOpen(true)}
+      />
       <CreateQuestionDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
+      />
+      <CreateBulkQuestionDialog
+        open={isBulkDialogOpen}
+        onOpenChange={setIsBulkDialogOpen}
       />
       <CreateQuestionPDFDialog
         open={isPDFDialogOpen}
