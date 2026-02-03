@@ -30,6 +30,17 @@ export interface IdentityCardUploadResult {
   isFront: boolean;
 }
 
+export interface FaceIdResponse {
+  isSuccess: boolean;
+  message: string;
+  data: {
+    result: string;
+    msg: unknown
+    prob: number
+  }
+  metadata: unknown
+}
+
 export const identityService = {
   isIdentityCard: async (file: File): Promise<ApiResponse<IsIdentityCardResponse>> => {
     const formData = new FormData();
@@ -88,4 +99,17 @@ export const identityService = {
       isFront,
     };
   },
+
+  faceId: async (faceFile: File, imgFrontHash: string): Promise<FaceIdResponse> => {
+    const formData = new FormData();
+    formData.append("faceFile", faceFile);
+    formData.append("imgFrontHash", imgFrontHash);
+
+    const response = await apiService.post<FaceIdResponse>(
+      "api/v1/vnpt-ekyc/compare-face",
+      formData
+    );
+    return response.data;
+  },
+
 };
