@@ -1,6 +1,6 @@
 import { fetchAuth, LoginRequest, LoginResponse, ResetPasswordRequest, VerifyOtpRequest } from '@/lib/api/services/fetchAuth';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks'
-import { selectAuth, selectUser, selectIsAuthenticated, selectRefreshToken, setTokenWithRefresh, decodeToken, logout } from '@/lib/redux/slices/authSlice'
+import { selectAuth, selectUser, selectIsAuthenticated, selectRefreshToken, setTokenWithRefresh, decodeToken, logout, setupAutoRefresh } from '@/lib/redux/slices/authSlice'
 import { Roles } from '@/lib/types/roles'
 import { ApiError } from '@/types/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -31,6 +31,8 @@ export function useLogin() {
         refreshToken: data.data.refreshToken
       }));
       setCookie('authToken', data.data.accessToken, getAuthCookieConfig());
+      // Setup auto-refresh after setting token
+      setupAutoRefresh(data.data.accessToken, dispatch);
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       setError(null);
 
@@ -268,6 +270,8 @@ export function useRefreshToken() {
         refreshToken: data.data.refreshToken
       }));
       setCookie('authToken', data.data.accessToken, getAuthCookieConfig());
+      // Setup auto-refresh after setting token
+      setupAutoRefresh(data.data.accessToken, dispatch);
 
       reconnectHubConnection().catch(err => {
         console.error('[SignalR] Failed to reconnect after login:', err);
