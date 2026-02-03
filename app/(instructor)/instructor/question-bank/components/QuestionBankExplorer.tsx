@@ -246,7 +246,7 @@ export function QuestionBankExplorer() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center rounded-2xl border border-brand-magenta/20 bg-white/80 p-12 text-center backdrop-blur-xl dark:bg-black/80"
+                className="flex flex-col items-center justify-center rounded-2xl border border-brand-magenta/20 bg-white/80 p-12 text-center backdrop-blur-xl"
               >
                 <FolderOpen className="mb-4 h-16 w-16 text-brand-magenta/40" />
                 <h3 className="mb-2 text-xl font-semibold text-foreground">

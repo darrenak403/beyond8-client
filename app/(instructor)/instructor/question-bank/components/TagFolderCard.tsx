@@ -15,7 +15,7 @@ export function TagFolderCard({ tag, count, onClick }: TagFolderCardProps) {
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="group relative cursor-pointer overflow-hidden rounded-2xl border border-brand-magenta/20 bg-white/80 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-xl transition-all duration-300 hover:border-brand-magenta/40 hover:shadow-xl hover:shadow-brand-magenta/10 dark:bg-black/80"
+      className="group relative cursor-pointer overflow-hidden rounded-2xl border border-brand-magenta/20 bg-white/80 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-xl transition-all duration-300 hover:border-brand-magenta/40 hover:shadow-xl hover:shadow-brand-magenta/10"
     >
       <div className="relative z-10 flex flex-col items-center gap-4">
         {/* Folder Icon */}

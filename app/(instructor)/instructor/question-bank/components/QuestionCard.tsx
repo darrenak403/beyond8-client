@@ -42,7 +42,7 @@ export function QuestionCard({ question, index }: QuestionCardProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
-        className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-white/80 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-xl transition-all duration-300 hover:border-brand-magenta/40 hover:shadow-xl hover:shadow-brand-magenta/10 dark:bg-black/80"
+        className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-white/80 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-xl transition-all duration-300 hover:border-brand-magenta/40 hover:shadow-xl hover:shadow-brand-magenta/10"
       >
         <div className="relative z-10 space-y-4">
           {/* Header with difficulty and points */}
@@ -61,7 +61,7 @@ export function QuestionCard({ question, index }: QuestionCardProps) {
               </span>
               <button
                 onClick={() => setIsDeleteDialogOpen(true)}
-                className="rounded-full p-1.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-md dark:hover:bg-red-950/30"
+                className="rounded-full p-1.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-md"
                 title="Xóa câu hỏi"
               >
                 <Trash2 className="h-4 w-4" />
@@ -126,7 +126,7 @@ export function QuestionCard({ question, index }: QuestionCardProps) {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="border-brand-magenta/20 bg-white/95 backdrop-blur-xl dark:bg-black/95">
+        <AlertDialogContent className="border-brand-magenta/20 bg-white/95 backdrop-blur-xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold bg-gradient-to-r from-brand-magenta to-brand-purple bg-clip-text text-transparent">
               Xác nhận xóa câu hỏi
