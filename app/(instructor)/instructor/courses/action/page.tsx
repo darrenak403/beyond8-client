@@ -13,6 +13,7 @@ import ActionHeader from "./components/layout/ActionHeader";
 import ActionSidebar from "./components/layout/ActionSidebar";
 import TwoPanelLayout from "./components/layout/TwoPanelLayout";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { UnsaveDialog } from "@/components/widget/UnsaveDialog";
 import { useIsMobile } from "@/hooks/useMobile";
 
 // Steps
@@ -64,7 +65,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
   });
 
   // Switch to step 1 when changing view mode
-  const handleViewModeChange = (mode: "info" | "content") => {
+  const processViewModeChange = (mode: "info" | "content") => {
     setViewMode(mode);
     setCurrentStep(mode === "info" ? 1 : 6); // Reset step based on mode
 
@@ -78,20 +79,38 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
     router.replace(`${pathname}?${params.toString()}`);
   };
 
-  const [formData, setFormData] = useState(() => {
-    if (initialData) {
+  const handleViewModeChange = (mode: "info" | "content") => {
+    if (isDirty) {
+      setPendingViewMode(mode);
+      setShowUnsavedDialog(true);
+    } else {
+      processViewModeChange(mode);
+    }
+  };
+
+  const handleConfirmSwitch = () => {
+    if (pendingViewMode) {
+      processViewModeChange(pendingViewMode);
+      setPendingViewMode(null);
+    }
+    setShowUnsavedDialog(false);
+  };
+
+  // Helper to initialize form data
+  const getInitialFormData = (data?: Course) => {
+    if (data) {
       return {
-        title: initialData.title || "",
-        shortDescription: initialData.shortDescription || "",
-        description: initialData.shortDescription || "", // Mapping issue: API result might not have full desc? check fetchCourse
-        categoryId: initialData.categoryId || "",
-        level: initialData.level || "",
-        language: initialData.language || "Tiếng Việt",
-        outcomes: initialData.outcomes && initialData.outcomes.length > 0 ? initialData.outcomes : [""],
-        requirements: initialData.requirements && initialData.requirements.length > 0 ? initialData.requirements : [""],
-        targetAudience: initialData.targetAudience && initialData.targetAudience.length > 0 ? initialData.targetAudience : [""],
-        price: initialData.price || 0,
-        thumbnailUrl: initialData.thumbnailUrl || "",
+        title: data.title || "",
+        shortDescription: data.shortDescription || "",
+        description: data.shortDescription || "", // Mapping issue: API result might not have full desc? check fetchCourse
+        categoryId: data.categoryId || "",
+        level: data.level || "",
+        language: data.language || "Tiếng Việt",
+        outcomes: data.outcomes && data.outcomes.length > 0 ? data.outcomes : [""],
+        requirements: data.requirements && data.requirements.length > 0 ? data.requirements : [""],
+        targetAudience: data.targetAudience && data.targetAudience.length > 0 ? data.targetAudience : [""],
+        price: data.price || 0,
+        thumbnailUrl: data.thumbnailUrl || "",
       };
     }
     return {
@@ -107,7 +126,15 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
       price: 0,
       thumbnailUrl: "",
     };
-  });
+  };
+
+  const [formData, setFormData] = useState(() => getInitialFormData(initialData));
+  const [savedData, setSavedData] = useState(() => getInitialFormData(initialData));
+
+  // Unsaved changes detection
+  const isDirty = JSON.stringify(formData) !== JSON.stringify(savedData);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [pendingViewMode, setPendingViewMode] = useState<"info" | "content" | null>(null);
 
   // Validation Logic (Same as before)
   const isInfoValid = formData.title.length >= 5 && formData.shortDescription.length >= 10;
@@ -151,7 +178,9 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
           thumbnailUrl: formatImageUrl(formData.thumbnailUrl) || "",
         },
       });
-      router.push(`/instructor/courses`);
+      // Update saved data to match current form data
+      setSavedData(formData);
+      // Do not redirect on update, just stay
     }
   };
 
@@ -184,6 +213,11 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
     // Indices are 0-based. Step 1 is index 0.
     // sidebarValidity = [isInfoValid, isBasicsValid, isGoalsValid, isMediaValid, true]
     return sidebarValidity[currentStep - 1];
+  };
+
+  const handleSaveAndSwitch = async () => {
+    await handleSave();
+    handleConfirmSwitch();
   };
 
   return (
@@ -221,6 +255,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
               viewMode={viewMode}
               onChangeViewMode={handleViewModeChange}
               disableContent={!isEditMode && !initialData?.id} // Only enable content if edit mode or ID exists
+              isDirty={isDirty}
             />
 
             <ScrollArea className="flex-1" type="scroll">
@@ -284,6 +319,16 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
                 isValid={isCurrentStepValid()}
               />
             )}
+
+            <UnsaveDialog
+              open={showUnsavedDialog}
+              onOpenChange={setShowUnsavedDialog}
+              onDiscard={handleConfirmSwitch}
+              onSave={handleSaveAndSwitch}
+              onCancel={() => setShowUnsavedDialog(false)}
+              title="Chưa lưu thay đổi"
+              description="Những thay đổi chưa lưu sẽ bị mất nếu bạn chuyển tab. Bạn có muốn tiếp tục không?"
+            />
           </div>
         </div>
       )}

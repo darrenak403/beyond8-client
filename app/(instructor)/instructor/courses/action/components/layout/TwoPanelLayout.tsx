@@ -4,16 +4,7 @@ import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Eye, Settings, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { UnsaveDialog } from "@/components/widget/UnsaveDialog";
 import { useIsMobile } from "@/hooks/useMobile";
 import CompactSectionList from "../content/CompactSectionList";
 import { useGetSectionsByCourseId } from "@/hooks/useSection";
@@ -190,9 +181,6 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
                   <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Xem trước">
                     <Eye className="h-5 w-5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Cài đặt">
-                    <Settings className="h-5 w-5" />
-                  </Button>
                   <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Trợ giúp">
                     <HelpCircle className="h-5 w-5" />
                   </Button>
@@ -271,23 +259,15 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
       </AnimatePresence>
 
       {/* Save Confirmation Dialog */}
-      <AlertDialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-        <AlertDialogContent className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-[2%] data-[state=open]:slide-in-from-top-[2%]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Bạn có muốn lưu thay đổi?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bạn có những thay đổi chưa được lưu. Bạn muốn lưu trước khi chuyển sang mục khác không?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelNavigation} className="rounded-full">Hủy</AlertDialogCancel>
-            <Button variant="outline" onClick={handleDiscardAndNavigate} className="rounded-full">
-              Không lưu
-            </Button>
-            <AlertDialogAction onClick={handleSaveAndNavigate} className="rounded-full">Lưu</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <UnsaveDialog
+        open={showSaveDialog}
+        onOpenChange={setShowSaveDialog}
+        onSave={handleSaveAndNavigate}
+        onDiscard={handleDiscardAndNavigate}
+        onCancel={handleCancelNavigation}
+        title="Bạn có muốn lưu thay đổi?"
+        description="Bạn có những thay đổi chưa được lưu. Bạn muốn lưu trước khi chuyển sang mục khác không?"
+      />
     </>
   );
 }

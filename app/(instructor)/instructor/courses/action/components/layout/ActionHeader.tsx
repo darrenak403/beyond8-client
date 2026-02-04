@@ -3,6 +3,8 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { UnsaveDialog } from '@/components/widget/UnsaveDialog'
+import { motion, AnimatePresence } from "framer-motion"
 import { ConfirmDialog } from '@/components/widget/confirm-dialog'
 
 interface CourseActionHeaderProps {
@@ -21,16 +23,27 @@ export default function CourseActionHeader({
     isEditMode = false,
     viewMode = 'info',
     onChangeViewMode,
-    disableContent = true
+    disableContent = true,
+    isDirty = false
 }: CourseActionHeaderProps & {
     viewMode: 'info' | 'content'
     onChangeViewMode: (mode: 'info' | 'content') => void
     disableContent?: boolean
+    isDirty?: boolean
 }) {
     const router = useRouter()
     const [open, setOpen] = useState(false)
 
-    const handleExit = () => {
+    // Handle exit button click
+    const handleExitClick = () => {
+        if (isDirty) {
+            setOpen(true)
+        } else {
+            router.push('/instructor/courses')
+        }
+    }
+
+    const confirmExit = () => {
         router.push('/instructor/courses')
     }
 
@@ -67,26 +80,56 @@ export default function CourseActionHeader({
             </div>
 
             <div className="flex items-center gap-3">
-                {onSave && (
-                    <Button
-                        disabled={isSubmitting}
-                        onClick={onSave}
-                        className="rounded-full px-6 font-semibold bg-gray-200 hover:bg-gray-300 hover:text-black"
-                        variant={'outline'}
-                    >
-                        {isSubmitting ? 'Đang lưu...' : 'Lưu và thoát'}
-                    </Button>
+                <Button
+                    variant="outline"
+                    onClick={handleExitClick}
+                    className="rounded-full px-6 font-semibold hover:bg-gray-100 hover:text-gray-900"
+                >
+                    Thoát
+                </Button>
+
+                {onSave && isEditMode && (
+                    <AnimatePresence>
+                        {isDirty && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                            >
+                                <Button
+                                    disabled={isSubmitting}
+                                    onClick={onSave}
+                                    className="rounded-full px-6 font-semibold bg-purple-900 text-white hover:bg-purple-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật'}
+                                </Button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 )}
             </div>
 
-            <ConfirmDialog
-                title="Thoát?"
-                description="Những thay đổi chưa lưu sẽ bị mất. Bạn có chắc chắn muốn thoát?"
-                onConfirm={handleExit}
-                open={open}
-                onOpenChange={setOpen}
-                variant='destructive'
-            />
+            {isEditMode ? (
+                <UnsaveDialog
+                    title="Chưa lưu thay đổi"
+                    description="Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn thoát không?"
+                    onDiscard={confirmExit}
+                    onSave={onSave}
+                    open={open}
+                    onOpenChange={setOpen}
+                />
+            ) : (
+                <ConfirmDialog
+                    open={open}
+                    onOpenChange={setOpen}
+                    onConfirm={confirmExit}
+                    title="Thoát tạo khóa học"
+                    description="Bạn đang trong quá trình tạo khóa học. Nếu thoát bây giờ, mọi dữ liệu đã nhập sẽ bị mất. Bạn có chắc chắn muốn thoát không?"
+                    confirmText="Thoát"
+                    cancelText="Hủy"
+                    variant="destructive"
+                />
+            )}
         </header>
     )
 }

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 
 import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
+import { UnsaveDialog } from "@/components/widget/UnsaveDialog";
 
 import { useUpdateLesson, useDeleteLesson, useActivationLesson } from "@/hooks/useLesson";
 import { useMediaDocumentCourse, useMediaVideoLesson } from "@/hooks/useMedia";
@@ -43,8 +44,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import { ToolbarProvider } from "@/components/ui/toolbar-provider";
-import { RightToolbarPortal } from "./RightToolbarPortal";
-import { VerticalToolbar } from "./VerticalToolbar";
+import { EditorToolbar } from "./EditorToolbar";
 
 export interface LessonEditorRef {
     hasUnsavedChanges: () => boolean;
@@ -98,6 +98,9 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
 
         const [isDeleteLessonDialogOpen, setIsDeleteLessonDialogOpen] = useState(false);
         const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+        const [showUnsaveDialog, setShowUnsaveDialog] = useState(false);
+        // Track whether we are exiting or going back
+        const [unsaveAction, setUnsaveAction] = useState<"exit" | "back" | null>(null);
 
         // Document specific
         const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
@@ -504,6 +507,43 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
             refetchDocs();
         };
 
+        const handleExit = () => {
+            if (hasLessonChanges) {
+                setUnsaveAction("exit");
+                setShowUnsaveDialog(true);
+            } else {
+                router.push('/instructor/courses');
+            }
+        };
+
+        const handleBackCheck = () => {
+            if (hasLessonChanges) {
+                setUnsaveAction("back");
+                setShowUnsaveDialog(true);
+            } else {
+                onBack();
+            }
+        };
+
+        const confirmUnsaveAction = () => {
+            if (unsaveAction === "exit") {
+                router.push('/instructor/courses');
+            } else if (unsaveAction === "back") {
+                onBack();
+            }
+            setShowUnsaveDialog(false);
+        };
+
+        const saveAndAction = async () => {
+            await handleLessonSave();
+            if (unsaveAction === "exit") {
+                router.push('/instructor/courses');
+            } else if (unsaveAction === "back") {
+                onBack();
+            }
+            setShowUnsaveDialog(false);
+        };
+
         useImperativeHandle(ref, () => ({
             hasUnsavedChanges: () => !!hasLessonChanges,
             save: async () => {
@@ -533,7 +573,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                     <div className="flex items-center justify-between px-8 py-3 h-14 bg-white w-full border-b">
                         <div className="flex items-center gap-3">
                             <Button
-                                onClick={() => router.push('/instructor/courses')}
+                                onClick={handleExit}
                                 variant="outline"
                                 className="w-full rounded-full hover:bg-gray-100 hover:text-gray-900"
                                 size="sm"
@@ -609,6 +649,15 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                             </AnimatePresence>
                         </div>
                     </div>
+                    <UnsaveDialog
+                        open={showUnsaveDialog}
+                        onOpenChange={setShowUnsaveDialog}
+                        onDiscard={confirmUnsaveAction}
+                        onSave={saveAndAction}
+                        onCancel={() => setShowUnsaveDialog(false)}
+                        title="Chưa lưu thay đổi"
+                        description={`Bạn có thay đổi chưa lưu trong bài học "${selectedLesson?.title || ''}". Bạn có muốn lưu lại không?`}
+                    />
                 </HeaderPortal>
 
                 {/* Content */}
@@ -618,7 +667,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={onBack}
+                                onClick={handleBackCheck}
                                 className="gap-2 text-gray-500 hover:text-gray-900 pl-2 pr-4 rounded-full hover:bg-gray-100 hover:text-gray-900"
                             >
                                 <ArrowLeft className="h-4 w-4" />
@@ -1105,10 +1154,14 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                         <div className="border rounded-lg bg-white shadow-sm min-h-[400px]">
                                             {editor && (
                                                 <ToolbarProvider editor={editor}>
-                                                    <RightToolbarPortal>
-                                                        <VerticalToolbar />
-                                                    </RightToolbarPortal>
-                                                    <EditorContent editor={editor} className="min-h-[400px]" />
+                                                    <div className="border border-gray-200 rounded-lg bg-white overflow-hidden focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-400 transition-all">
+                                                        <EditorToolbar />
+                                                        <div className="h-px bg-gray-100" />
+                                                        <EditorContent
+                                                            editor={editor}
+                                                            className="min-h-[300px] [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:p-4 [&_.ProseMirror]:focus:outline-none"
+                                                        />
+                                                    </div>
                                                 </ToolbarProvider>
                                             )}
                                         </div>
@@ -1242,8 +1295,8 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </div >
+            </div >
         );
     }
 );

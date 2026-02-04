@@ -12,6 +12,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
+import { UnsaveDialog } from "@/components/widget/UnsaveDialog";
 import { HeaderPortal } from "./HeaderPortal";
 
 import { useUpdateSection, useDeleteSection, useActivationSection } from "@/hooks/useSection";
@@ -38,6 +39,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const [descriptionValue, setDescriptionValue] = useState(section.description || "");
         const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
         const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+        const [showUnsaveDialog, setShowUnsaveDialog] = useState(false);
         const router = useRouter();
 
         const { updateSection, isPending: isUpdating } = useUpdateSection(courseId);
@@ -72,6 +74,18 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
             await deleteSection(section.id);
             setIsDeleteDialogOpen(false);
             onDeleted?.();
+        };
+
+        const handleExit = () => {
+            if (hasChanges) {
+                setShowUnsaveDialog(true);
+            } else {
+                router.push('/instructor/courses');
+            }
+        };
+
+        const confirmExit = () => {
+            router.push('/instructor/courses');
         };
 
         const handleCreateLesson = async (type: "Video" | "Text" | "Quiz") => {
@@ -154,7 +168,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                     <div className="flex items-center justify-between px-8 py-3 h-14 bg-white w-full">
                         <div className="flex items-center gap-4">
                             <Button
-                                onClick={() => router.push('/instructor/courses')}
+                                onClick={handleExit}
                                 variant="outline"
                                 className="w-full rounded-full hover:bg-gray-100 hover:text-gray-900"
                                 size="sm"
@@ -227,6 +241,16 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                                 )}
                             </AnimatePresence>
                         </div>
+
+                        <UnsaveDialog
+                            open={showUnsaveDialog}
+                            onOpenChange={setShowUnsaveDialog}
+                            onDiscard={confirmExit}
+                            onSave={handleSave}
+                            onCancel={() => setShowUnsaveDialog(false)}
+                            title="Chưa lưu thay đổi"
+                            description="Bạn có thay đổi chưa lưu trong chương này. Bạn có muốn lưu lại trước khi thoát không?"
+                        />
                     </div>
                 </HeaderPortal>
 
@@ -432,8 +456,8 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
 
 
                     </div>
-                </div>
-            </div>
+                </div >
+            </div >
         );
     }
 );
