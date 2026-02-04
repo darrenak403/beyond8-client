@@ -31,6 +31,11 @@ export interface Course {
     title: string
     slug: string
     shortDescription: string
+    // Pricing
+    discountPercent: number | null
+    discountAmount: number | null
+    discountEndsAt: string | null
+    finalPrice: number
     categoryId: string
     categoryName: string
     instructorId: string
@@ -167,6 +172,11 @@ export interface CourseSummary {
     title: string
     slug: string
     shortDescription: string | null
+    // Pricing
+    discountPercent: number | null
+    discountAmount: number | null
+    discountEndsAt: string | null
+    finalPrice: number
     categoryId: string
     categoryName: string
     instructorId: string
@@ -185,6 +195,7 @@ export interface CourseSummary {
     outcomes?: string[]
     requirements?: string[]
     targetAudience?: string[]
+    documents: CourseDocument[]
     createdAt: string
     updatedAt: string | null
     sections: Section[]
@@ -234,6 +245,11 @@ export interface CourseDetail {
     title: string
     slug: string
     shortDescription: string | null
+    // Pricing
+    discountPercent: number | null
+    discountAmount: number | null
+    discountEndsAt: string | null
+    finalPrice: number
     categoryId: string
     categoryName: string
     instructorId: string
@@ -252,6 +268,7 @@ export interface CourseDetail {
     outcomes?: string[]
     requirements?: string[]
     targetAudience?: string[]
+    documents: CourseDocument[]
     createdAt: string
     updatedAt: string | null
     sections: SectionDetail[]

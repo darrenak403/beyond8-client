@@ -1,103 +1,309 @@
-import { CreateQuizRequest, fetchQuiz, Quiz, QuizResponse, UpdateQuizRequest } from "@/lib/api/services/fetchQuiz";
+import {
+    CreateQuizRequest,
+    fetchQuiz,
+    Quiz,
+    QuizAttempt,
+    AutoSaveQuizAttemptRequest,
+    FlagQuizQuestionRequest,
+    QuizAttemptResult,
+    QuizCurrentAttempt,
+    QuizInProgressStatus,
+    QuizMyAttemptsSummary,
+    QuizOverview,
+    QuizResponse,
+    SubmitQuizAttemptRequest,
+    SubmitQuizAttemptResult,
+    UpdateQuizRequest,
+} from "@/lib/api/services/fetchQuiz";
 import { ApiResponse } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "next/dist/server/api-utils";
 import { toast } from "sonner";
 
 export function useCreateQuiz() {
-    const queryClient = useQueryClient()
+    const queryClient = useQueryClient();
 
     const { mutateAsync, isPending } = useMutation({
         mutationFn: (quiz: CreateQuizRequest) => fetchQuiz.createQuiz(quiz),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["quizzes"]
-            })
-            toast.success("Tạo bài kiểm tra thành công!")
+                queryKey: ["quizzes"],
+            });
+            toast.success("Tạo bài kiểm tra thành công!");
         },
         onError: (error: ApiError) => {
-            toast.error(error?.message || "Tạo bài kiểm tra thất bại!")
-        }
-    })
+            toast.error(error?.message || "Tạo bài kiểm tra thất bại!");
+        },
+    });
 
     return {
         createQuiz: mutateAsync,
-        isPending
-    }
+        isPending,
+    };
 }
 
 export function useUpdateQuiz() {
-    const queryClient = useQueryClient()
+    const queryClient = useQueryClient();
 
     const { mutateAsync, isPending } = useMutation({
-        mutationFn: ({ id, data }: { id: string, data: UpdateQuizRequest }) => fetchQuiz.updateQuiz(id, data),
+        mutationFn: ({ id, data }: { id: string; data: UpdateQuizRequest }) =>
+            fetchQuiz.updateQuiz(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["quizzes"]
-            })
-            toast.success("Cập nhật bài kiểm tra thành công!")
+                queryKey: ["quizzes"],
+            });
+            toast.success("Cập nhật bài kiểm tra thành công!");
         },
         onError: (error: ApiError) => {
-            toast.error(error?.message || "Cập nhật bài kiểm tra thất bại!")
-        }
-    })
+            toast.error(error?.message || "Cập nhật bài kiểm tra thất bại!");
+        },
+    });
 
     return {
         updateQuiz: mutateAsync,
-        isPending
-    }
+        isPending,
+    };
 }
 
 export function useDeleteQuiz() {
-    const queryClient = useQueryClient()
+    const queryClient = useQueryClient();
 
     const { mutateAsync, isPending } = useMutation({
         mutationFn: (id: string) => fetchQuiz.deleteQuiz(id),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["quizzes"]
-            })
-            toast.success("Xoá bài kiểm tra thành công!")
+                queryKey: ["quizzes"],
+            });
+            toast.success("Xoá bài kiểm tra thành công!");
         },
         onError: (error: ApiError) => {
-            toast.error(error?.message || "Xoá bài kiểm tra thất bại!")
-        }
-    })
+            toast.error(error?.message || "Xoá bài kiểm tra thất bại!");
+        },
+    });
 
     return {
         deleteQuiz: mutateAsync,
-        isPending
-    }
+        isPending,
+    };
 }
 
 export function useGetQuizzes() {
-    const { data, isLoading, isError, refetch } = useQuery<QuizResponse, Error, Quiz[]>({
+    const { data, isLoading, isError, refetch } = useQuery<
+        QuizResponse,
+        Error,
+        Quiz[]
+    >({
         queryKey: ["quizzes"],
         queryFn: () => fetchQuiz.getAllQuiz(),
         select: (data) => data.data,
-        enabled: true
-    })
+        enabled: true,
+    });
 
     return {
         quizzes: data ?? [],
         isLoading,
         isError,
-        refetch
-    }
+        refetch,
+    };
 }
 
 export function useGetQuizById(id: string) {
-    const { data, isLoading, isError, refetch } = useQuery<ApiResponse<Quiz>, Error, Quiz>({
+    const { data, isLoading, isError, refetch } = useQuery<
+        ApiResponse<Quiz>,
+        Error,
+        Quiz
+    >({
         queryKey: ["quizzes", id],
         queryFn: () => fetchQuiz.getQuizById(id),
         select: (data) => data.data,
-        enabled: !!id
-    })
+        enabled: !!id,
+    });
 
     return {
         quiz: data ?? null,
         isLoading,
         isError,
-        refetch
-    }
+        refetch,
+    };
+}
+
+// Student-side: get quiz overview by id (api/v1/quizzes/{id}/student)
+export function useGetQuizOverview(id: string) {
+    const { data, isLoading, isError, refetch } = useQuery<
+        ApiResponse<QuizOverview>,
+        Error,
+        QuizOverview
+    >({
+        queryKey: ["quiz-overview", id],
+        queryFn: () => fetchQuiz.getQuizOverview(id),
+        select: (data) => data.data,
+        enabled: !!id,
+    });
+
+    return {
+        quizOverview: data ?? null,
+        isLoading,
+        isError,
+        refetch,
+    };
+}
+
+// Student-side: start quiz attempt (api/v1/quiz-attempts/start/{quizId})
+export function useStartQuizAttempt() {
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: (quizId: string) =>
+            fetchQuiz.startQuizAttempt(quizId) as Promise<ApiResponse<QuizAttempt>>,
+    });
+
+    return {
+        startQuizAttempt: mutateAsync,
+        isPending,
+    };
+}
+
+// Student-side: submit quiz attempt (api/v1/quiz-attempts/{attemptId}/submit)
+export function useSubmitQuizAttempt() {
+    const queryClient = useQueryClient();
+
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: ({ attemptId, body }: { attemptId: string; body: SubmitQuizAttemptRequest }) =>
+            fetchQuiz.submitQuizAttempt(attemptId, body) as Promise<ApiResponse<SubmitQuizAttemptResult>>,
+        onSuccess: (data) => {
+            if (data.isSuccess && data.data) {
+                const quizId = data.data.quizId;
+                queryClient.invalidateQueries({
+                    queryKey: ["quiz-my-attempts", quizId],
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["quiz-in-progress", quizId],
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["quiz-current-attempt", quizId],
+                });
+            }
+        },
+    });
+
+    return {
+        submitQuizAttempt: mutateAsync,
+        isPending,
+    };
+}
+
+// Student-side: auto-save quiz attempt (api/v1/quiz-attempts/{attemptId}/auto-save)
+export function useAutoSaveQuizAttempt() {
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: ({ attemptId, body }: { attemptId: string; body: AutoSaveQuizAttemptRequest }) =>
+            fetchQuiz.autoSaveQuizAttempt(attemptId, body) as Promise<ApiResponse<boolean>>,
+    });
+
+    return {
+        autoSaveQuizAttempt: mutateAsync,
+        isPending,
+    };
+}
+
+// Student-side: get quiz attempt result (api/v1/quiz-attempts/{attemptId}/result)
+export function useGetQuizAttemptResult(attemptId: string) {
+    const { data, isLoading, isError, refetch } = useQuery<
+        ApiResponse<QuizAttemptResult>,
+        Error,
+        QuizAttemptResult
+    >({
+        queryKey: ["quiz-attempt-result", attemptId],
+        queryFn: () => fetchQuiz.getQuizAttemptResult(attemptId),
+        select: (data) => data.data,
+        enabled: !!attemptId,
+    });
+
+    return {
+        quizAttemptResult: data ?? null,
+        isLoading,
+        isError,
+        refetch,
+    };
+}
+
+// Student-side: get my attempts for a quiz (api/v1/quiz-attempts/quiz/{quizId}/my-attempts)
+export function useGetMyQuizAttempts(quizId: string) {
+    const { data, isLoading, isError, refetch } = useQuery<
+        ApiResponse<QuizMyAttemptsSummary>,
+        Error,
+        QuizMyAttemptsSummary
+    >({
+        queryKey: ["quiz-my-attempts", quizId],
+        queryFn: () => fetchQuiz.getMyQuizAttempts(quizId),
+        select: (data) => data.data,
+        enabled: !!quizId,
+    });
+
+    return {
+        myQuizAttempts: data ?? null,
+        isLoading,
+        isError,
+        refetch,
+    };
+}
+
+// Student-side: check in-progress attempt (api/v1/quiz-attempts/quiz/{quizId}/check-in-progress)
+export function useCheckQuizInProgress(quizId: string) {
+    const { data, isLoading, isError, refetch } = useQuery<
+        ApiResponse<QuizInProgressStatus>,
+        Error,
+        QuizInProgressStatus
+    >({
+        queryKey: ["quiz-in-progress", quizId],
+        queryFn: () => fetchQuiz.checkQuizInProgress(quizId),
+        select: (data) => data.data,
+        enabled: !!quizId,
+    });
+
+    return {
+        quizInProgress: data ?? null,
+        isLoading,
+        isError,
+        refetch,
+    };
+}
+
+// Student-side: get current quiz attempt (api/v1/quiz-attempts/quiz/{quizId}/current)
+export function useGetCurrentQuizAttempt(quizId: string) {
+    const { data, isLoading, isError, refetch } = useQuery<
+        ApiResponse<QuizCurrentAttempt>,
+        Error,
+        QuizCurrentAttempt
+    >({
+        queryKey: ["quiz-current-attempt", quizId],
+        queryFn: () => fetchQuiz.getCurrentQuizAttempt(quizId),
+        select: (data) => data.data,
+        enabled: !!quizId,
+    });
+
+    return {
+        currentQuizAttempt: data ?? null,
+        isLoading,
+        isError,
+        refetch,
+    };
+}
+
+// Student-side: flag/unflag question (api/v1/quiz-attempts/{attemptId}/flag-question)
+export function useFlagQuizQuestion() {
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: ({
+            attemptId,
+            body,
+        }: {
+            attemptId: string;
+            body: FlagQuizQuestionRequest;
+        }) =>
+            fetchQuiz.flagQuizQuestion(attemptId, body) as Promise<
+                ApiResponse<string[]>
+            >,
+    });
+
+    return {
+        flagQuizQuestion: mutateAsync,
+        isPending,
+    };
 }

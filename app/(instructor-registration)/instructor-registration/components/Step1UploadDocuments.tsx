@@ -13,6 +13,7 @@ import Webcam from "react-webcam";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { AvatarCropperDialog } from "@/components/ui/cropper-image";
 
 interface Step1Props {
   data: {
@@ -64,6 +65,9 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
   const [userClickedNext, setUserClickedNext] = useState<boolean>(false);
   // const [frontFile, setFrontFile] = useState<File | null>(null); // Removed frontFile state
   const webcamRef = useRef<ComponentRef<typeof Webcam>>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropSide, setCropSide] = useState<"front" | "back" | null>(null);
 
   // Check if CCCD is fully uploaded (both front and back)
   const hasCCCD = !!data.frontImg && !!data.backImg;
@@ -254,6 +258,29 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
 
   return (
     <div className="w-full h-full space-y-6 overflow-y-auto scrollbar-hide">
+      <AvatarCropperDialog
+        open={isCropperOpen}
+        imageSrc={cropImageSrc}
+        aspect={1.6}
+        cropShape="rect"
+        onClose={() => {
+          setIsCropperOpen(false);
+          if (cropImageSrc) {
+            URL.revokeObjectURL(cropImageSrc);
+            setCropImageSrc(null);
+          }
+          setCropSide(null);
+        }}
+        onCropped={(file) => {
+          if (!cropSide) return;
+          handleFileSelect(file, cropSide);
+          if (cropImageSrc) {
+            URL.revokeObjectURL(cropImageSrc);
+            setCropImageSrc(null);
+          }
+          setCropSide(null);
+        }}
+      />
       {/* Loading Overlay */}
       {isFaceId && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center flex-col gap-4 backdrop-blur-sm">
@@ -372,7 +399,12 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) handleFileSelect(file, 'front');
+                      if (file) {
+                        const objectUrl = URL.createObjectURL(file);
+                        setCropImageSrc(objectUrl);
+                        setCropSide("front");
+                        setIsCropperOpen(true);
+                      }
                     }}
                   />
                 </label>
@@ -437,7 +469,12 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
                     disabled={!canUploadBack}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) handleFileSelect(file, 'back');
+                      if (file) {
+                        const objectUrl = URL.createObjectURL(file);
+                        setCropImageSrc(objectUrl);
+                        setCropSide("back");
+                        setIsCropperOpen(true);
+                      }
                     }}
                   />
                 </label>

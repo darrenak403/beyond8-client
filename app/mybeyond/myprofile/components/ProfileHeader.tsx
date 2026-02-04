@@ -25,6 +25,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { AvatarCropperDialog } from "@/components/ui/cropper-image";
 
 interface ProfileHeaderProps {
   userProfile: {
@@ -45,6 +46,8 @@ export default function ProfileHeader({
   const [showHideDialog, setShowHideDialog] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const { subscription } = useSubscription();
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   
   const getGradientStyle = (code?: string) => {
     switch (code?.toUpperCase()) {
@@ -107,8 +110,10 @@ export default function ProfileHeader({
           toast.error("Vui lòng chọn file ảnh");
           return;
         }
-        
-        uploadAvatar(file);
+
+        const objectUrl = URL.createObjectURL(file);
+        setAvatarPreview(objectUrl);
+        setIsCropperOpen(true);
       }
     };
     input.click();
@@ -150,6 +155,24 @@ export default function ProfileHeader({
 
   return (
     <div className="overflow-hidden">
+      <AvatarCropperDialog
+        open={isCropperOpen}
+        imageSrc={avatarPreview}
+        onClose={() => {
+          setIsCropperOpen(false);
+          if (avatarPreview) {
+            URL.revokeObjectURL(avatarPreview);
+            setAvatarPreview(null);
+          }
+        }}
+        onCropped={(file) => {
+          uploadAvatar(file);
+          if (avatarPreview) {
+            URL.revokeObjectURL(avatarPreview);
+            setAvatarPreview(null);
+          }
+        }}
+      />
       {/* Banner with Upload */}
       <div
         className={`bg-gradient-to-r from-primary to-brand-purple relative rounded-2xl overflow-hidden ${

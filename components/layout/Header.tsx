@@ -620,9 +620,8 @@ export function Header() {
     if (searchQuery.trim()) {
       params.set("search", searchQuery.trim());
     }
-    // Theo yêu cầu: truyền mặc định pageSize, pageNumber, isDescending
-    params.set("pageNumber", "10");
-    params.set("pageSize", "1");
+    params.set("pageNumber", "1");
+    params.set("pageSize", "10");
     params.set("isDescending", "true");
     router.push(`/courses?${params.toString()}`);
   };
@@ -657,7 +656,7 @@ export function Header() {
           boxShadow: isScrolled && !isMobile
             ? "0 0 24px rgba(34, 42, 53, 0.06), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(34, 42, 53, 0.04), 0 0 4px rgba(34, 42, 53, 0.08), 0 16px 68px rgba(47, 48, 55, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset"
             : "none",
-          width: isScrolled && !isMobile ? "60%" : "100%",
+          width: isScrolled && !isMobile ? "70%" : "100%",
           y: isScrolled && !isMobile ? 20 : 0,
         }}
         transition={{
@@ -669,29 +668,45 @@ export function Header() {
           minWidth: isMobile ? undefined : "800px",
         }}
         className={cn(
-          "relative z-[60] mx-auto w-full items-center justify-between self-start rounded-full bg-transparent px-4 py-2",
-          isScrolled && !isMobile && "bg-white/80 dark:bg-neutral-950/80 flex flex-row items-center justify-between",
+          "relative z-[60] mx-auto w-full items-center rounded-full justify-between self-start bg-transparent px-4 py-2",
+          isScrolled && !isMobile && "bg-white/80 flex flex-row items-center justify-between px-14",
           !isScrolled && !isMobile && "grid grid-cols-3 px-14",
           isMobile ? "flex items-center justify-between gap-2 px-3 py-2" : "hidden lg:grid lg:flex"
         )}
       >
-        <Link href="/" className={cn(
-          "flex items-center flex-shrink-0",
+        <div className={cn(
+          "flex items-center gap-3 flex-shrink-0",
           isScrolled && !isMobile && "mr-4"
         )}>
-          <Image
-            src="/white-text-logo.svg"
-            alt="Beyond 8"
-            width={isMobile ? 80 : 100}
-            height={isMobile ? 80 : 100}
-            className={`${isMobile ? 'h-8' : 'h-10'} w-auto`}
-          />
-        </Link>
+          <Link href="/" className="flex items-center flex-shrink-0">
+            <Image
+              src="/white-text-logo.svg"
+              alt="Beyond 8"
+              width={isMobile ? 80 : 100}
+              height={isMobile ? 80 : 100}
+              className={`${isMobile ? 'h-8' : 'h-10'} w-auto`}
+            />
+          </Link>
+
+          {!isMobile && (
+            <Link href="/supscription">
+              <div className="relative group cursor-pointer">
+                <Button 
+                  className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
+                  variant="ghost"
+                >
+                  <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
+                </Button>
+              </div>
+            </Link>
+          )}
+        </div>
 
         {!isMobile && (
           <form onSubmit={handleSearch} className={cn(
             "flex justify-center",
-            isScrolled ? "flex-1 mx-4" : "col-start-2"
+            isScrolled ? "flex-1 " : "col-start-2"
           )} id="search-form">
             <div className="relative flex items-center rounded-full bg-background shadow-lg overflow-visible w-full max-w-[500px]">
               <div className="flex-1 flex items-center pl-4" id="search-input-section">
@@ -771,8 +786,8 @@ export function Header() {
                 onSelect={(keyword) => {
                   const params = new URLSearchParams();
                   params.set("search", keyword);
-                  params.set("pageNumber", "10");
-                  params.set("pageSize", "1");
+                  params.set("pageNumber", "1");
+                  params.set("pageSize", "10");
                   params.set("isDescending", "true");
                   router.push(`/courses?${params.toString()}`);
                   setSearchQuery("");
@@ -787,20 +802,6 @@ export function Header() {
             "flex items-center gap-3 flex-shrink-0",
             isScrolled ? "" : "justify-end col-start-3"
           )}>
-            {!isMobile && (
-            <Link href="/supscription">
-              <div className="relative group cursor-pointer mr-2">
-                <Button 
-                  className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
-                  variant="ghost"
-                >
-                  <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
-                </Button>
-              </div>
-            </Link>
-          )}
-
           {isAuthenticated ? (
             <>
               {!isMobile && (

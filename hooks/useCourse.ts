@@ -207,12 +207,18 @@ export function useGetCourseSummary(id: string) {
   };
 }
 
-export function useGetCourseDetails(id: string) {
+export function useGetCourseDetails(
+  id: string,
+  options?: {
+    enabled?: boolean;
+  }
+) {
   const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>({
     queryKey: ["course", "details", id],
     queryFn: () => fetchCourse.getCourseDetails(id),
     select: (data) => data.data,
-    enabled: !!id,
+    // Cho phép truyền enabled từ ngoài để kiểm soát khi nào được phép fetch details
+    enabled: options?.enabled ?? !!id,
   });
 
   return {

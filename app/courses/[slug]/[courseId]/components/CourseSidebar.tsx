@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   MonitorPlay,
   FileText,
@@ -14,6 +15,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/lib/utils/formatCurrency'
 import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/services/fetchCourse'
+import { useCheckEnrollment, useEnrollCourse } from '@/hooks/useEnroll'
+import { ConfirmDialog } from '@/components/widget/confirm-dialog'
+import { useAuth } from '@/hooks/useAuth'
 
 interface CourseSidebarProps {
   course: CourseSummary | CourseDetailType
@@ -33,25 +37,56 @@ const formatDuration = (minutes: number): string => {
 
 export default function CourseSidebar({ course }: CourseSidebarProps) {
   const params = useParams()
-  const slug = params?.slug as string || 'course-slug'
-  // const firstLessonId = course.sections[0]?.lessons[0]?.id
-  // const firstSectionId = course.sections[0]?.id
-  
-  // const startLearningUrl = firstLessonId && firstSectionId
-  //    ? `/courses/${slug}/${course.id}/${firstSectionId}/${firstLessonId}`
-  //    : '#'
-
-  const totalLessons = course.totalLessons || course.sections.reduce((sum, section) => sum + section.lessons.length, 0)
+  const slug = (params?.slug as string) || 'course-slug'
+  const totalLessons =
+    course.totalLessons ||
+    course.sections.reduce((sum, section) => sum + section.lessons.length, 0)
   const duration = formatDuration(course.totalDurationMinutes)
-  
-  const originalPrice = course.price * 1.5
-  const discountParams = Math.round(((originalPrice - course.price) / originalPrice) * 100)
-  
+  const originalPrice = course.price
+  const finalPrice = course.finalPrice ?? course.price
+  const hasDiscount = finalPrice < originalPrice
+  const isFreeCourse = finalPrice === 0
+  const computedDiscountPercent =
+    originalPrice > 0
+      ? Math.round(((originalPrice - finalPrice) / originalPrice) * 100)
+      : 0
+  const effectiveDiscountPercent =
+    course.discountPercent ?? computedDiscountPercent
+
+  // Remaining days for discount (for highlight "Còn ... ngày")
+  const discountEndDate = course.discountEndsAt
+    ? new Date(course.discountEndsAt)
+    : null
+  const now = new Date()
+  const remainingDiscountDays =
+    discountEndDate && discountEndDate.getTime() > now.getTime()
+      ? Math.ceil(
+          (discountEndDate.getTime() - now.getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : 0
+
   const levelText: Record<string, string> = {
     Beginner: 'Cơ bản',
     Intermediate: 'Trung bình',
     Advanced: 'Nâng cao',
     Expert: 'Chuyên gia',
+  }
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const { enrollCourse, isPending } = useEnrollCourse()
+  const { isAuthenticated } = useAuth()
+  const { isEnrolled, isLoading: isCheckingEnroll } = useCheckEnrollment(course.id, {
+    enabled: isAuthenticated && !!course.id,
+  })
+
+  const handleFreeEnroll = async () => {
+    try {
+      await enrollCourse(course.id)
+      setIsConfirmOpen(false)
+    } catch {
+      // toast đã được handle trong hook
+    }
   }
 
   return (
@@ -60,38 +95,92 @@ export default function CourseSidebar({ course }: CourseSidebarProps) {
       <CardContent className="p-6 space-y-6">
         {/* Price Section */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-brand-magenta font-medium bg-brand-magenta/10 px-2 py-1 rounded">
-              Ưu đãi ra mắt
-            </span>
-            <span className="text-sm font-bold text-green-600">
-              GIẢM {discountParams}%
-            </span>
-          </div>
+          {hasDiscount && effectiveDiscountPercent > 0 && (
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-brand-magenta font-medium bg-brand-magenta/10 px-2 py-1 rounded">
+                Ưu đãi ra mắt
+              </span>
+              <span className="text-sm font-bold text-green-600">
+                GIẢM {effectiveDiscountPercent}%
+              </span>
+            </div>
+          )}
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold text-slate-900 dark:text-white">
-              {formatCurrency(course.price)}
+              {formatCurrency(finalPrice)}
             </span>
-            <span className="text-lg text-muted-foreground line-through decoration-red-500/50">
-              {formatCurrency(originalPrice)}
-            </span>
+            {hasDiscount && (
+              <span className="text-lg text-muted-foreground line-through decoration-red-500/50">
+                {formatCurrency(originalPrice)}
+              </span>
+            )}
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Hoàn tiền trong 30 ngày nếu không hài lòng
-          </p>
+          {hasDiscount && course.discountEndsAt && remainingDiscountDays > 0 && (
+            <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 border border-red-100 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300">
+              <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+              <span>
+                Chỉ còn{' '}
+                <span className="font-bold">{remainingDiscountDays}</span>{' '}
+                ngày với giá ưu đãi
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
         <div className="space-y-3">
-          <Link href={`/courses/${slug}/${course.id}/checkout`} className="block w-full">
-            <Button className="w-full text-lg py-7 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(173,28,154,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(173,28,154,0.6)] border border-white/10 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-              <span className="font-semibold text-white relative z-10">Đăng ký ngay</span>
+          {isAuthenticated && isCheckingEnroll ? (
+            <Button className="w-full text-lg py-7 rounded-2xl" disabled>
+              Đang kiểm tra...
             </Button>
-          </Link>
-          <Button variant="outline" className="w-full h-12 rounded-2xl text-base font-semibold border-brand-magenta/20 hover:bg-brand-magenta/5 hover:text-brand-magenta transition-colors">
-            Thêm vào giỏ hàng
-          </Button>
+          ) : isAuthenticated && isEnrolled ? (
+            <Button
+              className="w-full text-lg py-7 rounded-2xl bg-green-600 hover:bg-green-600 text-white"
+              disabled
+            >
+              Đã tham gia
+            </Button>
+          ) : isFreeCourse ? (
+            <ConfirmDialog
+              open={isConfirmOpen}
+              onOpenChange={setIsConfirmOpen}
+              onConfirm={handleFreeEnroll}
+              title="Tham gia khóa học miễn phí"
+              description="Bạn có chắc chắn muốn tham gia khóa học này không? Sau khi tham gia, bạn có thể truy cập toàn bộ nội dung học."
+              confirmText="Tham gia ngay"
+              cancelText="Hủy"
+              variant="success"
+              isLoading={isPending}
+              trigger={
+                <Button className="w-full text-lg py-7 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(173,28,154,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(173,28,154,0.6)] border border-white/10 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                  <span className="font-semibold text-white relative z-10">
+                    Tham gia ngay
+                  </span>
+                </Button>
+              }
+            />
+          ) : (
+            <>
+              <Link
+                href={`/courses/${slug}/${course.id}/checkout`}
+                className="block w-full"
+              >
+                <Button className="w-full text-lg py-7 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(173,28,154,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(173,28,154,0.6)] border border-white/10 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                  <span className="font-semibold text-white relative z-10">
+                    Đăng ký ngay
+                  </span>
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-2xl text-base font-semibold border-brand-magenta/20 hover:bg-brand-magenta/5 hover:text-brand-magenta transition-colors"
+              >
+                Thêm vào giỏ hàng
+              </Button>
+            </>
+          )}
         </div>
 
         <Separator />

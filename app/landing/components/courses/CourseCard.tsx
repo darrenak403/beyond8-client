@@ -16,6 +16,14 @@ export default function CourseCard({ course }: CourseCardProps) {
   const slug = course.slug || generateSlug(course.title)
   const courseUrl = `/courses/${slug}/${course.id}`
 
+  // Pricing logic
+  const originalPrice = course.price
+  const finalPrice = course.finalPrice ?? course.price
+  const hasDiscount =
+    (!!course.discountPercent && course.discountPercent > 0) ||
+    (!!course.discountAmount && course.discountAmount > 0) ||
+    finalPrice < originalPrice
+
   // Format duration from minutes to hours
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60)
@@ -79,9 +87,23 @@ export default function CourseCard({ course }: CourseCardProps) {
             <Badge variant="outline" className="rounded-lg group-hover:border-primary group-hover:text-primary transition-colors duration-300">
               {course.level}
             </Badge>
-            <span className="text-2xl font-bold text-primary">
-              {formatCurrency(course.price)}
-            </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-primary">
+                {formatCurrency(finalPrice)}
+              </span>
+              {hasDiscount && (
+                <>
+                  <span className="text-sm text-muted-foreground line-through decoration-red-500/50">
+                    {formatCurrency(originalPrice)}
+                  </span>
+                  {course.discountPercent !== null && course.discountPercent !== undefined && course.discountPercent > 0 && (
+                    <span className="text-xs font-semibold text-red-500">
+                      -{course.discountPercent}%
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -13,13 +13,14 @@ interface LessonSidebarProps {
   course: CourseDetail
   slug: string
   courseId: string
+  isEnrolled: boolean
   isSidebarOpen: boolean
   isMobile: boolean
   onClose: () => void
   onOpen: () => void
 }
 
-export default function LessonSidebar({ course, slug, courseId, isSidebarOpen, isMobile, onClose, onOpen }: LessonSidebarProps) {
+export default function LessonSidebar({ course, slug, courseId, isEnrolled, isSidebarOpen, isMobile, onClose, onOpen }: LessonSidebarProps) {
   const params = useParams() as { slug: string; courseId: string; sectionId?: string; lessonId?: string }
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
 
@@ -114,42 +115,72 @@ export default function LessonSidebar({ course, slug, courseId, isSidebarOpen, i
                           {section.lessons.map((lesson) => {
                             const isActive = params.lessonId === lesson.id
                             const lessonUrl = getLessonUrl(section, lesson)
-                            
-                            return (
-                              <Link
-                                key={lesson.id}
-                                href={lessonUrl}
-                                className={cn(
-                                  "block px-4 py-2.5 hover:bg-white/5 transition-colors border-l-2",
-                                  isActive 
-                                    ? "border-brand-pink bg-white/5" 
-                                    : "border-transparent"
-                                )}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div className="flex-shrink-0">
-                                    {lesson.isPreview ? (
-                                      <Play className="h-4 w-4 text-white/50" />
-                                    ) : (
-                                      <Lock className="h-4 w-4 text-white/30" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className={cn(
-                                      "text-sm truncate",
-                                      isActive ? "text-white font-medium" : "text-white/70"
-                                    )}>
-                                      {lesson.orderIndex}. {lesson.title}
-                                    </div>
-                                    <div className="text-xs text-white/50 mt-0.5">
-                                      {lesson.durationSeconds ? `${Math.floor(lesson.durationSeconds / 60)}:${String(lesson.durationSeconds % 60).padStart(2, '0')}` : 'N/A'}
-                                    </div>
-                                  </div>
-                                  {isActive && (
-                                    <CheckCircle2 className="h-4 w-4 text-brand-pink flex-shrink-0" />
+                            // Nếu user đã enroll: truy cập tất cả bài
+                            // Nếu chưa enroll: chỉ cho truy cập bài preview
+                            const canAccessLesson = isEnrolled || lesson.isPreview
+
+                            const content = (
+                              <div className="flex items-center gap-2">
+                                <div className="flex-shrink-0">
+                                  {lesson.isPreview ? (
+                                    <Play className="h-4 w-4 text-white/50" />
+                                  ) : (
+                                    <Lock className="h-4 w-4 text-white/30" />
                                   )}
                                 </div>
-                              </Link>
+                                <div className="flex-1 min-w-0">
+                                  <div
+                                    className={cn(
+                                      "text-sm truncate",
+                                      isActive ? "text-white font-medium" : "text-white/70"
+                                    )}
+                                  >
+                                    {lesson.orderIndex}. {lesson.title}
+                                  </div>
+                                  <div className="text-xs text-white/50 mt-0.5">
+                                    {lesson.durationSeconds
+                                      ? `${Math.floor(lesson.durationSeconds / 60)}:${String(
+                                          lesson.durationSeconds % 60
+                                        ).padStart(2, "0")}`
+                                      : "N/A"}
+                                  </div>
+                                </div>
+                                {isActive && (
+                                  <CheckCircle2 className="h-4 w-4 text-brand-pink flex-shrink-0" />
+                                )}
+                              </div>
+                            )
+
+                            if (canAccessLesson) {
+                              return (
+                                <Link
+                                  key={lesson.id}
+                                  href={lessonUrl}
+                                  className={cn(
+                                    "block px-4 py-2.5 hover:bg-white/5 transition-colors border-l-2",
+                                    isActive
+                                      ? "border-brand-pink bg-white/5"
+                                      : "border-transparent"
+                                  )}
+                                >
+                                  {content}
+                                </Link>
+                              )
+                            }
+
+                            return (
+                              <div
+                                key={lesson.id}
+                                className={cn(
+                                  "block px-4 py-2.5 border-l-2 cursor-not-allowed opacity-60",
+                                  isActive
+                                    ? "border-brand-pink bg-white/5"
+                                    : "border-transparent"
+                                )}
+                                aria-disabled="true"
+                              >
+                                {content}
+                              </div>
                             )
                           })}
                         </div>

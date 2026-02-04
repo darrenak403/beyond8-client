@@ -8,6 +8,7 @@ import { Footer } from '@/components/layout/Footer'
 import { useGetCourseSummary, useGetCourseDetails } from '@/hooks/useCourse'
 import { useAuth } from '@/hooks/useAuth'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useCheckEnrollment } from '@/hooks/useEnroll'
 
 export default function CourseDetailPage() {
   const params = useParams()
@@ -15,66 +16,122 @@ export default function CourseDetailPage() {
   const slug = params?.slug as string
   const { isAuthenticated } = useAuth()
 
-  // Always call hooks, but conditionally use results
+  // Nếu đã đăng nhập thì kiểm tra enrollment (hook luôn được gọi, nhưng chỉ thực sự fetch khi enabled = true)
   const {
-    courseSummary,
-    isLoading: isLoadingSummary,
-    isError: isErrorSummary,
-  } = useGetCourseSummary(courseId)
-
-  const {
-    courseDetails,
-    isLoading: isLoadingDetails,
-    isError: isErrorDetails,
-  } = useGetCourseDetails(courseId)
+    isEnrolled,
+    isLoading: isCheckingEnroll,
+  } = useCheckEnrollment(courseId, {
+    enabled: !!courseId && isAuthenticated,
+  })
 
   // Check if params exist
   if (!courseId || !slug) {
     return <NotFound />
   }
 
-  const isLoading = isAuthenticated ? isLoadingDetails : isLoadingSummary
-  const isError = isAuthenticated ? isErrorDetails : isErrorSummary
-  const courseData = isAuthenticated ? courseDetails : courseSummary
-
-  if (isLoading) {
+  // Không đăng nhập: luôn dùng public summary
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Header />
-        <div className="flex-1 w-full container mx-auto px-4 py-8">
-          <Skeleton className="h-96 w-full mb-8" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-4">
-              <Skeleton className="h-64 w-full" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-            <div className="lg:col-span-1">
-              <Skeleton className="h-96 w-full" />
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </div>
+      <PageLayout>
+        <CourseSummarySection courseId={courseId} slug={slug} />
+      </PageLayout>
     )
   }
 
-  if (isError || !courseData) {
-    return <NotFound />
+  if (isCheckingEnroll) {
+    return (
+      <PageLayout>
+        <CourseContentSkeleton />
+      </PageLayout>
+    )
   }
 
-  // Verify slug matches
-  if (courseData.slug && courseData.slug !== slug) {
-    // Slug doesn't match, but we'll still show the course if ID matches
-    // In production, you might want to redirect to correct slug
-  }
+  // Đã đăng nhập + đã enroll => dùng course details
+  // Còn lại => dùng course summary
+  const showDetails = isEnrolled
 
+  return (
+    <PageLayout>
+      {showDetails ? (
+        <CourseDetailsSection courseId={courseId} slug={slug} />
+      ) : (
+        <CourseSummarySection courseId={courseId} slug={slug} />
+      )}
+    </PageLayout>
+  )
+}
+
+function PageLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <div className="flex-1 w-full">
-        <CourseDetail courseData={courseData} />
+      <div className="flex-1">
+        {children}
       </div>
       <Footer />
     </div>
   )
+}
+
+function CourseContentSkeleton() {
+  return (
+    <div>
+      <Skeleton className="h-96 w-full mb-8" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-4">
+          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+        <div className="lg:col-span-1">
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CourseSummarySection({ courseId, slug }: { courseId: string; slug: string }) {
+  const {
+    courseSummary,
+    isLoading,
+    isError,
+  } = useGetCourseSummary(courseId)
+
+  if (isLoading) {
+    return <CourseContentSkeleton />
+  }
+
+  if (isError || !courseSummary) {
+    return <NotFound />
+  }
+
+  // Verify slug matches (giữ nguyên logic cũ)
+  if (courseSummary.slug && courseSummary.slug !== slug) {
+    // Có thể redirect sang slug đúng nếu cần
+  }
+
+  return <CourseDetail courseData={courseSummary} mode="summary" />
+}
+
+function CourseDetailsSection({ courseId, slug }: { courseId: string; slug: string }) {
+  const {
+    courseDetails,
+    isLoading,
+    isError,
+  } = useGetCourseDetails(courseId)
+
+  if (isLoading) {
+    return <CourseContentSkeleton />
+  }
+
+  if (isError || !courseDetails) {
+    return <NotFound />
+  }
+
+  // Verify slug matches (giữ nguyên logic cũ)
+  if (courseDetails.slug && courseDetails.slug !== slug) {
+    // Có thể redirect sang slug đúng nếu cần
+  }
+
+  return <CourseDetail courseData={courseDetails} mode="details" />
 }
