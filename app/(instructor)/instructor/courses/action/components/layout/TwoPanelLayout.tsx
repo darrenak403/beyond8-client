@@ -186,7 +186,7 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
                 />
 
                 {/* Right Toolbar */}
-                <div className="w-14 border-l bg-gray-50 flex flex-col items-center py-4 gap-4 shrink-0 z-10">
+                <div id="course-editor-right-toolbar-root" className="w-14 border-l bg-gray-50 flex flex-col items-center py-4 gap-4 shrink-0 z-10">
                   <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Xem trước">
                     <Eye className="h-5 w-5" />
                   </Button>

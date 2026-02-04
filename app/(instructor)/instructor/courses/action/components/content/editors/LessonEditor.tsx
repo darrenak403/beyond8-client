@@ -39,6 +39,13 @@ import { useGetQuizById } from "@/hooks/useQuiz";
 import { CreateQuizDialog } from "@/components/widget/quiz/CreateQuizDialog";
 import { CreateQuizAIDialog } from "@/components/widget/quiz/CreateQuizAIDialog";
 import { QuizDialog } from "@/components/widget/quiz/QuizDialog";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Markdown } from "tiptap-markdown";
+import { ToolbarProvider } from "@/components/ui/toolbar-provider";
+import { RightToolbarPortal } from "./RightToolbarPortal";
+import { VerticalToolbar } from "./VerticalToolbar";
+
 export interface LessonEditorRef {
     hasUnsavedChanges: () => boolean;
     save: () => Promise<void>;
@@ -197,9 +204,106 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                     setQuizId(selectedLesson.quizId || "");
                 }
             }
+
             setPendingVideoFile(null);
             savedLessonRef.current = null; // Reset saved ref when prop updates
         }, [selectedLesson]);
+
+        // Tiptap Editor Configuration
+        const editor = useEditor({
+            extensions: [
+                StarterKit.configure({
+                    orderedList: {
+                        HTMLAttributes: {
+                            class: "list-decimal ml-4",
+                        },
+                    },
+                    bulletList: {
+                        HTMLAttributes: {
+                            class: "list-disc ml-4",
+                        },
+                    },
+                    code: {
+                        HTMLAttributes: {
+                            class: "bg-gray-100 rounded-md p-1 font-mono text-sm text-red-500",
+                        },
+                    },
+                    horizontalRule: {
+                        HTMLAttributes: {
+                            class: "my-4 border-t border-gray-200",
+                        },
+                    },
+                    codeBlock: {
+                        HTMLAttributes: {
+                            class: "bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm my-2",
+                        },
+                    },
+                    heading: {
+                        levels: [1, 2, 3, 4],
+                        HTMLAttributes: {
+                            class: "font-bold text-gray-900 mb-2 mt-4",
+                        },
+                    },
+                    blockquote: {
+                        HTMLAttributes: {
+                            class: "border-l-4 border-gray-300 pl-4 italic text-gray-600 my-2",
+                        },
+                    },
+                }),
+                Markdown.configure({
+                    html: false,
+                    transformPastedText: true,
+                    transformCopiedText: true,
+                }),
+            ],
+            content: textContent,
+            editorProps: {
+                attributes: {
+                    class: "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4",
+                },
+            },
+            onUpdate: ({ editor }) => {
+                const storage = editor.storage as unknown as {
+                    markdown: {
+                        getMarkdown: () => string;
+                    };
+                };
+                if (storage.markdown && storage.markdown.getMarkdown) {
+                    setTextContent(storage.markdown.getMarkdown());
+                } else {
+                    console.warn("Markdown storage not available, falling back to HTML");
+                    setTextContent(editor.getHTML());
+                }
+            },
+            immediatelyRender: false,
+        });
+
+        // Sync editor content when textContent changes externally (e.g. initial load)
+        useEffect(() => {
+            if (editor && selectedLesson?.type === "Text" && textContent) {
+                const storage = editor.storage as unknown as {
+                    markdown: {
+                        getMarkdown: () => string;
+                    };
+                };
+                if (storage.markdown && storage.markdown.getMarkdown) {
+                    const currentMarkdown = storage.markdown.getMarkdown();
+                    if (currentMarkdown !== textContent) {
+                        if (editor.getText() === "") {
+                            editor.commands.setContent(textContent);
+                        }
+                    }
+                }
+            }
+        }, [editor, selectedLesson, textContent]);
+
+        // Reset editor content when switching lessons
+        useEffect(() => {
+            if (editor && selectedLesson && selectedLesson.type === 'Text') {
+                editor.commands.setContent(selectedLesson.textContent || "");
+            }
+        }, [selectedLesson, editor]);
+
 
         const baseLesson = savedLessonRef.current || selectedLesson;
 
@@ -998,12 +1102,16 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                 {selectedLesson?.type === "Text" && (
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-semibold text-gray-900">Nội dung</h3>
-                                        <textarea
-                                            value={textContent}
-                                            onChange={(e) => setTextContent(e.target.value)}
-                                            placeholder="Nhập nội dung bài học..."
-                                            className="w-full min-h-[300px] p-4 text-base text-gray-700 bg-white border rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none resize-y"
-                                        />
+                                        <div className="border rounded-lg bg-white shadow-sm min-h-[400px]">
+                                            {editor && (
+                                                <ToolbarProvider editor={editor}>
+                                                    <RightToolbarPortal>
+                                                        <VerticalToolbar />
+                                                    </RightToolbarPortal>
+                                                    <EditorContent editor={editor} className="min-h-[400px]" />
+                                                </ToolbarProvider>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 
