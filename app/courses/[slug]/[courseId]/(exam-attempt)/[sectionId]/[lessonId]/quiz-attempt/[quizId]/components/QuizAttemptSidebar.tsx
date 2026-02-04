@@ -8,7 +8,6 @@ import { motion } from 'framer-motion'
 
 interface QuizAttemptSidebarProps {
   quizTitle: string
-
   timeSpentSeconds: number
   timeLimitMinutes: number | null
   questions: QuizQuestion[]
@@ -18,6 +17,8 @@ interface QuizAttemptSidebarProps {
   onQuestionSelect: (index: number) => void
   onSubmitQuiz: () => void
   isSubmitting: boolean
+  answeredCount: number
+  totalQuestions: number
 }
 
 export default function QuizAttemptSidebar({
@@ -31,6 +32,8 @@ export default function QuizAttemptSidebar({
   onQuestionSelect,
   onSubmitQuiz,
   isSubmitting,
+  answeredCount,
+  totalQuestions,
 }: QuizAttemptSidebarProps) {
   const getRemainingTime = () => {
     if (!timeLimitMinutes) return null
@@ -51,6 +54,25 @@ export default function QuizAttemptSidebar({
           <h3 className="font-bold text-base line-clamp-2 text-foreground">
             {quizTitle}
           </h3>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="px-4 py-3 border-b shrink-0">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Tiến độ</span>
+            <span className="font-bold text-foreground">{answeredCount}/{totalQuestions}</span>
+          </div>
+          <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
+              className="h-full bg-gradient-to-r from-brand-pink via-brand-magenta to-brand-purple rounded-full transition-all duration-500"
+            />
+          </div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span>{Math.round((answeredCount / totalQuestions) * 100)}% hoàn thành</span>
+          </div>
         </div>
       </div>
 

@@ -376,28 +376,13 @@ export default function QuizAttemptPage() {
           onQuestionSelect={handleQuestionSelect}
           onSubmitQuiz={() => setShowSubmitDialog(true)}
           isSubmitting={isSubmitting}
+          answeredCount={answeredCount}
+          totalQuestions={currentQuizAttempt.totalQuestions}
         />
 
         {/* Question Content */}
         <div ref={scrollContainerRef} className="flex flex-col w-full overflow-y-auto h-full">
-          <div className="px-14 py-6 w-full">
-            {/* Progress Bar */}
-            <div className="space-y-2 py-3 mb-6 pb-4 border-b">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Tiến độ</span>
-                <span className="font-bold text-foreground">{answeredCount}/{currentQuizAttempt.totalQuestions}</span>
-              </div>
-              <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  style={{ width: `${(answeredCount / currentQuizAttempt.totalQuestions) * 100}%` }}
-                  className="h-full bg-gradient-to-r from-brand-pink via-brand-magenta to-brand-purple rounded-full transition-all duration-500"
-                />
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <span>{Math.round((answeredCount / currentQuizAttempt.totalQuestions) * 100)}% hoàn thành</span>
-              </div>
-            </div>
-
+          <div className="px-14 py-6 mb-20 w-full">
             {/* All Questions */}
             <div className="space-y-8">
               {currentQuizAttempt.questions.map((question, index) => (
