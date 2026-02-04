@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as ImageIcon, Eye, Plus, Sparkles, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as ImageIcon, Eye, Sparkles, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HeaderPortal } from "./HeaderPortal";
 import { Progress } from "@/components/ui/progress";
@@ -9,7 +9,7 @@ import { getHubConnection } from "@/lib/realtime/signalr";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+
 import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 
@@ -34,10 +34,12 @@ import {
 } from "@/hooks/useLesson";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { QuestionBankDialog } from "@/components/widget/QuestionBankDialog";
+
 import { CreateQuizDialog } from "@/components/widget/CreateQuizDialog";
+import { CreateQuizAIDialog } from "@/components/widget/CreateQuizAIDialog";
 import { useParams } from "next/navigation";
 import { useGetQuizById } from "@/hooks/useQuiz";
+import { QuizDialog } from "@/components/widget/QuizDialog";
 
 export interface LessonEditorRef {
     hasUnsavedChanges: () => boolean;
@@ -47,23 +49,28 @@ export interface LessonEditorRef {
 interface LessonEditorProps {
     lessonId: string;
     selectedSectionId: string;
+    sectionTitle: string;
+    sectionOrder: number;
     lessons: Lesson[]; // Ideally type this properly
     onBack: () => void;
     onBackToInfo?: () => void;
 }
 
 export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
-    ({ lessonId, selectedSectionId, lessons, onBack, onBackToInfo }, ref) => {
+    ({ lessonId, selectedSectionId, sectionTitle, sectionOrder, lessons, onBack, onBackToInfo }, ref) => {
         const selectedLesson = lessons?.find((l) => l.id === lessonId);
+        // ... (skip down to dialog)
+
 
         // Local State
         const [lessonTitleValue, setLessonTitleValue] = useState("");
         const [lessonDescriptionValue, setLessonDescriptionValue] = useState("");
         const [isPreview, setIsPreview] = useState(false);
         const [isPublished, setIsPublished] = useState(false);
-        const [isQuestionBankDialogOpen, setIsQuestionBankDialogOpen] = useState(false);
         const [isCreateQuizDialogOpen, setIsCreateQuizDialogOpen] = useState(false);
-        const [selectedQuestionBankIds, setSelectedQuestionBankIds] = useState<string[]>([]);
+        const [isCreateQuizAIDialogOpen, setIsCreateQuizAIDialogOpen] = useState(false);
+
+        const [isQuizDetailOpen, setIsQuizDetailOpen] = useState(false);
 
         // Quiz specific
         const [quizId, setQuizId] = useState("");
@@ -176,7 +183,6 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         // ... existing local state effects ...
         useEffect(() => {
             if (selectedLesson) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setLessonTitleValue(selectedLesson.title);
                 setLessonDescriptionValue(selectedLesson.description || "");
                 setIsPreview(selectedLesson.isPreview);
@@ -1013,40 +1019,34 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                         </div>
 
                                         {!quizId ? (
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 {/* Option 1: Select from Question Bank */}
+                                                {/* Option 1: Create New Quiz (Config -> Select) */}
                                                 <div
-                                                    onClick={() => setIsQuestionBankDialogOpen(true)}
+                                                    onClick={() => setIsCreateQuizDialogOpen(true)}
                                                     className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-6 transition-all hover:border-purple-300 hover:shadow-md hover:bg-purple-50/30 flex flex-col items-center text-center gap-4"
                                                 >
                                                     <div className="w-16 h-16 rounded-full bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
                                                         <ClipboardList className="w-8 h-8 text-blue-600" />
                                                     </div>
                                                     <div>
-                                                        <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-700">Ngân hàng câu hỏi</h4>
-                                                        <p className="text-sm text-gray-500">Chọn câu hỏi có sẵn từ ngân hàng của bạn</p>
+                                                        <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-700">Tạo bài kiểm tra</h4>
+                                                        <p className="text-sm text-gray-500">Thiết lập cấu hình và chọn câu hỏi từ ngân hàng</p>
                                                     </div>
                                                 </div>
 
-                                                {/* Option 2: Create New Quiz */}
-                                                <div className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-6 transition-all hover:border-purple-300 hover:shadow-md hover:bg-purple-50/30 flex flex-col items-center text-center gap-4 opacity-70">
-                                                    <div className="w-16 h-16 rounded-full bg-green-50 group-hover:bg-green-100 flex items-center justify-center transition-colors">
-                                                        <Plus className="w-8 h-8 text-green-600" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-green-700">Tạo mới câu hỏi</h4>
-                                                        <p className="text-sm text-gray-500">Tạo một câu hỏi quiz mới hoàn toàn (Đang phát triển)</p>
-                                                    </div>
-                                                </div>
 
-                                                {/* Option 3: Create with AI */}
-                                                <div className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-6 transition-all hover:border-purple-300 hover:shadow-md hover:bg-purple-50/30 flex flex-col items-center text-center gap-4 opacity-70">
+
+                                                <div
+                                                    onClick={() => setIsCreateQuizAIDialogOpen(true)}
+                                                    className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-6 transition-all hover:border-purple-300 hover:shadow-md hover:bg-purple-50/30 flex flex-col items-center text-center gap-4"
+                                                >
                                                     <div className="w-16 h-16 rounded-full bg-purple-50 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
                                                         <Sparkles className="w-8 h-8 text-purple-600" />
                                                     </div>
                                                     <div>
                                                         <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-purple-700">Tạo bằng AI</h4>
-                                                        <p className="text-sm text-gray-500">Sử dụng AI để tạo bộ câu hỏi tự động (Đang phát triển)</p>
+                                                        <p className="text-sm text-gray-500">Sử dụng AI để tạo bộ câu hỏi tự động từ tài liệu</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1073,9 +1073,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                                     </div>
                                                     <Button
                                                         variant="outline"
-                                                        onClick={() => {
-                                                            // Future impl: Edit quiz or View details
-                                                        }}
+                                                        onClick={() => setIsQuizDetailOpen(true)}
                                                     >
                                                         Chi tiết
                                                     </Button>
@@ -1083,34 +1081,37 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                             </div>
                                         )}
 
-                                        <QuestionBankDialog
-                                            open={isQuestionBankDialogOpen}
-                                            onOpenChange={setIsQuestionBankDialogOpen}
-                                            selectionMode="multiple"
-                                            onSelectMultiple={(ids) => {
-                                                if (ids.length > 0) {
-                                                    setSelectedQuestionBankIds(ids)
-                                                    setIsQuestionBankDialogOpen(false)
-                                                    setIsCreateQuizDialogOpen(true)
-                                                }
-                                            }}
-                                            onSelect={(id) => {
-                                                // For single select mode if we ever fallback, but we're mostly using multiple now
-                                                setSelectedQuestionBankIds([id])
-                                                setIsQuestionBankDialogOpen(false)
-                                                setIsCreateQuizDialogOpen(true)
-                                            }}
-                                        />
+
 
                                         <CreateQuizDialog
                                             open={isCreateQuizDialogOpen}
                                             onOpenChange={setIsCreateQuizDialogOpen}
-                                            questionIds={selectedQuestionBankIds}
+                                            // questionIds prop removed - handled internally
                                             courseId={courseId}
                                             lessonId={lessonId}
                                             onConfirm={(newQuizId) => {
                                                 setQuizId(newQuizId)
                                             }}
+                                        />
+
+                                        <CreateQuizAIDialog
+                                            open={isCreateQuizAIDialogOpen}
+                                            onOpenChange={setIsCreateQuizAIDialogOpen}
+                                            courseId={courseId}
+                                            lessonId={lessonId}
+                                            sectionTitle={sectionTitle}
+                                            lessonTitle={selectedLesson?.title || ""}
+                                            sectionOrder={sectionOrder}
+                                            lessonOrder={selectedLesson?.orderIndex || 0}
+                                            onConfirm={(newQuizId) => {
+                                                setQuizId(newQuizId)
+                                            }}
+                                        />
+
+                                        <QuizDialog
+                                            open={isQuizDetailOpen}
+                                            onOpenChange={setIsQuizDetailOpen}
+                                            quizId={quizId}
                                         />
                                     </div>
                                 )}

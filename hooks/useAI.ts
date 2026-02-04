@@ -1,13 +1,14 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
-import { 
-  fetchAI, 
-  type GetUsageHistoryParams, 
-  type GetAIPromptsParams, 
-  type CreateAIPromptRequest, 
+import {
+  fetchAI,
+  type GetUsageHistoryParams,
+  type GetAIPromptsParams,
+  type CreateAIPromptRequest,
   type UpdateAIPromptRequest,
-  type AIUsageStatistics, 
+  type AIUsageStatistics,
   type AIUsageRecord,
   type AIPrompt,
+  EmbedFileRequest,
 } from '@/lib/api/services/fetchAI';
 
 export type { GetUsageHistoryParams, GetAIPromptsParams, CreateAIPromptRequest, UpdateAIPromptRequest, AIUsageStatistics, AIUsageRecord, AIPrompt };
@@ -17,7 +18,7 @@ export function useAIUsageStatistics() {
   return useQuery({
     queryKey: ['ai-usage-statistics'],
     queryFn: async () => await fetchAI.getStatistics(),
-    staleTime: 5 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -57,6 +58,7 @@ export function useAIPrompt(id: string) {
 }
 
 import { toast } from 'sonner';
+import { ApiError } from '@/types/api';
 
 export function useCreateAIPrompt() {
   const queryClient = useQueryClient();
@@ -67,7 +69,7 @@ export function useCreateAIPrompt() {
       toast.success('Tạo prompt thành công');
     },
     onError: () => {
-        toast.error('Có lỗi xảy ra khi tạo prompt');
+      toast.error('Có lỗi xảy ra khi tạo prompt');
     }
   });
 }
@@ -81,7 +83,7 @@ export function useDeleteAIPrompt() {
       toast.success('Xóa prompt thành công');
     },
     onError: () => {
-        toast.error('Có lỗi xảy ra khi xóa prompt');
+      toast.error('Có lỗi xảy ra khi xóa prompt');
     }
   });
 }
@@ -109,13 +111,35 @@ export function useToggleAIPromptStatus() {
   return useMutation({
     mutationFn: async (id: string) => await fetchAI.toggleStatus(id),
     onSuccess: (response, id) => {
-        queryClient.invalidateQueries({ queryKey: ['ai-prompts'] });
-        queryClient.invalidateQueries({ queryKey: ['ai-prompt', id] });
-        toast.success(response.message || 'Cập nhật trạng thái thành công');
+      queryClient.invalidateQueries({ queryKey: ['ai-prompts'] });
+      queryClient.invalidateQueries({ queryKey: ['ai-prompt', id] });
+      toast.success(response.message || 'Cập nhật trạng thái thành công');
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-        toast.error(error.message || 'Cập nhật trạng thái thất bại');
+      toast.error(error.message || 'Cập nhật trạng thái thất bại');
+    }
+  });
+}
+
+export function useCheckEmbedHealth() {
+  return useQuery({
+    queryKey: ['ai-embed-health'],
+    queryFn: async () => await fetchAI.checkHealthEmbed(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useEmbedFile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: EmbedFileRequest) => await fetchAI.embedFile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-embed-health'] });
+      toast.success('Embed file thành công');
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || 'Có lỗi xảy ra khi embed file');
     }
   });
 }

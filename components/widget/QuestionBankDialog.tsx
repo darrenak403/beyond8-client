@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Question } from "@/lib/api/services/fetchQuestion"
 import {
     Dialog,
     DialogContent,
@@ -63,7 +64,8 @@ export function QuestionBankDialog({ open, onOpenChange, onSelect, selectionMode
         setPageNumber(1)
     }
 
-    const handleToggleSelect = (id: string, content: string) => {
+    const handleToggleSelect = (question: Question) => {
+        const { id, content } = question
         setSelectedItems(prev => {
             const newMap = new Map(prev)
             if (newMap.has(id)) {
@@ -117,7 +119,7 @@ export function QuestionBankDialog({ open, onOpenChange, onSelect, selectionMode
                         onTagClick={handleTagClick}
                         onPageChange={handlePageChange}
                         onBackToTags={handleBackToTags}
-                        onSelect={onSelect}
+                        onSelect={(question: Question) => onSelect?.(question.id, question.content)}
                         onInteractingWithDialog={setIsChildDialogOpen}
                         selectionMode={selectionMode}
                         selectedIds={new Set(selectedItems.keys())}

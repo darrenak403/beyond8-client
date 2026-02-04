@@ -2,6 +2,7 @@ import { MetaData } from "@react-three/drei";
 import apiService from "../core";
 import { Metadata } from "./fetchUsers";
 import { ApiResponse } from "@/types/api";
+import { Question } from "./fetchQuestion";
 
 export interface Quiz {
     id: string;
@@ -13,7 +14,9 @@ export interface Quiz {
     timeLimitMinutes: number
     passScorePercent: number
     questionCount: number
+    questions?: Question[]
 }
+
 
 export interface CreateQuizRequest {
     title: string

@@ -1,8 +1,8 @@
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { 
-  questionService, 
-  QuestionTagsCountResponse, 
+import {
+  questionService,
+  QuestionTagsCountResponse,
   QuestionListResponse,
   QuestionParams,
   CreateQuestionRequest,
@@ -12,7 +12,9 @@ import {
   ImportQuestionsFromAIResponse,
   DeleteQuestionResponse,
   BulkCreateQuestionRequest,
-  BulkCreateQuestionResponse
+  BulkCreateQuestionResponse,
+  GenerateQuizFromAIResponse,
+  GenerateQuizFromAIRequest
 } from "@/lib/api/services/fetchQuestion"
 
 export function useGetQuestionTagsCount() {
@@ -169,6 +171,32 @@ export function useBulkCreateQuestions() {
   return {
     bulkCreateQuestions: mutation.mutate,
     bulkCreateQuestionsAsync: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    error: mutation.error,
+    isSuccess: mutation.isSuccess,
+    data: mutation.data,
+    reset: mutation.reset,
+  }
+}
+
+export function useGenerateQuestionsWithAI() {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation<GenerateQuizFromAIResponse, Error, GenerateQuizFromAIRequest>({
+    mutationFn: (data: GenerateQuizFromAIRequest) => questionService.generateQuizFromAI(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["questions"] })
+      queryClient.invalidateQueries({ queryKey: ["question-tags-count"] })
+      toast.success("Tạo câu hỏi từ AI thành công!")
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Tạo câu hỏi từ AI thất bại!")
+    },
+  })
+
+  return {
+    generateQuestions: mutation.mutate,
+    generateQuestionsAsync: mutation.mutateAsync,
     isLoading: mutation.isPending,
     error: mutation.error,
     isSuccess: mutation.isSuccess,

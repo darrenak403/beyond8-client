@@ -20,10 +20,10 @@ import { Button } from "@/components/ui/button"
 interface QuestionCardProps {
   question: Question
   index: number
-  onSelect?: (id: string, content: string) => void
+  onSelect?: (question: Question) => void
   selectionMode?: "single" | "multiple"
   isSelected?: boolean
-  onToggleSelect?: (id: string, content: string) => void
+  onToggleSelect?: (question: Question) => void
 }
 
 const difficultyColors: Record<QuestionDifficulty, string> = {
@@ -52,7 +52,7 @@ export function QuestionCard({
     // If in multiple mode, clicking anywhere (except buttons) toggles selection
     if (selectionMode === "multiple" && onToggleSelect) {
       e.preventDefault()
-      onToggleSelect(question.id, question.content)
+      onToggleSelect(question)
     }
   }
 
@@ -92,9 +92,9 @@ export function QuestionCard({
                   onClick={(e) => {
                     e.stopPropagation()
                     if (selectionMode === "multiple" && onToggleSelect) {
-                      onToggleSelect(question.id, question.content)
+                      onToggleSelect(question)
                     } else if (onSelect) {
-                      onSelect(question.id, question.content)
+                      onSelect(question)
                     }
                   }}
                   size="sm"

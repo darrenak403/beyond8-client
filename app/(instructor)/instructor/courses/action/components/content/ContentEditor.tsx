@@ -61,6 +61,8 @@ const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
           ref={lessonEditorRef}
           lessonId={selectedLessonId}
           selectedSectionId={selectedSectionId}
+          sectionTitle={section?.title || ""}
+          sectionOrder={section?.orderIndex || 0}
           lessons={lessons || []}
           onBack={() => onLessonSelect?.("")}
           onBackToInfo={onBackToInfo}

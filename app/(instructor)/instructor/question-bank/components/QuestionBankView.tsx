@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronRight, Home, FolderOpen, Plus } from "lucide-react"
+import { Question } from "@/lib/api/services/fetchQuestion"
 import { TagFolderCard } from "./TagFolderCard"
 import { QuestionCard } from "./QuestionCard"
 import { useGetQuestionTagsCount, useGetQuestions } from "@/hooks/useQuestion"
@@ -22,11 +23,11 @@ interface QuestionBankViewProps {
     onTagClick: (tag: string) => void
     onPageChange: (page: number) => void
     onBackToTags: () => void
-    onSelect?: (id: string, content: string) => void
+    onSelect?: (question: Question) => void
     onInteractingWithDialog?: (isInteracting: boolean) => void
     selectionMode?: "single" | "multiple"
     selectedIds?: Set<string>
-    onToggleSelect?: (id: string, content: string) => void
+    onToggleSelect?: (question: Question) => void
 }
 
 export function QuestionBankView({
