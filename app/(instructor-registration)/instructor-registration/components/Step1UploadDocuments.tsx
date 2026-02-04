@@ -12,6 +12,7 @@ import SafeImage from "@/components/ui/SafeImage";
 import Webcam from "react-webcam";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Step1Props {
   data: {
@@ -60,11 +61,15 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
   const [backPreview, setBackPreview] = useState<string>("");
   const [facePhotoPreview, setFacePhotoPreview] = useState<string>("");
   const [showWebcam, setShowWebcam] = useState<boolean>(false);
+  const [userClickedNext, setUserClickedNext] = useState<boolean>(false);
   // const [frontFile, setFrontFile] = useState<File | null>(null); // Removed frontFile state
   const webcamRef = useRef<ComponentRef<typeof Webcam>>(null);
 
   // Check if CCCD is fully uploaded (both front and back)
   const hasCCCD = !!data.frontImg && !!data.backImg;
+
+  // Derived state: only show face verification if user clicked next AND CCCD is still valid
+  const showFaceVerification = userClickedNext && hasCCCD;
 
   // Chỉ cho phép upload mặt sau khi mặt trước đã upload & phân loại thành công
   const canUploadBack =
@@ -177,10 +182,12 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
     if (type === 'front') {
       onChange({ ...data, frontImg: "", frontFileId: "", frontClassifyResult: undefined, frontEkycImg: undefined });
       setFrontPreview("");
+      setUserClickedNext(false); // Reset to step 1 when removing front image
       // setFrontFile(null); // Removed setFrontFile
     } else {
       onChange({ ...data, backImg: "", backFileId: "", backClassifyResult: undefined });
       setBackPreview("");
+      setUserClickedNext(false); // Reset to step 1 when removing back image
     }
   };
 
@@ -226,7 +233,6 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
   };
 
   // Handle webcam capture
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const captureFacePhoto = useCallback(() => {
     const imageSrc = webcamRef.current?.getScreenshot();
     if (imageSrc) {
@@ -257,23 +263,90 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
       )}
 
       {/* Step 1: CCCD Upload - Shown FIRST */}
-      {!hasCCCD && (
-        <div className="space-y-6">
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
-                1
+      <AnimatePresence mode="wait">
+        {!showFaceVerification && (
+          <>
+          <div 
+                className={`flex items-center justify-center gap-3 my-2  ${hasCCCD ? 'cursor-pointer group' : ''}`}
+                onClick={hasCCCD ? () => setUserClickedNext(true) : undefined}
+              >
+                {/* Step 1 */}
+                <motion.div
+                  className="relative"
+                  whileHover={hasCCCD ? { scale: 1.1 } : {}}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold shadow-lg shadow-purple-500/30">
+                    1
+                  </div>
+                  {hasCCCD && (
+                    <motion.div
+                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 500 }}
+                    />
+                  )}
+                </motion.div>
+
+                {/* Connector Line */}
+                <div className="relative h-1 w-16 bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-500 to-purple-600 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: hasCCCD ? "100%" : "0%" }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                  />
+                </div>
+
+                {/* Step 2 */}
+                <motion.div
+                  className="relative"
+                  whileHover={hasCCCD ? { scale: 1.1 } : {}}
+                  whileTap={hasCCCD ? { scale: 0.95 } : {}}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                    hasCCCD 
+                      ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30 group-hover:shadow-xl group-hover:shadow-purple-500/50' 
+                      : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    2
+                  </div>
+                  {hasCCCD && (
+                    <motion.div
+                      className="absolute inset-0 rounded-full border-2 border-purple-400"
+                      initial={{ scale: 1, opacity: 0 }}
+                      animate={{ scale: 1.3, opacity: [0, 1, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  )}
+                </motion.div>
               </div>
-              <div className="h-1 w-8 bg-gray-200"></div>
-              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold">
-                2
-              </div>
-            </div>
+           <motion.div
+            key="step1"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="space-y-6"
+          >
+            <div className="text-center space-y-2">
+              
             <h2 className={`font-bold text-primary ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Tải lên CCCD</h2>
-            <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>Vui lòng tải lên ảnh chụp rõ ràng mặt trước và mặt sau của CCCD</p>
+            
+            {hasCCCD ? (
+              <p className="text-sm text-brand-purple font-medium animate-pulse">
+                ✓ Đã hoàn thành! Click vào bước 2 phía trên để tiếp tục xác thực khuôn mặt
+              </p>
+            ):(
+              <p className={`text-gray-600 ${isMobile ? 'text-sm' : ''}`}>
+                Vui lòng tải lên ảnh chụp rõ ràng mặt trước và mặt sau của CCCD
+              </p>
+            )}
           </div>
 
-          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 mb-4'}`}>
             {/* Front Image */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -399,7 +472,7 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
 
           {/* Information Cards */}
           {(data.frontClassifyResult || data.backClassifyResult) && (
-            <div className={`grid gap-6 mt-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+            <div className={`grid gap-6 ${isMobile ? 'grid-cols-1 mb-6' : 'md:grid-cols-2 m-0'}`}>
               {/* Front Card Info */}
               {data.frontClassifyResult && (
                 <Card className="border-2 border-green-100 bg-green-50/50">
@@ -481,30 +554,85 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
               )}
             </div>
           )}
-        </div>
-      )}
+          </motion.div>
+          </>
+         
+        )}
+      </AnimatePresence>
 
-      {/* Step 2: Face Photo - Shown SECOND (Only after CCCD) */}
-      {hasCCCD && (
-        <div className="space-y-8">
-          {/* Header with gradient */}
-          <div className="text-center space-y-3">
-            {/* Progress Stepper - Step 2 Active */}
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">
-                1
+      {/* Step 2: Face Photo - Shown SECOND (Only after clicking arrow) */}
+      <AnimatePresence mode="wait">
+        {showFaceVerification && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="space-y-8"
+          >
+            {/* Header with gradient */}
+            <div className="sticky top-0 z-10 text-center space-y-3 mb-2">
+              {/* Progress Stepper - Step 2 Active */}
+              <div 
+                className="flex items-center justify-center gap-3 cursor-pointer group my-2"
+                onClick={() => setUserClickedNext(false)}
+              >
+                {/* Step 1 */}
+                <motion.div
+                  className="relative"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="w-7 h-7 rounded-full bg-green-600 text-white flex items-center justify-center font-bold shadow-lg shadow-green-500/30 group-hover:shadow-xl group-hover:shadow-green-500/50">
+                    1
+                  </div>
+                  <motion.div
+                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500 }}
+                  />
+                </motion.div>
+
+                {/* Connector Line */}
+                <div className="relative h-1 w-16 bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-green-500 to-purple-600 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                  />
+                </div>
+
+                {/* Step 2 */}
+                <motion.div
+                  className="relative"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold shadow-lg shadow-purple-500/30">
+                    2
+                  </div>
+                  <motion.div
+                    className="absolute inset-0 rounded-full border-2 border-purple-400"
+                    initial={{ scale: 1, opacity: 0 }}
+                    animate={{ scale: 1.3, opacity: [0, 1, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </motion.div>
               </div>
-              <div className="h-1 w-8 bg-green-600"></div>
-              <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold">
-                2
-              </div>
-            </div>
 
             <h2 className={`font-bold bg-gradient-to-r from-brand-purple via-brand-magenta to-brand-pink bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
               Xác thực khuôn mặt
             </h2>
             <p className={`text-gray-600 dark:text-gray-400 max-w-md mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
               Chụp ảnh khuôn mặt rõ ràng để xác minh danh tính của bạn
+            </p>
+            <p className="text-sm text-gray-500">
+              Click vào bước 1 phía trên để quay lại
             </p>
           </div>
 
@@ -589,8 +717,8 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
                   </Tabs>
 
                   {/* Info card */}
-                  <div className="relative overflow-hidden rounded-xl border border-brand-magenta/20 bg-gradient-to-r from-brand-purple/5 via-brand-magenta/5 to-brand-pink/5 backdrop-blur-sm p-4">
-                    <div className="flex items-start gap-3">
+                  <div className="">
+                    {/* <div className="flex items-start gap-3">
                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-purple to-brand-magenta flex items-center justify-center flex-shrink-0">
                         <span className="text-white text-sm font-bold">!</span>
                       </div>
@@ -599,10 +727,9 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
                         <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                           <li>• Khuôn mặt nhìn thẳng vào camera</li>
                           <li>• Không đeo kính râm hoặc khẩu trang</li>
-                          <li>• Ánh sáng đủ, không bị tối hoặc quá sáng</li>
                         </ul>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               ) : (
@@ -725,8 +852,9 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
               </div>
             </div>
           )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

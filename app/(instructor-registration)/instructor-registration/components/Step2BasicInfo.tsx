@@ -66,7 +66,7 @@ export default function Step2BasicInfo({ data, onChange }: Step2Props) {
   return (
     <div className="w-full h-full flex flex-col">
       {/* Header */}
-      <div className="text-center space-y-3 flex-shrink-0">
+      <div className="sticky top-0 z-10 text-center space-y-3 flex-shrink-0">
         {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
           <Sparkles className="w-8 h-8 text-white" />
         </div> */}

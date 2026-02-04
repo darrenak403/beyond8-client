@@ -48,6 +48,7 @@ interface InstructorFormData {
     issue_date: string | null;
   };
   frontEkycImg?: string | null;
+  facePhoto?: string;
   bio: string;
   headline: string;
   expertiseAreas: string[];
@@ -186,7 +187,8 @@ export default function InstructorRegistrationPage() {
     formData.frontImg &&
     formData.backImg &&
     formData.frontFileId &&
-    formData.backFileId
+    formData.backFileId &&
+    formData.facePhoto
   );
   const canProceedStep2 = !!(
     formData.bio &&
@@ -334,7 +336,7 @@ export default function InstructorRegistrationPage() {
 
           {/* Main Content */}
           <div className={`flex-1 space-y-4 h-full overflow-hidden`}>
-            <div className="max-w-5xl mx-auto px-4 h-full">
+            <div className="max-w-5xl mx-auto p-2 h-full">
               <AnimatePresence mode="wait">
                 {currentStep === 1 && (
                   <motion.div
@@ -354,7 +356,8 @@ export default function InstructorRegistrationPage() {
                         backFileId: formData.backFileId,
                         frontClassifyResult: formData.frontClassifyResult,
                         backClassifyResult: formData.backClassifyResult,
-                        frontEkycImg: formData.frontEkycImg
+                        frontEkycImg: formData.frontEkycImg,
+                        facePhoto: formData.facePhoto
                       }}
                       onChange={(data) => {
                         if (data.frontClassifyResult) {

@@ -27,7 +27,9 @@ function SafeImageInner({
   fallbackSrc = '/bg-web.jpg',
   onError,
 }: SafeImageProps) {
-  const [imageSrc, setImageSrc] = useState(src);
+  // Normalize src - ensure relative paths start with /
+  const normalizedSrc = src && !src.startsWith('/') && !src.startsWith('http') ? `/${src}` : src;
+  const [imageSrc, setImageSrc] = useState(normalizedSrc || fallbackSrc);
   const [useRegularImg, setUseRegularImg] = useState(false);
 
   const handleImageError = () => {
@@ -42,6 +44,10 @@ function SafeImageInner({
 
   const isExternalUrl = (url: string) => {
     if (typeof window === 'undefined') return false;
+    // Check if it's a relative path (starts with / or ./ or just filename)
+    if (!url || url.startsWith('/') || url.startsWith('./') || !url.includes('://')) {
+      return false;
+    }
     try {
       const urlObj = new URL(url);
       return urlObj.hostname !== window.location.hostname;

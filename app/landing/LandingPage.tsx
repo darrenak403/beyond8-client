@@ -2,7 +2,6 @@
 
 import {Header} from '@/components/layout/Header'
 import HeroSection from './components/HeroSection'
-import RecommendedCoursesSection from './components/RecommendedCoursesSection'
 import CoursesSection from './components/courses/CoursesSection'
 import {Footer} from '@/components/layout/Footer'
 import { PricingSection } from './components/PricingSection'
@@ -16,8 +15,6 @@ export default function LandingPage() {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Recommended Courses Section */}
-      <RecommendedCoursesSection />
 
       {/* Courses Section */}
       <CoursesSection />

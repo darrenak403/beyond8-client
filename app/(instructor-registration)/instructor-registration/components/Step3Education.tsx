@@ -46,7 +46,7 @@ export default function Step3Education({ data, onChange }: Step3Props) {
   return (
     <div className="w-full h-full flex flex-col">
       {/* Header */}
-      <div className="text-center space-y-3 flex-shrink-0">
+      <div className="sticky top-0 z-10 text-center space-y-3 flex-shrink-0">
         {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-2">
           <GraduationCap className="w-8 h-8 text-white" />
         </div> */}
@@ -56,19 +56,20 @@ export default function Step3Education({ data, onChange }: Step3Props) {
         <p className={`text-gray-600 max-w-2xl mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
           Thêm trình độ học vấn để học viên hiểu rõ hơn về nền tảng của bạn
         </p>
+         {/* Add Button */}
+        <div className="flex justify-center mt-8 flex-shrink-0">
+          <Button
+            type="button"
+            onClick={handleAdd}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Thêm học vấn
+          </Button>
+       </div>
       </div>
 
-      {/* Add Button */}
-      <div className="flex justify-center mt-8 flex-shrink-0">
-        <Button
-          type="button"
-          onClick={handleAdd}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Thêm học vấn
-        </Button>
-      </div>
+     
 
       {/* Education List - Fixed Scroll Container */}
       <div className="overflow-y-auto pr-2 scrollbar-hide flex-1 mt-8">

@@ -29,10 +29,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
-import gsap from "gsap";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { StudentNotificationPanel } from "../widget/student-notification-panel";
 import { useSearchCourses } from "@/hooks/useCourse";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -529,197 +528,21 @@ export function Header() {
 
   const headerRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<HTMLAnchorElement>(null);
-  const searchFormRef = useRef<HTMLFormElement>(null);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-  const navRef = useRef<HTMLElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  useEffect(() => {
-    if (isMobile) return;
+  // Use framer-motion scroll detection similar to resizable-navbar
+  const { scrollY } = useScroll({
+    target: headerRef,
+    offset: ["start start", "end start"],
+  });
 
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const shouldCollapse = scrollY > 100;
-
-      if (shouldCollapse !== isScrolled) {
-        setIsScrolled(shouldCollapse);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isMobile, isScrolled]);
-
-  useEffect(() => {
-    if (isMobile) return;
-
-    const header = headerRef.current;
-    const container = containerRef.current;
-    const logo = logoRef.current;
-    const searchForm = searchFormRef.current;
-    const searchContainer = searchContainerRef.current;
-    const nav = navRef.current;
-
-    if (!header || !container || !logo || !searchForm || !searchContainer || !nav) return;
-
-    const tl = gsap.timeline({ defaults: { duration: 0.4, ease: "power2.out" } });
-
-    if (isScrolled) {
-      const containerRect = container.getBoundingClientRect();
-      const searchFormRect = searchForm.getBoundingClientRect();
-      const searchFormCenterX = searchFormRect.left + searchFormRect.width / 2 - containerRect.left;
-
-      const logoRect = logo.getBoundingClientRect();
-      const navRect = nav.getBoundingClientRect();
-      const logoCenterX = logoRect.left + logoRect.width / 2 - containerRect.left;
-      const navCenterX = navRect.left + navRect.width / 2 - containerRect.left;
-
-      const logoMoveX = searchFormCenterX - logoCenterX;
-      const navMoveX = searchFormCenterX - navCenterX;
-
-      tl.to(logo, {
-        x: logoMoveX,
-        scale: 0.2,
-        opacity: 0,
-        width: 0,
-        duration: 0.5,
-        ease: "power2.in",
-        pointerEvents: "none",
-        overflow: "hidden",
-      })
-        .to(nav, {
-          x: navMoveX,
-          scale: 0.2,
-          opacity: 0,
-          width: 0,
-          duration: 0.5,
-          ease: "power2.in",
-          pointerEvents: "none",
-          overflow: "hidden",
-        }, "<")
-        .to(
-          header,
-          {
-            padding: "8px 0",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<0.2"
-        )
-        .to(
-          container,
-          {
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "8px 0",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<0.1"
-        )
-        .to(
-          searchForm,
-          {
-            width: "auto",
-            maxWidth: "500px",
-            flex: "none",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<"
-        )
-        .to(
-          searchContainer,
-          {
-            width: "100%",
-            padding: "4px 4px 4px 16px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<"
-        );
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (latest > 100) {
+      setIsScrolled(true);
     } else {
-      tl.to(
-        container,
-        {
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          justifyContent: "",
-          alignItems: "center",
-          padding: "",
-          duration: 0.4,
-          ease: "sine.out",
-        }
-      )
-        .to(
-          header,
-          {
-            padding: "",
-            duration: 0.5,
-            ease: "sine.out",
-          },
-          "<0.1"
-        )
-        .to(
-          logo,
-          {
-            x: 0,
-            width: "",
-            overflow: "",
-            opacity: 1,
-            scale: 1,
-            duration: 0.6,
-            ease: "power1.out",
-            pointerEvents: "auto",
-          },
-          "<0.2"
-        )
-        .to(
-          nav,
-          {
-            x: 0,
-            width: "",
-            overflow: "",
-            opacity: 1,
-            scale: 1,
-            duration: 0.6,
-            ease: "power1.out",
-            pointerEvents: "auto",
-          },
-          "<"
-        )
-        .to(
-          searchForm,
-          {
-            width: "",
-            maxWidth: "",
-            flex: "",
-            margin: "",
-            duration: 0.5,
-            ease: "sine.out",
-          },
-          "<0.1"
-        )
-        .to(
-          searchContainer,
-          {
-            width: "",
-            padding: "",
-            boxShadow: "",
-            duration: 0.5,
-            ease: "sine.out",
-          },
-          "<"
-        );
+      setIsScrolled(false);
     }
-
-    return () => {
-      tl.kill();
-    };
-  }, [isScrolled, isMobile]);
+  });
 
   const isInstructor = () => {
     if (!userProfile?.roles) return false;
@@ -825,13 +648,37 @@ export function Header() {
   return (
     <header
       ref={headerRef}
-      className={`border-b bg-background/95 sticky top-0 z-50 transition-[border] duration-300 ${isScrolled && !isMobile ? 'border-transparent bg-transparent' : ''}`}
+      className="sticky inset-x-0 top-0 z-50 w-full"
     >
-      <div
+      <motion.div
         ref={containerRef}
-        className={`${isMobile ? 'px-3 py-2' : 'px-14 py-2'} ${isMobile ? 'flex items-center justify-between gap-2' : 'grid grid-cols-3 items-center gap-6'}`}
+        animate={{
+          backdropFilter: isScrolled && !isMobile ? "blur(10px)" : "none",
+          boxShadow: isScrolled && !isMobile
+            ? "0 0 24px rgba(34, 42, 53, 0.06), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(34, 42, 53, 0.04), 0 0 4px rgba(34, 42, 53, 0.08), 0 16px 68px rgba(47, 48, 55, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset"
+            : "none",
+          width: isScrolled && !isMobile ? "60%" : "100%",
+          y: isScrolled && !isMobile ? 20 : 0,
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 200,
+          damping: 50,
+        }}
+        style={{
+          minWidth: isMobile ? undefined : "800px",
+        }}
+        className={cn(
+          "relative z-[60] mx-auto w-full items-center justify-between self-start rounded-full bg-transparent px-4 py-2",
+          isScrolled && !isMobile && "bg-white/80 dark:bg-neutral-950/80 flex flex-row items-center justify-between",
+          !isScrolled && !isMobile && "grid grid-cols-3 px-14",
+          isMobile ? "flex items-center justify-between gap-2 px-3 py-2" : "hidden lg:grid lg:flex"
+        )}
       >
-        <Link href="/" className="flex items-center" ref={logoRef}>
+        <Link href="/" className={cn(
+          "flex items-center flex-shrink-0",
+          isScrolled && !isMobile && "mr-4"
+        )}>
           <Image
             src="/white-text-logo.svg"
             alt="Beyond 8"
@@ -842,8 +689,11 @@ export function Header() {
         </Link>
 
         {!isMobile && (
-          <form onSubmit={handleSearch} className="flex justify-center" id="search-form" ref={searchFormRef}>
-            <div ref={searchContainerRef} className="relative flex items-center rounded-full bg-background shadow-lg overflow-visible">
+          <form onSubmit={handleSearch} className={cn(
+            "flex justify-center",
+            isScrolled ? "flex-1 mx-4" : "col-start-2"
+          )} id="search-form">
+            <div className="relative flex items-center rounded-full bg-background shadow-lg overflow-visible w-full max-w-[500px]">
               <div className="flex-1 flex items-center pl-4" id="search-input-section">
                 <Input
                   type="search"
@@ -932,8 +782,12 @@ export function Header() {
           </form>
         )}
 
-        <nav ref={navRef} className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} ${isMobile ? '' : 'justify-end'}`}>
-          {!isMobile && (
+        {!isMobile && (
+          <nav className={cn(
+            "flex items-center gap-3 flex-shrink-0",
+            isScrolled ? "" : "justify-end col-start-3"
+          )}>
+            {!isMobile && (
             <Link href="/supscription">
               <div className="relative group cursor-pointer mr-2">
                 <Button 
@@ -1107,8 +961,9 @@ export function Header() {
               </Link>
             </>
           )}
-        </nav>
-      </div>
+          </nav>
+        )}
+      </motion.div>
       <StudentNotificationPanel open={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
     </header>
   );
