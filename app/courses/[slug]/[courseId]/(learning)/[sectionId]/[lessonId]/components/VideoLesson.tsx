@@ -103,38 +103,27 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
     setIsMounted(true)
   }, [])
 
-  // Set duration from durationSeconds if available and ensure currentTime starts at 0
+  // Ensure currentTime starts at 0 when video URL or duration changes
   useEffect(() => {
     if (!playerRef.current) return
-    
+
     const player = playerRef.current
-    
-    // Function to reset currentTime to 0
+
     const resetCurrentTime = () => {
-      if (player.currentTime > 0) {
-        player.currentTime = 0
+      try {
+        if (player.currentTime > 0) {
+          player.currentTime = 0
+        }
+      } catch (e) {
+        console.warn('Could not reset currentTime', e)
       }
     }
-    
-    // Reset immediately and after delays to catch async updates
+
+    // Reset immediately và thêm vài lần sau để bắt kịp async updates của player
     resetCurrentTime()
     const resetTimer1 = setTimeout(resetCurrentTime, 50)
     const resetTimer2 = setTimeout(resetCurrentTime, 200)
-    
-    // Set duration if video hasn't loaded its own duration yet
-    if (durationSeconds && durationSeconds > 0) {
-      if (!player.duration || player.duration === 0) {
-        // Set duration and ensure currentTime is 0
-        try {
-          // @ts-expect-error - internal API to set duration
-          player.mediaStore?.setState?.({ duration: durationSeconds, currentTime: 0 })
-        } catch (e) {
-          // Fallback if internal API is not available
-          console.warn('Could not set duration via internal API', e)
-        }
-      }
-    }
-    
+
     return () => {
       clearTimeout(resetTimer1)
       clearTimeout(resetTimer2)
@@ -149,7 +138,17 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
     )
   }
 
-  const finalUrl = videoUrl || "https://d30z0qh7rhzgt8.cloudfront.net/courses/hls/meo_con_lon_ton/meo_con_lon_ton_1080p.m3u8"
+  const finalUrl = videoUrl;
+
+  if (!finalUrl) {
+    return (
+      <div className="w-full mb-8 aspect-video bg-gray-900 rounded-2xl flex items-center justify-center">
+        <div className="text-white/60 text-sm">
+          Không tìm thấy URL video cho bài học này.
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full mb-8 group relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-black aspect-video">
@@ -176,12 +175,23 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
               {/* Progress Bar (TimeSlider) */}
               <div className="flex items-center gap-3">
                 <TimeSlider.Root className="group/slider relative flex items-center select-none touch-none w-full h-4 cursor-pointer">
-                   <TimeSlider.Track className="relative ring-brand-purple bg-white/20 rounded-full w-full h-1 group-hover/slider:h-2 transition-all duration-300">
-                      <TimeSlider.TrackFill className="bg-brand-gradient absolute h-full rounded-full will-change-[width]" />
-                      <TimeSlider.Progress className="bg-white/30 absolute h-full rounded-full will-change-[width]" />
-                   </TimeSlider.Track>
-                   <TimeSlider.Thumb className="block w-4 h-4 bg-white rounded-full shadow-lg ring-2 ring-brand-purple opacity-0 group-hover/slider:opacity-100 transition-opacity transform scale-0 group-hover/slider:scale-100 transition-transform duration-200" />
-                   {/* Preview implementation would go here if thumbnails available */}
+                  <TimeSlider.Track className="relative bg-white/20 rounded-full w-full h-1 group-hover/slider:h-2 transition-all duration-300 overflow-hidden">
+                    {/* Đoạn đã xem */}
+                    <TimeSlider.TrackFill
+                      className="bg-brand-gradient absolute left-0 top-0 h-full rounded-full"
+                      style={{ width: 'var(--slider-fill)' }}
+                    />
+                    {/* Đoạn đã buffer */}
+                    <TimeSlider.Progress
+                      className="bg-white/30 absolute left-0 top-0 h-full rounded-full"
+                      style={{ width: 'var(--slider-progress)' }}
+                    />
+                  </TimeSlider.Track>
+                  <TimeSlider.Thumb
+                    className="absolute top-1/2 w-4 h-4 bg-white rounded-full shadow-lg ring-2 ring-brand-purple opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200 pointer-events-none"
+                    style={{ left: 'var(--slider-fill)', transform: 'translate(-50%, -50%)' }}
+                  />
+                  {/* Preview implementation would go here if thumbnails available */}
                 </TimeSlider.Root>
                 <TimeDisplay durationSeconds={durationSeconds} />
               </div>

@@ -101,7 +101,7 @@ export default function QuizAttemptOverviewPage() {
       <Header />
 
       {/* Back to lesson button */}
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-4">
         <Button
           variant="outline"
           className="rounded-2xl border-brand-magenta/20 text-brand-magenta hover:bg-brand-magenta/10 hover:text-brand-magenta"
