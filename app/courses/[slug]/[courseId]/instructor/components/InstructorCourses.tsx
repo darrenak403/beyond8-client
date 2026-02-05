@@ -48,6 +48,11 @@ function convertMockCourseToApiCourse(mockCourse: MockCourse): ApiCourse {
     level: mapLevel(mockCourse.level),
     language: mockCourse.language || 'vi-VN',
     price: mockCourse.price,
+    // Pricing fields required by ApiCourse
+    discountPercent: 0,
+    discountAmount: 0,
+    discountEndsAt: null,
+    finalPrice: mockCourse.price,
     thumbnailUrl: mockCourse.thumbnailUrl,
     totalStudents: mockCourse.students,
     totalSections: 0,

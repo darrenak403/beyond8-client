@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Download, FileText, MessageCircle, Share2, ThumbsUp, Play, Clock, Trophy, Target, AlertTriangle, Loader2, HelpCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, FileText, MessageCircle, Share2, ThumbsUp, Play, Clock, Trophy, Target, Loader2, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { Button } from '@/components/ui/button'

@@ -7,9 +7,14 @@ import CourseCurriculum from './CourseCurriculum'
 import CourseDescription from './CourseDescription'
 interface CourseDetailProps {
   courseData: CourseSummary | CourseDetailType
+  /**
+   * summary: dùng cho trang public (useGetCourseSummary)
+   * details: dùng cho trang học/enrolled (useGetCourseDetails)
+   */
+  mode: 'summary' | 'details'
 }
 
-export default function CourseDetail({ courseData }: CourseDetailProps) {
+export default function CourseDetail({ courseData, mode }: CourseDetailProps) {
   return (
     <div className="bg-background min-h-screen pb-20">
       {/* Hero Section - Full Width */}
@@ -27,7 +32,7 @@ export default function CourseDetail({ courseData }: CourseDetailProps) {
 
             {/* Curriculum */}
             <div id="curriculum" className="scroll-mt-24">
-               <CourseCurriculum course={courseData} />
+               <CourseCurriculum course={courseData} mode={mode} />
             </div>
           </div>
 

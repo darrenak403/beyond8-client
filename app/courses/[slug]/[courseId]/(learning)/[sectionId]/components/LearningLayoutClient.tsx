@@ -1,14 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CourseDetail } from '@/lib/api/services/fetchCourse'
+import { CourseDetail, CourseSummary } from '@/lib/api/services/fetchCourse'
 import LessonHeader from '@/components/ui/lesson-header'
 import LessonSidebar from '@/components/ui/lesson-sidebar'
 
 interface LearningLayoutClientProps {
   courseId: string
   slug: string
-  course: CourseDetail
+  course: CourseDetail | CourseSummary
+  isEnrolled: boolean
   params: {
     slug: string
     courseId: string
@@ -17,7 +18,7 @@ interface LearningLayoutClientProps {
   children: React.ReactNode
 }
 
-export default function LearningLayoutClient({ course, params: initialParams, children }: LearningLayoutClientProps) {
+export default function LearningLayoutClient({ course, isEnrolled, params: initialParams, children }: LearningLayoutClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
 
@@ -43,7 +44,7 @@ export default function LearningLayoutClient({ course, params: initialParams, ch
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
         <LessonHeader 
-          course={course}
+          course={course as CourseDetail}
           params={initialParams}
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -56,9 +57,10 @@ export default function LearningLayoutClient({ course, params: initialParams, ch
       </div>
 
       <LessonSidebar 
-        course={course}
+        course={course as CourseDetail}
         slug={initialParams.slug}
         courseId={initialParams.courseId}
+        isEnrolled={isEnrolled}
         isSidebarOpen={isSidebarOpen}
         isMobile={isMobile}
         onClose={() => setIsSidebarOpen(false)}

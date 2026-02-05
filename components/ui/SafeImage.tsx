@@ -27,9 +27,7 @@ function SafeImageInner({
   fallbackSrc = '/bg-web.jpg',
   onError,
 }: SafeImageProps) {
-  // Normalize src - ensure relative paths start with /
-  const normalizedSrc = src && !src.startsWith('/') && !src.startsWith('http') ? `/${src}` : src;
-  const [imageSrc, setImageSrc] = useState(normalizedSrc || fallbackSrc);
+  const [imageSrc, setImageSrc] = useState(src || fallbackSrc);
   const [useRegularImg, setUseRegularImg] = useState(false);
 
   const handleImageError = () => {
@@ -44,10 +42,6 @@ function SafeImageInner({
 
   const isExternalUrl = (url: string) => {
     if (typeof window === 'undefined') return false;
-    // Check if it's a relative path (starts with / or ./ or just filename)
-    if (!url || url.startsWith('/') || url.startsWith('./') || !url.includes('://')) {
-      return false;
-    }
     try {
       const urlObj = new URL(url);
       return urlObj.hostname !== window.location.hostname;
@@ -56,12 +50,35 @@ function SafeImageInner({
     }
   };
 
+  // Chuẩn hóa src trước khi truyền vào <Image> hoặc <img>
+  const normalizeSrc = (url: string): string => {
+    if (!url) return fallbackSrc;
+
+    // Data URL hoặc blob URL dùng thẳng (sẽ render bằng <img> phía dưới)
+    if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+
+    // Đã là URL tuyệt đối hoặc path hợp lệ
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
+      return url;
+    }
+
+    // Trường hợp chuỗi như 'course1.png' → coi là asset local
+    return `/${url.replace(/^\/+/, '')}`;
+  };
+
+  const normalizedSrc = normalizeSrc(imageSrc);
+
   // For external URLs that might not be in next.config.js, use regular img tag
-  if (useRegularImg || isExternalUrl(imageSrc)) {
+  if (
+    useRegularImg ||
+    normalizedSrc.startsWith('data:') ||
+    normalizedSrc.startsWith('blob:') ||
+    isExternalUrl(normalizedSrc)
+  ) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={imageSrc}
+        src={normalizedSrc}
         alt={alt}
         width={width}
         height={height}
@@ -72,10 +89,9 @@ function SafeImageInner({
     );
   }
 
-  // For internal or configured external URLs, use Next.js Image
   return (
     <Image
-      src={imageSrc}
+      src={normalizedSrc}
       alt={alt}
       width={width}
       height={height}
@@ -88,6 +104,5 @@ function SafeImageInner({
 }
 
 export default function SafeImage(props: SafeImageProps) {
-  // Use key to force remount when src changes, avoiding setState in useEffect
   return <SafeImageInner key={props.src} {...props} />;
 }
