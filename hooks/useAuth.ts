@@ -337,6 +337,15 @@ export function useLogout() {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       queryClient.removeQueries({ queryKey: ['subscription'] });
       queryClient.removeQueries({ queryKey: ['signalr-connection'] });
+
+      // Notify other tabs about logout so they can sync state
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          'auth-event',
+          JSON.stringify({ type: 'LOGOUT', timestamp: Date.now() })
+        );
+      }
+
       toast.success('Đăng xuất thành công!');
       router.push('/login');
     },

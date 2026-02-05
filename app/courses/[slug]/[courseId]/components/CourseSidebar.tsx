@@ -18,6 +18,7 @@ import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/servi
 import { useCheckEnrollment, useEnrollCourse } from '@/hooks/useEnroll'
 import { ConfirmDialog } from '@/components/widget/confirm-dialog'
 import { useAuth } from '@/hooks/useAuth'
+import { startOfToday, differenceInCalendarDays } from 'date-fns'
 
 interface CourseSidebarProps {
   course: CourseSummary | CourseDetailType
@@ -53,17 +54,13 @@ export default function CourseSidebar({ course }: CourseSidebarProps) {
   const effectiveDiscountPercent =
     course.discountPercent ?? computedDiscountPercent
 
-  // Remaining days for discount (for highlight "Còn ... ngày")
   const discountEndDate = course.discountEndsAt
     ? new Date(course.discountEndsAt)
     : null
-  const now = new Date()
+  const today = startOfToday()
   const remainingDiscountDays =
-    discountEndDate && discountEndDate.getTime() > now.getTime()
-      ? Math.ceil(
-          (discountEndDate.getTime() - now.getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
+    discountEndDate && discountEndDate.getTime() > today.getTime()
+      ? differenceInCalendarDays(discountEndDate, today)
       : 0
 
   const levelText: Record<string, string> = {
@@ -85,7 +82,6 @@ export default function CourseSidebar({ course }: CourseSidebarProps) {
       await enrollCourse(course.id)
       setIsConfirmOpen(false)
     } catch {
-      // toast đã được handle trong hook
     }
   }
 
