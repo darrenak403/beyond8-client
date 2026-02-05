@@ -316,6 +316,8 @@ export function useGetCurrentQuizAttempt(quizId: string) {
 
 // Student-side: flag/unflag question (api/v1/quiz-attempts/{attemptId}/flag-question)
 export function useFlagQuizQuestion() {
+    const queryClient = useQueryClient();
+
     const { mutateAsync, isPending } = useMutation({
         mutationFn: ({
             attemptId,
@@ -327,6 +329,16 @@ export function useFlagQuizQuestion() {
             fetchQuiz.flagQuizQuestion(attemptId, body) as Promise<
                 ApiResponse<string[]>
             >,
+        onSuccess: (_data, variables) => {
+            const attemptId = variables.attemptId;
+
+            queryClient.invalidateQueries({
+                queryKey: ["quiz-current-attempt"],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["quiz-attempt-result", attemptId],
+            });
+        },
     });
 
     return {
