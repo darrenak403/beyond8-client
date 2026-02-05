@@ -1,11 +1,10 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, Play, CheckCircle2, Lock } from 'lucide-react'
+import { ChevronLeft, Play, CheckCircle2, Lock } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { CourseDetail, SectionDetail, LessonDetail } from '@/lib/api/services/fetchCourse'
 import { cn } from '@/lib/utils'
 
@@ -20,7 +19,7 @@ interface LessonSidebarProps {
   onOpen: () => void
 }
 
-export default function LessonSidebar({ course, slug, courseId, isEnrolled, isSidebarOpen, isMobile, onClose, onOpen }: LessonSidebarProps) {
+export default function LessonSidebar({ course, slug, courseId, isEnrolled, isSidebarOpen, isMobile, onOpen }: LessonSidebarProps) {
   const params = useParams() as { slug: string; courseId: string; sectionId?: string; lessonId?: string }
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
 
@@ -75,11 +74,6 @@ export default function LessonSidebar({ course, slug, courseId, isEnrolled, isSi
           >
             <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
               <h3 className="font-bold text-lg">Nội dung khóa học</h3>
-              {!isMobile && (
-                <Button variant="ghost" size="icon" onClick={onClose} className="text-white/50 hover:text-white">
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              )}
             </div>
             
             <div 
@@ -122,8 +116,8 @@ export default function LessonSidebar({ course, slug, courseId, isEnrolled, isSi
                             const content = (
                               <div className="flex items-center gap-2">
                                 <div className="flex-shrink-0">
-                                  {lesson.isPreview ? (
-                                    <Play className="h-4 w-4 text-white/50" />
+                                  {canAccessLesson ? (
+                                    <Play className="h-4 w-4 text-brand-pink" />
                                   ) : (
                                     <Lock className="h-4 w-4 text-white/30" />
                                   )}

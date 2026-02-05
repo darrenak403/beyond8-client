@@ -55,6 +55,9 @@ export function useEnrollCourse() {
       queryClient.invalidateQueries({
         queryKey: ["course", "details", courseId],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["courses", "public"],
+      });
 
       if (data.isSuccess) {
         toast.success("Tham gia khóa học thành công!");

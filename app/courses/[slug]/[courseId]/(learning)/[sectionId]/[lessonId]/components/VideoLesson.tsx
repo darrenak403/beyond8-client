@@ -142,7 +142,7 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
 
   if (!finalUrl) {
     return (
-      <div className="w-full mb-8 aspect-video bg-gray-900 rounded-2xl flex items-center justify-center">
+      <div className="w-full aspect-video bg-gray-900 rounded-2xl flex items-center justify-center">
         <div className="text-white/60 text-sm">
           Không tìm thấy URL video cho bài học này.
         </div>

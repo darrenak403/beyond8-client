@@ -55,7 +55,7 @@ export default function LessonPage() {
   if (isLoading) {
     return (
       <div className="w-full max-w-[1600px] mx-auto p-0 lg:p-6">
-        <Skeleton className="w-full aspect-video mb-8" />
+        <Skeleton className="w-full aspect-video" />
         <Skeleton className="w-full h-64" />
       </div>
     )
@@ -156,7 +156,7 @@ export default function LessonPage() {
   const videoUrl = resolveVideoUrlFromLesson(lesson)
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-0 lg:p-6">
+    <div className="w-full max-w-[1450px] mx-auto p-0 lg:p-6">
       <VideoLesson 
         title={lesson.title}
         description={lesson.description}
