@@ -150,9 +150,29 @@ export function useGetQuizOverview(id: string) {
 
 // Student-side: start quiz attempt (api/v1/quiz-attempts/start/{quizId})
 export function useStartQuizAttempt() {
+    const queryClient = useQueryClient();
+
     const { mutateAsync, isPending } = useMutation({
         mutationFn: (quizId: string) =>
             fetchQuiz.startQuizAttempt(quizId) as Promise<ApiResponse<QuizAttempt>>,
+        onSuccess: (data) => {
+            if (data.isSuccess && data.data) {
+                const quizId = data.data.quizId;
+
+                queryClient.invalidateQueries({
+                    queryKey: ["quiz-my-attempts", quizId],
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["quiz-in-progress", quizId],
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["quiz-current-attempt", quizId],
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["quiz-overview", quizId],
+                });
+            }
+        },
     });
 
     return {
@@ -192,9 +212,16 @@ export function useSubmitQuizAttempt() {
 
 // Student-side: auto-save quiz attempt (api/v1/quiz-attempts/{attemptId}/auto-save)
 export function useAutoSaveQuizAttempt() {
+    const queryClient = useQueryClient();
+
     const { mutateAsync, isPending } = useMutation({
         mutationFn: ({ attemptId, body }: { attemptId: string; body: AutoSaveQuizAttemptRequest }) =>
             fetchQuiz.autoSaveQuizAttempt(attemptId, body) as Promise<ApiResponse<boolean>>,
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["quiz-current-attempt"],
+            });
+        },
     });
 
     return {
