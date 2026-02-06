@@ -3,7 +3,9 @@
 import Link from 'next/link'
 import { MyEnrollmentData } from '@/lib/api/services/fetchEnroll'
 import SafeImage from '@/components/ui/SafeImage'
-import { Progress } from '@/components/ui/progress'
+import StarRating from './StarRating'
+import { useUserById } from '@/hooks/useUserProfile'
+import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 
 interface MyEnrollmentCardProps {
   enrollment: MyEnrollmentData
@@ -11,6 +13,18 @@ interface MyEnrollmentCardProps {
 
 export default function MyEnrollmentCard({ enrollment }: MyEnrollmentCardProps) {
   const courseUrl = `/courses/${enrollment.slug}/${enrollment.courseId}`
+
+  const primaryInstructorId = Array.isArray(enrollment.instructorId)
+    ? enrollment.instructorId[0] || ''
+    : (enrollment.instructorId || '')
+
+  const { user: instructorUser } = useUserById(
+    primaryInstructorId && primaryInstructorId.trim() !== '' 
+      ? primaryInstructorId 
+      : undefined
+  )
+  const instructorAvatarSrc =
+    instructorUser?.avatarUrl || '/bg-web.jpg'
 
   return (
     <Link href={courseUrl} className="block h-full">
@@ -30,17 +44,30 @@ export default function MyEnrollmentCard({ enrollment }: MyEnrollmentCardProps) 
           <h3 className="font-semibold text-base mb-1.5 line-clamp-2 min-h-[2.5rem]">
             {enrollment.courseTitle}
           </h3>
-          <p className="text-xs text-muted-foreground mb-2 group-hover:text-primary/80 transition-colors duration-300">
-            {enrollment.instructorName}
-          </p>
-
-          {/* Progress */}
-          <div className="mt-auto pt-2 space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Tiến độ</span>
-              <span className="font-medium text-primary">{Math.round(enrollment.progressPercent)}%</span>
+          <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground group-hover:text-primary/80 transition-colors duration-300">
+            <div className="relative w-6 h-6 rounded-full overflow-hidden shrink-0 bg-muted">
+              <SafeImage
+                src={formatImageUrl(instructorAvatarSrc || '') || '/bg-web.jpg'}
+                alt={instructorUser?.fullName || ''}
+                fill
+                className="object-cover"
+              />
             </div>
-            <Progress value={enrollment.progressPercent} className="h-2" />
+            <p className="truncate">{enrollment.instructorName}</p>
+          </div>
+
+          {/* Progress % and Rating */}
+          <div className="mt-auto pt-2 flex items-center justify-between">
+            <span className="text-base font-medium text-primary">
+              {Math.round(enrollment.progressPercent)}% hoàn thành
+            </span>
+            <div onClick={(e) => e.stopPropagation()}>
+              <StarRating 
+                courseId={enrollment.courseId}
+                enrollmentId={enrollment.id}
+                courseTitle={enrollment.courseTitle}
+              />
+            </div>
           </div>
         </div>
       </div>

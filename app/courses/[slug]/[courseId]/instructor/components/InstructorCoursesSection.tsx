@@ -3,11 +3,11 @@
 import { BookOpen } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
-interface InstructorCoursesProps {
+interface InstructorCoursesSectionProps {
   instructorId?: string
 }
 
-export default function InstructorCourses({ instructorId }: InstructorCoursesProps) {
+export default function InstructorCoursesSection({  }: InstructorCoursesSectionProps) {
   // TODO: Fetch courses by instructorId from API
   return (
     <div className="space-y-6">
@@ -32,11 +32,6 @@ export default function InstructorCourses({ instructorId }: InstructorCoursesPro
               <p className="text-gray-500 mt-1">
                 Danh sách khóa học của giảng viên sẽ được hiển thị tại đây
               </p>
-              {instructorId && (
-                <p className="text-xs text-gray-400 mt-3 font-mono">
-                  Instructor ID: {instructorId}
-                </p>
-              )}
             </div>
           </div>
         </CardContent>

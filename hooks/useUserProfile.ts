@@ -1,5 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { userService, type UserProfile, type UpdateUserProfileRequest } from "@/lib/api/services/fetchProfile";
+import {
+  userService,
+  type UserProfile,
+  type UpdateUserProfileRequest,
+  type InstructorPublicProfile,
+} from "@/lib/api/services/fetchProfile";
 import { toast } from "sonner";
 
 export function useUserProfile() {
@@ -80,5 +85,98 @@ export function useUserProfile() {
     isUpdating: updateProfileMutation.isPending,
     uploadAvatar: uploadAvatarMutation.mutate,
     isUploadingAvatar: uploadAvatarMutation.isPending,
+  };
+}
+
+// Public instructor (by id)
+export function useInstructorById(id: string | undefined) {
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["instructor", id],
+    enabled: !!id,
+    queryFn: async () => {
+      if (!id) {
+        throw new Error("Instructor id is required");
+      }
+      const response = await userService.getInstructorById(id);
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return {
+    instructor: data as InstructorPublicProfile | undefined,
+    isLoading,
+    error,
+    refetch,
+  };
+}
+
+// Get user by id
+export function useUserById(id: string | undefined) {
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["user", id],
+    enabled: !!id,
+    queryFn: async () => {
+      if (!id) {
+        throw new Error("User id is required");
+      }
+      const response = await userService.getUserById(id);
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return {
+    user: data as UserProfile | undefined,
+    isLoading,
+    error,
+    refetch,
+  };
+}
+
+// Get instructor profile by userId
+export function useInstructorByUserId(userId: string | undefined) {
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["instructor", "user", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      if (!userId) {
+        throw new Error("User id is required");
+      }
+      const response = await userService.getInstructorByUserId(userId);
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return {
+    instructor: data as InstructorPublicProfile | undefined,
+    isLoading,
+    error,
+    refetch,
   };
 }

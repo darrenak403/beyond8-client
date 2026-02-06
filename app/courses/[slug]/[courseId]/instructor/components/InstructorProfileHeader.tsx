@@ -12,104 +12,219 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatNumber } from '@/lib/utils/formatCurrency'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
-import { InstructorProfileResponse } from '@/lib/api/services/fetchInstructorRegistration'
+import { InstructorPublicProfile } from '@/lib/api/services/fetchProfile'
+import SafeImage from '@/components/ui/SafeImage'
+import { useIsMobile } from '@/hooks/useMobile'
 
 interface InstructorProfileHeaderProps {
-  instructor: InstructorProfileResponse
+  instructor: InstructorPublicProfile
   courseCount: number
 }
 
 export default function InstructorProfileHeader({ instructor, courseCount }: InstructorProfileHeaderProps) {
+  const isMobile = useIsMobile()
+
   return (
-    <div className="relative bg-brand-dark overflow-hidden">
-      {/* Background Gradients */}
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/20 via-brand-dark to-brand-dark z-0" />
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-pink/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-purple/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3" />
-      
-      <div className="container relative z-10 px-4 py-16 md:py-24 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-start text-center md:text-left">
-          {/* Large Avatar */}
-          <div className="relative shrink-0">
-            <div className="absolute -inset-1 bg-gradient-to-br from-brand-pink via-brand-magenta to-brand-purple rounded-full blur opacity-70" />
-            <Avatar className="w-32 h-32 md:w-48 md:h-48 border-4 border-brand-dark relative bg-brand-dark">
-              <AvatarImage src={formatImageUrl(instructor.user.avatarUrl)} alt={instructor.user.fullName} className="object-cover" />
-              <AvatarFallback className="text-4xl bg-brand-purple/20 text-brand-pink">{instructor.user.fullName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-green-500 w-4 h-4 md:w-6 md:h-6 rounded-full border-4 border-brand-dark shadow-sm" title="Online" />
+    <div className="overflow-hidden mx-auto max-w-7xl">
+      {/* Banner */}
+      <div
+        className={`bg-gradient-to-r from-primary to-brand-purple relative rounded-2xl overflow-hidden ${
+          isMobile ? "h-48" : "h-96"
+        }`}
+      >
+        {/* Background image */}
+        <SafeImage
+          src="/bg-web.jpg"
+          alt="Cover"
+          width={1920}
+          height={400}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Profile Info */}
+      <div
+        className={`${
+          isMobile
+            ? "flex flex-col items-center text-center px-4 pb-6"
+            : "flex items-end justify-between px-8 pb-3"
+        }`}
+      >
+        {/* Avatar & Name Section */}
+        <div
+          className={`${
+            isMobile ? "flex flex-col items-center -mt-12" : "flex items-end gap-4 -mt-20"
+          }`}
+        >
+          {/* Avatar with gradient border */}
+          <div className="relative z-20">
+            <div 
+              className={`p-[4px] rounded-full ${isMobile ? "w-24 h-24" : "w-40 h-40"} flex items-center justify-center shadow-lg`}
+              style={{ 
+                background: 'conic-gradient(from 0deg, #a855f7 0% 50%, #ec4899 50% 100%)'
+              }}
+            >
+              <Avatar className="w-full h-full border-4 border-white">
+                <AvatarImage 
+                  src={formatImageUrl(instructor.user.avatarUrl || '')} 
+                  alt={instructor.user.fullName} 
+                  className="object-cover" 
+                />
+                <AvatarFallback className="text-4xl bg-purple-100 text-purple-700 font-semibold">
+                  {instructor.user.fullName
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </div>
           </div>
 
-          {/* Info */}
-          <div className="flex-1 space-y-4 md:pt-4">
-            <div className="space-y-2">
-              <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
+          {/* Name & Email */}
+          <div className={`${isMobile ? "mt-3 space-y-2 flex flex-col items-center" : "mb-4"}`}>
+            <div className="flex items-center gap-2">
+              <h2
+                className={`font-bold ${
+                  isMobile ? "text-xl" : "text-2xl"
+                }`}
+              >
                 {instructor.user.fullName}
-              </h1>
-              <p className="text-xl text-brand-pink font-medium flex items-center justify-center md:justify-start gap-2">
-                 {instructor.headline}
+              </h2>
+            </div>
+            {instructor.headline && (
+              <p className={`text-gray-600 dark:text-gray-400 ${isMobile ? "text-sm" : "text-base"}`}>
+                {instructor.headline}
               </p>
+            )}
+          </div>
+        </div>
+
+        {/* Social Links - Desktop only */}
+        {!isMobile && (instructor.socialLinks?.website || instructor.socialLinks?.linkedIn || instructor.socialLinks?.facebook) && (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            {instructor.socialLinks?.website && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl" 
+                asChild
+              >
+                <a href={instructor.socialLinks.website} target="_blank" rel="noopener noreferrer">
+                  <Globe className="w-4 h-4 mr-2" /> Website
+                </a>
+              </Button>
+            )}
+            {instructor.socialLinks?.linkedIn && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="text-[#0077b5] border-[#0077b5]/30 hover:bg-[#0077b5]/10 hover:text-[#0077b5] rounded-xl" 
+                asChild
+              >
+                <a href={instructor.socialLinks.linkedIn} target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="w-4 h-4 mr-2" /> LinkedIn
+                </a>
+              </Button>
+            )}
+            {instructor.socialLinks?.facebook && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="text-[#1877F2] border-[#1877F2]/30 hover:bg-[#1877F2]/10 hover:text-[#1877F2] rounded-xl" 
+                asChild
+              >
+                <a href={instructor.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
+                  <Facebook className="w-4 h-4 mr-2" /> Facebook
+                </a>
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Social Links - Mobile */}
+      {isMobile && (instructor.socialLinks?.website || instructor.socialLinks?.linkedIn || instructor.socialLinks?.facebook) && (
+        <div className="px-4 pb-4 flex flex-wrap justify-center gap-2">
+          {instructor.socialLinks?.website && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="text-gray-700 border-gray-300 hover:bg-gray-100 hover:text-gray-900 rounded-xl" 
+              asChild
+            >
+              <a href={instructor.socialLinks.website} target="_blank" rel="noopener noreferrer">
+                <Globe className="w-4 h-4 mr-2" /> Website
+              </a>
+            </Button>
+          )}
+          {instructor.socialLinks?.linkedIn && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="text-[#0077b5] border-[#0077b5]/30 hover:bg-[#0077b5]/10 hover:text-[#0077b5] rounded-xl" 
+              asChild
+            >
+              <a href={instructor.socialLinks.linkedIn} target="_blank" rel="noopener noreferrer">
+                <Linkedin className="w-4 h-4 mr-2" /> LinkedIn
+              </a>
+            </Button>
+          )}
+          {instructor.socialLinks?.facebook && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="text-[#1877F2] border-[#1877F2]/30 hover:bg-[#1877F2]/10 hover:text-[#1877F2] rounded-xl" 
+              asChild
+            >
+              <a href={instructor.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
+                <Facebook className="w-4 h-4 mr-2" /> Facebook
+              </a>
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Stats Row */}
+      <div className={`${isMobile ? "px-4" : "px-8"} pb-6`}>
+        <div className="flex flex-wrap justify-center md:justify-start gap-6 md:gap-8">
+          {/* Rating */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-200">
+              <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
             </div>
-
-            {/* Stats Grid */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-8 py-4">
-              <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <div className="p-2 bg-yellow-500/20 rounded-lg">
-                  <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                </div>
-                <div className="text-left">
-                  <div className="font-bold text-white text-lg">{instructor.avgRating || 5.0}</div>
-                  <div className="text-xs text-zinc-400">Đánh giá chung</div>
-                </div>
+            <div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">
+                {instructor.avgRating || 5.0}
               </div>
-              
-              <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <div className="p-2 bg-brand-purple/20 rounded-lg">
-                  <Users className="w-5 h-5 text-brand-purple" />
-                </div>
-                <div className="text-left">
-                  <div className="font-bold text-white text-lg">{formatNumber(instructor.totalStudents || 0)}</div>
-                  <div className="text-xs text-zinc-400">Học viên</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                <div className="p-2 bg-brand-pink/20 rounded-lg">
-                  <PlayCircle className="w-5 h-5 text-brand-pink" />
-                </div>
-                <div className="text-left">
-                  <div className="font-bold text-white text-lg">{instructor.totalCourses || courseCount}</div>
-                  <div className="text-xs text-zinc-400">Khóa học</div>
-                </div>
-              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Đánh giá</div>
             </div>
+          </div>
 
-            {/* Social & Contact */}
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-               {instructor.socialLinks?.website && (
-                  <Button size="sm" variant="outline" className="border-white/10 text-zinc-300 hover:text-white hover:bg-white/10 hover:border-brand-purple/50 bg-transparent" asChild>
-                     <a href={instructor.socialLinks.website} target="_blank" rel="noopener noreferrer">
-                       <Globe className="w-4 h-4 mr-2" /> Website
-                     </a>
-                  </Button>
-               )}
-               {instructor.socialLinks?.linkedIn && (
-                  <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-[#0077b5] hover:bg-white/10" asChild>
-                     <a href={instructor.socialLinks.linkedIn} target="_blank" rel="noopener noreferrer">
-                       <Linkedin className="w-5 h-5" />
-                     </a>
-                  </Button>
-               )}
-               {instructor.socialLinks?.facebook && (
-                  <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-[#1877F2] hover:bg-white/10" asChild>
-                     <a href={instructor.socialLinks.facebook} target="_blank" rel="noopener noreferrer">
-                       <Facebook className="w-5 h-5" />
-                     </a>
-                  </Button>
-               )}
-               <div className="w-px h-6 bg-white/10 mx-1" />
-               <Button className="bg-white text-brand-dark hover:bg-zinc-200 font-semibold rounded-full">
-                  Theo dõi giảng viên
-               </Button>
+          {/* Students */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">
+                {formatNumber(instructor.totalStudents || 0)}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Học viên</div>
+            </div>
+          </div>
+
+          {/* Courses */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200">
+              <PlayCircle className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">
+                {instructor.totalCourses || courseCount}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Khóa học</div>
             </div>
           </div>
         </div>

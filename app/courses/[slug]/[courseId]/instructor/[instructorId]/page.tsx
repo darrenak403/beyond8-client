@@ -1,145 +1,100 @@
-import { 
-  InstructorProfileResponse, 
-  VerificationStatus 
-} from '@/lib/api/services/fetchInstructorRegistration'
-import {
-  topRatedCourses,
-  newCourses,
-  languageCourses,
-  technologyCourses,
-  aiCourses,
-  designCourses,
-  marketingCourses,
-  type Course
-} from '@/lib/data/mockCourses'
-import { Header } from '@/components/layout/Header'
-import { Footer } from '@/components/layout/Footer'
+'use client'
+
+import { use, useState } from 'react'
+import { useInstructorByUserId } from '@/hooks/useUserProfile'
 import InstructorProfileHeader from '../components/InstructorProfileHeader'
 import InstructorBio from '../components/InstructorBio'
-import InstructorCourses from '../components/InstructorCourses'
 import InstructorContact from '../components/InstructorContact'
-
-// Combine all courses for filtering
-const allCourses: Course[] = [
-  ...topRatedCourses,
-  ...newCourses,
-  ...languageCourses,
-  ...technologyCourses,
-  ...aiCourses,
-  ...designCourses,
-  ...marketingCourses,
-]
-
-// Mock data based on InstructorProfileResponse
-const mockInstructorProfile: InstructorProfileResponse = {
-  id: 'instructor-001',
-  user: {
-    id: 'user-001',
-    email: 'nguyenvana@example.com',
-    fullName: 'Nguyễn Văn A',
-    dateOfBirth: '1990-01-01',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-    coverUrl: null
-  },
-  bio: 'Giảng viên với hơn 10 năm kinh nghiệm trong lĩnh vực Machine Learning và Data Science. Đã từng làm việc tại các công ty công nghệ hàng đầu và có nhiều nghiên cứu được công bố trên các tạp chí quốc tế.',
-  headline: 'Senior Data Scientist & AI Researcher',
-  expertiseAreas: ['Machine Learning', 'Data Science', 'Python', 'AI'],
-  education: [
-    {
-      school: 'Đại học Bách Khoa Hà Nội',
-      degree: 'Tiến sĩ',
-      fieldOfStudy: 'Khoa học máy tính',
-      start: 2008,
-      end: 2012
-    }
-  ],
-  workExperience: [
-    {
-      company: 'Google AI',
-      role: 'Senior Researcher',
-      from: '2018',
-      to: 'Present',
-      isCurrentJob: true,
-      description: 'Nghiên cứu các mô hình Deep Learning mới.'
-    },
-    {
-      company: 'VinAI',
-      role: 'Research Scientist',
-      from: '2015',
-      to: '2018',
-      isCurrentJob: false,
-      description: 'Phát triển các ứng dụng AI cho xe tự hành.'
-    }
-  ],
-  socialLinks: {
-    website: 'https://nguyenvana.dev',
-    linkedIn: 'https://linkedin.com/in/nguyenvana',
-    facebook: null
-  },
-  certificates: [
-    {
-      name: 'TensorFlow Developer Certificate',
-      url: '#',
-      issuer: 'Google',
-      year: 2020
-    }
-  ],
-  teachingLanguages: ['Tiếng Việt', 'English'],
-  introVideoUrl: null,
-  totalStudents: 50000,
-  totalCourses: 15,
-  avgRating: 4.9,
-  verificationStatus: VerificationStatus.Verified,
-  verifiedAt: '2023-01-01',
-  createdAt: '2022-01-01',
-  updatedAt: null,
-}
+import InstructorCoursesSection from '../components/InstructorCoursesSection'
+import InstructorTabs, { type TabType } from '../components/InstructorTabs'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
 
 interface PageProps {
-  params: {
-    slug: string
-    courseId: string
+  params: Promise<{
     instructorId: string
-  }
+  }>
 }
 
-export default function InstructorProfilePage({  }: PageProps) {
-  // Use the new mock profile
-  const instructor = mockInstructorProfile
+export default function InstructorProfilePage({ params }: PageProps) {
+  const resolvedParams = use(params)
+  const instructorId = resolvedParams.instructorId
 
-  // Filter courses logic adjusted for new structure
-  const instructorCourses = allCourses.filter(
-    (c) => c.instructor === instructor.user.fullName || c.instructor?.includes('Nguyễn Văn')
-  )
-  const displayCourses = instructorCourses.length > 0 ? instructorCourses : allCourses.slice(0, 4)
+  const [activeTab, setActiveTab] = useState<TabType>('intro')
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main className="pb-20">
-        <InstructorProfileHeader 
-          instructor={instructor} 
-          courseCount={instructor.totalCourses || displayCourses.length} 
-        />
+  // Sử dụng useInstructorByUserId để lấy instructor profile theo userId
+  const { instructor, isLoading, error } = useInstructorByUserId(instructorId)
 
-        <div className="container px-4 md:px-8 max-w-7xl mx-auto -mt-8 relative z-20 space-y-8">
-          
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        <Header />
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <Skeleton className="h-64 w-full rounded-2xl mb-8" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-               <InstructorBio instructor={instructor} />
-               <InstructorCourses courses={displayCourses} />
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-48 w-full rounded-4xl" />
+              <Skeleton className="h-64 w-full rounded-4xl" />
             </div>
-
             <div className="space-y-6">
-               <InstructorContact instructor={instructor} />
+              <Skeleton className="h-96 w-full rounded-4xl" />
             </div>
           </div>
-
         </div>
-      </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (error || !instructor) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        <Header />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Không tìm thấy giảng viên
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Giảng viên này không tồn tại hoặc đã bị ẩn.
+            </p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <Header />
+      <div className="container mx-auto py-8 max-w-7xl">
+        {/* Header */}
+        <InstructorProfileHeader instructor={instructor} courseCount={0} />
+
+        {/* Tab Navigation */}
+        <InstructorTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-8 gap-8">
+          {/* Left Column - Tab Content */}
+          <div className="lg:col-span-5 space-y-6">
+            <InstructorBio instructor={instructor} activeTab={activeTab} />
+          </div>
+
+          {/* Right Column - Sticky Sidebar */}
+          <div className="lg:col-span-3 space-y-6">
+            <InstructorContact instructor={instructor} />
+          </div>
+        </div>
+
+        {/* Courses Section - Outside tabs */}
+        <div className="mt-12">
+          <InstructorCoursesSection instructorId={instructorId} />
+        </div>
+      </div>
       <Footer />
     </div>
   )
 }
-

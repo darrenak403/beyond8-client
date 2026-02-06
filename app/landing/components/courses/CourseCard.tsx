@@ -7,6 +7,8 @@ import SafeImage from '@/components/ui/SafeImage'
 import { formatCurrency, formatNumber } from '@/lib/utils/formatCurrency'
 import { generateSlug } from '@/lib/utils/generateSlug'
 import type { Course } from '@/lib/api/services/fetchCourse'
+import { useUserById } from '@/hooks/useUserProfile'
+import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 
 interface CourseCardProps {
   course: Course
@@ -15,7 +17,7 @@ interface CourseCardProps {
 export default function CourseCard({ course }: CourseCardProps) {
   const slug = course.slug || generateSlug(course.title)
   const courseUrl = `/courses/${slug}/${course.id}`
-
+  const { user: instructorUser } = useUserById(course.instructorId)
   // Pricing logic
   const originalPrice = course.price
   const finalPrice = course.finalPrice ?? course.price
@@ -24,6 +26,7 @@ export default function CourseCard({ course }: CourseCardProps) {
     (!!course.discountAmount && course.discountAmount > 0) ||
     finalPrice < originalPrice
 
+  const instructorAvatarSrc = instructorUser?.avatarUrl || '/bg-web.jpg'
   // Format duration from minutes to hours
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60)
@@ -61,8 +64,16 @@ export default function CourseCard({ course }: CourseCardProps) {
           <h3 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
             {course.title}
           </h3>
-          <p className="text-sm text-muted-foreground mb-3 group-hover:text-primary/80 transition-colors duration-300">
-            {course.instructorName}
+          <p className="text-sm text-muted-foreground mb-3 group-hover:text-primary/80 transition-colors duration-300 flex items-center gap-2">
+            <div className="relative w-6 h-6 rounded-full overflow-hidden shrink-0 bg-muted">
+              <SafeImage
+              src={formatImageUrl(instructorAvatarSrc || '') || '/bg-web.jpg'}
+              alt={instructorUser?.fullName || course.instructorName}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <span className="truncate">{instructorUser?.fullName || course.instructorName}</span>
           </p>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3 group-hover:text-primary/70 transition-colors duration-300">

@@ -42,6 +42,68 @@ export interface UserProfile {
   subscription: Subscription | null;
 }
 
+// Public instructor profile (by id)
+export interface InstructorUserInfo {
+  id: string;
+  email: string;
+  fullName: string;
+  dateOfBirth: string | null;
+  avatarUrl: string | null;
+}
+
+export interface InstructorEducation {
+  school: string;
+  degree: string;
+  fieldOfStudy: string;
+  start: number;
+  end: number;
+}
+
+export interface InstructorWorkExperience {
+  company: string;
+  role: string;
+  from: string;
+  to: string | null;
+  isCurrentJob: boolean;
+  description: string | null;
+}
+
+export interface InstructorSocialLinks {
+  facebook: string | null;
+  linkedIn: string | null;
+  website: string | null;
+}
+
+export interface InstructorCertificate {
+  name: string;
+  url: string;
+  issuer: string;
+  year: number;
+}
+
+export type InstructorVerificationStatus = "Pending" | "Verified" | "Rejected";
+
+export interface InstructorPublicProfile {
+  id: string;
+  user: InstructorUserInfo;
+  bio: string | null;
+  headline: string | null;
+  expertiseAreas: string[];
+  education: InstructorEducation[];
+  workExperience: InstructorWorkExperience[];
+  socialLinks: InstructorSocialLinks;
+  certificates: InstructorCertificate[];
+  teachingLanguages: string[];
+  introVideoUrl: string | null;
+  totalStudents: number;
+  totalCourses: number;
+  avgRating: number | null;
+  verificationStatus: InstructorVerificationStatus;
+  verifiedAt: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
 export interface UpdateUserProfileRequest {
   fullName?: string;
   phoneNumber?: string;
@@ -73,6 +135,30 @@ export const userService = {
     const response = await apiService.upload<ApiResponse<{ avatarUrl: string }>>(
       "api/v1/users/me/avatar",
       formData
+    );
+    return response.data;
+  },
+
+  // Get public instructor profile by id
+  getInstructorById: async (id: string): Promise<ApiResponse<InstructorPublicProfile>> => {
+    const response = await apiService.get<ApiResponse<InstructorPublicProfile>>(
+      `api/v1/instructors/${id}`
+    );
+    return response.data;
+  },
+
+  // Get user profile by id
+  getUserById: async (id: string): Promise<ApiResponse<UserProfile>> => {
+    const response = await apiService.get<ApiResponse<UserProfile>>(
+      `api/v1/users/${id}`
+    );
+    return response.data;
+  },
+
+  // Get instructor profile by userId
+  getInstructorByUserId: async (userId: string): Promise<ApiResponse<InstructorPublicProfile>> => {
+    const response = await apiService.get<ApiResponse<InstructorPublicProfile>>(
+      `api/v1/instructors/users/${userId}`
     );
     return response.data;
   },

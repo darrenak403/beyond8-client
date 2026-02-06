@@ -1,52 +1,94 @@
 'use client'
 
-import { Mail, Star, Users, PlayCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import { Mail, Calendar, Copy, Check } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { InstructorProfileResponse } from '@/lib/api/services/fetchInstructorRegistration'
+import { Button } from '@/components/ui/button'
+import { InstructorPublicProfile } from '@/lib/api/services/fetchProfile'
 
 interface InstructorContactProps {
-  instructor?: InstructorProfileResponse
+  instructor?: InstructorPublicProfile
 }
 
 export default function InstructorContact({ instructor }: InstructorContactProps) {
-  return (
-    <>
-      <Card className="sticky top-24 border-brand-purple/20 shadow-xl shadow-brand-purple/5 overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-brand-pink via-brand-magenta to-brand-purple" />
-        <CardHeader>
-          <CardTitle className="text-lg">Liên hệ hợp tác</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Bạn có thắc mắc hoặc muốn hợp tác? Hãy gửi tin nhắn trực tiếp cho giảng viên.
-          </p>
-          <Button className="w-full bg-gradient-to-r from-brand-purple to-brand-magenta hover:from-brand-purple/90 hover:to-brand-magenta/90 text-white shadow-lg shadow-brand-purple/20">
-            <Mail className="w-4 h-4 mr-2" /> Gửi tin nhắn
-          </Button>
-        </CardContent>
-      </Card>
+  const [copiedEmail, setCopiedEmail] = useState(false)
 
-      {/* Badges / Achievements Mockup */}
-      <Card className="overflow-hidden mt-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Thành tích</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="px-3 py-1.5 bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-yellow-500/20">
-              <Star className="w-3 h-3 mr-1 fill-current" /> Top Rated
-            </Badge>
-            <Badge variant="secondary" className="px-3 py-1.5 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-blue-500/20">
-              <Users className="w-3 h-3 mr-1" /> {instructor?.totalStudents ? `${(instructor.totalStudents/1000).toFixed(0)}k+` : '10k+'} Học viên
-            </Badge>
-            <Badge variant="secondary" className="px-3 py-1.5 bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20">
-              <PlayCircle className="w-3 h-3 mr-1" /> {instructor?.totalCourses || 10}+ Khóa học
-            </Badge>
+  if (!instructor) return null
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(instructor.user.email)
+    setCopiedEmail(true)
+    setTimeout(() => setCopiedEmail(false), 2000)
+  }
+
+  return (
+    <div className="space-y-6 lg:sticky lg:top-20">
+      {/* Video & Contact Info Combined */}
+      <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl overflow-hidden">
+        {/* Video Section */}
+        {instructor.introVideoUrl && (
+          <div className="relative">
+            <div className="aspect-video bg-gray-100 dark:bg-gray-800">
+              <iframe
+                src={instructor.introVideoUrl}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           </div>
+        )}
+
+        {/* Contact Info Section */}
+        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+          <CardTitle className="text-lg font-bold text-gray-900">Thông tin liên hệ</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-6">
+          {/* Email with Copy Button */}
+          <div className="p-3 rounded-xl bg-purple-50 border-2 border-purple-100">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Mail className="w-4 h-4 text-purple-600 shrink-0" />
+                <span className="text-sm text-gray-700 font-medium truncate">
+                  {instructor.user.email}
+                </span>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleCopyEmail}
+                className="h-8 w-8 p-0 hover:bg-purple-100 shrink-0"
+              >
+                {copiedEmail ? (
+                  <Check className="w-4 h-4 text-green-600" />
+                ) : (
+                  <Copy className="w-4 h-4 text-purple-600" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Date of Birth */}
+          {instructor.user.dateOfBirth && (
+            <div className="flex items-center gap-2 text-sm p-3 rounded-xl bg-gray-50 border-2 border-gray-100">
+              <Calendar className="w-4 h-4 text-gray-600" />
+              <span className="text-gray-700 font-medium">
+                Sinh ngày: {new Date(instructor.user.dateOfBirth).toLocaleDateString('vi-VN')}
+              </span>
+            </div>
+          )}
+
+          {/* Last Updated */}
+          {instructor.updatedAt && (
+            <div className="flex items-center gap-2 text-sm pt-3 border-t-2 border-purple-100 p-3 rounded-xl">
+              <Calendar className="w-4 h-4 text-gray-600" />
+              <span className="text-gray-700 font-medium">
+                Cập nhật lần cuối: {new Date(instructor.updatedAt).toLocaleDateString('vi-VN')}
+              </span>
+            </div>
+          )}
         </CardContent>
       </Card>
-    </>
+    </div>
   )
 }

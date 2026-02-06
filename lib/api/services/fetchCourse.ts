@@ -311,6 +311,59 @@ export interface CourseDocumentResponse {
     metadata: Metadata | null
 }
 
+// Course Review Interfaces
+export interface CourseReview {
+    id: string
+    courseId: string
+    userId: string
+    enrollmentId: string
+    rating: number
+    review: string | null
+    contentQuality: number | null
+    instructorQuality: number | null
+    valueForMoney: number | null
+    isVerifiedPurchase: boolean
+    isPublished: boolean
+    helpfulCount: number
+    notHelpfulCount: number
+    isFlagged: boolean
+    flagReason: string | null
+    moderatedBy: string | null
+    moderatedAt: string | null
+    createdAt: string
+}
+
+export interface CourseReviewParams {
+    courseId: string
+    pageNumber?: number
+    pageSize?: number
+    isDescending?: boolean
+}
+
+export interface CreateCourseReviewRequest {
+    courseId: string
+    enrollmentId: string
+    rating: number
+    review: string | null
+    contentQuality: number | null
+    instructorQuality: number | null
+    valueForMoney: number | null
+}
+
+export interface CourseReviewResponse {
+    isSuccess: boolean
+    message: string
+    data: CourseReview
+    metadata: Metadata | null
+}
+
+export interface CourseReviewListResponse {
+    isSuccess: boolean
+    message: string
+    data: CourseReview[]
+    metadata: Metadata | null
+}
+
 export interface CourseDetailResponse {
     isSuccess: boolean
     message: string
@@ -443,6 +496,24 @@ export const fetchCourse = {
 
     toggleDownloadCourseDocument: async (id: string): Promise<CourseDocumentResponse> => {
         const response = await apiService.patch<CourseDocumentResponse>(`api/v1/course-documents/${id}/toggle-downloadable`);
+        return response.data;
+    },
+
+    // Course Reviews
+    getCourseReviews: async (params: CourseReviewParams): Promise<CourseReviewListResponse> => {
+        const query: RequestParams = {
+            courseId: params.courseId,
+        };
+        if (params.pageNumber !== undefined) query.pageNumber = params.pageNumber;
+        if (params.pageSize !== undefined) query.pageSize = params.pageSize;
+        if (params.isDescending !== undefined) query.isDescending = params.isDescending;
+        
+        const response = await apiService.get<CourseReviewListResponse>("api/v1/course-reviews", query);
+        return response.data;
+    },
+
+    createCourseReview: async (review: CreateCourseReviewRequest): Promise<CourseReviewResponse> => {
+        const response = await apiService.post<CourseReviewResponse>("api/v1/course-reviews", review);
         return response.data;
     },
 

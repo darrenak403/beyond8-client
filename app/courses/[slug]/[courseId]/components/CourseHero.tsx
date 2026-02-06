@@ -18,6 +18,7 @@ import { formatNumber } from '@/lib/utils/formatCurrency'
 import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/services/fetchCourse'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
+import { useUserById } from '@/hooks/useUserProfile'
 
 interface CourseHeroProps {
   course: CourseSummary | CourseDetailType
@@ -42,6 +43,7 @@ const formatDuration = (minutes: number): string => {
 
 export default function CourseHero({ course, instructor }: CourseHeroProps) {
   const params = useParams()
+  const { user: instructorUser } = useUserById(course.instructorId)
   // Ensure we have params before constructing URL, fallback to '#' if not
   const profileUrl = params?.slug && params?.courseId
     ? `/courses/${params.slug}/${params.courseId}/instructor/${course.instructorId}`
@@ -188,12 +190,12 @@ export default function CourseHero({ course, instructor }: CourseHeroProps) {
               <Link href={profileUrl}>
                 <Avatar className="h-10 w-10 ring-2 ring-brand-purple/50 cursor-pointer hover:ring-brand-pink transition-all">
                   <SafeImage
-                    src={instructor?.avatar ? (formatImageUrl(instructor.avatar) || "") : "https://github.com/shadcn.png"}
-                    alt={instructor?.name || course.instructorName}
+                    src={formatImageUrl(instructorUser?.avatarUrl || '') || "/bg-web.jpg"}
+                    alt={instructorUser?.fullName || course.instructorName}
                     fill
                     className="object-cover"
                   />
-                  <AvatarFallback>{(instructor?.name || course.instructorName).charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{(instructorUser?.fullName || course.instructorName).charAt(0)}</AvatarFallback>
                 </Avatar>
               </Link>
               <div>
