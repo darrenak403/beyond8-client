@@ -22,7 +22,7 @@ export default function InstructorContact({ instructor }: InstructorContactProps
   }
 
   return (
-    <div className="space-y-6 lg:sticky lg:top-20">
+    <div className="space-y-6 lg:sticky lg:top-40">
       {/* Video & Contact Info Combined */}
       <Card className="border-2 border-purple-100 hover:border-purple-300 transition-colors rounded-4xl overflow-hidden">
         {/* Video Section */}

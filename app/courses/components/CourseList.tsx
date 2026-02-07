@@ -16,7 +16,7 @@ export default function CourseList({ courses, isLoading }: CourseListProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {Array.from({ length: skeletonCount }).map((_, i) => (
           <div key={i} className="space-y-3">
             <Skeleton className="h-40 w-full rounded-lg" />
@@ -42,7 +42,7 @@ export default function CourseList({ courses, isLoading }: CourseListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
       {courses.map((course) => (
         <CourseCard key={course.id} course={course} />
       ))}

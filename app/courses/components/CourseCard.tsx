@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { Star, Users, Clock } from 'lucide-react'
+import { Star, Users, Clock, ShoppingCart } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import SafeImage from '@/components/ui/SafeImage'
 import { formatCurrency, formatNumber } from '@/lib/utils/formatCurrency'
 import { generateSlug } from '@/lib/utils/generateSlug'
@@ -42,8 +43,25 @@ export default function CourseCard({ course }: CourseCardProps) {
   const rating = course.avgRating ? parseFloat(course.avgRating) : 0
   const displayRating = rating > 0 ? rating.toFixed(1) : '0.0'
 
+  // Map level to Vietnamese
+  const getLevelVietnamese = (level: string | null | undefined): string => {
+    if (!level) return 'Cơ bản'
+    const levelUpper = level.toUpperCase()
+    if (levelUpper === 'BEGINNER') return 'Cơ bản'
+    if (levelUpper === 'INTERMEDIATE') return 'Trung cấp'
+    if (levelUpper === 'ADVANCED') return 'Nâng cao'
+    if (levelUpper === 'EXPERT') return 'Chuyên gia'
+    return level // Fallback to original if no match
+  }
+
   const instructorAvatarSrc = instructorUser?.avatarUrl || '/bg-web.jpg'
-  console.log(instructorAvatarSrc)
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // TODO: Implement add to cart functionality
+    console.log('Add to cart:', course.id)
+  }
   return (
     <Link href={courseUrl} target="_blank" className="block h-full">
       <div className="group cursor-pointer h-full flex flex-col">
@@ -55,6 +73,11 @@ export default function CourseCard({ course }: CourseCardProps) {
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
+          {/* Level Badge - Top Left */}
+          <Badge variant="outline" className="absolute top-2 left-2 rounded-lg text-xs px-1.5 py-0.5 bg-white/90 backdrop-blur-sm group-hover:border-primary group-hover:text-primary transition-colors duration-300">
+            {getLevelVietnamese(course.level)}
+          </Badge>
+          {/* Category Badge - Top Right */}
           <Badge className="absolute top-2 right-2 bg-primary rounded-lg text-xs px-1.5 py-0.5">
             {course.categoryName}
           </Badge>
@@ -96,12 +119,6 @@ export default function CourseCard({ course }: CourseCardProps) {
           </div>
 
           <div className="flex items-center justify-between mt-auto">
-            <Badge
-              variant="outline"
-              className="rounded-md text-xs px-1.5 py-0.5 group-hover:border-primary group-hover:text-primary transition-colors duration-300"
-            >
-              {course.level}
-            </Badge>
             <div className="flex items-baseline gap-1.5">
               <span className="text-lg font-bold text-primary">
                 {formatCurrency(finalPrice)}
@@ -119,6 +136,14 @@ export default function CourseCard({ course }: CourseCardProps) {
                 </>
               )}
             </div>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 shrink-0 bg-purple-50 border-purple-500 text-purple-500 hover:bg-primary hover:text-white"
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

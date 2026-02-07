@@ -102,6 +102,7 @@ export interface InstructorPublicProfile {
   verifiedAt: string | null;
   createdAt: string;
   updatedAt: string | null;
+  instructorSubscriptionPlan: SubscriptionPlan | null;
 }
 
 export interface UpdateUserProfileRequest {

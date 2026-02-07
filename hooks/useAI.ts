@@ -9,6 +9,7 @@ import {
   type AIUsageRecord,
   type AIPrompt,
   EmbedFileRequest,
+  ExplainQuizQuestionRequest,
 } from '@/lib/api/services/fetchAI';
 
 export type { GetUsageHistoryParams, GetAIPromptsParams, CreateAIPromptRequest, UpdateAIPromptRequest, AIUsageStatistics, AIUsageRecord, AIPrompt };
@@ -140,6 +141,18 @@ export function useEmbedFile() {
     },
     onError: (error: ApiError) => {
       toast.error(error.message || 'Có lỗi xảy ra khi embed file');
+    }
+  });
+}
+
+export function useExplainQuizQuestion() {
+  return useMutation({
+    mutationFn: async (data: ExplainQuizQuestionRequest) => await fetchAI.explainQuizQuestion(data),
+    onSuccess: () => {
+      // No need to invalidate queries for this endpoint
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || 'Có lỗi xảy ra khi giải thích câu hỏi');
     }
   });
 }

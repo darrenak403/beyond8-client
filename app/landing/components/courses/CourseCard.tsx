@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { Star, Users, Clock } from 'lucide-react'
+import { Star, Users, Clock, ShoppingCart } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import SafeImage from '@/components/ui/SafeImage'
 import { formatCurrency, formatNumber } from '@/lib/utils/formatCurrency'
 import { generateSlug } from '@/lib/utils/generateSlug'
@@ -43,6 +44,24 @@ export default function CourseCard({ course }: CourseCardProps) {
   const rating = course.avgRating ? parseFloat(course.avgRating) : 0
   const displayRating = rating > 0 ? rating.toFixed(1) : '0.0'
 
+  // Map level to Vietnamese
+  const getLevelVietnamese = (level: string | null | undefined): string => {
+    if (!level) return 'Cơ bản'
+    const levelUpper = level.toUpperCase()
+    if (levelUpper === 'BEGINNER') return 'Cơ bản'
+    if (levelUpper === 'INTERMEDIATE') return 'Trung cấp'
+    if (levelUpper === 'ADVANCED') return 'Nâng cao'
+    if (levelUpper === 'EXPERT') return 'Chuyên gia'
+    return level // Fallback to original if no match
+  }
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // TODO: Implement add to cart functionality
+    console.log('Add to cart:', course.id)
+  }
+
   return (
     <Link href={courseUrl} target="_blank" className="block h-full">
       <div className="group cursor-pointer h-full flex flex-col">
@@ -54,6 +73,11 @@ export default function CourseCard({ course }: CourseCardProps) {
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
+          {/* Level Badge - Top Left */}
+          <Badge variant="outline" className="absolute top-3 left-3 rounded-xl bg-white/90 backdrop-blur-sm group-hover:border-primary group-hover:text-primary transition-colors duration-300">
+            {getLevelVietnamese(course.level)}
+          </Badge>
+          {/* Category Badge - Top Right */}
           <Badge className="absolute top-3 right-3 bg-primary rounded-xl">
             {course.categoryName}
           </Badge>
@@ -64,7 +88,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           <h3 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
             {course.title}
           </h3>
-          <p className="text-sm text-muted-foreground mb-3 group-hover:text-primary/80 transition-colors duration-300 flex items-center gap-2">
+          <div className="text-sm text-muted-foreground mb-3 group-hover:text-primary/80 transition-colors duration-300 flex items-center gap-2">
             <div className="relative w-6 h-6 rounded-full overflow-hidden shrink-0 bg-muted">
               <SafeImage
               src={formatImageUrl(instructorAvatarSrc || '') || '/bg-web.jpg'}
@@ -74,7 +98,7 @@ export default function CourseCard({ course }: CourseCardProps) {
               />
             </div>
             <span className="truncate">{instructorUser?.fullName || course.instructorName}</span>
-          </p>
+          </div>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3 group-hover:text-primary/70 transition-colors duration-300">
             <div className="flex items-center gap-1">
@@ -95,9 +119,6 @@ export default function CourseCard({ course }: CourseCardProps) {
           </div>
 
           <div className="flex items-center justify-between mt-auto">
-            <Badge variant="outline" className="rounded-lg group-hover:border-primary group-hover:text-primary transition-colors duration-300">
-              {course.level}
-            </Badge>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold text-primary">
                 {formatCurrency(finalPrice)}
@@ -115,6 +136,14 @@ export default function CourseCard({ course }: CourseCardProps) {
                 </>
               )}
             </div>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 shrink-0 bg-purple-50 border-purple-500 text-purple-500 hover:bg-primary hover:text-white"
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

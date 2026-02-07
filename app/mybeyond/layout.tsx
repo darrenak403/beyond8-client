@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -10,9 +10,33 @@ import SidebarProfile from "@/components/ui/sidebar-profile";
 export default function MyBeyondLayout({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const isMobile = useIsMobile();
 
-  const currentTab = searchParams.get("tab") || "myprofile";
+  // Determine current tab from pathname or query param
+  const getCurrentTab = () => {
+    // Check if we're in a nested route
+    if (pathname.startsWith('/mybeyond/mycertificate')) {
+      return 'mycertificate';
+    }
+    if (pathname.startsWith('/mybeyond/search-certificate')) {
+      return 'mycertificate';
+    }
+    if (pathname.startsWith('/mybeyond/mycourse')) {
+      return 'mycourse';
+    }
+    if (pathname.startsWith('/mybeyond/myprofile')) {
+      return 'myprofile';
+    }
+    if (pathname.startsWith('/mybeyond/myusage')) {
+      return 'myusage';
+    }
+    
+    // Fallback to query param or default
+    return searchParams.get("tab") || "myprofile";
+  };
+
+  const currentTab = getCurrentTab();
 
   const handleTabChange = (value: string) => {
     router.push(`/mybeyond?tab=${value}`);

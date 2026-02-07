@@ -6,7 +6,10 @@ import {
   PlayCircle,
   Globe,
   Linkedin,
-  Facebook
+  Facebook,
+  Crown,
+  Gem,
+  Zap
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -23,6 +26,70 @@ interface InstructorProfileHeaderProps {
 
 export default function InstructorProfileHeader({ instructor, courseCount }: InstructorProfileHeaderProps) {
   const isMobile = useIsMobile()
+
+  const getGradientStyle = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA": 
+        return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
+      case "PRO": 
+        return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
+      case "STANDARD":
+      case "PLUS": 
+        return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
+      default: 
+        return "conic-gradient(from 0deg, #a855f7 0% 50%, #ec4899 50% 100%)";
+    }
+  };
+
+  const getPlanIcon = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return <Crown className="w-5 h-5 text-yellow-500 fill-yellow-500" />;
+      case "PRO":
+        return <Gem className="w-5 h-5 text-blue-500 fill-blue-500" />;
+      case "BASIC":
+      case "PLUS":
+        return <Zap className="w-5 h-5 text-purple-500 fill-purple-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getPlanColor = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return {
+          text: "text-yellow-600 dark:text-yellow-400",
+          bg: "bg-yellow-50 dark:bg-yellow-900/20",
+          border: "border-yellow-300 dark:border-yellow-700",
+        };
+      case "PRO":
+        return {
+          text: "text-blue-600 dark:text-blue-400",
+          bg: "bg-blue-50 dark:bg-blue-900/20",
+          border: "border-blue-300 dark:border-blue-700",
+        };
+      case "BASIC":
+      case "PLUS":
+      case "STANDARD":
+        return {
+          text: "text-purple-600 dark:text-purple-400",
+          bg: "bg-purple-50 dark:bg-purple-900/20",
+          border: "border-purple-300 dark:border-purple-700",
+        };
+      default:
+        return {
+          text: "text-gray-500 dark:text-gray-400",
+          bg: "bg-gray-50 dark:bg-gray-900/20",
+          border: "border-gray-300 dark:border-gray-700",
+        };
+    }
+  };
+
+  const subscriptionCode = instructor.instructorSubscriptionPlan?.code
+  const gradientStyle = getGradientStyle(subscriptionCode)
+  const planIcon = getPlanIcon(subscriptionCode)
+  const planColor = getPlanColor(subscriptionCode)
 
   return (
     <div className="overflow-hidden mx-auto max-w-7xl">
@@ -59,9 +126,9 @@ export default function InstructorProfileHeader({ instructor, courseCount }: Ins
           {/* Avatar with gradient border */}
           <div className="relative z-20">
             <div 
-              className={`p-[4px] rounded-full ${isMobile ? "w-24 h-24" : "w-40 h-40"} flex items-center justify-center shadow-lg`}
+              className={`p-[4px] rounded-full ${isMobile ? "w-24 h-24" : "w-40 h-40"} flex items-center justify-center shadow-lg relative`}
               style={{ 
-                background: 'conic-gradient(from 0deg, #a855f7 0% 50%, #ec4899 50% 100%)'
+                background: gradientStyle
               }}
             >
               <Avatar className="w-full h-full border-4 border-white">
@@ -79,6 +146,12 @@ export default function InstructorProfileHeader({ instructor, courseCount }: Ins
                     .toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
+              {/* Plan Icon Badge */}
+              {planIcon && (
+                <div className="absolute top-1 -right-0 bg-white rounded-full p-1.5 shadow-md border-2 border-white">
+                  {planIcon}
+                </div>
+              )}
             </div>
           </div>
 
@@ -92,6 +165,11 @@ export default function InstructorProfileHeader({ instructor, courseCount }: Ins
               >
                 {instructor.user.fullName}
               </h2>
+                {subscriptionCode && (
+                  <div className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${planColor.text} ${planColor.bg} ${planColor.border}`}>
+                    {subscriptionCode}
+                  </div>
+                )}
             </div>
             {instructor.headline && (
               <p className={`text-gray-600 dark:text-gray-400 ${isMobile ? "text-sm" : "text-base"}`}>

@@ -87,7 +87,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   }
 
   return (
-    <Card className="sticky top-24 overflow-hidden border-brand-magenta/20 shadow-xl shadow-brand-magenta/5 backdrop-blur-xl bg-white/80 dark:bg-black/80">
+    <Card className="sticky top-40 overflow-hidden border-brand-magenta/20 shadow-xl shadow-brand-magenta/5 backdrop-blur-xl bg-white/80 dark:bg-black/80">
       <div className="h-2 bg-gradient-to-r from-brand-pink via-brand-magenta to-brand-purple" />
       <CardContent className="p-6 space-y-6">
         {/* Price Section */}
