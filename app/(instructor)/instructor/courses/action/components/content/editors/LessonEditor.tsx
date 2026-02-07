@@ -102,6 +102,8 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         // Track whether we are exiting or going back
         const [unsaveAction, setUnsaveAction] = useState<"exit" | "back" | null>(null);
 
+        const [isFullScreen, setIsFullScreen] = useState(false);
+
         // Document specific
         const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
         const [documentFileToUpload, setDocumentFileToUpload] = useState<File | null>(null);
@@ -113,14 +115,18 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         const documentInputRef = React.useRef<HTMLInputElement>(null);
 
         // Hooks
-        const { updateLesson, isPending: isUpdatingLesson } = useUpdateLesson(selectedSectionId);
+        // Hooks
+        const { updateLesson, isPending: isUpdatingLesson } = useUpdateLesson(selectedSectionId, courseId);
         const { deleteLesson, isPending: isDeletingLesson } = useDeleteLesson(selectedSectionId, courseId);
-        const { activationLesson } = useActivationLesson(selectedSectionId);
+        const { activationLesson } = useActivationLesson(selectedSectionId, courseId);
 
+
+
+        // Lesson Document Hooks
         const { lessonDocuments, isLoading: isLoadingDocs, refetch: refetchDocs } = useGetLessonDocument(lessonId);
-        const { createLessonDocument, isPending: isCreatingDoc } = useCreateLessonDocument();
-        const { deleteLessonDocument } = useDeleteLessonDocument();
-        const { toggleDownloadLessonDocument } = useToggleDownloadLessonDocument();
+        const { createLessonDocument, isPending: isCreatingDoc } = useCreateLessonDocument(courseId);
+        const { deleteLessonDocument } = useDeleteLessonDocument(courseId);
+        const { toggleDownloadLessonDocument } = useToggleDownloadLessonDocument(courseId);
         const { uploadDocumentCourseAsync, isUploadingDocumentCourse } = useMediaDocumentCourse();
 
         // Refs
@@ -238,7 +244,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                     },
                     codeBlock: {
                         HTMLAttributes: {
-                            class: "bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm my-2",
+                            class: "bg-gray-900 text-gray-100 p-4 rounded-md font-mono text-sm my-2 overflow-x-auto",
                         },
                     },
                     heading: {
@@ -262,7 +268,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
             content: textContent,
             editorProps: {
                 attributes: {
-                    class: "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4",
+                    class: "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4 break-words max-w-none",
                 },
             },
             onUpdate: ({ editor }) => {
@@ -1151,16 +1157,35 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                 {selectedLesson?.type === "Text" && (
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-semibold text-gray-900">Nội dung</h3>
-                                        <div className="border rounded-lg bg-white shadow-sm min-h-[400px]">
+                                        <div className={`border rounded-lg bg-white shadow-sm transition-all duration-300 ${isFullScreen ? "fixed inset-0 z-50 m-0 h-screen w-screen rounded-none border-0" : "h-[600px]"}`}>
                                             {editor && (
                                                 <ToolbarProvider editor={editor}>
-                                                    <div className="border border-gray-200 rounded-lg bg-white overflow-hidden focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-400 transition-all">
-                                                        <EditorToolbar />
-                                                        <div className="h-px bg-gray-100" />
-                                                        <EditorContent
-                                                            editor={editor}
-                                                            className="min-h-[300px] [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:p-4 [&_.ProseMirror]:focus:outline-none"
-                                                        />
+                                                    <div className={`flex flex-col h-full overflow-hidden ${isFullScreen ? "bg-white" : "border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-400 transition-all"}`}>
+                                                        <div className="border-b border-gray-100">
+                                                            <EditorToolbar
+                                                                isFullScreen={isFullScreen}
+                                                                onToggleFullScreen={() => setIsFullScreen(!isFullScreen)}
+                                                            />
+                                                        </div>
+                                                        <div
+                                                            className="flex-1 overflow-auto bg-white cursor-text"
+                                                            onClick={() => {
+                                                                if (editor && !editor.isFocused) {
+                                                                    editor.chain().focus().run();
+                                                                }
+                                                            }}
+                                                        >
+                                                            <EditorContent
+                                                                editor={editor}
+                                                                className={`
+                                                                    ${isFullScreen
+                                                                        ? "min-h-full max-w-5xl mx-auto py-12 px-8 [&_.ProseMirror]:min-h-[calc(100vh-150px)] [&_.ProseMirror]:p-0"
+                                                                        : "min-h-[300px] [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:p-4"
+                                                                    } 
+                                                                    [&_.ProseMirror]:focus:outline-none h-full
+                                                                `}
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </ToolbarProvider>
                                             )}

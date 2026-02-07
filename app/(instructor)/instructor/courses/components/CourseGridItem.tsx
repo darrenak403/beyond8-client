@@ -1,16 +1,24 @@
-import Image from 'next/image'
+
 import { Badge } from '@/components/ui/badge'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { CoursePreviewDialog } from '@/components/widget/CoursePreviewDialog'
+import { useSubmitCourseForReview, usePublishCourse, useUnpublishCourse } from '@/hooks/useCourse'
 import {
   Star,
-  Edit,
-  Eye,
   Clock,
   Users
 } from 'lucide-react'
 import { Course, CourseLevel, CourseStatus } from '@/lib/api/services/fetchCourse'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 import SafeImage from '@/components/ui/SafeImage'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreHorizontal } from 'lucide-react'
 
 interface CourseGridItemProps {
   course: Course
@@ -62,6 +70,23 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
     const mins = minutes % 60
     if (hours > 0) return `${hours}h ${mins}m`
     return `${mins}m`
+  }
+
+  const [showPreview, setShowPreview] = useState(false)
+  const { submitCourseForReview, isPending: isSubmitting } = useSubmitCourseForReview()
+  const { publishCourse, isPending: isPublishing } = usePublishCourse()
+  const { unpublishCourse, isPending: isUnpublishing } = useUnpublishCourse()
+
+  const handlePreview = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setShowPreview(true)
+  }
+
+  const handleAction = (e: React.MouseEvent, action: () => void) => {
+    e.preventDefault()
+    e.stopPropagation()
+    action()
   }
 
   return (
@@ -133,15 +158,72 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
         </div>
 
         {/* Footer Actions */}
+        {/* Footer Actions */}
         <div className="mt-auto pt-2 flex gap-2">
-          <Button variant="outline" className="flex-1 h-9 rounded-xl" onClick={() => window.location.href = `/instructor/courses/action/${course.id}`}>
+          {/* Edit Button - Always visible as it's common */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 h-8 text-xs font-medium"
+            onClick={() => window.location.href = `/instructor/courses/action/${course.id}`}
+          >
             Chỉnh sửa
           </Button>
-          <Button className="flex-1 h-9 rounded-xl">
-            Xem
-          </Button>
+
+          {/* More Actions Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {/* PREVIEW */}
+              <DropdownMenuItem onClick={handlePreview}>
+                Xem trước
+              </DropdownMenuItem>
+
+              {/* STATUS ACTION */}
+              {course.status === CourseStatus.Published ? (
+                <DropdownMenuItem
+                  onClick={(e) => handleAction(e, () => unpublishCourse({ id: course.id }))}
+                  disabled={isUnpublishing}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  Ẩn khóa học
+                </DropdownMenuItem>
+              ) : course.status === CourseStatus.Approved ? (
+                <DropdownMenuItem
+                  onClick={(e) => handleAction(e, () => publishCourse({ id: course.id }))}
+                  disabled={isPublishing}
+                  className="text-green-600 focus:text-green-600"
+                >
+                  Công khai
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={(e) => handleAction(e, () => submitCourseForReview({ id: course.id }))}
+                  disabled={isSubmitting || course.status === CourseStatus.PendingApproval}
+                  className="text-purple-600 focus:text-purple-600"
+                >
+                  {course.status === CourseStatus.PendingApproval ? "Đang chờ duyệt" : "Nộp duyệt"}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+
+      <CoursePreviewDialog
+        courseId={course.id}
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        instructor={{
+          name: course.instructorName || "",
+          avatar: "", // Add avatar if available in course object or fetch it
+          bio: ""
+        }}
+      />
     </div>
   )
 }

@@ -25,10 +25,15 @@ export function useCreateQuiz() {
 
     const { mutateAsync, isPending } = useMutation({
         mutationFn: (quiz: CreateQuizRequest) => fetchQuiz.createQuiz(quiz),
-        onSuccess: () => {
+        onSuccess: (data, variables) => {
             queryClient.invalidateQueries({
                 queryKey: ["quizzes"],
             });
+            if (variables.courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", variables.courseId],
+                });
+            }
             toast.success("Tạo bài kiểm tra thành công!");
         },
         onError: (error: ApiError) => {
@@ -42,7 +47,7 @@ export function useCreateQuiz() {
     };
 }
 
-export function useUpdateQuiz() {
+export function useUpdateQuiz(courseId?: string) {
     const queryClient = useQueryClient();
 
     const { mutateAsync, isPending } = useMutation({
@@ -52,6 +57,11 @@ export function useUpdateQuiz() {
             queryClient.invalidateQueries({
                 queryKey: ["quizzes"],
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId],
+                });
+            }
             toast.success("Cập nhật bài kiểm tra thành công!");
         },
         onError: (error: ApiError) => {
@@ -65,7 +75,7 @@ export function useUpdateQuiz() {
     };
 }
 
-export function useDeleteQuiz() {
+export function useDeleteQuiz(courseId?: string) {
     const queryClient = useQueryClient();
 
     const { mutateAsync, isPending } = useMutation({
@@ -74,6 +84,11 @@ export function useDeleteQuiz() {
             queryClient.invalidateQueries({
                 queryKey: ["quizzes"],
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId],
+                });
+            }
             toast.success("Xoá bài kiểm tra thành công!");
         },
         onError: (error: ApiError) => {

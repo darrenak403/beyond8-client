@@ -1,16 +1,22 @@
-import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { CoursePreviewDialog } from '@/components/widget/CoursePreviewDialog'
+import { useSubmitCourseForReview, usePublishCourse, useUnpublishCourse } from '@/hooks/useCourse'
 import {
   Star,
-  Edit,
-
   Clock,
-  Eye,
   Users
 } from 'lucide-react'
 import { Course, CourseLevel, CourseStatus } from '@/lib/api/services/fetchCourse'
 import SafeImage from '@/components/ui/SafeImage'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreVertical } from 'lucide-react'
 
 interface CourseListItemProps {
   course: Course
@@ -51,6 +57,23 @@ const getStatusColor = (status: CourseStatus) => {
 }
 
 export default function CourseListItem({ course }: CourseListItemProps) {
+  const [showPreview, setShowPreview] = useState(false)
+  const { submitCourseForReview, isPending: isSubmitting } = useSubmitCourseForReview()
+  const { publishCourse, isPending: isPublishing } = usePublishCourse()
+  const { unpublishCourse, isPending: isUnpublishing } = useUnpublishCourse()
+
+  const handlePreview = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setShowPreview(true)
+  }
+
+  const handleAction = (e: React.MouseEvent, action: () => void) => {
+    e.preventDefault()
+    e.stopPropagation()
+    action()
+  }
+
   // Format currency
   const formattedPrice = new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -103,8 +126,6 @@ export default function CourseListItem({ course }: CourseListItemProps) {
               </Badge>
             </div>
 
-
-
             <div className="space-y-1">
               <h3 className="font-semibold text-base text-slate-800 group-hover:text-primary transition-colors">
                 {course.title}
@@ -133,14 +154,70 @@ export default function CourseListItem({ course }: CourseListItemProps) {
       </div>
 
       {/* Action Section (Right) */}
-      <div className="flex flex-col justify-center gap-2 shrink-0 w-auto pl-4 border-l border-border/50 my-1">
-        <Button variant="outline" className="h-8 text-xs px-3 rounded-xl" onClick={() => window.location.href = `/instructor/courses/action/${course.id}`}>
-          Chỉnh sửa
-        </Button>
-        <Button variant="default" className="h-8 text-xs px-3 rounded-xl">
-          Xem chi tiết
-        </Button>
+      <div className="flex flex-col items-end gap-2 shrink-0 w-auto ml-auto my-1">
+
+        {/* Combine Actions into a clean interface */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 px-4 text-sm font-medium"
+            onClick={() => window.location.href = `/instructor/courses/action/${course.id}`}
+          >
+            Chỉnh sửa
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-md">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handlePreview}>
+                Xem trước
+              </DropdownMenuItem>
+
+              {course.status === CourseStatus.Published ? (
+                <DropdownMenuItem
+                  onClick={(e) => handleAction(e, () => unpublishCourse({ id: course.id }))}
+                  disabled={isUnpublishing}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  Ẩn khóa học
+                </DropdownMenuItem>
+              ) : course.status === CourseStatus.Approved ? (
+                <DropdownMenuItem
+                  onClick={(e) => handleAction(e, () => publishCourse({ id: course.id }))}
+                  disabled={isPublishing}
+                  className="text-green-600 focus:text-green-600"
+                >
+                  Công khai
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={(e) => handleAction(e, () => submitCourseForReview({ id: course.id }))}
+                  disabled={isSubmitting || course.status === CourseStatus.PendingApproval}
+                  className="text-purple-600 focus:text-purple-600"
+                >
+                  {course.status === CourseStatus.PendingApproval ? "Đang chờ duyệt" : "Nộp duyệt"}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
+
+      <CoursePreviewDialog
+        courseId={course.id}
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        instructor={{
+          name: course.instructorName || "",
+          avatar: "",
+          bio: ""
+        }}
+      />
     </div>
   )
 }

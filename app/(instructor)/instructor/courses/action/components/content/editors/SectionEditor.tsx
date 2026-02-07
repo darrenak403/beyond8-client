@@ -51,11 +51,11 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const { updateSection, isPending: isUpdating } = useUpdateSection(courseId);
         const { deleteSection, isPending: isDeleting } = useDeleteSection(courseId);
         const { activationSection, isPending: isActivating } = useActivationSection(courseId);
-        const { updateAssignment: linkAssignment } = useLinkAssignment(section.id);
+        const { updateAssignment: linkAssignment } = useLinkAssignment(courseId);
         const { assignment } = useGetAssignmentById(section.assignmentId || "");
         const { deleteAssignmentAsync } = useDeleteAssignment();
 
-        const { createLesson } = useCreateLesson();
+        const { createLesson } = useCreateLesson(courseId);
         const { lessons } = useGetLessonBySectionId(section.id);
 
         useEffect(() => {

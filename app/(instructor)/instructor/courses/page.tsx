@@ -35,7 +35,7 @@ export default function InstructorCoursesPage() {
   const pageNumber = parseInt(searchParams.get('pageNumber') || '1')
   const pageSize = parseInt(searchParams.get('pageSize') || '8')
   const isDescending = searchParams.get('isDescending') !== 'false'
-  const sortBy = searchParams.get('sortBy') || 'createdAt'
+  const isDescendingPrice = searchParams.get('isDescendingPrice') !== 'false'
   const level = searchParams.get('level') || 'All'
   const categoryName = searchParams.get('categoryName') || ''
 
@@ -48,7 +48,7 @@ export default function InstructorCoursesPage() {
     pageNumber: pageNumber,
     pageSize: pageSize,
     isDescending: isDescending,
-    sortBy: sortBy,
+    isDescendingPrice: isDescendingPrice,
     level: level as CourseLevel
   })
 

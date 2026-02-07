@@ -19,6 +19,7 @@ import {
 } from "@/lib/api/services/fetchCourse";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "next/dist/server/api-utils";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export function useCreateCourse() {
@@ -234,9 +235,12 @@ export function useUpdateCourse() {
   const { mutateAsync, isPending } = useMutation({
     mutationFn: ({ id, courseData }: { id: string; courseData: Partial<CourseUpdateRequest> }) =>
       fetchCourse.updateCourse(id, courseData),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["course", "details-preview", variables.id],
       });
       toast.success("Cập nhật khóa học thành công!");
     },
@@ -256,10 +260,15 @@ export function useCreateCourseDocument() {
   const { mutateAsync, isPending } = useMutation({
     mutationFn: (courseData: CreateCourseDocumentRequest) =>
       fetchCourse.createCourseDocument(courseData),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
       });
+      if (variables.courseId) {
+        queryClient.invalidateQueries({
+          queryKey: ["course", "details-preview", variables.courseId],
+        });
+      }
       toast.success("Thêm tài liệu khóa học thành công!");
     },
     onError: (error: ApiError) => {
@@ -370,3 +379,140 @@ export function useGetCourseDetailsPreview(id: string) {
     refetch,
   };
 }
+
+export function useGetCoursesForAdmin(filterParams?: CourseParams) {
+  const { data, isLoading, isError, refetch } = useQuery<CourseResponse, Error, Course[]>({
+    queryKey: ["course", "admin", filterParams],
+    queryFn: () => fetchCourse.getCoursesForAdmin(filterParams),
+    select: (data) => data.data,
+  });
+
+  return {
+    courses: data,
+    isLoading,
+    isError,
+    refetch,
+  };
+}
+
+export function useSubmitCourseForReview() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id }: { id: string }) =>
+      fetchCourse.submitCourseForReview(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["courses"],
+      });
+      toast.success("Nộp duyệt khóa học thành công!");
+      router.push(`/instructor/courses`);
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi nộp duyệt khóa học!");
+    },
+  });
+
+  return {
+    submitCourseForReview: mutateAsync,
+    isPending,
+  };
+}
+
+export function useApproveCourse() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id, notes }: { id: string; notes: string | null }) =>
+      fetchCourse.approveCourse(id, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      toast.success("Phê duyệt khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi phê duyệt khóa học!");
+    },
+  });
+
+  return {
+    approveCourse: mutateAsync,
+    isPending,
+  };
+}
+
+export function useRejectCourse() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string | null }) =>
+      fetchCourse.rejectCourse(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      toast.success("Từ chối khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi từ chối khóa học!");
+    },
+  });
+
+  return {
+    rejectCourse: mutateAsync,
+    isPending,
+  };
+}
+
+export function usePublishCourse() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id }: { id: string }) =>
+      fetchCourse.publishCourse(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["courses"],
+      });
+      toast.success("Công bố khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi công bố khóa học!");
+    },
+  });
+
+  return {
+    publishCourse: mutateAsync,
+    isPending,
+  };
+}
+
+export function useUnpublishCourse() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id }: { id: string }) =>
+      fetchCourse.unpublishCourse(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["courses"],
+      });
+      toast.success("Ẩn khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi ẩn khóa học!");
+    },
+  });
+
+  return {
+    unpublishCourse: mutateAsync,
+    isPending,
+  };
+}
+

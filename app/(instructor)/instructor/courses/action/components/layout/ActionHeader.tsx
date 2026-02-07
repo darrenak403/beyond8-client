@@ -47,6 +47,13 @@ export default function CourseActionHeader({
         router.push('/instructor/courses')
     }
 
+    const handleSaveAndExit = async () => {
+        if (onSave) {
+            await onSave()
+            router.push('/instructor/courses')
+        }
+    }
+
     return (
         <header className="px-8 py-6 flex items-center justify-between bg-white w-full shadow-sm z-10">
             <div>
@@ -114,9 +121,10 @@ export default function CourseActionHeader({
                     title="Chưa lưu thay đổi"
                     description="Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn thoát không?"
                     onDiscard={confirmExit}
-                    onSave={onSave}
+                    onSave={handleSaveAndExit}
                     open={open}
                     onOpenChange={setOpen}
+                    isLoading={isSubmitting}
                 />
             ) : (
                 <ConfirmDialog

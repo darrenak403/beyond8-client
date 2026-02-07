@@ -76,7 +76,7 @@ export function QuestionBankView({
     return (
         <div className="space-y-6 py-3 relative">
             {/* Header: Breadcrumb Navigation + Action Buttons */}
-            <div className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-2 -mx-2 px-2 border-b border-transparent transition-all data-[scrolled=true]:border-border/50 rounded-lg dark:bg-black/95 dark:supports-[backdrop-filter]:bg-black/60">
+            <div className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-2 -mx-2 px-2 border-b border-transparent transition-all data-[scrolled=true]:border-border/50 rounded-lg">
                 {/* Breadcrumb Navigation */}
                 <div className="flex items-center gap-2 text-md">
                     <button
@@ -150,7 +150,7 @@ export function QuestionBankView({
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="col-span-full flex flex-col items-center justify-center bg-white/80 p-12 text-center backdrop-blur-xl dark:bg-black/80"
+                                className="col-span-full flex flex-col items-center justify-center bg-white/80 p-12 text-center backdrop-blur-xl"
                             >
                                 <FolderOpen className="mb-4 h-16 w-16 text-brand-magenta/40" />
                                 <h3 className="mb-2 text-xl font-semibold text-foreground">
@@ -203,7 +203,7 @@ export function QuestionBankView({
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="flex flex-col items-center justify-center rounded-2xl border border-brand-magenta/20 bg-white/80 p-12 text-center backdrop-blur-xl dark:bg-black/80"
+                                className="flex flex-col items-center justify-center rounded-2xl border border-brand-magenta/20 bg-white/80 p-12 text-center backdrop-blur-xl"
                             >
                                 <FolderOpen className="mb-4 h-16 w-16 text-brand-magenta/40" />
                                 <h3 className="mb-2 text-xl font-semibold text-foreground">

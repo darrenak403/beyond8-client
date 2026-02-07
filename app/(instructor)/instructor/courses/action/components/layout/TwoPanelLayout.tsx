@@ -2,12 +2,14 @@
 
 import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Eye, HelpCircle } from "lucide-react";
+import { Menu, X, Eye, HelpCircle, Send, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UnsaveDialog } from "@/components/widget/UnsaveDialog";
 import { useIsMobile } from "@/hooks/useMobile";
 import CompactSectionList from "../content/CompactSectionList";
 import { useGetSectionsByCourseId } from "@/hooks/useSection";
+import { useSubmitCourseForReview, useGetCourseById, usePublishCourse, useUnpublishCourse } from "@/hooks/useCourse";
+import { CourseStatus } from "@/lib/api/services/fetchCourse";
 import ContentEditor, { ContentEditorRef } from "../content/ContentEditor";
 
 import { CoursePreviewDialog } from "@/components/widget/CoursePreviewDialog";
@@ -30,8 +32,13 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [isToolbarHovered, setIsToolbarHovered] = useState(false);
 
   const { sections } = useGetSectionsByCourseId(courseId);
+  const { submitCourseForReview, isPending: isSubmitting } = useSubmitCourseForReview();
+  const { publishCourse, isPending: isPublishing } = usePublishCourse();
+  const { unpublishCourse, isPending: isUnpublishing } = useUnpublishCourse();
+  const { course } = useGetCourseById(courseId);
   const { userProfile } = useUserProfile();
 
   // Auto-select first section on mount
@@ -182,20 +189,124 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
                 />
 
                 {/* Right Toolbar */}
-                <div id="course-editor-right-toolbar-root" className="w-14 border-l bg-gray-50 flex flex-col items-center py-4 gap-4 shrink-0 z-10">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50"
-                    title="Xem trước"
-                    onClick={() => setShowPreview(true)}
-                  >
-                    <Eye className="h-5 w-5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Trợ giúp">
-                    <HelpCircle className="h-5 w-5" />
-                  </Button>
-                </div>
+                <motion.div
+                  id="course-editor-right-toolbar-root"
+                  className="border-l bg-gray-50 flex flex-col py-4 gap-4 shrink-0 z-10 overflow-hidden desktop-toolbar"
+                  initial={{ width: 56 }}
+                  animate={{ width: isToolbarHovered ? 200 : 56 }}
+                  onMouseEnter={() => setIsToolbarHovered(true)}
+                  onMouseLeave={() => setIsToolbarHovered(false)}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <div className="flex flex-col gap-2 w-full px-2">
+                    {/* Preview Button */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50 flex items-center transition-all duration-300 ${isToolbarHovered ? "w-full justify-start px-3" : "w-10 justify-center mx-auto"
+                        }`}
+                      title="Xem trước"
+                      onClick={() => setShowPreview(true)}
+                    >
+                      <Eye className="h-5 w-5 shrink-0" />
+                      {isToolbarHovered && (
+                        <motion.span
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="ml-3 whitespace-nowrap text-sm font-medium"
+                        >
+                          Xem trước
+                        </motion.span>
+                      )}
+                    </Button>
+
+                    {/* Action Button (Submit/Publish/Unpublish) */}
+                    {course?.status === CourseStatus.Published ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-10 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 flex items-center transition-all duration-300 ${isToolbarHovered ? "w-full justify-start px-3" : "w-10 justify-center mx-auto"
+                          }`}
+                        title="Ẩn khóa học"
+                        onClick={() => unpublishCourse({ id: courseId })}
+                        disabled={isUnpublishing}
+                      >
+                        <Lock className="h-5 w-5 shrink-0" />
+                        {isToolbarHovered && (
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="ml-3 whitespace-nowrap text-sm font-medium"
+                          >
+                            Ẩn khóa học
+                          </motion.span>
+                        )}
+                      </Button>
+                    ) : course?.status === CourseStatus.Approved ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-10 rounded-full text-gray-500 hover:text-green-600 hover:bg-green-50 flex items-center transition-all duration-300 ${isToolbarHovered ? "w-full justify-start px-3" : "w-10 justify-center mx-auto"
+                          }`}
+                        title="Công khai"
+                        onClick={() => publishCourse({ id: courseId })}
+                        disabled={isPublishing}
+                      >
+                        <Globe className="h-5 w-5 shrink-0" />
+                        {isToolbarHovered && (
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="ml-3 whitespace-nowrap text-sm font-medium"
+                          >
+                            Công khai
+                          </motion.span>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50 flex items-center transition-all duration-300 ${isToolbarHovered ? "w-full justify-start px-3" : "w-10 justify-center mx-auto"
+                          }`}
+                        title="Nộp duyệt"
+                        onClick={() => submitCourseForReview({ id: courseId })}
+                        disabled={isSubmitting || course?.status === CourseStatus.PendingApproval}
+                      >
+                        <Send className="h-5 w-5 shrink-0" />
+                        {isToolbarHovered && (
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="ml-3 whitespace-nowrap text-sm font-medium"
+                          >
+                            {course?.status === CourseStatus.PendingApproval ? "Đang chờ duyệt" : "Nộp duyệt"}
+                          </motion.span>
+                        )}
+                      </Button>
+                    )}
+
+                    {/* Help Button */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50 flex items-center transition-all duration-300 ${isToolbarHovered ? "w-full justify-start px-3" : "w-10 justify-center mx-auto"
+                        }`}
+                      title="Trợ giúp"
+                    >
+                      <HelpCircle className="h-5 w-5 shrink-0" />
+                      {isToolbarHovered && (
+                        <motion.span
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="ml-3 whitespace-nowrap text-sm font-medium"
+                        >
+                          Hướng dẫn
+                        </motion.span>
+                      )}
+                    </Button>
+                  </div>
+                </motion.div>
               </div>
             </motion.div>
           </div>

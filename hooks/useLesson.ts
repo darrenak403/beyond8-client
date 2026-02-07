@@ -32,7 +32,7 @@ type UpdateLessonRequest =
     | ({ type: LessonType.Quiz } & UpdateLessonQuizRequest);
 
 
-export function useCreateLesson() {
+export function useCreateLesson(courseId?: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async (lesson: CreateLessonRequest) => {
@@ -59,6 +59,11 @@ export function useCreateLesson() {
             queryClient.invalidateQueries({
                 queryKey: ["lessons", variables.sectionId]
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId]
+                });
+            }
             toast.success("Tạo bài học thành công!");
         },
         onError: (error: ApiError) => {
@@ -86,7 +91,7 @@ export function useGetLessonBySectionId(sectionId: string) {
     };
 }
 
-export function useUpdateLesson(sectionId: string) {
+export function useUpdateLesson(sectionId: string, courseId?: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async ({ lessonId, lessonType, data }: { lessonId: string; lessonType: LessonType; data: Partial<UpdateLessonRequest> }) => {
@@ -106,6 +111,11 @@ export function useUpdateLesson(sectionId: string) {
             queryClient.invalidateQueries({
                 queryKey: ["lessons", sectionId]
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId]
+                });
+            }
             toast.success("Cập nhật bài học thành công!");
         },
         onError: (error: ApiError) => {
@@ -154,6 +164,7 @@ export function useDeleteLesson(sectionId: string, courseId: string) {
             // Always refetch after error or success:
             queryClient.invalidateQueries({ queryKey: ["lessons", sectionId] });
             queryClient.invalidateQueries({ queryKey: ["sections", courseId] });
+            queryClient.invalidateQueries({ queryKey: ["course", "details-preview", courseId] });
         },
         onSuccess: () => {
             toast.success("Xóa bài học thành công!");
@@ -165,7 +176,7 @@ export function useDeleteLesson(sectionId: string, courseId: string) {
     };
 }
 
-export function useActivationLesson(sectionId: string) {
+export function useActivationLesson(sectionId: string, courseId?: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async ({ lessonId, request }: { lessonId: string; request: ActivalessonRequest }) => fetchLession.activationLesson(lessonId, request),
@@ -173,6 +184,11 @@ export function useActivationLesson(sectionId: string) {
             queryClient.invalidateQueries({
                 queryKey: ["lessons", sectionId]
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId]
+                });
+            }
             toast.success("Thay đổi trạng thái bài học thành công!");
         },
         onError: (error: ApiError) => {
@@ -185,7 +201,7 @@ export function useActivationLesson(sectionId: string) {
     };
 }
 
-export function useReorderLessonInSection() {
+export function useReorderLessonInSection(courseId?: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async ({ sectionId, ...request }: ReoderLessonInSectionRequest & { sectionId: string }) => {
@@ -195,6 +211,11 @@ export function useReorderLessonInSection() {
             queryClient.invalidateQueries({
                 queryKey: ["lessons", variables.sectionId]
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId]
+                });
+            }
         },
         onError: (error: ApiError) => {
             toast.error(error?.message || "Lỗi khi thay đổi vị trí bài học!");
@@ -206,7 +227,7 @@ export function useReorderLessonInSection() {
     };
 }
 
-export function useReorderLessonOtherSection() {
+export function useReorderLessonOtherSection(courseId?: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async ({ oldSectionId, ...request }: ReoderLessonOtherSectionRequest & { oldSectionId: string }) => {
@@ -219,6 +240,11 @@ export function useReorderLessonOtherSection() {
             queryClient.invalidateQueries({
                 queryKey: ["lessons", variables.newSectionId]
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId]
+                });
+            }
         },
         onError: (error: ApiError) => {
             toast.error(error?.message || "Lỗi khi thay đổi vị trí bài học!");
@@ -230,7 +256,7 @@ export function useReorderLessonOtherSection() {
     };
 }
 
-export function useCreateLessonDocument() {
+export function useCreateLessonDocument(courseId?: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async (request: CreateLessonDocumentRequest) => {
@@ -240,6 +266,11 @@ export function useCreateLessonDocument() {
             queryClient.invalidateQueries({
                 queryKey: ["lessons", variables.lessonId]
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId]
+                });
+            }
         },
         onError: (error: ApiError) => {
             toast.error(error?.message || "Lỗi khi tạo tài liệu bài học!");
@@ -266,7 +297,7 @@ export function useGetLessonDocument(lessonId: string) {
 }
 
 
-export function useUpdateLessonDocument() {
+export function useUpdateLessonDocument(courseId?: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async ({ lessonId, ...request }: UpdateLessonDocumentRequest & { lessonId: string }) => {
@@ -276,6 +307,11 @@ export function useUpdateLessonDocument() {
             queryClient.invalidateQueries({
                 queryKey: ["lesson-documents", variables.lessonId]
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId]
+                });
+            }
         },
         onError: (error: ApiError) => {
             toast.error(error?.message || "Lỗi khi cập nhật tài liệu bài học!");
@@ -287,7 +323,7 @@ export function useUpdateLessonDocument() {
     };
 }
 
-export function useDeleteLessonDocument() {
+export function useDeleteLessonDocument(courseId?: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: (id: string) => fetchLession.deleteLessonDocument(id),
@@ -295,6 +331,11 @@ export function useDeleteLessonDocument() {
             queryClient.invalidateQueries({
                 queryKey: ["lesson-documents"]
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId]
+                });
+            }
         },
         onError: (error: ApiError) => {
             toast.error(error?.message || "Lỗi khi xóa tài liệu bài học!");
@@ -306,7 +347,7 @@ export function useDeleteLessonDocument() {
     };
 }
 
-export function useToggleDownloadLessonDocument() {
+export function useToggleDownloadLessonDocument(courseId?: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: (id: string) => fetchLession.toggleDownloadLessonDocumnet(id),
@@ -314,6 +355,11 @@ export function useToggleDownloadLessonDocument() {
             queryClient.invalidateQueries({
                 queryKey: ["lesson-documents"]
             });
+            if (courseId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["course", "details-preview", courseId]
+                });
+            }
         },
         onError: (error: ApiError) => {
             toast.error(error?.message || "Lỗi khi thay đổi trạng thái tải xuống của tài liệu bài học!");

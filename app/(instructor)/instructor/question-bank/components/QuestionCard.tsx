@@ -63,7 +63,7 @@ export function QuestionCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
         onClick={handleCardClick}
-        className={`group relative overflow-hidden rounded-2xl border bg-white/80 p-6 shadow-lg backdrop-blur-xl transition-all duration-300 hover:shadow-xl dark:bg-black/80
+        className={`group relative overflow-hidden rounded-2xl border bg-white/80 p-6 shadow-lg backdrop-blur-xl transition-all duration-300 hover:shadow-xl
           ${isSelected
             ? "border-brand-magenta bg-brand-magenta/5 ring-1 ring-brand-magenta shadow-brand-magenta/10"
             : "border-brand-magenta/20 shadow-brand-magenta/5 hover:border-brand-magenta/40 hover:shadow-brand-magenta/10"
@@ -114,7 +114,7 @@ export function QuestionCard({
                     e.stopPropagation()
                     setIsDeleteDialogOpen(true)
                   }}
-                  className="rounded-full p-1.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-md dark:hover:bg-red-950/30"
+                  className="rounded-full p-1.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-md"
                   title="Xóa câu hỏi"
                 >
                   <Trash2 className="h-4 w-4" />

@@ -8,6 +8,7 @@ import { useCheckEnrollment } from '@/hooks/useEnroll'
 import VideoLesson from './components/VideoLesson'
 import LessonInfo from './components/LessonInfo'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatHls } from '@/lib/utils/formatHls'
 
 
 export default function LessonPage() {
@@ -101,53 +102,7 @@ export default function LessonPage() {
       originalUrl = lesson.videoOriginalUrl
     }
 
-    let resolvedFromHls: string | undefined
-
-    if (rawHlsVariants) {
-      try {
-        // Backend có thể trả JSON string (array/object) hoặc URL thẳng
-        const parsed = JSON.parse(rawHlsVariants)
-
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const first = parsed[0]
-          if (typeof first === 'string') {
-            resolvedFromHls = first
-          } else if (first && typeof first === 'object') {
-            const firstObj = first as Record<string, unknown>
-            const fromObject =
-              (typeof firstObj.url === 'string' && firstObj.url) ||
-              (typeof firstObj.src === 'string' && firstObj.src) ||
-              (typeof firstObj.playlistUrl === 'string' && firstObj.playlistUrl) ||
-              (typeof firstObj.hlsUrl === 'string' && firstObj.hlsUrl) ||
-              undefined
-            resolvedFromHls = fromObject
-          }
-        } else if (parsed && typeof parsed === 'object') {
-          const parsedObj = parsed as Record<string, unknown>
-          const directFromObject =
-            (typeof parsedObj.url === 'string' && parsedObj.url) ||
-            (typeof parsedObj.src === 'string' && parsedObj.src) ||
-            (typeof parsedObj.playlistUrl === 'string' && parsedObj.playlistUrl) ||
-            (typeof parsedObj.hlsUrl === 'string' && parsedObj.hlsUrl) ||
-            undefined
-
-          if (directFromObject) {
-            resolvedFromHls = directFromObject
-          } else {
-            const [firstKey] = Object.keys(parsedObj)
-            const firstVal = parsedObj[firstKey]
-            if (typeof firstVal === 'string') {
-              resolvedFromHls = firstVal
-            }
-          }
-        } else if (typeof parsed === 'string') {
-          resolvedFromHls = parsed
-        }
-      } catch {
-        // Không phải JSON → coi như URL trực tiếp
-        resolvedFromHls = rawHlsVariants
-      }
-    }
+    const resolvedFromHls = formatHls(rawHlsVariants)
 
     const final = resolvedFromHls ?? originalUrl
 
@@ -158,14 +113,16 @@ export default function LessonPage() {
 
   return (
     <div className="w-full max-w-[1450px] mx-auto p-0 lg:p-6">
-      <VideoLesson
-        title={lesson.title}
-        description={lesson.description}
-        videoUrl={videoUrl}
-        durationSeconds={
-          'durationSeconds' in lesson ? lesson.durationSeconds : null
-        }
-      />
+      {lesson.type === 'Video' && (
+        <VideoLesson
+          title={lesson.title}
+          description={lesson.description}
+          videoUrl={videoUrl}
+          durationSeconds={
+            'durationSeconds' in lesson ? lesson.durationSeconds : null
+          }
+        />
+      )}
       {mode === 'details' && courseDetails && (
         <LessonInfo
           course={courseDetails}

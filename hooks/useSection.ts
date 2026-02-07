@@ -11,6 +11,9 @@ export function useCreateSection() {
             queryClient.invalidateQueries({
                 queryKey: ["sections", variables.courseId]
             })
+            queryClient.invalidateQueries({
+                queryKey: ["course", "details-preview", variables.courseId]
+            })
             toast.success("Tạo chương mới thành công!")
         },
         onError: (error: ApiError) => {
@@ -50,6 +53,9 @@ export function useUpdateSection(courseId: string) {
             queryClient.invalidateQueries({
                 queryKey: ["sections", courseId]
             })
+            queryClient.invalidateQueries({
+                queryKey: ["course", "details-preview", courseId]
+            })
             toast.success("Cập nhật chương thành công!")
         },
         onError: (error: ApiError) => {
@@ -70,6 +76,9 @@ export function useDeleteSection(courseId: string) {
             queryClient.invalidateQueries({
                 queryKey: ["sections", courseId]
             })
+            queryClient.invalidateQueries({
+                queryKey: ["course", "details-preview", courseId]
+            })
             toast.success("Xoá chương thành công!")
         },
         onError: (error: ApiError) => {
@@ -89,6 +98,9 @@ export function useReoderSection(courseId: string) {
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ["sections", courseId]
+            })
+            queryClient.invalidateQueries({
+                queryKey: ["course", "details-preview", courseId]
             })
         },
         onError: (error: ApiError) => {
@@ -113,6 +125,9 @@ export function useActivationSection(courseId: string) {
             queryClient.invalidateQueries({
                 queryKey: ["lessons", variables.sectionId]
             })
+            queryClient.invalidateQueries({
+                queryKey: ["course", "details-preview", courseId]
+            })
             toast.success("Cập nhật trạng thái chương thành công!")
         },
         onError: (error: ApiError) => {
@@ -133,6 +148,9 @@ export function useUpdateAssignmentId(courseId: string) {
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ["sections", courseId]
+            })
+            queryClient.invalidateQueries({
+                queryKey: ["course", "details-preview", courseId]
             })
             toast.success("Cập nhật bài tập thành công!")
         },

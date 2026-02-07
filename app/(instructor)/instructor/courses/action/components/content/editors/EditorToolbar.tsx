@@ -12,11 +12,12 @@ import {
     Quote,
     Minus,
     type LucideIcon,
-    Link,
-    Unlink,
+
     WrapText,
     Undo,
     Redo,
+    Maximize,
+    Minimize,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -60,7 +61,13 @@ const ToolbarButton = ({
     </TooltipProvider>
 );
 
-export function EditorToolbar() {
+export function EditorToolbar({
+    isFullScreen,
+    onToggleFullScreen
+}: {
+    isFullScreen?: boolean;
+    onToggleFullScreen?: () => void;
+}) {
     const { editor } = useToolbar();
 
     if (!editor) {
@@ -153,6 +160,18 @@ export function EditorToolbar() {
                 icon={WrapText}
                 label="Ngắt dòng"
             />
+
+            {onToggleFullScreen && (
+                <>
+                    <Separator orientation="vertical" className="mx-1 h-6 bg-gray-200" />
+                    <ToolbarButton
+                        onClick={onToggleFullScreen}
+                        isActive={isFullScreen}
+                        icon={isFullScreen ? Minimize : Maximize}
+                        label={isFullScreen ? "Thu nhỏ" : "Toàn màn hình"}
+                    />
+                </>
+            )}
         </div>
     );
 }

@@ -1,12 +1,12 @@
 "use client";
 
-import { useGetCourseDetailsPreview } from "@/hooks/useCourse";
+import { useGetCourseDetailsPreview, useApproveCourse, useRejectCourse } from "@/hooks/useCourse";
 import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle,
-    SheetClose, // Added SheetClose
+    SheetClose,
 } from "@/components/ui/sheet";
 import CourseDetail from "@/app/courses/[slug]/[courseId]/components/CourseDetail";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,12 +15,13 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import VideoLesson from "@/app/courses/[slug]/[courseId]/(learning)/[sectionId]/[lessonId]/components/VideoLesson";
 import LessonInfo from "@/app/courses/[slug]/[courseId]/(learning)/[sectionId]/[lessonId]/components/LessonInfo";
-import { ArrowLeft, X } from "lucide-react"; // Added X
+import { ArrowLeft, X, CheckCircle2, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SectionDetail, LessonType } from "@/lib/api/services/fetchCourse";
+import { SectionDetail, LessonType, CourseStatus } from "@/lib/api/services/fetchCourse";
 import LessonSidebar from "@/components/ui/lesson-sidebar";
 import { formatHls } from "@/lib/utils/formatHls";
 import { Lesson } from "@/lib/api/services/fetchLesson";
+
 interface CoursePreviewDialogProps {
     courseId: string;
     open: boolean;
@@ -30,19 +31,24 @@ interface CoursePreviewDialogProps {
         avatar?: string;
         bio?: string;
     }
+    isAdmin?: boolean; // New prop for Admin Mode
 }
 
 export function CoursePreviewDialog({
     courseId,
     open,
     onOpenChange,
-    instructor
+    instructor,
+    isAdmin = false
 }: CoursePreviewDialogProps) {
     const {
         courseDetailsPreview,
         isLoading,
         isError,
     } = useGetCourseDetailsPreview(courseId);
+
+    const { approveCourse, isPending: isApproving } = useApproveCourse()
+    const { rejectCourse, isPending: isRejecting } = useRejectCourse()
 
     const [selectedLesson, setSelectedLesson] = useState<{ sectionId: string, lessonId: string } | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -70,6 +76,20 @@ export function CoursePreviewDialog({
         }
     }, [selectedLesson]);
 
+    const handleApprove = async () => {
+        if (!courseId) return;
+        await approveCourse({ id: courseId });
+        onOpenChange(false);
+    }
+
+    const handleReject = async () => {
+        if (!courseId) return;
+        await rejectCourse({ id: courseId });
+        onOpenChange(false);
+    }
+
+    const isPendingStatus = courseDetailsPreview?.status === CourseStatus.PendingApproval;
+
     return (
         <Sheet open={open} onOpenChange={(val) => {
             onOpenChange(val);
@@ -94,7 +114,33 @@ export function CoursePreviewDialog({
                                     <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại khóa học
                                 </Button>
                             ) : (
-                                <SheetTitle>Xem trước khóa học</SheetTitle>
+                                <div className="flex items-center gap-4">
+                                    <SheetTitle>Xem trước khóa học</SheetTitle>
+                                    {/* Admin Actions in Header */}
+                                    {isAdmin && isPendingStatus && !isLoading && courseDetailsPreview && (
+                                        <div className="flex items-center gap-2 ml-4">
+                                            <Button
+                                                size="sm"
+                                                className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                                                onClick={handleApprove}
+                                                disabled={isApproving || isRejecting}
+                                            >
+                                                {isApproving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                                                Duyệt ngay
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="destructive"
+                                                className="h-8 gap-2"
+                                                onClick={handleReject}
+                                                disabled={isApproving || isRejecting}
+                                            >
+                                                {isRejecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                                Từ chối
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
                     </SheetHeader>

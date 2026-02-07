@@ -11,48 +11,160 @@ import CourseToolbar from './components/CourseToolbar'
 import CoursePagination from './components/CoursePagination'
 
 import { useIsMobile } from '@/hooks/useMobile'
-import { Course, CourseStatus, CourseLevel } from '@/lib/api/services/fetchCourse'
-import { useGetCourseByInstructor } from '@/hooks/useCourse'
+import { CourseStatus, CourseLevel } from '@/lib/api/services/fetchCourse'
+import { useGetCoursesForAdmin } from '@/hooks/useCourse'
+import { CoursePreviewDialog } from '@/components/widget/CoursePreviewDialog'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useDebounce } from '@/hooks/useDebounce'
 
-const ITEMS_PER_PAGE = 12
+const ITEMS_PER_PAGE = 10
 
 export default function CourseManagementPage() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
+
+  // Parse URL Params
+  const pageNumber = Number(searchParams.get('pageNumber') || '1')
+  const pageSize = Number(searchParams.get('pageSize') || ITEMS_PER_PAGE.toString())
+  const statusFilter = (searchParams.get('status') as CourseStatus | 'ALL') || 'ALL'
+  const isDescending = searchParams.get('isDescending')
+  const isDescendingPrice = searchParams.get('isDescendingPrice')
+  const level = (searchParams.get('level') as CourseLevel) || CourseLevel.All
+  const searchQuery = searchParams.get('search') || ''
+
+  // Derive sortConfig string for UI
+  let sortConfig = 'newest'
+  if (isDescendingPrice === 'true') sortConfig = 'price-desc'
+  else if (isDescendingPrice === 'false') sortConfig = 'price-asc'
+  else if (isDescending === 'false') sortConfig = 'oldest'
+  // Default is 'newest' (isDescending=true)
+
+  // Debounce search query to prevent excessive URL updates 
+  // We need local state for input to allow typing, then sync to URL on debounce
+  const [localSearch, setLocalSearch] = useState(searchQuery)
+  const debouncedSearch = useDebounce(localSearch, 500)
+
+  // Sync debounced search to URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (debouncedSearch !== searchQuery) {
+      if (debouncedSearch) {
+        params.set('search', debouncedSearch)
+      } else {
+        params.delete('search')
+      }
+      params.set('pageNumber', '1') // Reset to page 1 on search
+      router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    }
+  }, [debouncedSearch, searchQuery, pathname, router, searchParams])
+
+  // Ensure default params exist in URL (Matching Instructor Page pattern)
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    let hasChanged = false
+
+    if (!searchParams.has('pageNumber')) {
+      params.set('pageNumber', '1')
+      hasChanged = true
+    }
+    if (!searchParams.has('pageSize')) {
+      params.set('pageSize', ITEMS_PER_PAGE.toString())
+      hasChanged = true
+    }
+    if (!searchParams.has('status')) {
+      params.set('status', 'ALL')
+      hasChanged = true
+    }
+    if (!searchParams.has('level')) {
+      params.set('level', 'All')
+      hasChanged = true
+    }
+    // Default sort: isDescending=true, isDescendingPrice undefined
+    if (!searchParams.has('isDescending') && !searchParams.has('isDescendingPrice')) {
+      params.set('isDescending', 'true')
+      hasChanged = true
+    }
+
+    if (hasChanged) {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    }
+  }, [searchParams, pathname, router])
+
+
+  // Handlers for Toolbar
+  const handleStatusChange = (status: CourseStatus | 'ALL') => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('status', status)
+    params.set('pageNumber', '1') // Reset to page 1
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
+  const handleSortChange = (sort: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    // Reset all sort params first
+    params.delete('isDescending')
+    params.delete('isDescendingPrice')
+
+    if (sort === 'price-desc') {
+      params.set('isDescendingPrice', 'true')
+    } else if (sort === 'price-asc') {
+      params.set('isDescendingPrice', 'false')
+    } else if (sort === 'oldest') {
+      params.set('isDescending', 'false')
+    } else {
+      // newest
+      params.set('isDescending', 'true')
+    }
+
+    params.set('pageNumber', '1') // Reset to page 1
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
+
+  const handleRefresh = () => {
+    refetch()
+  }
 
   // Fetch courses with pagination
-  const { 
-    courses, 
-    isLoading, 
-    isError, 
+  const {
+    courses,
+    isLoading,
+    isError,
     refetch,
-    totalPages: serverTotalPages,
-    count
-  } = useGetCourseByInstructor({
-    pageNumber: currentPage,
-    pageSize: ITEMS_PER_PAGE,
-    level: CourseLevel.All
+  } = useGetCoursesForAdmin({
+    keyword: searchQuery || undefined,
+    status: statusFilter === 'ALL' ? undefined : statusFilter as CourseStatus,
+    level: level,
+    pageNumber: pageNumber,
+    pageSize: pageSize,
+    isDescending: isDescending === 'true',
+    // Handle isDescendingPrice logic for API
+    isDescendingPrice: isDescendingPrice === 'true' ? true : isDescendingPrice === 'false' ? false : undefined
   })
- 
+
   const isMobile = useIsMobile()
-
-  // Force grid view on mobile by deriving the actual view mode
   const actualViewMode = isMobile ? 'grid' : viewMode
+  const allCourses = courses || []
+  const totalItems = allCourses.length // Note: API might need to return total count for correct pagination
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1
+  const currentCourses = allCourses
 
-  // Filter courses based on search (client-side filtering)
-  const filteredCourses = searchQuery
-    ? courses.filter(course =>
-        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.instructorName.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : courses
+  const [previewCourseId, setPreviewCourseId] = useState<string | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
-  // Use filtered courses for display
-  const currentCourses = filteredCourses
-  const totalPages = searchQuery 
-    ? Math.ceil(filteredCourses.length / ITEMS_PER_PAGE)
-    : serverTotalPages
+  const handlePreview = (courseId: string) => {
+    setPreviewCourseId(courseId)
+    setIsPreviewOpen(true)
+  }
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('pageNumber', page.toString())
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
 
   return (
     <div className="flex flex-col h-full p-2 space-y-4">
@@ -69,12 +181,16 @@ export default function CourseManagementPage() {
       <CourseToolbar
         viewMode={actualViewMode}
         setViewMode={setViewMode}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        totalCount={count}
+        searchQuery={localSearch}
+        setSearchQuery={setLocalSearch}
+        totalCount={totalItems}
         isMobile={isMobile}
-        onRefresh={refetch}
+        onRefresh={handleRefresh}
         isLoading={isLoading}
+        statusFilter={statusFilter}
+        setStatusFilter={handleStatusChange}
+        sortBy={sortConfig}
+        setSortBy={handleSortChange}
       />
 
       {/* Content */}
@@ -101,24 +217,47 @@ export default function CourseManagementPage() {
               // Render Courses
               currentCourses.map((course) => (
                 actualViewMode === 'grid' ? (
-                  <CourseGridItem key={course.id} course={course} />
+                  <CourseGridItem
+                    key={course.id}
+                    course={course}
+                    onPreview={() => handlePreview(course.id)}
+                  />
                 ) : (
-                  <CourseListItem key={course.id} course={course} />
+                  <CourseListItem
+                    key={course.id}
+                    course={course}
+                    onPreview={() => handlePreview(course.id)}
+                  />
                 )
               ))
+            )}
+            {!isLoading && currentCourses.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-500">
+                <p>Không tìm thấy khóa học nào phù hợp.</p>
+              </div>
             )}
           </div>
         )}
       </div>
 
       {/* Pagination */}
-      {!isLoading && !isError && filteredCourses.length > 0 && (
+      {!isLoading && !isError && totalItems > 0 && (
         <CoursePagination
-          currentPage={currentPage}
+          currentPage={pageNumber}
           totalPages={totalPages}
           pageSize={ITEMS_PER_PAGE}
-          totalItems={filteredCourses.length}
-          onPageChange={setCurrentPage}
+          totalItems={totalItems}
+          onPageChange={handlePageChange}
+        />
+      )}
+
+      {/* Preview Dialog */}
+      {previewCourseId && (
+        <CoursePreviewDialog
+          courseId={previewCourseId}
+          open={isPreviewOpen}
+          onOpenChange={setIsPreviewOpen}
+          isAdmin={true}
         />
       )}
     </div>

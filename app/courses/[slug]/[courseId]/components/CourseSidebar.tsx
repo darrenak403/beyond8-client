@@ -87,7 +87,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   }
 
   return (
-    <Card className="sticky top-24 overflow-hidden border-brand-magenta/20 shadow-xl shadow-brand-magenta/5 backdrop-blur-xl bg-white/80 dark:bg-black/80">
+    <Card className="sticky top-24 overflow-hidden border-brand-magenta/20 shadow-xl shadow-brand-magenta/5 backdrop-blur-xl bg-white/80">
       <div className="h-2 bg-gradient-to-r from-brand-pink via-brand-magenta to-brand-purple" />
       <CardContent className="p-6 space-y-6">
         {/* Price Section */}
@@ -103,7 +103,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
             </div>
           )}
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-slate-900 dark:text-white">
+            <span className="text-4xl font-bold text-slate-900">
               {formatCurrency(finalPrice)}
             </span>
             {hasDiscount && (
@@ -113,7 +113,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
             )}
           </div>
           {hasDiscount && course.discountEndsAt && remainingDiscountDays > 0 && (
-            <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 border border-red-100 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300">
+            <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 border border-red-100">
               <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
               <span>
                 Chỉ còn{' '}
@@ -199,7 +199,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
 
         {/* Course Features */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-brand-dark dark:text-white">Khóa học bao gồm:</h3>
+          <h3 className="font-semibold text-brand-dark">Khóa học bao gồm:</h3>
           <ul className="space-y-3 text-sm text-muted-foreground">
             <li className="flex items-center gap-3">
               <MonitorPlay className="w-5 h-5 text-brand-purple" />

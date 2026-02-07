@@ -123,7 +123,7 @@ export function CreateQuizDialog({
                 questionIds, // From Step 2
                 timeLimitMinutes: timeLimit,
                 passScorePercent: passScore,
-                totalPoints: Array.from(selectedItems.values()).reduce((sum, q) => sum + q.points, 0),
+                totalPoints: 10,
                 maxAttempts,
                 shuffleQuestions: shuffle,
                 allowReview,

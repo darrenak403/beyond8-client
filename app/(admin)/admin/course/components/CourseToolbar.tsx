@@ -17,6 +17,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu'
+import { CourseStatus } from '@/lib/api/services/fetchCourse'
 
 interface CourseToolbarProps {
     viewMode: 'grid' | 'list'
@@ -27,6 +36,10 @@ interface CourseToolbarProps {
     isMobile: boolean
     onRefresh: () => void
     isLoading: boolean
+    statusFilter: CourseStatus | 'ALL'
+    setStatusFilter: (status: CourseStatus | 'ALL') => void
+    sortBy: string
+    setSortBy: (sort: string) => void
 }
 
 export default function CourseToolbar({
@@ -37,7 +50,11 @@ export default function CourseToolbar({
     totalCount,
     isMobile,
     onRefresh,
-    isLoading
+    isLoading,
+    statusFilter,
+    setStatusFilter,
+    sortBy,
+    setSortBy
 }: CourseToolbarProps) {
     return (
         <div className="flex items-center gap-4">
@@ -52,11 +69,53 @@ export default function CourseToolbar({
                 />
             </div>
 
-            {/* Filter Button */}
-            <Button variant="outline" className="h-9 px-4 gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-full shadow-sm">
-                <SlidersHorizontal className="w-4 h-4" />
-                Bộ lọc
-            </Button>
+            {/* Filter Button with Dropdown */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="h-9 px-4 gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-full shadow-sm">
+                        <SlidersHorizontal className="w-4 h-4" />
+                        Bộ lọc
+                        {statusFilter !== 'ALL' && (
+                            <span className="flex h-2 w-2 rounded-full bg-primary" />
+                        )}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Trạng thái khóa học</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem
+                        checked={statusFilter === 'ALL'}
+                        onCheckedChange={() => setStatusFilter('ALL')}
+                    >
+                        Tất cả
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                        checked={statusFilter === CourseStatus.PendingApproval}
+                        onCheckedChange={() => setStatusFilter(CourseStatus.PendingApproval)}
+                    >
+                        Chờ duyệt
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                        checked={statusFilter === CourseStatus.Published}
+                        onCheckedChange={() => setStatusFilter(CourseStatus.Published)}
+                    >
+                        Đã xuất bản
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                        checked={statusFilter === CourseStatus.Rejected}
+                        onCheckedChange={() => setStatusFilter(CourseStatus.Rejected)}
+                    >
+                        Đã từ chối
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                        checked={statusFilter === CourseStatus.Draft}
+                        onCheckedChange={() => setStatusFilter(CourseStatus.Draft)}
+                    >
+                        Nháp
+                    </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
 
             {/* View Toggle */}
             {!isMobile && (
@@ -107,12 +166,13 @@ export default function CourseToolbar({
             </div>
 
             {/* Sort */}
-            <Select defaultValue="newest">
-                <SelectTrigger className="w-[150px] h-9 bg-white border-slate-200 rounded-full shadow-sm">
+            <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[180px] h-9 bg-white border-slate-200 rounded-full shadow-sm">
                     <SelectValue placeholder="Sắp xếp" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="newest">Ngày tạo</SelectItem>
+                    <SelectItem value="newest">Mới nhất</SelectItem>
+                    <SelectItem value="oldest">Cũ nhất</SelectItem>
                     <SelectItem value="price-asc">Giá tăng dần</SelectItem>
                     <SelectItem value="price-desc">Giá giảm dần</SelectItem>
                 </SelectContent>

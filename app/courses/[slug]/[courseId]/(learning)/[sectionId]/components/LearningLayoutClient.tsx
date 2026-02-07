@@ -43,7 +43,7 @@ export default function LearningLayoutClient({ course, isEnrolled, params: initi
     <div className="flex h-screen w-full bg-[#0a0a0f] text-white overflow-hidden font-sans">
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
-        <LessonHeader 
+        <LessonHeader
           course={course as CourseDetail}
           params={initialParams}
           isSidebarOpen={isSidebarOpen}
@@ -56,7 +56,7 @@ export default function LearningLayoutClient({ course, isEnrolled, params: initi
         </div>
       </div>
 
-      <LessonSidebar 
+      <LessonSidebar
         course={course as CourseDetail}
         slug={initialParams.slug}
         courseId={initialParams.courseId}

@@ -109,7 +109,7 @@ export interface CourseParams {
     pageNumber?: number
     pageSize?: number
     isDescending?: boolean
-    sortBy?: string
+    isDescendingPrice?: boolean
 }
 
 export interface PublicCourseParams {
@@ -335,8 +335,8 @@ const convertParamsToQuery = (params?: CourseParams): RequestParams => {
     if (params.isRandom) query.isRandom = params.isRandom;
     if (params.pageNumber) query.pageNumber = params.pageNumber;
     if (params.pageSize) query.pageSize = params.pageSize;
-    if (params.isDescending) query.isDescending = params.isDescending;
-    if (params.sortBy) query.sortBy = params.sortBy;
+    if (params.isDescending !== undefined) query.isDescending = params.isDescending;
+    if (params.isDescendingPrice !== undefined) query.isDescendingPrice = params.isDescendingPrice;
     return query;
 }
 
@@ -443,6 +443,43 @@ export const fetchCourse = {
 
     toggleDownloadCourseDocument: async (id: string): Promise<CourseDocumentResponse> => {
         const response = await apiService.patch<CourseDocumentResponse>(`api/v1/course-documents/${id}/toggle-downloadable`);
+        return response.data;
+    },
+
+    //Nộp duyệt khóa học
+    submitCourseForReview: async (id: string): Promise<CourseResponse> => {
+        const response = await apiService.post<CourseResponse>(`api/v1/courses/${id}/submit-approval`);
+        return response.data;
+    },
+
+    //Phê duyệt khóa học
+    approveCourse: async (id: string, notes: string | null): Promise<CourseResponse> => {
+        const response = await apiService.post<CourseResponse>(`api/v1/courses/${id}/approve`, { notes });
+        return response.data;
+    },
+
+    //Từ chối khóa học
+    rejectCourse: async (id: string, reason: string): Promise<CourseResponse> => {
+        const response = await apiService.post<CourseResponse>(`api/v1/courses/${id}/reject`, { reason });
+        return response.data;
+    },
+
+    //Công bố khóa học
+    publishCourse: async (id: string): Promise<CourseResponse> => {
+        const response = await apiService.post<CourseResponse>(`api/v1/courses/${id}/publish`);
+        return response.data;
+    },
+
+    //Ẩn khóa học
+    unpublishCourse: async (id: string): Promise<CourseResponse> => {
+        const response = await apiService.post<CourseResponse>(`api/v1/courses/${id}/unpublish`);
+        return response.data;
+    },
+
+    //Lấy danh sách khóa học cho admin
+    getCoursesForAdmin: async (filterParams?: CourseParams): Promise<CourseResponse> => {
+        const params = convertParamsToQuery(filterParams);
+        const response = await apiService.get<CourseResponse>(`api/v1/courses/admin`, params);
         return response.data;
     },
 
