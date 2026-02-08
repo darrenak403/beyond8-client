@@ -8,15 +8,19 @@ import {
   PlayButton,
   FullscreenButton,
   Controls,
-  useMediaState
+  useMediaState,
+  Menu,
+  useVideoQualityOptions
 } from '@vidstack/react'
 import type { MediaPlayerInstance } from '@vidstack/react'
 import '@vidstack/react/player/styles/base.css'
-import { 
-  Play, 
-  Pause, 
-  Maximize, 
-  Minimize, 
+import {
+  Play,
+  Pause,
+  Maximize,
+  Minimize,
+  Monitor,
+  MonitorX,
 } from 'lucide-react'
 
 // Custom Play Button Component with Animation
@@ -24,11 +28,11 @@ function CustomPlayButton() {
   const isPaused = useMediaState('paused')
   return (
     <PlayButton className="group relative flex items-center justify-center p-2 outline-none ring-inset ring-brand-purple focus-visible:ring-4 rounded-md">
-       {isPaused ? (
-          <Play className="w-8 h-8 fill-white text-white transition-transform group-hover:scale-110" />
-       ) : (
-          <Pause className="w-8 h-8 fill-white text-white transition-transform group-hover:scale-110" />
-       )}
+      {isPaused ? (
+        <Play className="w-8 h-8 fill-white text-white transition-transform group-hover:scale-110" />
+      ) : (
+        <Pause className="w-8 h-8 fill-white text-white transition-transform group-hover:scale-110" />
+      )}
     </PlayButton>
   )
 }
@@ -37,15 +41,15 @@ function CustomPlayButton() {
 function CenterPlayButton() {
   const isPaused = useMediaState('paused')
   const hasStarted = useMediaState('started')
-  
+
   if (!isPaused && hasStarted) return null;
 
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
       <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 shadow-[0_0_30px_rgba(168,85,247,0.4)] animate-in fade-in zoom-in duration-300 pointer-events-auto cursor-pointer hover:scale-110 transition-transform hover:bg-white/20">
-         <PlayButton className="w-full h-full flex items-center justify-center">
-            <Play className="w-8 h-8 fill-white text-white ml-1" />
-         </PlayButton>
+        <PlayButton className="w-full h-full flex items-center justify-center">
+          <Play className="w-8 h-8 fill-white text-white ml-1" />
+        </PlayButton>
       </div>
     </div>
   )
@@ -54,30 +58,88 @@ function CenterPlayButton() {
 function CustomFullscreenButton() {
   const isFullscreen = useMediaState('fullscreen')
   return (
-     <FullscreenButton className="group p-2 hover:bg-white/10 rounded-md transition-colors">
-        {isFullscreen ? (
-           <Minimize className="w-5 h-5 text-white/90 group-hover:text-white" />
-        ) : (
-           <Maximize className="w-5 h-5 text-white/90 group-hover:text-white" />
-        )}
-     </FullscreenButton>
+    <FullscreenButton className="group p-2 hover:bg-white/10 rounded-md transition-colors">
+      {isFullscreen ? (
+        <Minimize className="w-5 h-5 text-white/90 group-hover:text-white" />
+      ) : (
+        <Maximize className="w-5 h-5 text-white/90 group-hover:text-white" />
+      )}
+    </FullscreenButton>
   )
 }
+
+// Focus Mode Button Component
+function FocusModeButton({ isFocusMode, onToggle }: { isFocusMode: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className="group p-2 hover:bg-white/10 rounded-md transition-colors"
+      title={isFocusMode ? "Thoát chế độ tập trung" : "Chế độ tập trung"}
+    >
+      {isFocusMode ? (
+        <MonitorX className="w-5 h-5 text-white/90 group-hover:text-white" />
+      ) : (
+        <Monitor className="w-5 h-5 text-white/90 group-hover:text-white" />
+      )}
+    </button>
+  )
+}
+
+// Video Quality Menu Component
+function VideoQualitySubmenu() {
+  const options = useVideoQualityOptions({ auto: true, sort: 'descending' })
+  const currentQualityHeight = options.selectedQuality?.height
+  const hint =
+    options.selectedValue !== 'auto' && currentQualityHeight
+      ? `${currentQualityHeight}p`
+      : `Auto${currentQualityHeight ? ` (${currentQualityHeight}p)` : ''}`
+
+  return (
+    <Menu.Root>
+      <Menu.Button
+        disabled={options.disabled}
+        className="group px-3 py-2 hover:bg-white/10 rounded-md transition-colors text-white/90 hover:text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {hint}
+      </Menu.Button>
+      <Menu.Content
+        className="bg-black/95 backdrop-blur-md rounded-lg border border-white/10 shadow-2xl p-2 min-w-[120px]"
+        placement="top"
+        offset={12}
+      >
+        <Menu.RadioGroup value={options.selectedValue} className="space-y-1">
+          {options.map(({ label, value, bitrateText, select }) => (
+            <Menu.Radio
+              value={value}
+              onSelect={select}
+              key={value}
+              className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-[checked]:bg-brand-purple/20 data-[checked]:text-brand-purple"
+            >
+              <span>{label}</span>
+              {bitrateText && <span className="text-xs text-white/50 ml-2">{bitrateText}</span>}
+            </Menu.Radio>
+          ))}
+        </Menu.RadioGroup>
+      </Menu.Content>
+    </Menu.Root>
+  )
+}
+
 
 // Time Display Component
 function TimeDisplay({ durationSeconds }: { durationSeconds?: number | null }) {
   const currentTime = useMediaState('currentTime')
   const duration = useMediaState('duration')
-  
+
   const finalDuration = duration || (durationSeconds || 0)
-  
+
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return '0:00'
     const mins = Math.floor(seconds / 60)
     const secs = Math.floor(seconds % 60)
     return `${mins}:${String(secs).padStart(2, '0')}`
   }
-  
+
   return (
     <div className="flex items-center gap-1 text-white text-xs font-medium">
       <span>{formatTime(currentTime)}</span>
@@ -96,6 +158,7 @@ interface VideoLessonProps {
 
 export default function VideoLesson({ title, description, videoUrl, durationSeconds }: VideoLessonProps) {
   const [isMounted, setIsMounted] = useState(false)
+  const [isFocusMode, setIsFocusMode] = useState(false)
   const playerRef = React.useRef<MediaPlayerInstance>(null)
 
   useEffect(() => {
@@ -130,6 +193,27 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
     }
   }, [durationSeconds, videoUrl])
 
+  // Handle ESC key to exit focus mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFocusMode) {
+        setIsFocusMode(false)
+      }
+    }
+
+    if (isFocusMode) {
+      document.addEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [isFocusMode])
+
   if (!isMounted) {
     return (
       <div className="w-full aspect-video bg-gray-900 animate-pulse rounded-2xl flex items-center justify-center">
@@ -151,34 +235,124 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
   }
 
   return (
-    <div className="w-full mb-8 group relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-black aspect-video">
-      <MediaPlayer 
-        key={finalUrl}
-        ref={playerRef}
-        title={title}
-        src={finalUrl}
-        playsInline
-        aspectRatio="16/9"
-        load="eager"
-        className="w-full h-full"
-      >
-        <MediaProvider />
-        
-        {/* Center Play Button Overlay */}
-        <CenterPlayButton />
+    <>
+      {/* Focus Mode Overlay */}
+      {isFocusMode && (
+        <div
+          className="fixed inset-0 bg-black/95 z-[9998] flex items-center justify-center p-4 animate-in fade-in duration-300"
+          onClick={() => setIsFocusMode(false)}
+        >
+          <div
+            className="w-full max-w-7xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Video Player in Focus Mode */}
+            <div className="w-full group relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-black aspect-video">
+              <MediaPlayer
+                key={finalUrl}
+                ref={playerRef}
+                title={title}
+                src={finalUrl}
+                playsInline
+                aspectRatio="16/9"
+                load="eager"
+                className="w-full h-full"
+              >
+                <MediaProvider />
 
-        {/* Pro Max Controls Overlay */}
-        <Controls.Root className="absolute inset-0 z-30 flex flex-col justify-end bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 data-[visible]:opacity-100 pointer-events-none">
-           
-           <div className="p-4 md:p-6 w-full space-y-4 pointer-events-auto">
-              
+                {/* Center Play Button Overlay */}
+                <CenterPlayButton />
+
+                {/* Pro Max Controls Overlay */}
+                <Controls.Root className="absolute inset-0 z-30 flex flex-col justify-end bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 data-[visible]:opacity-100 pointer-events-none">
+
+                  <div className="p-4 md:p-6 w-full space-y-4 pointer-events-auto">
+
+                    {/* Progress Bar (TimeSlider) */}
+                    <div className="flex items-center gap-3">
+                      <TimeSlider.Root className="group/slider relative flex items-center select-none touch-none w-full h-4 cursor-pointer">
+                        <TimeSlider.Track className="relative bg-white/20 rounded-full w-full h-1 group-hover/slider:h-2 transition-all duration-300 overflow-hidden">
+                          {/* Đoạn đã xem */}
+                          <TimeSlider.TrackFill
+                            className="bg-primary absolute left-0 top-0 h-full rounded-full"
+                            style={{ width: 'var(--slider-fill)' }}
+                          />
+                          {/* Đoạn đã buffer */}
+                          <TimeSlider.Progress
+                            className="bg-white/30 absolute left-0 top-0 h-full rounded-full"
+                            style={{ width: 'var(--slider-progress)' }}
+                          />
+                        </TimeSlider.Track>
+                        <TimeSlider.Thumb
+                          className="absolute top-1/2 w-4 h-4 bg-white rounded-full shadow-lg ring-2 ring-brand-purple opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200 pointer-events-none"
+                          style={{ left: 'var(--slider-fill)', transform: 'translate(-50%, -50%)' }}
+                        />
+                        {/* Preview implementation would go here if thumbnails available */}
+                      </TimeSlider.Root>
+                      <TimeDisplay durationSeconds={durationSeconds} />
+                    </div>
+
+                    {/* Bottom Bar: Play | Volume | Spacer | Title | Settings | Fullscreen */}
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <CustomPlayButton />
+
+                        <div className="hidden md:block">
+                          <h3 className="text-white text-sm font-medium line-clamp-1 max-w-[200px]">
+                            {description || title}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <VideoQualitySubmenu />
+
+                        <FocusModeButton
+                          isFocusMode={isFocusMode}
+                          onToggle={() => setIsFocusMode(!isFocusMode)}
+                        />
+
+                        <CustomFullscreenButton />
+                      </div>
+                    </div>
+                  </div>
+
+                </Controls.Root>
+              </MediaPlayer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Normal Video Player */}
+      <div className="w-full mb-8 group relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-black aspect-video">
+        <MediaPlayer
+          key={finalUrl}
+          ref={playerRef}
+          title={title}
+          src={finalUrl}
+          playsInline
+          aspectRatio="16/9"
+          load="eager"
+          className="w-full h-full"
+        >
+          <MediaProvider />
+
+          {/* Center Play Button Overlay */}
+          <CenterPlayButton />
+
+          {/* Pro Max Controls Overlay */}
+          <Controls.Root className="absolute inset-0 z-30 flex flex-col justify-end bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 data-[visible]:opacity-100 pointer-events-none">
+
+            <div className="p-4 md:p-6 w-full space-y-4 pointer-events-auto">
+
               {/* Progress Bar (TimeSlider) */}
               <div className="flex items-center gap-3">
                 <TimeSlider.Root className="group/slider relative flex items-center select-none touch-none w-full h-4 cursor-pointer">
                   <TimeSlider.Track className="relative bg-white/20 rounded-full w-full h-1 group-hover/slider:h-2 transition-all duration-300 overflow-hidden">
                     {/* Đoạn đã xem */}
                     <TimeSlider.TrackFill
-                      className="bg-brand-gradient absolute left-0 top-0 h-full rounded-full"
+                      className="bg-primary absolute left-0 top-0 h-full rounded-full"
                       style={{ width: 'var(--slider-fill)' }}
                     />
                     {/* Đoạn đã buffer */}
@@ -198,25 +372,32 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
 
               {/* Bottom Bar: Play | Volume | Spacer | Title | Settings | Fullscreen */}
               <div className="flex items-center justify-between gap-4">
-                 <div className="flex items-center gap-4">
-                    <CustomPlayButton />
+                <div className="flex items-center gap-4">
+                  <CustomPlayButton />
 
-                    <div className="hidden md:block">
-                        <h3 className="text-white text-sm font-medium line-clamp-1 max-w-[200px]">
-                          {description || title}
-                        </h3>
-                    </div>
-                 </div>
+                  <div className="hidden md:block">
+                    <h3 className="text-white text-sm font-medium line-clamp-1 max-w-[200px]">
+                      {description || title}
+                    </h3>
+                  </div>
+                </div>
 
-                 <div className="flex items-center gap-2">
-                    
-                    <CustomFullscreenButton />
-                 </div>
+                <div className="flex items-center gap-2">
+                  <VideoQualitySubmenu />
+
+                  <FocusModeButton
+                    isFocusMode={isFocusMode}
+                    onToggle={() => setIsFocusMode(!isFocusMode)}
+                  />
+
+                  <CustomFullscreenButton />
+                </div>
               </div>
-           </div>
+            </div>
 
-        </Controls.Root>
-      </MediaPlayer>
-    </div>
+          </Controls.Root>
+        </MediaPlayer>
+      </div>
+    </>
   )
 }

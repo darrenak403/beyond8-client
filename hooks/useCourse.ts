@@ -221,7 +221,7 @@ export function useGetCourseDetails(
   const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>({
     queryKey: ["course", "details", id],
     queryFn: () => fetchCourse.getCourseDetails(id),
-    select: (data) => data.data,
+    select: (data: CourseDetailResponse) => data.data,
     // Cho phép truyền enabled từ ngoài để kiểm soát khi nào được phép fetch details
     enabled: options?.enabled ?? !!id,
   });
@@ -372,7 +372,7 @@ export function useGetCourseDetailsPreview(id: string) {
   const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>({
     queryKey: ["course", "details-preview", id],
     queryFn: () => fetchCourse.getCourseDetailsPreview(id),
-    select: (data) => data.data,
+    select: (data: CourseDetailResponse) => data.data,
     enabled: !!id,
   });
 
@@ -388,11 +388,11 @@ export function useGetCoursesForAdmin(filterParams?: CourseParams) {
   const { data, isLoading, isError, refetch } = useQuery<CourseResponse, Error, Course[]>({
     queryKey: ["course", "admin", filterParams],
     queryFn: () => fetchCourse.getCoursesForAdmin(filterParams),
-    select: (data) => data.data,
+    select: (data: CourseResponse) => data.data,
   });
 
   return {
-    courses: data,
+    courses: data ?? [],
     isLoading,
     isError,
     refetch,

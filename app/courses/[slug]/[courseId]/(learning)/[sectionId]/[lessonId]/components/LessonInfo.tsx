@@ -5,7 +5,7 @@ import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CourseDetail, LessonDetail } from '@/lib/api/services/fetchCourse'
+import { CourseDetail } from '@/lib/api/services/fetchCourse'
 import { Lesson, LessonType } from '@/lib/api/services/fetchLesson'
 import { useGetQuizById } from '@/hooks/useQuiz'
 import { useGetLessonDocument } from '@/hooks/useLesson'
@@ -15,10 +15,11 @@ import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
+import { LessonSummary } from '@/lib/api/services/fetchCourse'
 
 interface LessonInfoProps {
   course: CourseDetail
-  currentLesson: Lesson | LessonDetail
+  currentLesson: Lesson | LessonSummary
   slug: string
   courseId: string
   onNavigate?: (sectionId: string, lessonId: string) => void

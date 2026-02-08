@@ -41,7 +41,6 @@ interface CreateAssignmentDialogProps {
     courseId: string
     sectionId: string
     sectionTitle: string
-    onConfirm: (assignmentId: string) => void
 }
 
 export function CreateAssignmentDialog({
@@ -49,10 +48,9 @@ export function CreateAssignmentDialog({
     onOpenChange,
     courseId,
     sectionId,
-    sectionTitle,
-    onConfirm
+    sectionTitle
 }: CreateAssignmentDialogProps) {
-    const { createAssignmentAsync, isPending } = useCreateAssignment(sectionId)
+    const { createAssignmentAsync, isPending } = useCreateAssignment(courseId)
 
     // Form state
     const [title, setTitle] = useState(`Bài tập cho ${sectionTitle}`)
@@ -101,7 +99,6 @@ export function CreateAssignmentDialog({
             })
 
             if (response?.data?.id) {
-                onConfirm(response.data.id)
                 onOpenChange(false)
                 // Reset form
                 setTitle(`Bài tập cho ${sectionTitle}`)
@@ -142,10 +139,12 @@ export function CreateAssignmentDialog({
                     <div className="grid grid-cols-1 gap-6">
                         {/* Column 1: Basic Information */}
                         <div className="space-y-6">
-                            <Card className="border-gray-200 shadow-sm">
-                                <CardHeader className="pb-3 border-b bg-gray-50/50">
+                            <Card className="border-blue-100/50 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
+                                <CardHeader className="pb-3 border-b border-blue-100/50 bg-gradient-to-r from-blue-50/50 to-cyan-50/50">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                                        <FileText className="w-4 h-4 text-gray-500" />
+                                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                                            <FileText className="w-4 h-4 text-white" />
+                                        </div>
                                         Thông tin cơ bản
                                     </CardTitle>
                                 </CardHeader>
@@ -193,10 +192,12 @@ export function CreateAssignmentDialog({
 
                         {/* Column 2: Settings */}
                         <div className="space-y-6">
-                            <Card className="border-gray-200 shadow-sm">
-                                <CardHeader className="pb-3 border-b bg-gray-50/50">
+                            <Card className="border-cyan-100/50 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
+                                <CardHeader className="pb-3 border-b border-cyan-100/50 bg-gradient-to-r from-cyan-50/50 to-blue-50/50">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                                        <Settings className="w-4 h-4 text-gray-500" />
+                                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                                            <Settings className="w-4 h-4 text-white" />
+                                        </div>
                                         Thiết lập & Tùy chọn
                                     </CardTitle>
                                 </CardHeader>
@@ -246,7 +247,10 @@ export function CreateAssignmentDialog({
                                                     <Badge
                                                         key={fileType}
                                                         variant={allowedFileTypes.includes(fileType) ? "default" : "outline"}
-                                                        className="cursor-pointer hover:bg-blue-100 transition-colors"
+                                                        className={`cursor-pointer transition-all duration-200 ${allowedFileTypes.includes(fileType)
+                                                            ? "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg transform hover:scale-105"
+                                                            : "hover:bg-blue-50 hover:border-blue-300"
+                                                            }`}
                                                         onClick={() => toggleFileType(fileType)}
                                                     >
                                                         {fileType}
@@ -351,14 +355,14 @@ export function CreateAssignmentDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="px-6 py-4 border-t bg-white flex-shrink-0 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
-                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full text-gray-500 hover:bg-gray-100 hover:text-black">
+                <DialogFooter className="px-6 py-4 border-t border-blue-100/50 bg-gradient-to-r from-white via-blue-50/30 to-cyan-50/30 flex-shrink-0 shadow-[0_-8px_30px_rgba(59,130,246,0.12)]">
+                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
                         Hủy bỏ
                     </Button>
                     <Button
                         onClick={handleSubmit}
                         disabled={!title || isPending}
-                        className="rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200 px-6"
+                        className="rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-600 hover:from-blue-700 hover:via-blue-600 hover:to-cyan-700 text-white shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 px-6 transition-all duration-200 transform hover:scale-105"
                     >
                         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                         Tạo bài tập

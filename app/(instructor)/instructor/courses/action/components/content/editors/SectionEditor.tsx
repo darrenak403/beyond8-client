@@ -17,7 +17,7 @@ import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 import { UnsaveDialog } from "@/components/widget/UnsaveDialog";
 import { HeaderPortal } from "./HeaderPortal";
 
-import { useUpdateSection, useDeleteSection, useActivationSection, useUpdateAssignmentId as useLinkAssignment } from "@/hooks/useSection";
+import { useUpdateSection, useDeleteSection, useActivationSection } from "@/hooks/useSection";
 import { useCreateLesson, useGetLessonBySectionId } from "@/hooks/useLesson";
 import { useGetAssignmentById, useDeleteAssignment } from "@/hooks/useAssignment";
 import { LessonType } from "@/lib/api/services/fetchLesson";
@@ -51,9 +51,8 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const { updateSection, isPending: isUpdating } = useUpdateSection(courseId);
         const { deleteSection, isPending: isDeleting } = useDeleteSection(courseId);
         const { activationSection, isPending: isActivating } = useActivationSection(courseId);
-        const { updateAssignment: linkAssignment } = useLinkAssignment(courseId);
         const { assignment } = useGetAssignmentById(section.assignmentId || "");
-        const { deleteAssignmentAsync } = useDeleteAssignment();
+        const { deleteAssignmentAsync } = useDeleteAssignment(courseId);
 
         const { createLesson } = useCreateLesson(courseId);
         const { lessons } = useGetLessonBySectionId(section.id);
@@ -132,25 +131,11 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
             }
         };
 
-        const handleAssignmentCreated = async (assignmentId: string) => {
-            await linkAssignment({
-                sectionId: section.id,
-                assignmentId
-            })
-        };
-
         const handleDeleteAssignment = async () => {
             if (section.assignmentId) {
                 await deleteAssignmentAsync(section.assignmentId);
                 setShowDeleteAssignmentDialog(false);
             }
-        };
-
-        const handleUnlinkAssignment = async () => {
-            await linkAssignment({
-                sectionId: section.id,
-                assignmentId: null
-            })
         };
 
         useImperativeHandle(ref, () => ({
@@ -521,7 +506,6 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                     courseId={courseId}
                     sectionId={section.id}
                     sectionTitle={section.title}
-                    onConfirm={handleAssignmentCreated}
                 />
 
                 {/* View/Edit Assignment Dialog */}
@@ -530,7 +514,6 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                     onOpenChange={setIsViewAssignmentDialogOpen}
                     assignment={assignment || null}
                     sectionId={section.id}
-                    onUnlink={handleUnlinkAssignment}
                 />
 
                 <ConfirmDialog

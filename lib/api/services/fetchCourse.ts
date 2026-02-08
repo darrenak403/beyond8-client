@@ -1,4 +1,5 @@
 import apiService, { RequestParams } from "../core"
+import { Lesson } from "./fetchLesson"
 import { Metadata } from "./fetchUsers"
 
 export enum CourseLevel {
@@ -30,7 +31,7 @@ export interface Course {
     id: string
     title: string
     slug: string
-    shortDescription: string
+    shortDescription: string | null
     // Pricing
     discountPercent: number | null
     discountAmount: number | null
@@ -144,7 +145,7 @@ export interface PublicCourseResponse {
     metadata: Metadata | null
 }
 
-export interface Lesson {
+export interface LessonSummary {
     id: string
     title: string
     description: string | null
@@ -153,18 +154,20 @@ export interface Lesson {
     isPreview: boolean
     durationSeconds: number | null
     videoThumbnailUrl: string | null
+    videoOriginalUrl: string | null
+    hlsVariants: string | null
     quizId: string | null
-    hasTextContent: boolean
+    textContent: string | null
 }
 
-export interface Section {
+export interface SectionSummary {
     id: string
     title: string
     description: string | null
     order: number
     totalLessons: number
     totalDurationMinutes: number
-    lessons: Lesson[]
+    lessons: LessonSummary[]
 }
 
 export interface CourseSummary {
@@ -198,7 +201,7 @@ export interface CourseSummary {
     documents: CourseDocument[]
     createdAt: string
     updatedAt: string | null
-    sections: Section[]
+    sections: SectionSummary[]
 }
 
 export interface CourseSummaryResponse {
@@ -208,24 +211,6 @@ export interface CourseSummaryResponse {
     metadata: Metadata | null
 }
 
-export interface LessonDetail {
-    id: string
-    sectionId: string
-    title: string
-    description: string | null
-    type: LessonType
-    orderIndex: number
-    isPreview: boolean
-    isPublished: boolean
-    hlsVariants: string | null
-    videoOriginalUrl: string | null
-    durationSeconds?: number | null
-    videoThumbnailUrl?: string | null
-    quizId?: string | null
-    hasTextContent?: boolean
-    textContent?: string | null
-    [key: string]: unknown // For additional properties
-}
 
 export interface SectionDetail {
     id: string
@@ -237,8 +222,9 @@ export interface SectionDetail {
     totalLessons: number
     totalDurationMinutes: number
     assignmentId: string | null
-    lessons: LessonDetail[]
-    [key: string]: unknown // For additional properties
+    lessons: Lesson[]
+    createdAt: string
+    updatedAt: string | null
 }
 
 export interface CourseDetail {
@@ -368,6 +354,13 @@ export interface CourseDetailResponse {
     isSuccess: boolean
     message: string
     data: CourseDetail
+    metadata: Metadata | null
+}
+
+export interface CourseDetailListResponse {
+    isSuccess: boolean
+    message: string
+    data: CourseDetail[]
     metadata: Metadata | null
 }
 

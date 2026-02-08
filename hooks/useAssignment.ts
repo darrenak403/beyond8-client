@@ -9,14 +9,14 @@ import {
     ParamsAssignment
 } from "@/lib/api/services/fetchAssignment"
 
-export function useCreateAssignment(sectionId: string) {
+export function useCreateAssignment(courseId: string) {
     const queryClient = useQueryClient()
 
     const mutation = useMutation<AssignmentResponse, Error, CreateAssignmentRequest>({
         mutationFn: (data: CreateAssignmentRequest) => assignmentService.createAssignment(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["assignments"] })
-            queryClient.invalidateQueries({ queryKey: ["sections", sectionId] })
+            queryClient.invalidateQueries({ queryKey: ["sections", courseId] })
             toast.success("Tạo bài tập thành công!")
         },
         onError: (error: Error) => {
@@ -91,7 +91,7 @@ export function useGetAllAssignments(params: ParamsAssignment) {
     }
 }
 
-export function useDeleteAssignment() {
+export function useDeleteAssignment(courseId: string) {
     const queryClient = useQueryClient()
 
     const mutation = useMutation<AssignmentResponse, Error, string>({
@@ -99,6 +99,7 @@ export function useDeleteAssignment() {
         onSuccess: (_, id) => {
             queryClient.invalidateQueries({ queryKey: ["assignments"] })
             queryClient.invalidateQueries({ queryKey: ["assignments", id] })
+            queryClient.invalidateQueries({ queryKey: ["sections", courseId] })
             toast.success("Xóa bài tập thành công!")
         },
         onError: (error: Error) => {

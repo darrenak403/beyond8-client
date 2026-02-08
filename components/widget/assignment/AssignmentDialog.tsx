@@ -42,21 +42,18 @@ interface AssignmentDialogProps {
     onOpenChange: (open: boolean) => void
     assignment: Assignment | null
     sectionId: string
-    onUnlink: () => Promise<void>
 }
 
 export function AssignmentDialog({
     open,
     onOpenChange,
-    assignment,
-    onUnlink
+    assignment
 }: AssignmentDialogProps) {
     const { updateAssignment, isPending } = useUpdateAssignment()
     const [isEditMode, setIsEditMode] = useState(false)
-    const [isUnlinking, setIsUnlinking] = useState(false)
 
-    // Form state
-    const [formData, setFormData] = useState<Assignment>({
+    // Form state - initialize from assignment or default values
+    const [formData, setFormData] = useState<Assignment>(() => assignment || {
         id: "",
         instructorId: "",
         courseId: null,
@@ -101,12 +98,13 @@ export function AssignmentDialog({
         }
     }
 
-    // Update form when assignment changes
+    // Reset form when assignment changes (e.g., when opening a different assignment)
     useEffect(() => {
-        if (assignment) {
+        if (assignment && assignment.id !== formData.id) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setFormData(assignment)
         }
-    }, [assignment])
+    }, [assignment, formData.id])
 
     const handleSubmit = async () => {
         if (!assignment) return
@@ -130,15 +128,7 @@ export function AssignmentDialog({
         setIsEditMode(false)
     }
 
-    const handleUnlink = async () => {
-        setIsUnlinking(true)
-        try {
-            await onUnlink()
-            onOpenChange(false)
-        } finally {
-            setIsUnlinking(false)
-        }
-    }
+
 
     if (!assignment) return null
 
@@ -176,14 +166,16 @@ export function AssignmentDialog({
                     </div>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto bg-gray-50/30 p-6">
+                <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/30 p-6">
                     <div className="grid grid-cols-1 gap-6">
                         {/* Column 1: Basic Information */}
                         <div className="space-y-6">
-                            <Card className="border-gray-200 shadow-sm">
-                                <CardHeader className="pb-3 border-b bg-gray-50/50">
+                            <Card className="border-purple-100/50 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
+                                <CardHeader className="pb-3 border-b border-purple-100/50 bg-gradient-to-r from-purple-50/50 to-indigo-50/50">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                                        <FileText className="w-4 h-4 text-gray-500" />
+                                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+                                            <FileText className="w-4 h-4 text-white" />
+                                        </div>
                                         Thông tin cơ bản
                                     </CardTitle>
                                 </CardHeader>
@@ -239,10 +231,12 @@ export function AssignmentDialog({
 
                         {/* Column 2: Settings */}
                         <div className="space-y-6">
-                            <Card className="border-gray-200 shadow-sm">
-                                <CardHeader className="pb-3 border-b bg-gray-50/50">
+                            <Card className="border-indigo-100/50 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
+                                <CardHeader className="pb-3 border-b border-indigo-100/50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                                        <Settings className="w-4 h-4 text-gray-500" />
+                                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                                            <Settings className="w-4 h-4 text-white" />
+                                        </div>
                                         Thiết lập & Tùy chọn
                                     </CardTitle>
                                 </CardHeader>
@@ -266,7 +260,7 @@ export function AssignmentDialog({
                                                 </SelectContent>
                                             </Select>
                                         ) : (
-                                            <Badge variant="secondary">
+                                            <Badge variant="secondary" className="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border-purple-200/50">
                                                 {assignment.submissionType === SubmissionType.Text && "Văn bản (Text)"}
                                                 {assignment.submissionType === SubmissionType.File && "Tệp tin (File)"}
                                                 {assignment.submissionType === SubmissionType.Both && "Cả hai (Both)"}
@@ -306,7 +300,10 @@ export function AssignmentDialog({
                                                             <Badge
                                                                 key={fileType}
                                                                 variant={formData.allowedFileTypes.includes(fileType) ? "default" : "outline"}
-                                                                className="cursor-pointer hover:bg-blue-100 transition-colors"
+                                                                className={`cursor-pointer transition-all duration-200 ${formData.allowedFileTypes.includes(fileType)
+                                                                    ? "bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform hover:scale-105"
+                                                                    : "hover:bg-purple-50 hover:border-purple-300"
+                                                                    }`}
                                                                 onClick={() => toggleFileType(fileType)}
                                                             >
                                                                 {fileType}
@@ -367,7 +364,7 @@ export function AssignmentDialog({
                                         <Label className="text-sm font-medium text-gray-700">
                                             Phương thức chấm điểm <span className="text-red-500">*</span>
                                         </Label>
-                                        <Badge variant="secondary">Hỗ trợ AI (AI Assisted)</Badge>
+                                        <Badge variant="secondary" className="bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 border-emerald-200/50">Hỗ trợ AI (AI Assisted)</Badge>
                                     </div>
 
                                     <Separator />
@@ -424,35 +421,24 @@ export function AssignmentDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="px-6 py-4 border-t bg-white flex-shrink-0 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] justify-between">
-                    <div>
-                        <Button
-                            variant="destructive"
-                            size="sm"
-                            disabled={isUnlinking}
-                            onClick={handleUnlink}
-                            className="mr-2"
-                        >
-                            {isUnlinking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Gỡ bài tập"}
-                        </Button>
-                    </div>
-                    <div>
+                <DialogFooter className="px-6 py-4 border-t border-purple-100/50 bg-gradient-to-r from-white via-purple-50/30 to-indigo-50/30 flex-shrink-0 shadow-[0_-8px_30px_rgba(139,92,246,0.12)]">
+                    <div className="flex items-center justify-end w-full gap-2">
                         {isEditMode ? (
                             <>
-                                <Button variant="ghost" onClick={() => setIsEditMode(false)} className="rounded-full text-gray-500 hover:bg-gray-100 hover:text-black mr-2">
+                                <Button variant="ghost" onClick={() => setIsEditMode(false)} className="rounded-xl text-gray-600 hover:bg-purple-50 hover:text-purple-700 mr-2 transition-all duration-200">
                                     Hủy bỏ
                                 </Button>
                                 <Button
                                     onClick={handleSubmit}
                                     disabled={!formData.title || isPending}
-                                    className="rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200 px-6"
+                                    className="rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 hover:from-purple-700 hover:via-purple-600 hover:to-indigo-700 text-white shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 px-6 transition-all duration-200 transform hover:scale-105"
                                 >
                                     {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                                     Cập nhật
                                 </Button>
                             </>
                         ) : (
-                            <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full text-gray-500 hover:bg-gray-100 hover:text-black">
+                            <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">
                                 Đóng
                             </Button>
                         )}

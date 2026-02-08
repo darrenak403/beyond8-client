@@ -2,7 +2,8 @@
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useGetCourseDetails, useGetCourseSummary } from '@/hooks/useCourse'
-import type { CourseDetail, CourseSummary, Lesson, LessonDetail, Section, SectionDetail } from '@/lib/api/services/fetchCourse'
+import type { CourseDetail, CourseSummary, LessonSummary, SectionSummary, SectionDetail } from '@/lib/api/services/fetchCourse'
+import type { Lesson } from '@/lib/api/services/fetchLesson'
 import { useAuth } from '@/hooks/useAuth'
 import { useCheckEnrollment } from '@/hooks/useEnroll'
 import VideoLesson from './components/VideoLesson'
@@ -69,8 +70,8 @@ export default function LessonPage() {
   }
 
   // Find current section and lesson
-  type AnySection = Section | SectionDetail
-  type AnyLesson = Lesson | LessonDetail
+  type AnySection = SectionSummary | SectionDetail
+  type AnyLesson = LessonSummary | Lesson
 
   const section = (course.sections as AnySection[]).find((s) => s.id === sectionId)
   const lesson = section?.lessons.find((l) => l.id === lessonId) as AnyLesson | undefined
@@ -102,7 +103,7 @@ export default function LessonPage() {
       originalUrl = lesson.videoOriginalUrl
     }
 
-    const resolvedFromHls = formatHls(rawHlsVariants)
+    const resolvedFromHls = formatHls(rawHlsVariants ?? null)
 
     const final = resolvedFromHls ?? originalUrl
 
@@ -126,7 +127,7 @@ export default function LessonPage() {
       {mode === 'details' && courseDetails && (
         <LessonInfo
           course={courseDetails}
-          currentLesson={lesson as LessonDetail}
+          currentLesson={lesson as Lesson}
           slug={slug}
           courseId={courseId}
         />

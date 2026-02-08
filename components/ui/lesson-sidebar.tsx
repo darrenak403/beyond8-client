@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { ChevronLeft, Play, CheckCircle2, Lock, FileText, Download, ListChecks, ClipboardList, ClipboardCheck } from 'lucide-react'
+import { ChevronLeft, Play, CheckCircle2, Lock, FileText, Download, ListChecks, ClipboardCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { CourseDetail, SectionDetail, LessonDetail, LessonType } from '@/lib/api/services/fetchCourse'
+import { CourseDetail, SectionDetail, LessonType } from '@/lib/api/services/fetchCourse'
 import { cn } from '@/lib/utils'
+import { Lesson } from '@/lib/api/services/fetchLesson'
 
 interface LessonSidebarProps {
   course: CourseDetail
@@ -75,7 +76,7 @@ export default function LessonSidebar({
     }))
   }
 
-  const getLessonUrl = (section: SectionDetail, lesson: LessonDetail) => {
+  const getLessonUrl = (section: SectionDetail, lesson: Lesson) => {
     return `/courses/${slug}/${courseId}/${section.id}/${lesson.id}`
   }
 
@@ -195,7 +196,7 @@ export default function LessonSidebar({
                           {section.lessons.map((lesson) => {
                             const isActive = currentLessonId === lesson.id
                             const lessonUrl = getLessonUrl(section, lesson)
-                            const canAccessLesson = onNavigate ? (lesson.isPreview || isActive) : (isEnrolled || lesson.isPreview)
+                            const canAccessLesson = isEnrolled || lesson.isPreview
 
                             const renderLessonIcon = () => {
                               if (!canAccessLesson) return <Lock className="h-4 w-4 text-white/30" />
@@ -207,8 +208,6 @@ export default function LessonSidebar({
                                   return <FileText className="h-4 w-4 text-brand-purple" />
                                 case LessonType.Quiz:
                                   return <ListChecks className="h-4 w-4 text-brand-magenta" />
-                                case LessonType.Assignment:
-                                  return <ClipboardList className="h-4 w-4 text-amber-500" />
                                 default:
                                   return <Play className="h-4 w-4 text-brand-pink" />
                               }

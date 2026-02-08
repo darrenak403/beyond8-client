@@ -6,46 +6,35 @@ export enum LessonType {
     Quiz = "Quiz"
 }
 
-// Base interface with common fields
-interface BaseLessonFields {
+// Unified Lesson interface
+export interface Lesson {
     id: string;
     sectionId: string;
     title: string;
     description: string;
+    type: LessonType;
     orderIndex: number;
     isPreview: boolean;
     isPublished: boolean;
+    // Video lesson fields
+    hlsVariants: string | null;
+    videoOriginalUrl: string | null;
+    videoThumbnailUrl: string | null;
+    durationSeconds: number | null;
+    videoQualities: string | null;
+    isDownloadable: boolean;
+    // Text lesson fields
+    textContent: string | null;
+    // Quiz lesson fields
+    quizId: string | null;
+    // Document fields
+    documents: LessonDocument[];
+    // Statistics
     totalViews: number;
     totalCompletions: number;
     createdAt: string;
     updatedAt: string;
 }
-
-// Video Lesson interface
-interface VideoLesson extends BaseLessonFields {
-    type: "Video";
-    hlsVariants?: string | null;
-    videoOriginalUrl?: string | null;
-    videoThumbnailUrl?: string | null;
-    durationSeconds?: number | null;
-    videoQualities?: string | null;
-    isDownloadable?: boolean;
-}
-
-// Text Lesson interface
-interface TextLesson extends BaseLessonFields {
-    type: "Text";
-    textContent?: string | null;
-}
-
-// Quiz Lesson interface
-interface QuizLesson extends BaseLessonFields {
-    type: "Quiz";
-    quizId?: string | null;
-}
-
-// Discriminated union type
-export type Lesson = VideoLesson | TextLesson | QuizLesson;
 
 export interface CreateLessonVideoRequest {
     sectionId: string;
