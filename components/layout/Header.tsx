@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell, Crown, Gem, Zap, DollarSign } from "lucide-react";
+import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell, Crown, Gem, Zap, DollarSign, ShoppingCart } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -36,6 +36,8 @@ import { StudentNotificationPanel } from "../widget/student-notification-panel";
 import { useSearchCourses } from "@/hooks/useCourse";
 import { useDebounce } from "@/hooks/useDebounce";
 import SafeImage from "../ui/SafeImage";
+import CartPopover from "../widget/CartPopover";
+import { useGetCart } from "@/hooks/useOrder";
 
 const CategoryMenu = ({
   Content,
@@ -523,8 +525,10 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const { mutateLogout } = useLogout();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const { cart } = useGetCart({ enabled: isAuthenticated });
 
   const headerRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -656,7 +660,7 @@ export function Header() {
           boxShadow: isScrolled && !isMobile
             ? "0 0 24px rgba(34, 42, 53, 0.06), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(34, 42, 53, 0.04), 0 0 4px rgba(34, 42, 53, 0.08), 0 16px 68px rgba(47, 48, 55, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset"
             : "none",
-          width: isScrolled && !isMobile ? "70%" : "100%",
+          width: isScrolled && !isMobile ? "75%" : "100%",
           y: isScrolled && !isMobile ? 20 : 0,
         }}
         transition={{
@@ -832,6 +836,34 @@ export function Header() {
                   </Badge>
                 </div>
               )} */}
+
+              {/* Cart Icon */}
+              <div
+                className="relative"
+                onMouseEnter={() => setIsCartOpen(true)}
+                onMouseLeave={() => setIsCartOpen(false)}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}
+                >
+                  <ShoppingCart className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                  {cart && cart.totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
+                      <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-brand-magenta to-brand-purple border-[2px] border-white text-[10px] font-bold text-white">
+                        {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                      </span>
+                    </span>
+                  )}
+                </Button>
+                <CartPopover 
+                  isOpen={isCartOpen} 
+                  onClose={() => setIsCartOpen(false)}
+                  onMouseEnter={() => setIsCartOpen(true)}
+                  onMouseLeave={() => setIsCartOpen(false)}
+                />
+              </div>
 
               {isLoading ? (
                 <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />

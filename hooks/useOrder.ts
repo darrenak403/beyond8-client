@@ -1,0 +1,260 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchOrder,
+  CartResponse,
+  CartData,
+  AddToCartRequest,
+  ClearCartResponse,
+  BuyNowRequest,
+  BuyNowResponse,
+  CheckoutRequest,
+  CheckoutResponse,
+  ProcessPaymentRequest,
+  ProcessPaymentResponse,
+  PaymentParams,
+  PaymentItem,
+  GetMyPaymentsResponse,
+} from "@/lib/api/services/fetchOrder";
+import { toast } from "sonner";
+
+interface UseGetCartOptions {
+  enabled?: boolean;
+}
+
+interface UseGetMyPaymentsOptions {
+  params?: PaymentParams;
+  enabled?: boolean;
+}
+
+// Hook lấy thông tin giỏ hàng của user hiện tại
+export function useGetCart(options?: UseGetCartOptions) {
+  const { data, isLoading, isError, refetch } = useQuery<
+    CartResponse,
+    Error,
+    CartData
+  >({
+    queryKey: ["cart"],
+    queryFn: () => fetchOrder.getCart(),
+    enabled: options?.enabled ?? true,
+    select: (res) => res.data,
+  });
+
+  return {
+    cart: data,
+    isLoading,
+    isError,
+    refetch,
+  };
+}
+
+// Hook thêm khóa học vào giỏ hàng
+export function useAddToCart() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending } = useMutation<
+    CartResponse,
+    Error,
+    AddToCartRequest
+  >({
+    mutationFn: (request: AddToCartRequest) => fetchOrder.addToCart(request),
+    onSuccess: (data) => {
+      // Cập nhật lại thông tin giỏ hàng sau khi thêm thành công
+      queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
+
+      if (data.isSuccess) {
+        toast.success(data.message || "Thêm khóa học vào giỏ hàng thành công!");
+      } else {
+        toast.error(data.message || "Không thể thêm khóa học vào giỏ hàng!");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể thêm khóa học vào giỏ hàng!");
+    },
+  });
+
+  return {
+    addToCart: mutateAsync,
+    isPending,
+  };
+}
+
+// Hook xóa khóa học khỏi giỏ hàng
+export function useRemoveFromCart() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending } = useMutation<
+    CartResponse,
+    Error,
+    string
+  >({
+    mutationFn: (courseId: string) => fetchOrder.removeFromCart(courseId),
+    onSuccess: (data) => {
+      // Cập nhật lại thông tin giỏ hàng sau khi xóa thành công
+      queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
+
+      if (data.isSuccess) {
+        toast.success(data.message || "Đã xóa khóa học khỏi giỏ hàng!");
+      } else {
+        toast.error(data.message || "Không thể xóa khóa học khỏi giỏ hàng!");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể xóa khóa học khỏi giỏ hàng!");
+    },
+  });
+
+  return {
+    removeFromCart: mutateAsync,
+    isPending,
+  };
+}
+
+// Hook xóa toàn bộ giỏ hàng
+export function useClearCart() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending } = useMutation<
+    ClearCartResponse,
+    Error,
+    void
+  >({
+    mutationFn: () => fetchOrder.clearCart(),
+    onSuccess: (data) => {
+      // Cập nhật lại thông tin giỏ hàng sau khi xóa thành công
+      queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
+
+      if (data.isSuccess) {
+        toast.success(data.message || "Đã xóa toàn bộ giỏ hàng!");
+      } else {
+        toast.error(data.message || "Không thể xóa giỏ hàng!");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể xóa giỏ hàng!");
+    },
+  });
+
+  return {
+    clearCart: mutateAsync,
+    isPending,
+  };
+}
+
+// Hook mua ngay khóa học
+export function useBuyNow() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending } = useMutation<
+    BuyNowResponse,
+    Error,
+    BuyNowRequest
+  >({
+    mutationFn: (request: BuyNowRequest) => fetchOrder.buyNow(request),
+    onSuccess: (data) => {
+      // Cập nhật lại thông tin giỏ hàng sau khi mua thành công
+      queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
+
+      if (data.isSuccess) {
+        toast.success(data.message || "Mua khóa học thành công!");
+      } else {
+        toast.error(data.message || "Không thể mua khóa học!");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể mua khóa học!");
+    },
+  });
+
+  return {
+    buyNow: mutateAsync,
+    isPending,
+  };
+}
+
+// Hook thanh toán giỏ hàng
+export function useCheckout() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending } = useMutation<
+    CheckoutResponse,
+    Error,
+    CheckoutRequest
+  >({
+    mutationFn: (request: CheckoutRequest) => fetchOrder.checkout(request),
+    onSuccess: (data) => {
+      // Cập nhật lại thông tin giỏ hàng sau khi thanh toán thành công
+      queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
+
+      if (data.isSuccess) {
+        toast.success(data.message || "Thanh toán thành công!");
+      } else {
+        toast.error(data.message || "Không thể thanh toán!");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể thanh toán!");
+    },
+  });
+
+  return {
+    checkout: mutateAsync,
+    isPending,
+  };
+}
+
+// Hook xử lý thanh toán
+export function useProcessPayment() {
+  const { mutateAsync, isPending } = useMutation<
+    ProcessPaymentResponse,
+    Error,
+    ProcessPaymentRequest
+  >({
+    mutationFn: (request: ProcessPaymentRequest) => fetchOrder.processPayment(request),
+    onSuccess: (data) => {
+      if (data.isSuccess) {
+        toast.success(data.message || "Tạo link thanh toán thành công!");
+      } else {
+        toast.error(data.message || "Không thể tạo link thanh toán!");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể tạo link thanh toán!");
+    },
+  });
+
+  return {
+    processPayment: mutateAsync,
+    isPending,
+  };
+}
+
+// Hook lấy danh sách thanh toán của user
+export function useGetMyPayments(options?: UseGetMyPaymentsOptions) {
+  const { data, isLoading, isError, refetch } = useQuery<
+    GetMyPaymentsResponse,
+    Error,
+    PaymentItem[]
+  >({
+    queryKey: ["my-payments", options?.params],
+    queryFn: () => fetchOrder.getMyPayments(options?.params),
+    enabled: options?.enabled ?? true,
+    select: (res) => res.data,
+  });
+
+  return {
+    payments: data,
+    isLoading,
+    isError,
+    refetch,
+  };
+}

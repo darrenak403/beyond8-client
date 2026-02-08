@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Star, Users, Clock, ShoppingCart } from 'lucide-react'
+import { Star, Users, Clock, ShoppingCart, Check } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import SafeImage from '@/components/ui/SafeImage'
@@ -10,6 +10,8 @@ import { generateSlug } from '@/lib/utils/generateSlug'
 import type { Course } from '@/lib/api/services/fetchCourse'
 import { useUserById } from '@/hooks/useUserProfile'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
+import { useAddToCart, useGetCart } from '@/hooks/useOrder'
+import { useAuth } from '@/hooks/useAuth'
 
 interface CourseCardProps {
   course: Course
@@ -19,7 +21,11 @@ export default function CourseCard({ course }: CourseCardProps) {
   const slug = course.slug || generateSlug(course.title)
   const courseUrl = `/courses/${slug}/${course.id}`
   const { user: instructorUser } = useUserById(course.instructorId)
-  // Pricing logic
+  const { addToCart, isPending } = useAddToCart()
+  const { isAuthenticated } = useAuth()
+  const { cart } = useGetCart({ enabled: isAuthenticated })
+  
+  const isInCart = cart?.items?.some(item => item.courseId === course.id) ?? false
   const originalPrice = course.price
   const finalPrice = course.finalPrice ?? course.price
   const hasDiscount =
@@ -27,7 +33,6 @@ export default function CourseCard({ course }: CourseCardProps) {
     (!!course.discountAmount && course.discountAmount > 0) ||
     finalPrice < originalPrice
 
-  // Format duration from minutes to hours
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
@@ -39,11 +44,9 @@ export default function CourseCard({ course }: CourseCardProps) {
     return `${mins} phút`
   }
 
-  // Parse rating from string to number, default to 0 if null or invalid
   const rating = course.avgRating ? parseFloat(course.avgRating) : 0
   const displayRating = rating > 0 ? rating.toFixed(1) : '0.0'
 
-  // Map level to Vietnamese
   const getLevelVietnamese = (level: string | null | undefined): string => {
     if (!level) return 'Cơ bản'
     const levelUpper = level.toUpperCase()
@@ -51,16 +54,25 @@ export default function CourseCard({ course }: CourseCardProps) {
     if (levelUpper === 'INTERMEDIATE') return 'Trung cấp'
     if (levelUpper === 'ADVANCED') return 'Nâng cao'
     if (levelUpper === 'EXPERT') return 'Chuyên gia'
-    return level // Fallback to original if no match
+    return level
   }
 
   const instructorAvatarSrc = instructorUser?.avatarUrl || '/bg-web.jpg'
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    // TODO: Implement add to cart functionality
-    console.log('Add to cart:', course.id)
+    
+    if (!isAuthenticated) {
+      window.location.href = '/login'
+      return
+    }
+
+    try {
+      await addToCart({ courseId: course.id })
+    } catch (error) {
+      console.error('Failed to add to cart:', error)
+    }
   }
   return (
     <Link href={courseUrl} target="_blank" className="block h-full">
@@ -85,10 +97,10 @@ export default function CourseCard({ course }: CourseCardProps) {
 
         {/* Content */}
         <div className="flex-1 flex flex-col group-hover:text-primary transition-colors duration-300">
-          <h3 className="font-semibold text-base mb-1.5 line-clamp-2 min-h-[2.5rem]">
+          <h3 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
             {course.title}
           </h3>
-          <div className="text-xs text-muted-foreground mb-2 group-hover:text-primary/80 transition-colors duration-300 flex items-center gap-2">
+          <div className="text-sm text-muted-foreground mb-3 group-hover:text-primary/80 transition-colors duration-300 flex items-center gap-2">
             <div className="relative w-6 h-6 rounded-full overflow-hidden shrink-0 bg-muted ">
               <SafeImage
                 src={formatImageUrl(instructorAvatarSrc || '') || '/bg-web.jpg'}
@@ -100,50 +112,65 @@ export default function CourseCard({ course }: CourseCardProps) {
             <span className="truncate">{instructorUser?.fullName || course.instructorName}</span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 group-hover:text-primary/70 transition-colors duration-300">
-            <div className="flex items-center gap-0.5">
-              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{displayRating}</span>
-              {course.totalReviews > 0 && (
-                <span className="text-muted-foreground/70">({formatNumber(course.totalReviews)})</span>
-              )}
-            </div>
-            <div className="flex items-center gap-0.5">
-              <Users className="w-3 h-3" />
-              <span>{formatNumber(course.totalStudents)}</span>
-            </div>
-            <div className="flex items-center gap-0.5">
-              <Clock className="w-3 h-3" />
-              <span>{formatDuration(course.totalDurationMinutes)}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between mt-auto">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-primary">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-primary">
                 {formatCurrency(finalPrice)}
               </span>
               {hasDiscount && (
                 <>
-                  <span className="text-xs text-muted-foreground line-through decoration-red-500/50">
+                  <span className="text-sm text-muted-foreground line-through decoration-red-500/50">
                     {formatCurrency(originalPrice)}
                   </span>
                   {course.discountPercent !== null && course.discountPercent !== undefined && course.discountPercent > 0 && (
-                    <span className="text-[10px] font-semibold text-red-500">
+                    <span className="text-xs font-semibold text-red-500">
                       -{course.discountPercent}%
                     </span>
                   )}
                 </>
               )}
             </div>
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-9 w-9 shrink-0 bg-purple-50 border-purple-500 text-purple-500 hover:bg-primary hover:text-white"
-              onClick={handleAddToCart}
-            >
-              <ShoppingCart className="h-4 w-4" />
-            </Button>
+          </div>
+
+          <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground group-hover:text-primary/70 transition-colors duration-300">
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-medium">{displayRating}</span>
+                {course.totalReviews > 0 && (
+                  <span className="text-muted-foreground/70">({formatNumber(course.totalReviews)})</span>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                <span>{formatNumber(course.totalStudents)}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                <span>{formatDuration(course.totalDurationMinutes)}</span>
+              </div>
+            </div>
+            {isInCart ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 shrink-0 bg-green-50 border-green-500 text-green-600 hover:bg-green-100 cursor-default"
+                disabled
+              >
+                <Check className="h-2 w-2 mr-1" />
+                Đã thêm
+              </Button>
+            ) : (
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-9 w-9 shrink-0 bg-purple-50 border-purple-500 text-purple-500 hover:bg-primary hover:text-white"
+                onClick={handleAddToCart}
+                disabled={isPending}
+              >
+                <ShoppingCart className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>

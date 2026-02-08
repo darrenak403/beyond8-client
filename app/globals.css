@@ -270,3 +270,55 @@ h3.tiptap-heading+h2.tiptap-heading {
   margin: 1.5rem 0;
   padding-left: 1rem;
 }
+/* Custom Scrollbar Styling - Match Brand Colors */
+/* For Chrome, Safari, Edge (Webkit browsers) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--brand-pink), var(--brand-magenta));
+  border-radius: 10px;
+  border: 2px solid var(--muted);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--brand-magenta), var(--brand-purple));
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-magenta) var(--muted);
+}
+
+/* Optional: Custom scrollbar for specific containers */
+.scrollbar-brand {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-magenta) var(--muted);
+}
+
+.scrollbar-brand::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-brand::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 8px;
+}
+
+.scrollbar-brand::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--brand-pink), var(--brand-magenta));
+  border-radius: 8px;
+}
+
+.scrollbar-brand::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--brand-magenta), var(--brand-purple));
+}

@@ -8,8 +8,6 @@ import {
   Infinity,
   Smartphone
 } from 'lucide-react'
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -18,6 +16,7 @@ import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/servi
 import { useCheckEnrollment, useEnrollCourse } from '@/hooks/useEnroll'
 import { ConfirmDialog } from '@/components/widget/confirm-dialog'
 import { useAuth } from '@/hooks/useAuth'
+import { useAddToCart, useGetCart, useBuyNow, useProcessPayment } from '@/hooks/useOrder'
 import { startOfToday, differenceInCalendarDays } from 'date-fns'
 
 interface CourseSidebarProps {
@@ -38,8 +37,6 @@ const formatDuration = (minutes: number): string => {
 }
 
 export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
-  const params = useParams()
-  const slug = (params?.slug as string) || 'course-slug'
   const totalLessons =
     course.totalLessons ||
     course.sections.reduce((sum, section) => sum + section.lessons.length, 0)
@@ -77,12 +74,60 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   const { isEnrolled, isLoading: isCheckingEnroll } = useCheckEnrollment(course.id, {
     enabled: isAuthenticated && !!course.id,
   })
+  const { addToCart, isPending: isAddingToCart } = useAddToCart()
+  const { cart } = useGetCart({ enabled: isAuthenticated })
+  const { buyNow, isPending: isBuyNowPending } = useBuyNow()
+  const { processPayment, isPending: isProcessPaymentPending } = useProcessPayment()
+  
+  const isInCart = cart?.items?.some(item => item.courseId === course.id) ?? false
+  const isProcessingPayment = isBuyNowPending || isProcessPaymentPending
 
   const handleFreeEnroll = async () => {
     try {
       await enrollCourse(course.id)
       setIsConfirmOpen(false)
     } catch {
+    }
+  }
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      window.location.href = '/login'
+      return
+    }
+
+    try {
+      await addToCart({ courseId: course.id })
+    } catch (error) {
+      console.error('Failed to add to cart:', error)
+    }
+  }
+
+  const handleBuyNow = async () => {
+    if (!isAuthenticated) {
+      window.location.href = '/login'
+      return
+    }
+
+    try {
+      const buyNowResponse = await buyNow({
+        courseId: course.id,
+        instructorCouponCode: null,
+        couponCode: null,
+        notes: null,
+      })
+
+      if (buyNowResponse.isSuccess && buyNowResponse.data?.id) {
+        const paymentResponse = await processPayment({
+          orderId: buyNowResponse.data.id,
+        })
+
+        if (paymentResponse.isSuccess && paymentResponse.data?.paymentUrl) {
+          window.location.href = paymentResponse.data.paymentUrl
+        }
+      }
+    } catch (error) {
+      console.error('Buy now error:', error)
     }
   }
 
@@ -128,17 +173,23 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
         <div className="space-y-3">
           {preview ? (
             <>
-              <Button className="w-full text-lg py-7 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(173,28,154,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(173,28,154,0.6)] border border-white/10 relative overflow-hidden group">
+              <Button 
+                className="w-full text-lg py-7 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(173,28,154,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(173,28,154,0.6)] border border-white/10 relative overflow-hidden group"
+                onClick={handleBuyNow}
+                disabled={isProcessingPayment}
+              >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <span className="font-semibold text-white relative z-10">
-                  Đăng ký ngay
+                  {isProcessingPayment ? 'Đang xử lý...' : 'Đăng ký ngay'}
                 </span>
               </Button>
               <Button
                 variant="outline"
                 className="w-full h-12 rounded-2xl text-base font-semibold border-brand-magenta/20 hover:bg-brand-magenta/5 hover:text-brand-magenta transition-colors"
+                onClick={handleAddToCart}
+                disabled={isAddingToCart || isInCart}
               >
-                Thêm vào giỏ hàng
+                {isAddingToCart ? 'Đang thêm...' : isInCart ? 'Đã có trong giỏ hàng' : 'Thêm vào giỏ hàng'}
               </Button>
             </>
           ) : isAuthenticated && isCheckingEnroll ? (
@@ -174,22 +225,23 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
             />
           ) : (
             <>
-              <Link
-                href={`/courses/${slug}/${course.id}/checkout`}
-                className="block w-full"
+              <Button 
+                className="w-full text-lg py-7 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(173,28,154,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(173,28,154,0.6)] border border-white/10 relative overflow-hidden group"
+                onClick={handleBuyNow}
+                disabled={isProcessingPayment}
               >
-                <Button className="w-full text-lg py-7 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(173,28,154,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(173,28,154,0.6)] border border-white/10 relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                  <span className="font-semibold text-white relative z-10">
-                    Đăng ký ngay
-                  </span>
-                </Button>
-              </Link>
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <span className="font-semibold text-white relative z-10">
+                  {isProcessingPayment ? 'Đang xử lý...' : 'Đăng ký ngay'}
+                </span>
+              </Button>
               <Button
                 variant="outline"
                 className="w-full h-12 rounded-2xl text-base font-semibold border-brand-magenta/20 hover:bg-brand-magenta/5 hover:text-brand-magenta transition-colors"
+                onClick={handleAddToCart}
+                disabled={isAddingToCart || isInCart}
               >
-                Thêm vào giỏ hàng
+                {isAddingToCart ? 'Đang thêm...' : isInCart ? 'Đã có trong giỏ hàng' : 'Thêm vào giỏ hàng'}
               </Button>
             </>
           )}

@@ -1,0 +1,163 @@
+'use client'
+
+import { useSearchParams } from 'next/navigation'
+import { useMemo } from 'react'
+import { CheckCircle2, XCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import Link from 'next/link'
+import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
+import { formatCurrency } from '@/lib/utils/formatCurrency'
+
+export default function PaymentCallbackPage() {
+  const searchParams = useSearchParams()
+
+  const { isSuccess, paymentInfo, errorMessage, errorReason } = useMemo(() => {
+    const responseCode = searchParams.get('vnp_ResponseCode')
+    const transactionStatus = searchParams.get('vnp_TransactionStatus')
+    const amount = searchParams.get('vnp_Amount')
+    const orderInfo = searchParams.get('vnp_OrderInfo')
+    const transactionNo = searchParams.get('vnp_TransactionNo')
+    const bankCode = searchParams.get('vnp_BankCode')
+
+    const isSuccess = responseCode === '00' && transactionStatus === '00'
+    
+    let errorMessage: string | undefined
+    let errorReason: string | undefined
+    if (!isSuccess) {
+      errorMessage = 'Giao dịch không thành công'
+      
+      if (responseCode === '24') {
+        errorReason = 'Khách hàng hủy giao dịch'
+      } else if (responseCode === '51') {
+        errorReason = 'Tài khoản không đủ số dư để thực hiện giao dịch'
+      } else if (responseCode === '65') {
+        errorReason = 'Tài khoản đã vượt quá hạn mức giao dịch trong ngày'
+      } else if (responseCode === '75') {
+        errorReason = 'Ngân hàng thanh toán đang bảo trì'
+      } else if (responseCode && responseCode !== '00') {
+        errorReason = `Mã lỗi: ${responseCode}`
+      } else {
+        errorMessage = 'Giao dịch không thành công. Vui lòng thử lại.'
+      }
+    }
+    
+    let formattedAmount: string | undefined
+    if (amount) {
+      const amountNumber = parseInt(amount) / 100
+      formattedAmount = formatCurrency(amountNumber)
+    }
+
+    return {
+      isSuccess,
+      errorMessage,
+      errorReason,
+      paymentInfo: {
+        amount: formattedAmount,
+        orderInfo: orderInfo || undefined,
+        transactionNo: transactionNo || undefined,
+        bankCode: bankCode || undefined,
+      },
+    }
+  }, [searchParams])
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+      
+      <div className="flex-1 flex items-center justify-center py-12 px-4">
+        <Card className="max-w-md w-full mx-auto text-center shadow-lg">
+          <CardContent className="p-8 space-y-6">
+            {/* Icon */}
+            <div className="flex justify-center">
+              {isSuccess ? (
+                <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400" />
+                </div>
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                  <XCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
+                </div>
+              )}
+            </div>
+
+            {/* Title */}
+            <div>
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                {isSuccess ? 'Thanh toán thành công!' : 'Thanh toán thất bại'}
+              </h1>
+              {isSuccess ? (
+                <p className="text-muted-foreground">
+                  Cảm ơn bạn đã thanh toán. Đơn hàng của bạn đã được xử lý thành công.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-muted-foreground">
+                    {errorMessage || 'Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại.'}
+                  </p>
+                  {errorReason && (
+                    <p className="text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-md">
+                      {errorReason}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Payment Info */}
+            {paymentInfo.amount && (
+              <div className="bg-muted rounded-lg p-4 space-y-2 text-left">
+                {paymentInfo.amount && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Số tiền:</span>
+                    <span className="text-sm font-semibold text-foreground">
+                      {paymentInfo.amount}
+                    </span>
+                  </div>
+                )}
+                {paymentInfo.orderInfo && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Mã đơn hàng:</span>
+                    <span className="text-sm font-semibold text-foreground">
+                      {paymentInfo.orderInfo}
+                    </span>
+                  </div>
+                )}
+                {paymentInfo.transactionNo && paymentInfo.transactionNo !== '0' && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Mã giao dịch:</span>
+                    <span className="text-sm font-semibold text-foreground">
+                      {paymentInfo.transactionNo}
+                    </span>
+                  </div>
+                )}
+                {paymentInfo.bankCode && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Ngân hàng:</span>
+                    <span className="text-sm font-semibold text-foreground">
+                      {paymentInfo.bankCode}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Action Button */}
+            <div className="pt-4">
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-brand-magenta to-brand-purple text-white hover:opacity-90"
+                asChild
+              >
+                <Link href="/">Quay lại trang chủ</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Footer />
+    </div>
+  )
+}
