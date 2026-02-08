@@ -145,7 +145,10 @@ export default function CoursesPageClient() {
         </div>
 
         {/* Course List */}
-        <CourseList courses={courses} isLoading={isLoading} />
+        <div className="min-h-screen" >
+          <CourseList courses={courses} isLoading={isLoading} />
+        </div>
+        
 
         {/* Pagination */}
         {totalPages > 1 && (
