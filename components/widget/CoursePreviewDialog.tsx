@@ -14,6 +14,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import VideoLesson from "@/app/courses/[slug]/[courseId]/(learning)/[sectionId]/[lessonId]/components/VideoLesson";
+import TextLesson from "@/app/courses/[slug]/[courseId]/(learning)/[sectionId]/[lessonId]/components/TextLesson";
+import QuizPreview from "@/components/widget/quiz/QuizPreview";
 import LessonInfo from "@/app/courses/[slug]/[courseId]/(learning)/[sectionId]/[lessonId]/components/LessonInfo";
 import { ArrowLeft, X, CheckCircle2, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,7 @@ import { SectionDetail, LessonType, CourseStatus } from "@/lib/api/services/fetc
 import LessonSidebar from "@/components/ui/lesson-sidebar";
 import { formatHls } from "@/lib/utils/formatHls";
 import { Lesson } from "@/lib/api/services/fetchLesson";
+import { CourseActionDialog } from "@/app/(admin)/admin/course/components/CourseActionDialog";
 
 interface CoursePreviewDialogProps {
     courseId: string;
@@ -45,13 +48,16 @@ export function CoursePreviewDialog({
         courseDetailsPreview,
         isLoading,
         isError,
-    } = useGetCourseDetailsPreview(courseId);
+    } = useGetCourseDetailsPreview(courseId, { enabled: open });
 
     const { approveCourse, isPending: isApproving } = useApproveCourse()
     const { rejectCourse, isPending: isRejecting } = useRejectCourse()
 
+
     const [selectedLesson, setSelectedLesson] = useState<{ sectionId: string, lessonId: string } | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isApproveOpen, setIsApproveOpen] = useState(false);
+    const [isRejectOpen, setIsRejectOpen] = useState(false);
 
     const handleLessonSelect = (sectionId: string, lessonId: string) => {
         setSelectedLesson({ sectionId, lessonId });
@@ -76,15 +82,17 @@ export function CoursePreviewDialog({
         }
     }, [selectedLesson]);
 
-    const handleApprove = async () => {
+    const handleApproveConfirm = async (note: string | null) => {
         if (!courseId) return;
-        await approveCourse({ id: courseId });
+        await approveCourse({ id: courseId, notes: note });
+        setIsApproveOpen(false);
         onOpenChange(false);
     }
 
-    const handleReject = async () => {
+    const handleRejectConfirm = async (reason: string | null) => {
         if (!courseId) return;
-        await rejectCourse({ id: courseId });
+        await rejectCourse({ id: courseId, reason: reason });
+        setIsRejectOpen(false);
         onOpenChange(false);
     }
 
@@ -101,7 +109,7 @@ export function CoursePreviewDialog({
                     animate={{ y: 0 }}
                     exit={{ y: "100%" }}
                     transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-                    className="h-full flex flex-col bg-background rounded-t-xl overflow-hidden relative"
+                    className="h-full flex flex-col bg-white rounded-t-xl overflow-hidden relative"
                 >
                     <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-50">
                         <X className="h-4 w-4" />
@@ -122,7 +130,7 @@ export function CoursePreviewDialog({
                                             <Button
                                                 size="sm"
                                                 className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-                                                onClick={handleApprove}
+                                                onClick={() => setIsApproveOpen(true)}
                                                 disabled={isApproving || isRejecting}
                                             >
                                                 {isApproving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -132,7 +140,7 @@ export function CoursePreviewDialog({
                                                 size="sm"
                                                 variant="destructive"
                                                 className="h-8 gap-2"
-                                                onClick={handleReject}
+                                                onClick={() => setIsRejectOpen(true)}
                                                 disabled={isApproving || isRejecting}
                                             >
                                                 {isRejecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
@@ -145,7 +153,7 @@ export function CoursePreviewDialog({
                         </div>
                     </SheetHeader>
 
-                    <ScrollArea className="h-full max-h-[calc(100vh-8rem)] bg-neutral-950">
+                    <ScrollArea className="h-full max-h-[calc(100vh-8rem)] bg-white">
                         {isLoading ? (
                             <div className="container mx-auto px-4 py-8">
                                 <Skeleton className="h-96 w-full mb-8" />
@@ -164,7 +172,7 @@ export function CoursePreviewDialog({
                                 <p className="text-muted-foreground">Không thể tải thông tin khóa học</p>
                             </div>
                         ) : (
-                            <div className="bg-neutral-950 min-h-full">
+                            <div className="bg-white min-h-full">
                                 <div ref={topRef} />
                                 {selectedLesson && currentLessonData ? (
                                     <div className="w-full px-4 relative">
@@ -181,7 +189,17 @@ export function CoursePreviewDialog({
                                                         durationSeconds={
                                                             'durationSeconds' in currentLessonData ? currentLessonData.durationSeconds : null
                                                         }
+                                                        thumbnailUrl={currentLessonData.videoThumbnailUrl}
                                                     />
+                                                )}
+                                                {currentLessonData.type === LessonType.Text && (
+                                                    <TextLesson
+                                                        title={currentLessonData.title}
+                                                        content={currentLessonData.textContent}
+                                                    />
+                                                )}
+                                                {currentLessonData.type === LessonType.Quiz && (
+                                                    <QuizPreview lesson={currentLessonData} />
                                                 )}
                                                 <LessonInfo
                                                     course={courseDetailsPreview}
@@ -193,7 +211,7 @@ export function CoursePreviewDialog({
                                                 />
                                             </div>
                                             <div className="lg:col-span-1 relative">
-                                                <div className="sticky top-4 h-[calc(100vh-12rem)] overflow-hidden rounded-xl border border-white/10">
+                                                <div className="sticky top-4 h-[calc(100vh-12rem)] overflow-hidden rounded-xl border border-gray-200">
                                                     <LessonSidebar
                                                         course={courseDetailsPreview}
                                                         slug={courseDetailsPreview.slug}
@@ -223,6 +241,30 @@ export function CoursePreviewDialog({
                     </ScrollArea>
                 </motion.div>
             </SheetContent>
+
+            {/* Course Action Dialogs */}
+            <CourseActionDialog
+                open={isApproveOpen}
+                onOpenChange={setIsApproveOpen}
+                title="Phê duyệt khóa học"
+                description="Bạn có chắc chắn muốn phê duyệt khóa học này công khai không?"
+                confirmLabel="Phê duyệt"
+                onConfirm={handleApproveConfirm}
+                isLoading={isApproving}
+                placeholder="Nhập ghi chú phê duyệt (tùy chọn)..."
+            />
+
+            <CourseActionDialog
+                open={isRejectOpen}
+                onOpenChange={setIsRejectOpen}
+                title="Sắp từ chối khóa học"
+                description="Bạn có chắc chắn muốn từ chối khóa học này không? Vui lòng cung cấp lý do để giảng viên có thể sửa đổi."
+                confirmLabel="Từ chối"
+                onConfirm={handleRejectConfirm}
+                isLoading={isRejecting}
+                variant="destructive"
+                placeholder="Nhập lý do từ chối..."
+            />
         </Sheet>
     );
 }

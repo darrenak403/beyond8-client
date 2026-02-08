@@ -90,6 +90,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         const [isDownloadable, setIsDownloadable] = useState(false);
         const [videoOriginalUrl, setVideoOriginalUrl] = useState("");
         const [videoThumbnailUrl, setVideoThumbnailUrl] = useState("");
+        const [durationValue, setDurationValue] = useState(0);
         const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
         const [isSaving, setIsSaving] = useState(false);
 
@@ -207,6 +208,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                     setIsDownloadable(selectedLesson.isDownloadable || false);
                     setVideoOriginalUrl(selectedLesson.videoOriginalUrl ? (formatImageUrl(selectedLesson.videoOriginalUrl) || selectedLesson.videoOriginalUrl) : "");
                     setVideoThumbnailUrl(selectedLesson.videoThumbnailUrl || "");
+                    setDurationValue(selectedLesson.durationSeconds || 0);
                 } else if (selectedLesson.type === "Text") {
                     setTextContent(selectedLesson.textContent || "");
                 } else if (selectedLesson.type === "Quiz") {
@@ -325,7 +327,8 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                 isDownloadable !== (baseLesson.isDownloadable || false) ||
                 // Compare with potentially formatted state
                 videoOriginalUrl !== (savedLessonRef.current ? (baseLesson.videoOriginalUrl || "") : (baseLesson.videoOriginalUrl ? (formatImageUrl(baseLesson.videoOriginalUrl) || baseLesson.videoOriginalUrl) : "")) ||
-                videoThumbnailUrl !== (baseLesson.videoThumbnailUrl || "")
+                videoThumbnailUrl !== (baseLesson.videoThumbnailUrl || "") ||
+                durationValue !== (baseLesson.durationSeconds || 0)
             )) ||
             (baseLesson.type === "Text" && (
                 textContent !== (baseLesson.textContent || "")
@@ -377,6 +380,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                         isDownloadable,
                         videoOriginalUrl: finalVideoUrl, // Use the uploaded URL
                         videoThumbnailUrl,
+                        durationSeconds: durationValue,
                     };
                 } else if (selectedLesson.type === "Text") {
                     specificData = {
@@ -438,7 +442,8 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                     ...(selectedLesson.type === "Video" ? {
                         isDownloadable,
                         videoOriginalUrl: newVideoUrl, // Store FORMATTED url to match state
-                        videoThumbnailUrl
+                        videoThumbnailUrl,
+                        durationSeconds: durationValue
                     } : {}),
                     ...(selectedLesson.type === "Text" ? {
                         textContent
@@ -823,8 +828,8 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                                 <div>
                                                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Thời lượng</span>
                                                     <span className="text-sm font-medium text-gray-900">
-                                                        {selectedLesson?.durationSeconds
-                                                            ? `${Math.floor(selectedLesson.durationSeconds / 60)}p ${selectedLesson.durationSeconds % 60}s`
+                                                        {durationValue
+                                                            ? `${Math.floor(durationValue / 60)}p ${durationValue % 60}s`
                                                             : '0s'}
                                                     </span>
                                                 </div>
@@ -1125,6 +1130,12 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                                                     controls
                                                                     className="w-full h-full"
                                                                     poster={videoThumbnailUrl}
+                                                                    onLoadedMetadata={(e) => {
+                                                                        const video = e.currentTarget;
+                                                                        if (video.duration && !isNaN(video.duration)) {
+                                                                            setDurationValue(Math.floor(video.duration));
+                                                                        }
+                                                                    }}
                                                                 />
                                                                 {/* Change Video Button - Overlay */}
                                                                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">

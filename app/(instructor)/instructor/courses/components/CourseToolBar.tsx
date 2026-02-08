@@ -7,6 +7,8 @@ import {
   LayoutList,
   Plus,
   BookOpen,
+  ListChecks,
+  X
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
@@ -27,6 +29,8 @@ import { CourseFilterSheet } from '@/components/widget/CourseFilterSheet'
 interface CourseToolBarProps {
   viewMode: 'grid' | 'list'
   setViewMode: (mode: 'grid' | 'list') => void
+  isSelectionMode: boolean
+  toggleSelectionMode: () => void
 }
 
 
@@ -34,6 +38,8 @@ interface CourseToolBarProps {
 export default function CourseToolBar({
   viewMode,
   setViewMode,
+  isSelectionMode,
+  toggleSelectionMode
 }: CourseToolBarProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -184,12 +190,13 @@ export default function CourseToolBar({
           />
         </div>
 
-      
+
         <div className="flex items-center gap-2 w-full sm:w-auto">
           {/* Question Bank Button */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            className="hidden xl:block"
           >
             <Button
               variant="ghost"
@@ -204,6 +211,25 @@ export default function CourseToolBar({
 
           {/* Filter Sheet */}
           <CourseFilterSheet activeFilterCount={activeFilterCount} />
+
+          {/* Selection Mode Toggle */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              variant={isSelectionMode ? "default" : "ghost"}
+              size="icon"
+              onClick={toggleSelectionMode}
+              className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${isSelectionMode
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              title={isSelectionMode ? "Hủy chọn nhiều" : "Chọn nhiều"}
+            >
+              {isSelectionMode ? <X className="w-5 h-5" /> : <ListChecks className="w-5 h-5" />}
+            </Button>
+          </motion.div>
 
           {/* View Toggle (Hidden on Mobile/Tablet usually handled by parent but keeping as is for desktop) */}
           <div className="hidden lg:block">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AlertCircle, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Pagination } from '@/components/ui/custom-pagination'
 
 import CourseToolBar from './components/CourseToolBar'
@@ -12,12 +13,14 @@ import CourseListItem from './components/CourseListItem'
 import CourseGridItemSkeleton from './components/CourseGridItemSkeleton'
 import CourseListItemSkeleton from './components/CourseListItemSkeleton'
 import { useIsMobile } from '@/hooks/useMobile'
-import { useGetCourseByInstructor } from '@/hooks/useCourse'
+import { useGetCourseByInstructor, usePublishCourses } from '@/hooks/useCourse'
 import { useAuth } from '@/hooks/useAuth'
-import { CourseLevel } from '@/lib/api/services/fetchCourse'
+import { CourseLevel, CourseStatus } from '@/lib/api/services/fetchCourse'
 
 export default function InstructorCoursesPage() {
   const [viewModePreference, setViewModePreference] = useState<'grid' | 'list'>('grid')
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([])
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
 
   const searchParams = useSearchParams()
   const isMobile = useIsMobile()
@@ -51,6 +54,9 @@ export default function InstructorCoursesPage() {
     isDescendingPrice: isDescendingPrice,
     level: level as CourseLevel
   })
+
+  // Bulk Publish Mutation
+  const { publishCourses, isPending: isPublishingBulk } = usePublishCourses()
 
   // Ensure params exist in URL
   const router = useRouter()
@@ -88,8 +94,52 @@ export default function InstructorCoursesPage() {
     const params = new URLSearchParams(searchParams.toString())
     params.set('pageNumber', newPage.toString())
     router.push(`?${params.toString()}`)
+    // Reset selection on page change
+    setSelectedCourseIds([])
   }
 
+  // Selection Logic
+  const toggleSelectCourse = (id: string) => {
+    // Only allow selecting Approved courses (ready for publish)
+    const course = courses.find(c => c.id === id)
+    if (!course || course.status !== CourseStatus.Approved) return
+
+    setSelectedCourseIds(prev =>
+      prev.includes(id) ? prev.filter(courseId => courseId !== id) : [...prev, id]
+    )
+  }
+
+  const toggleSelectAll = () => {
+    // Only select courses that are Approved
+    const approvedCourses = courses.filter(c => c.status === CourseStatus.Approved)
+    const approvedIds = approvedCourses.map(c => c.id)
+
+    // Check if all APPROVED courses are already selected
+    const allApprovedSelected = approvedIds.every(id => selectedCourseIds.includes(id))
+
+    if (allApprovedSelected && approvedIds.length > 0) {
+      setSelectedCourseIds([])
+    } else {
+      setSelectedCourseIds(approvedIds)
+    }
+  }
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(prev => !prev)
+    // Clear selection when exiting selection mode
+    if (isSelectionMode) {
+      setSelectedCourseIds([])
+    }
+  }
+
+  const handleBulkPublish = async () => {
+    if (selectedCourseIds.length === 0) return
+    await publishCourses({ ids: selectedCourseIds })
+    setSelectedCourseIds([])
+    // Optional: Exit selection mode after action?
+    // setIsSelectionMode(false)
+    refetch()
+  }
 
   return (
     <div className="flex flex-col h-full space-y-6 p-3">
@@ -98,7 +148,66 @@ export default function InstructorCoursesPage() {
       <CourseToolBar
         viewMode={viewMode}
         setViewMode={setViewMode}
+        isSelectionMode={isSelectionMode}
+        toggleSelectionMode={toggleSelectionMode}
       />
+
+      {/* Bulk Actions Bar */}
+      {!isLoading && courses.length > 0 && isSelectionMode && (
+        <div className="sticky top-4 z-30 flex items-center justify-between gap-4 bg-white/95 backdrop-blur-sm p-4 rounded-xl border border-slate-200/60 shadow-lg ring-1 ring-slate-200 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 pl-2">
+              <Checkbox
+                id="select-all"
+                checked={
+                  courses.filter(c => c.status === CourseStatus.Approved).length > 0 &&
+                  courses.filter(c => c.status === CourseStatus.Approved).every(c => selectedCourseIds.includes(c.id))
+                }
+                onCheckedChange={() => toggleSelectAll()}
+                className="h-5 w-5 border-2 border-slate-400 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+              />
+              <label
+                htmlFor="select-all"
+                className="text-sm font-semibold text-slate-700 cursor-pointer select-none"
+              >
+                {selectedCourseIds.length > 0
+                  ? `Đã chọn ${selectedCourseIds.length} khóa học`
+                  : 'Chọn tất cả (Khóa học cần công khai)'}
+              </label>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSelectionMode}
+              className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full"
+            >
+              Hủy
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleBulkPublish}
+              disabled={isPublishingBulk || selectedCourseIds.length === 0}
+              className={`
+                        transition-all duration-300 rounded-full
+                        ${selectedCourseIds.length > 0
+                  ? 'bg-green-600 text-white hover:bg-green-700 shadow-md shadow-green-600/20'
+                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'}
+                    `}
+            >
+              {isPublishingBulk ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span> Đang xử lý...
+                </>
+              ) : (
+                `Công khai ${selectedCourseIds.length > 0 ? `(${selectedCourseIds.length})` : ''}`
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 flex flex-col">
@@ -125,9 +234,21 @@ export default function InstructorCoursesPage() {
                 // Render Courses
                 courses.map((course) => (
                   viewMode === 'grid' ? (
-                    <CourseGridItem key={course.id} course={course} />
+                    <CourseGridItem
+                      key={course.id}
+                      course={course}
+                      isSelected={selectedCourseIds.includes(course.id)}
+                      onToggleSelect={() => toggleSelectCourse(course.id)}
+                      isSelectionMode={isSelectionMode}
+                    />
                   ) : (
-                    <CourseListItem key={course.id} course={course} />
+                    <CourseListItem
+                      key={course.id}
+                      course={course}
+                      isSelected={selectedCourseIds.includes(course.id)}
+                      onToggleSelect={() => toggleSelectCourse(course.id)}
+                      isSelectionMode={isSelectionMode}
+                    />
                   )
                 ))
               ) : (

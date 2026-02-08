@@ -4,7 +4,9 @@ export interface CheckEnrollmentResponse {
   isSuccess: boolean;
   message: string;
   data: boolean;
-  metadata: null;
+  metadata: {
+    enrollmentId: string;
+  };
 }
 
 export interface EnrollmentData {

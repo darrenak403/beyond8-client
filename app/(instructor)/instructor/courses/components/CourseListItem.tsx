@@ -13,9 +13,13 @@ import {
 } from 'lucide-react'
 import { Course, CourseLevel, CourseStatus } from '@/lib/api/services/fetchCourse'
 import SafeImage from '@/components/ui/SafeImage'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface CourseListItemProps {
   course: Course
+  isSelected?: boolean
+  onToggleSelect?: () => void
+  isSelectionMode?: boolean
 }
 
 const getLevelLabel = (level: CourseLevel) => {
@@ -52,7 +56,7 @@ const getStatusColor = (status: CourseStatus) => {
   }
 }
 
-export default function CourseListItem({ course }: CourseListItemProps) {
+export default function CourseListItem({ course, isSelected, onToggleSelect, isSelectionMode }: CourseListItemProps) {
   const [showPreview, setShowPreview] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const { submitCourseForReview, isPending: isSubmitting } = useSubmitCourseForReview()
@@ -86,7 +90,14 @@ export default function CourseListItem({ course }: CourseListItemProps) {
   }
 
   return (
-    <div className="group flex bg-white rounded-2xl overflow-hidden border border-slate-200/60 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 p-4 gap-5 hover:-translate-y-0.5">
+    <div
+      className={`group flex bg-white rounded-2xl overflow-hidden border transition-all duration-300 p-4 gap-5 ${isSelected
+        ? 'border-2 border-primary shadow-lg ring-2 ring-primary/20 scale-[0.99] translate-x-1'
+        : 'border-slate-200/60 hover:border-primary/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/5'
+        }`}
+      onClick={() => isSelectionMode && onToggleSelect?.()}
+      style={{ cursor: isSelectionMode ? 'pointer' : 'default' }}
+    >
       {/* Image Section */}
       <div className="relative w-80 shrink-0 aspect-[16/9] rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50 shadow-md">
         <SafeImage

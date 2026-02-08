@@ -373,12 +373,17 @@ export function useToggleDownloadCourseDocument() {
   };
 }
 
-export function useGetCourseDetailsPreview(id: string) {
+export function useGetCourseDetailsPreview(
+  id: string,
+  options?: {
+    enabled?: boolean;
+  }
+) {
   const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>({
     queryKey: ["course", "details-preview", id],
     queryFn: () => fetchCourse.getCourseDetailsPreview(id),
     select: (data: CourseDetailResponse) => data.data,
-    enabled: !!id,
+    enabled: options?.enabled ?? !!id,
   });
 
   return {
@@ -620,6 +625,31 @@ export function useDeleteCourse() {
 
   return {
     deleteCourse: mutateAsync,
+    isPending,
+  };
+}
+
+export function usePublishCourses() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ ids }: { ids: string[] }) =>
+      fetchCourse.publicCourses(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["courses", "instructor"],
+      });
+      toast.success("Công bố khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi công bố khóa học!");
+    },
+  });
+
+  return {
+    publishCourses: mutateAsync,
     isPending,
   };
 }

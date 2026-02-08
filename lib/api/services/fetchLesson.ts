@@ -89,7 +89,7 @@ export interface UpdateLessonQuizRequest {
     description?: string;
     title?: string;
     isPreview?: boolean;
-    quizId?: string;
+    quizId: string | null;
 }
 
 export interface ActivalessonRequest {

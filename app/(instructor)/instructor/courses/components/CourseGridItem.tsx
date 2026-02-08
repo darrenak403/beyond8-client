@@ -18,6 +18,9 @@ import SafeImage from '@/components/ui/SafeImage'
 
 interface CourseGridItemProps {
   course: Course
+  isSelected?: boolean
+  onToggleSelect?: () => void
+  isSelectionMode?: boolean
 }
 
 const getLevelLabel = (level: CourseLevel) => {
@@ -54,7 +57,7 @@ const getStatusColor = (status: CourseStatus) => {
   }
 }
 
-export default function CourseGridItem({ course }: CourseGridItemProps) {
+export default function CourseGridItem({ course, isSelected, onToggleSelect, isSelectionMode }: CourseGridItemProps) {
   // Format currency
   const formattedPrice = new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -88,7 +91,14 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
   }
 
   return (
-    <div className="group flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-slate-200/60 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-1">
+    <div
+      className={`group flex flex-col h-full bg-white rounded-2xl overflow-hidden border transition-all duration-300 ${isSelected
+        ? 'border-2 border-primary shadow-lg ring-2 ring-primary/20 scale-[0.98]'
+        : 'border-slate-200/60 hover:border-primary/30 hover:translate-y-[-4px] hover:shadow-xl hover:shadow-primary/5'
+        }`}
+      onClick={() => isSelectionMode && onToggleSelect?.()}
+      style={{ cursor: isSelectionMode ? 'pointer' : 'default' }}
+    >
       {/* Image Section */}
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
         <SafeImage
@@ -101,8 +111,7 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-        {/* Overlay Badges */}
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className={`absolute top-3 transition-all duration-300 left-3`}>
           <Badge className={`${getStatusColor(course.status)} text-white border-0 backdrop-blur-sm`}>
             {getStatusLabel(course.status)}
           </Badge>

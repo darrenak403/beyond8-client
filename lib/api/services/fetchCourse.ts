@@ -553,4 +553,10 @@ export const fetchCourse = {
         return response.data;
     },
 
+    //Public nhiều khóa học
+    publicCourses: async (ids: string[]): Promise<PublicCourseResponse> => {
+        const response = await apiService.post<PublicCourseResponse>(`api/v1/courses/publish/bulk`, ids);
+        return response.data;
+    },
+
 }
