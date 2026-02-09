@@ -47,11 +47,21 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
 
   const [selectedDoc, setSelectedDoc] = useState<{ url: string; title: string, isDownloadable: boolean } | null>(null)
 
+  // Helper to generate lesson URL
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const getLessonUrl = (lesson: any) => {
+    let baseUrl = `/courses/${slug}/${courseId}/${lesson.sectionId}/${lesson.id}`
+    if (lesson.type === LessonType.Quiz && lesson.quizId) {
+      baseUrl += `/quiz-attempt?quizId=${lesson.quizId}`
+    }
+    return baseUrl
+  }
+
   return (
     <div className="px-4 lg:px-0 pb-20">
       <div className="w-full">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-black to-gray-700">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-black to-gray-700">
             {currentLesson.title}
           </h1>
 
@@ -60,41 +70,41 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
               onNavigate ? (
                 <Button
                   variant="outline"
-                  className="border-gray-200 bg-white hover:bg-gray-50 hover:text-black text-gray-600"
+                  className="rounded-full border-gray-200 bg-white hover:bg-gray-50 hover:text-black text-gray-500 px-4 h-10"
                   onClick={() => onNavigate(prevLesson.sectionId, prevLesson.id)}
                 >
-                  <ChevronLeft className="w-4 h-4 mr-2" /> Bài trước
+                  <ChevronLeft className="w-4 h-4 mr-1" /> Bài trước
                 </Button>
               ) : (
-                <Link href={`/courses/${slug}/${courseId}/${prevLesson.sectionId}/${prevLesson.id}`}>
-                  <Button variant="outline" className="border-gray-200 bg-white hover:bg-gray-50 hover:text-black text-gray-600">
-                    <ChevronLeft className="w-4 h-4 mr-2" /> Bài trước
+                <Link href={getLessonUrl(prevLesson)}>
+                  <Button variant="outline" className="rounded-full border-gray-200 bg-white hover:bg-gray-50 hover:text-black text-gray-500 px-4 h-10">
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Bài trước
                   </Button>
                 </Link>
               )
             ) : (
-              <Button disabled variant="outline" className="border-gray-200 bg-transparent text-gray-300">
-                <ChevronLeft className="w-4 h-4 mr-2" /> Bài trước
+              <Button disabled variant="outline" className="rounded-full border-gray-100 bg-transparent text-gray-300 px-4 h-10">
+                <ChevronLeft className="w-4 h-4 mr-1" /> Bài trước
               </Button>
             )}
 
             {nextLesson ? (
               onNavigate ? (
                 <Button
-                  className="bg-brand-gradient hover:opacity-90 text-white border-none shadow-brand-glow"
+                  className="rounded-full bg-gradient-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium"
                   onClick={() => onNavigate(nextLesson.sectionId, nextLesson.id)}
                 >
-                  Bài tiếp theo <ChevronRight className="w-4 h-4 ml-2" />
+                  Bài tiếp theo <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               ) : (
-                <Link href={`/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}`}>
-                  <Button className="bg-brand-gradient hover:opacity-90 text-white border-none shadow-brand-glow">
-                    Bài tiếp theo <ChevronRight className="w-4 h-4 ml-2" />
+                <Link href={getLessonUrl(nextLesson)}>
+                  <Button className="rounded-full bg-gradient-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
+                    Bài tiếp theo <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
               )
             ) : (
-              <Button className="bg-green-600 hover:bg-green-700 text-white border-none">
+              <Button className="rounded-full bg-green-600 hover:bg-green-700 text-white border-none px-6 h-10 font-medium">
                 Hoàn thành khóa học
               </Button>
             )}
@@ -191,7 +201,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                 </div>
               )}
 
-              <div className="my-8 p-6 rounded-2xl bg-gray-50 border border-gray-200">
+              <div className="my-8 p-6 rounded-2xl bg-white border border-gray-100 shadow-sm">
                 <h4 className="font-semibold text-gray-900 mb-2">Mục tiêu bài học:</h4>
                 <ul className="list-disc list-inside space-y-2 text-gray-700">
                   <li>Hiểu được khái niệm cơ bản về chủ đề.</li>

@@ -52,3 +52,37 @@ export const formatHls = (hlsString: string | null): string | null => {
         return null;
     }
 };
+
+/**
+ * Parses HLS variants and resolves relative URLs against the master playlist URL.
+ */
+export const getResolvedHlsVariants = (hlsString: string | null): HlsStream[] => {
+    const variants = getHlsVariants(hlsString);
+    if (!variants.length) return [];
+
+    const masterUrl = formatHls(hlsString);
+    if (!masterUrl) return variants;
+
+    try {
+        // Create base URL from master URL
+        // Example: https://cdn.com/videos/123/master.m3u8 -> https://cdn.com/videos/123/
+        const urlObj = new URL(masterUrl);
+        const baseUrl = urlObj.href.substring(0, urlObj.href.lastIndexOf('/') + 1);
+
+        return variants.map(variant => {
+            try {
+                // If URL is valid absolute URL, return as is
+                new URL(variant.Url);
+                return variant;
+            } catch {
+                // If URL is relative, resolve against base
+                // Use URL constructor to handle resolution properly specific to the base
+                const resolvedUrl = new URL(variant.Url, baseUrl).href;
+                return { ...variant, Url: resolvedUrl };
+            }
+        });
+    } catch (e) {
+        console.error("Error resolving HLS variants:", e);
+        return variants;
+    }
+};

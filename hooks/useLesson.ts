@@ -372,3 +372,18 @@ export function useToggleDownloadLessonDocument(courseId?: string) {
 }
 
 
+export function useGetVideoByLessonId(lessonId: string, options?: { enabled?: boolean }) {
+    const { data, isLoading, isError, refetch } = useQuery({
+        queryKey: ["lessons", lessonId, "video"],
+        queryFn: () => fetchLession.getVideoByLessonId(lessonId),
+        select: (data) => data.data,
+        enabled: options?.enabled
+    });
+    return {
+        video: data,
+        isLoading,
+        isError,
+        refetch
+    };
+}
+

@@ -1,10 +1,13 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import {
   MediaPlayer,
   MediaProvider,
   TimeSlider,
+  VolumeSlider,
+  MuteButton,
   PlayButton,
   FullscreenButton,
   Controls,
@@ -22,6 +25,9 @@ import {
   Minimize,
   Lightbulb,
   LightbulbOff,
+  Volume1,
+  Volume2,
+  VolumeX,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -106,7 +112,9 @@ function VideoQualitySubmenu({
   if (variants && variants.length > 0) {
     // Manual mode
     const activeVariant = variants.find(v => v.Url === currentSrc)
-    hint = activeVariant ? (activeVariant.Quality === 'master' ? 'Auto' : activeVariant.Quality) : 'Auto'
+    hint = activeVariant ? (activeVariant.Quality === 'master' ? 'Tự động' : (
+      /^\d+$/.test(activeVariant.Quality) ? `${activeVariant.Quality}p` : activeVariant.Quality
+    )) : 'Tự động'
   } else {
     // Vidstack auto mode
     hint = options.selectedValue !== 'auto' && currentQualityHeight
@@ -131,17 +139,22 @@ function VideoQualitySubmenu({
         <Menu.RadioGroup value={currentSrc || options.selectedValue} className="space-y-1">
           {variants && variants.length > 0 ? (
             // Render variants manual
-            variants.map((variant) => (
-              <Menu.Radio
-                value={variant.Url}
-                onSelect={() => onQualityChange?.(variant.Url)}
-                key={variant.Url}
-                className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-[checked]:bg-brand-purple/20 data-[checked]:text-brand-purple"
-              >
-                <span>{variant.Quality === 'master' ? 'Auto' : variant.Quality}</span>
-                {variant.Resolution && <span className="text-xs text-white/50 ml-2">{variant.Resolution}</span>}
-              </Menu.Radio>
-            ))
+            variants.map((variant) => {
+              const label = variant.Quality === 'master' ? 'Tự động' : (
+                /^\d+$/.test(variant.Quality) ? `${variant.Quality}p` : variant.Quality
+              )
+              return (
+                <Menu.Radio
+                  value={variant.Url}
+                  onSelect={() => onQualityChange?.(variant.Url)}
+                  key={variant.Url}
+                  className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-[checked]:bg-brand-purple/20 data-[checked]:text-brand-purple"
+                >
+                  <span>{label}</span>
+                  {variant.Resolution && <span className="text-xs text-white/50 ml-2">{variant.Resolution}</span>}
+                </Menu.Radio>
+              )
+            })
           ) : (
             // Fallback to Vidstack
             options.map(({ label, value, bitrateText, select }) => (
@@ -159,6 +172,38 @@ function VideoQualitySubmenu({
         </Menu.RadioGroup>
       </Menu.Content>
     </Menu.Root>
+  )
+}
+
+function VolumeControl() {
+  const volume = useMediaState('volume')
+  const isMuted = useMediaState('muted')
+
+  return (
+    <div className="group flex items-center relative gap-0.5 px-2 bg-black/20 backdrop-blur-sm rounded-full hover:bg-black/40 transition-all duration-300 border border-white/5 hover:border-white/10">
+      <MuteButton className="group-hover:text-white text-white/90 transition-colors p-1.5 rounded-full hover:bg-white/10">
+        {isMuted || volume == 0 ? (
+          <VolumeX className="w-5 h-5" />
+        ) : volume < 0.5 ? (
+          <Volume1 className="w-5 h-5" />
+        ) : (
+          <Volume2 className="w-5 h-5" />
+        )}
+      </MuteButton>
+      <div className="w-0 overflow-hidden group-hover:w-20 transition-all duration-300 ease-out origin-left opacity-0 group-hover:opacity-100">
+        <VolumeSlider.Root className="relative flex items-center select-none touch-none w-20 h-8 cursor-pointer group/slider mx-2">
+          <VolumeSlider.Track className="bg-white/30 relative w-full h-[3px] rounded-full group-hover/slider:h-1 transition-all" />
+          <VolumeSlider.TrackFill
+            className="bg-white absolute left-0 top-1/2 -translate-y-1/2 h-[3px] rounded-full origin-left group-hover/slider:h-1 transition-all"
+            style={{ width: 'var(--slider-fill)' }}
+          />
+          <VolumeSlider.Thumb
+            className="absolute top-1/2 left-0 w-3 h-3 bg-white rounded-full shadow-sm opacity-0 group-hover/slider:opacity-100 transition-opacity transform -translate-y-1/2"
+            style={{ left: 'var(--slider-fill)' }}
+          />
+        </VolumeSlider.Root>
+      </div>
+    </div>
   )
 }
 
@@ -203,12 +248,13 @@ export default function VideoLesson({ title, description, videoUrl, thumbnailUrl
   const playerRef = React.useRef<MediaPlayerInstance>(null)
 
   useEffect(() => {
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true)
   }, [])
 
   // Sync currentSrc with videoUrl when prop changes (lesson change)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentSrc(videoUrl)
   }, [videoUrl])
 
@@ -316,16 +362,17 @@ export default function VideoLesson({ title, description, videoUrl, thumbnailUrl
       {isTheaterMode && <div className="w-full aspect-video mb-8" aria-hidden="true" />}
 
       {/* Video Player Container */}
-      <div
+      <motion.div
+        layout
+        transition={{ type: "spring", damping: 30, stiffness: 300 }}
         className={cn(
-          "w-full group relative overflow-hidden ring-1 ring-white/10 bg-black aspect-video transition-all duration-300 ease-in-out",
+          "w-full group relative overflow-hidden ring-1 ring-white/10 bg-black aspect-video",
           isTheaterMode
             ? "fixed inset-0 z-[70] m-auto w-full max-w-6xl h-fit max-h-screen rounded-none md:rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-            : "mb-8 rounded-2xl shadow-2xl"
+            : "mb-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100"
         )}
       >
         <MediaPlayer
-          key={finalUrl} // Still key by finalUrl to force player reload on quality switch if needed, but we handle restore
           ref={playerRef}
           title={title}
           src={finalUrl}
@@ -386,10 +433,12 @@ export default function VideoLesson({ title, description, videoUrl, thumbnailUrl
 
               {/* Bottom Bar: Play | Volume | Spacer | Title | Settings | Fullscreen */}
               <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <CustomPlayButton />
 
-                  <div className="hidden md:block">
+                  <VolumeControl />
+
+                  <div className="hidden md:block ml-2">
                     <h3 className="text-white text-sm font-medium line-clamp-1 max-w-[200px]">
                       {description || title}
                     </h3>
@@ -415,7 +464,7 @@ export default function VideoLesson({ title, description, videoUrl, thumbnailUrl
 
           </Controls.Root>
         </MediaPlayer>
-      </div>
+      </motion.div>
     </>
   )
 }

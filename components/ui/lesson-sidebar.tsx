@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { ChevronLeft, Play, CheckCircle2, Lock, FileText, Download, ListChecks, ClipboardCheck } from 'lucide-react'
+import { ChevronLeft, Play, Lock, FileText, Download, ListChecks, ClipboardCheck } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
@@ -105,20 +105,20 @@ export default function LessonSidebar({
               isMobile && "top-[64px]"
             )}
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
-              <h3 className="font-bold text-lg text-black">Nội dung khóa học</h3>
+            <div className="flex items-center justify-between p-6 shrink-0">
+              <h3 className="font-bold text-xl text-black">Nội dung khóa học</h3>
             </div>
 
             <div
-              className="flex-1 overflow-y-auto p-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+              className="flex-1 overflow-y-auto px-4 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             >
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* Course Documents */}
                 {course.documents && course.documents.length > 0 && (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm bg-white">
                     <button
                       onClick={() => setIsDocumentsExpanded(!isDocumentsExpanded)}
-                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                      className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
                     >
                       <div className="flex items-center gap-2 flex-1 text-left">
                         <FileText className="w-4 h-4 text-brand-pink" />
@@ -138,12 +138,12 @@ export default function LessonSidebar({
                     </button>
 
                     {isDocumentsExpanded && (
-                      <div className="border-t border-gray-200 p-2 space-y-2">
+                      <div className="border-t border-gray-50 p-3 space-y-2">
                         {course.documents.map((doc) => (
                           <div
                             key={doc.id}
                             onClick={() => setSelectedDoc({ url: doc.courseDocumentUrl, title: doc.title, isDownloadable: doc.isDownloadable })}
-                            className="flex items-center justify-between p-2.5 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group"
+                            className="flex items-center justify-between p-3 rounded-xl border border-transparent bg-gray-50/50 hover:bg-gray-100/80 hover:border-gray-100 transition-all cursor-pointer group"
                           >
                             <div className="flex items-center gap-3 overflow-hidden">
                               <div className="w-8 h-8 rounded-lg bg-brand-pink/10 flex items-center justify-center text-brand-pink shrink-0">
@@ -177,10 +177,10 @@ export default function LessonSidebar({
                 {/* Sections List */}
                 <div className="space-y-2">
                   {course.sections.map((section) => (
-                    <div key={section.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div key={section.id} className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm bg-white">
                       <button
                         onClick={() => toggleSection(section.id)}
-                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                        className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
                       >
                         <div className="flex items-center gap-2 flex-1 text-left">
                           <span className="text-sm font-medium text-gray-900">
@@ -199,7 +199,7 @@ export default function LessonSidebar({
                       </button>
 
                       {expandedSections[section.id] && (
-                        <div className="border-t border-gray-200">
+                        <div className="border-t border-gray-50 p-2 space-y-1">
                           {section.lessons.map((lesson) => {
                             const isActive = currentLessonId === lesson.id
                             const lessonUrl = getLessonUrl(section, lesson)
@@ -243,7 +243,7 @@ export default function LessonSidebar({
                                   </div>
                                 </div>
                                 {isActive && (
-                                  <CheckCircle2 className="h-4 w-4 text-brand-pink flex-shrink-0" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-brand-purple shrink-0 mr-1" />
                                 )}
                               </div>
                             )
@@ -255,10 +255,10 @@ export default function LessonSidebar({
                                     key={lesson.id}
                                     onClick={() => onNavigate(section.id, lesson.id)}
                                     className={cn(
-                                      "block px-4 py-2.5 hover:bg-gray-50 transition-colors border-l-2 cursor-pointer",
+                                      "block px-3 py-3 rounded-xl transition-all duration-200 cursor-pointer",
                                       isActive
-                                        ? "border-brand-pink bg-brand-pink/5"
-                                        : "border-transparent"
+                                        ? "bg-brand-purple/10 text-brand-purple shadow-sm ring-1 ring-black/5"
+                                        : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
                                     )}
                                   >
                                     {content}
@@ -270,10 +270,10 @@ export default function LessonSidebar({
                                   key={lesson.id}
                                   href={lessonUrl}
                                   className={cn(
-                                    "block px-4 py-2.5 hover:bg-gray-50 transition-colors border-l-2",
+                                    "block px-3 py-3 rounded-xl transition-all duration-200",
                                     isActive
-                                      ? "border-brand-pink bg-brand-pink/5"
-                                      : "border-transparent"
+                                      ? "bg-brand-purple/10 text-brand-purple shadow-sm ring-1 ring-black/5"
+                                      : "hover:bg-gray-50 text-gray-600 hover:text-gray-900"
                                   )}
                                 >
                                   {content}
@@ -285,10 +285,10 @@ export default function LessonSidebar({
                               <div
                                 key={lesson.id}
                                 className={cn(
-                                  "block px-4 py-2.5 border-l-2 cursor-not-allowed opacity-60",
+                                  "block px-3 py-3 rounded-xl cursor-not-allowed opacity-50 grayscale",
                                   isActive
-                                    ? "border-brand-pink bg-brand-pink/5"
-                                    : "border-transparent"
+                                    ? "bg-gray-100"
+                                    : "transparent"
                                 )}
                                 aria-disabled="true"
                               >
@@ -299,16 +299,16 @@ export default function LessonSidebar({
 
                           {/* Section Assignment */}
                           {('assignmentId' in section && section.assignmentId) && (
-                            <div className="block px-4 py-2.5 border-l-2 border-transparent hover:bg-gray-50 transition-colors cursor-pointer opacity-70 hover:opacity-100">
-                              <div className="flex items-center gap-2">
-                                <div className="flex-shrink-0">
-                                  <ClipboardCheck className="h-4 w-4 text-amber-500" />
+                            <div className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign">
+                              <div className="flex items-center gap-3">
+                                <div className="flex-shrink-0 w-8 flex justify-center">
+                                  <ClipboardCheck className="h-5 w-5 text-amber-500 group-hover/assign:scale-110 transition-transform" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="text-sm text-gray-700 truncate">
+                                  <div className="text-sm font-medium text-gray-800 truncate">
                                     Bài tập cuối chương
                                   </div>
-                                  <div className="text-xs text-gray-500 mt-0.5">
+                                  <div className="text-xs text-amber-600/80 mt-0.5 font-medium">
                                     Bắt buộc
                                   </div>
                                 </div>

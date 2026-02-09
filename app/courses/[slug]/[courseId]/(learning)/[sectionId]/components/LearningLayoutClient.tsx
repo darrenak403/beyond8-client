@@ -40,7 +40,7 @@ export default function LearningLayoutClient({ course, isEnrolled, params: initi
   }
 
   return (
-    <div className="flex h-screen w-full bg-white text-black overflow-hidden font-sans">
+    <div className="flex h-screen w-full bg-gray-50 text-black overflow-hidden font-sans">
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
         <LessonHeader
@@ -51,7 +51,7 @@ export default function LearningLayoutClient({ course, isEnrolled, params: initi
         />
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {children}
         </div>
       </div>

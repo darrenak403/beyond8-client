@@ -158,6 +158,23 @@ export interface LessonResponse {
     metadata: unknown;
 }
 
+export interface VideoLesson {
+    lessonId: string
+    hlsVariants: string
+    videoOriginalUrl: string
+    videoThumbnailUrl: string
+    durationSeconds: number
+    videoQualities: string
+    isDownloadable: boolean
+}
+
+export interface VideoLessonResponse {
+    isSuccess: boolean;
+    message: string;
+    data: VideoLesson
+    metadata: unknown;
+}
+
 export const fetchLession = {
     getLessonsBySection: async (sectionId: string): Promise<LessonResponse> => {
         const response = await apiService.get<LessonResponse>(`api/v1/lessons/section/${sectionId}`);
@@ -236,6 +253,12 @@ export const fetchLession = {
 
     toggleDownloadLessonDocumnet: async (id: string): Promise<LessonDocumentResponse> => {
         const response = await apiService.patch<LessonDocumentResponse>(`api/v1/lesson-documents/${id}/toggle-downloadable`);
+        return response.data;
+    },
+
+    //Lấy thông tin video theo ID bài học
+    getVideoByLessonId: async (lessonId: string): Promise<VideoLessonResponse> => {
+        const response = await apiService.get<VideoLessonResponse>(`api/v1/lessons/${lessonId}/video`);
         return response.data;
     },
 }
