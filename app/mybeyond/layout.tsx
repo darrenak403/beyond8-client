@@ -31,6 +31,9 @@ export default function MyBeyondLayout({ children }: { children: ReactNode }) {
     if (pathname.startsWith('/mybeyond/myusage')) {
       return 'myusage';
     }
+    if (pathname.startsWith('/mybeyond/payment-history')) {
+      return 'payment-history';
+    }
     
     // Fallback to query param or default
     return searchParams.get("tab") || "myprofile";

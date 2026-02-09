@@ -85,11 +85,11 @@ export default function AIUsagePage() {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
+        <div className="flex flex-col space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto min-h-screen">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-black tracking-tighter text-gray-900 uppercase">Lịch sử hoạt động AI</h2>
+                    <h2 className="text-3xl font-bold text-black">Lịch sử hoạt động AI</h2>
                     <p className="text-gray-500 font-medium">Theo dõi mức sử dụng và tối ưu hóa chi phí AI của bạn.</p>
                 </div>
             </div>
@@ -189,6 +189,7 @@ export default function AIUsagePage() {
             </div>
 
             {/* Usage Table */}
+            <div className="flex-1 flex flex-col">
                 <AIUsageTable 
                     data={historyData} 
                     isLoading={isLoading} 
@@ -196,6 +197,7 @@ export default function AIUsagePage() {
                     pagination={pagination}
                     onPaginationChange={onPaginationChange}
                 />
+            </div>
         </div>
     );
 }

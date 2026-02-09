@@ -149,11 +149,18 @@ export interface PaymentItem {
   updatedAt: string | null;
 }
 
+export interface PaginationMetadata {
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
 export interface GetMyPaymentsResponse {
   isSuccess: boolean;
   message: string;
   data: PaymentItem[];
-  metadata: null;
+  metadata: PaginationMetadata | null;
 }
 
 const convertParamsToQuery = (params?: PaymentParams): RequestParams => {
