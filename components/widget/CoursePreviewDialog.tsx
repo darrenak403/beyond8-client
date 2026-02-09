@@ -190,6 +190,8 @@ export function CoursePreviewDialog({
                                                             'durationSeconds' in currentLessonData ? currentLessonData.durationSeconds : null
                                                         }
                                                         thumbnailUrl={currentLessonData.videoThumbnailUrl}
+                                                        originVideoUrl={currentLessonData.videoOriginalUrl || ''}
+                                                        isDownloadable={'isDownloadable' in currentLessonData ? currentLessonData.isDownloadable : false}
                                                     />
                                                 )}
                                                 {currentLessonData.type === LessonType.Text && (

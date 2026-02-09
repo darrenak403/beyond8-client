@@ -28,8 +28,10 @@ import {
   Volume1,
   Volume2,
   VolumeX,
+  Download,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import DocumentDownloadButton from '@/components/ui/document-download-button'
 
 // Custom Play Button Component with Animation
 function CustomPlayButton() {
@@ -236,12 +238,14 @@ interface VideoLessonProps {
   description?: string | null
   videoUrl?: string
   thumbnailUrl?: string | null
+  originVideoUrl: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   variants?: any[]
   durationSeconds?: number | null
+  isDownloadable?: boolean
 }
 
-export default function VideoLesson({ title, description, videoUrl, thumbnailUrl, variants, durationSeconds }: VideoLessonProps) {
+export default function VideoLesson({ title, description, videoUrl, thumbnailUrl, variants, durationSeconds, originVideoUrl, isDownloadable = false }: VideoLessonProps) {
   const [isMounted, setIsMounted] = useState(false)
   const [isTheaterMode, setIsTheaterMode] = useState(false)
   const [currentSrc, setCurrentSrc] = useState(videoUrl)
@@ -446,6 +450,17 @@ export default function VideoLesson({ title, description, videoUrl, thumbnailUrl
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {/* Download Button */}
+                  {isDownloadable && videoUrl && (
+                    <DocumentDownloadButton
+                      url={originVideoUrl}
+                      className="group p-2 hover:bg-white/10 rounded-md transition-colors"
+                      title="Tải xuống video"
+                    >
+                      <Download className="w-5 h-5 text-white/90 group-hover:text-white" />
+                    </DocumentDownloadButton>
+                  )}
+
                   <VideoQualitySubmenu
                     variants={variants}
                     currentSrc={currentSrc}

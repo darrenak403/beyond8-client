@@ -387,3 +387,33 @@ export function useGetVideoByLessonId(lessonId: string, options?: { enabled?: bo
     };
 }
 
+export function useGetLessonDocumentPreview(lessonId: string, options?: { enabled?: boolean }) {
+    const { data, isLoading, isError, refetch } = useQuery({
+        queryKey: ["lesson-documents", lessonId, "preview"],
+        queryFn: () => fetchLession.getLessonDocumentPreview(lessonId),
+        select: (data) => data.data,
+        enabled: options?.enabled
+    });
+    return {
+        lessonDocuments: data ?? [],
+        isLoading,
+        isError,
+        refetch
+    };
+}
+
+export function useGetLessonDocumentForStudent(lessonId: string, options?: { enabled?: boolean }) {
+    const { data, isLoading, isError, refetch } = useQuery({
+        queryKey: ["lesson-documents", lessonId, "student"],
+        queryFn: () => fetchLession.getLessonDocumentForStudent(lessonId),
+        select: (data) => data.data,
+        enabled: options?.enabled
+    });
+    return {
+        lessonDocuments: data ?? [],
+        isLoading,
+        isError,
+        refetch
+    };
+}
+

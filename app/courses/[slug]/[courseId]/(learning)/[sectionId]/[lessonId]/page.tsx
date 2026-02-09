@@ -178,6 +178,8 @@ export default function LessonPage() {
                 durationSeconds={
                   'durationSeconds' in lesson ? lesson.durationSeconds : null
                 }
+                originVideoUrl={videoData?.videoOriginalUrl || ''}
+                isDownloadable={'isDownloadable' in lesson ? lesson.isDownloadable : false}
               />
             )}
             {lesson.type === 'Text' && (

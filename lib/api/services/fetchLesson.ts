@@ -261,4 +261,16 @@ export const fetchLession = {
         const response = await apiService.get<VideoLessonResponse>(`api/v1/lessons/${lessonId}/video`);
         return response.data;
     },
+
+    //Lấy danh sách tài liệu preview của bài học (công khai)
+    getLessonDocumentPreview: async (lessonId: string): Promise<LessonDocumentResponse> => {
+        const response = await apiService.get<LessonDocumentResponse>(`api/v1/lesson-documents/lesson/${lessonId}/preview`);
+        return response.data;
+    },
+
+    // Lấy danh sách tài liệu của bài học cho học viên
+    getLessonDocumentForStudent: async (lessonId: string): Promise<LessonDocumentResponse> => {
+        const response = await apiService.get<LessonDocumentResponse>(`api/v1/lesson-documents/lesson/${lessonId}/student`);
+        return response.data;
+    },
 }

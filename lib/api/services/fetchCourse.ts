@@ -151,6 +151,7 @@ export interface LessonSummary {
     description: string | null
     type: LessonType
     order: number
+    orderIndex: number
     isPreview: boolean
     durationSeconds: number | null
     videoThumbnailUrl: string | null
@@ -158,6 +159,7 @@ export interface LessonSummary {
     hlsVariants: string | null
     quizId: string | null
     textContent: string | null
+    isDownloadable: boolean
 }
 
 export interface SectionSummary {

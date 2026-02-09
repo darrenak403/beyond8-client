@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Download, X } from 'lucide-react'
+import DocumentDownloadButton from '@/components/ui/document-download-button'
 
 interface DocumentViewDialogProps {
     open: boolean
@@ -73,10 +74,13 @@ export default function DocumentViewDialog({
                                 className="text-white/70 hover:text-white hover:bg-white/10 h-8 gap-2"
                                 asChild
                             >
-                                <a href={url} download target="_blank" rel="noopener noreferrer">
+                                <DocumentDownloadButton
+                                    url={url}
+                                    title={title}
+                                >
                                     <Download className="w-4 h-4" />
                                     <span className="hidden sm:inline">Tải xuống</span>
-                                </a>
+                                </DocumentDownloadButton>
                             </Button>
                         )}
 

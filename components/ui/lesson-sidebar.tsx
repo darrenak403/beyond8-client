@@ -9,6 +9,7 @@ import { CourseDetail, SectionDetail, LessonType } from '@/lib/api/services/fetc
 import { cn } from '@/lib/utils'
 import { Lesson } from '@/lib/api/services/fetchLesson'
 import DocumentViewDialog from '@/components/widget/document/DocumentViewDialog'
+import DocumentDownloadButton from './document-download-button'
 
 interface LessonSidebarProps {
   course: CourseDetail
@@ -156,15 +157,13 @@ export default function LessonSidebar({
                             </div>
                             {doc.isDownloadable && (
                               <div onClick={(e) => e.stopPropagation()}>
-                                <a
-                                  href={doc.courseDocumentUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                <DocumentDownloadButton
+                                  url={doc.courseDocumentUrl}
+                                  title={doc.title}
                                   className="p-2 hover:bg-gray-200 rounded-full text-gray-600 hover:text-brand-pink transition-colors block"
-                                  title="Tải xuống"
                                 >
                                   <Download className="w-4 h-4" />
-                                </a>
+                                </DocumentDownloadButton>
                               </div>
                             )}
                           </div>

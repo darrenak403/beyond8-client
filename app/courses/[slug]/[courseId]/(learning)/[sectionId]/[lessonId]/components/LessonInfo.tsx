@@ -8,11 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CourseDetail, CourseSummary } from '@/lib/api/services/fetchCourse'
 import { Lesson, LessonType } from '@/lib/api/services/fetchLesson'
 import { useGetQuizOverview } from '@/hooks/useQuiz'
-import { useGetLessonDocument } from '@/hooks/useLesson'
+import { useGetLessonDocumentForStudent, useGetLessonDocumentPreview } from '@/hooks/useLesson'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 import { LessonSummary } from '@/lib/api/services/fetchCourse'
 import { useState } from 'react'
 import DocumentViewDialog from '@/components/widget/document/DocumentViewDialog'
+import DocumentDownloadButton from '@/components/ui/document-download-button'
 
 interface LessonInfoProps {
   course: CourseDetail | CourseSummary
@@ -43,7 +44,11 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
   const { quizOverview, isLoading: isLoadingQuiz } = useGetQuizOverview(quizId || "")
 
   // Fetch lesson documents
-  const { lessonDocuments, isLoading: isLoadingDocuments } = useGetLessonDocument(currentLesson.id)
+  const { lessonDocuments: studentDocs, isLoading: isLoadingStudent } = useGetLessonDocumentForStudent(currentLesson.id)
+  const { lessonDocuments: previewDocs, isLoading: isLoadingPreview } = useGetLessonDocumentPreview(currentLesson.id)
+
+  const lessonDocuments = (studentDocs && studentDocs.length > 0) ? studentDocs : (previewDocs || []);
+  const isLoadingDocuments = isLoadingStudent || isLoadingPreview;
 
   const [selectedDoc, setSelectedDoc] = useState<{ url: string; title: string, isDownloadable: boolean } | null>(null)
 
@@ -260,9 +265,13 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                     </div>
                     {doc.isDownloadable && (
                       <div onClick={(e) => e.stopPropagation()}>
-                        <a href={doc.lessonDocumentUrl} download target="_blank" rel="noopener noreferrer">
+                        <DocumentDownloadButton
+                          url={doc.lessonDocumentUrl}
+                          title={doc.title}
+                          className="block" // ensure it behaves like a block if needed, but the original was just an <a>
+                        >
                           <Download className="w-5 h-5 text-gray-400 ml-auto group-hover:text-gray-900 transition-colors shrink-0 hover:text-brand-pink" />
-                        </a>
+                        </DocumentDownloadButton>
                       </div>
                     )}
                   </div>

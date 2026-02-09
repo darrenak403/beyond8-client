@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { mediaService, type MediaFile } from "@/lib/api/services/fetchMedia";
 import { toast } from "sonner";
 
@@ -144,5 +144,13 @@ export function useMediaDocumentCourse() {
     uploadDocumentCourseError: uploadDocumentCourseMutation.error,
     uploadedDocumentCourse: uploadDocumentCourseMutation.data,
   };
+}
+
+export function useGetDownloadMediaUrl(cloudFrontUrl: string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ["media", cloudFrontUrl],
+    queryFn: () => mediaService.getUrlDownloadMedia({ cloudFrontUrl }),
+    enabled: options?.enabled,
+  });
 }
 

@@ -23,6 +23,7 @@ export interface ConfirmUploadRequest {
   fileId: string;
 }
 
+
 export interface MediaFile {
   id: string;
   userId: string;
@@ -36,6 +37,13 @@ export interface MediaFile {
   status: "Pending" | "Confirmed" | "Failed";
   metadata: Record<string, unknown> | null;
   createdAt: string;
+}
+
+export interface DownloadMediaResponse {
+  downloadUrl: string;
+  fileName: string;
+  expiresAt: string;
+  expiresIn: string;
 }
 
 export const mediaService = {
@@ -438,5 +446,13 @@ export const mediaService = {
     }
 
     return mediaResponse.data;
+  },
+
+  //Tạo presigned URL để download file
+  getUrlDownloadMedia: async ({ cloudFrontUrl }: { cloudFrontUrl: string }): Promise<ApiResponse<DownloadMediaResponse>> => {
+    const response = await apiService.get<ApiResponse<DownloadMediaResponse>>(
+      `api/v1/media/download?cloudFrontUrl=${cloudFrontUrl}&inline=false`
+    );
+    return response.data;
   },
 };
