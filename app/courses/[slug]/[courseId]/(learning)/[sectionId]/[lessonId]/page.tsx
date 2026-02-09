@@ -107,7 +107,7 @@ export default function LessonPage() {
   // Hook must be called unconditionally at top level
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { video: videoData, isLoading: isLoadingVideo } = useGetVideoByLessonId(lessonId, {
-    enabled: !!lesson && lesson.type === 'Video'
+    enabled: !!lesson && lesson.type === 'Video' && shouldFetchDetails
   })
 
   if (isLoading) {
@@ -135,15 +135,15 @@ export default function LessonPage() {
   }
 
   // Resolve video URL from hook data
-  const rawHlsVariants = videoData?.hlsVariants
-  const originalUrl = videoData?.videoOriginalUrl
+  const rawHlsVariants = videoData?.hlsVariants ?? (lesson && 'hlsVariants' in lesson ? lesson.hlsVariants : null)
+  const originalUrl = videoData?.videoOriginalUrl ?? (lesson && 'videoOriginalUrl' in lesson ? lesson.videoOriginalUrl : null)
 
   const resolvedFromHls = formatHls(rawHlsVariants ?? null)
   const variants = getResolvedHlsVariants(rawHlsVariants ?? null)
 
   const videoUrl = resolvedFromHls ?? originalUrl
 
-  if (lesson.type === 'Video' && isLoadingVideo) {
+  if (lesson.type === 'Video' && shouldFetchDetails && isLoadingVideo) {
     return (
       <div className="w-full max-w-[1600px] mx-auto p-0 lg:p-6">
         <Skeleton className="w-full aspect-video" />
@@ -172,13 +172,13 @@ export default function LessonPage() {
               <VideoLesson
                 title={lesson.title}
                 description={lesson.description}
-                videoUrl={videoUrl}
+                videoUrl={videoUrl || ''}
                 thumbnailUrl={'videoThumbnailUrl' in lesson ? lesson.videoThumbnailUrl : null}
                 variants={variants}
                 durationSeconds={
                   'durationSeconds' in lesson ? lesson.durationSeconds : null
                 }
-                originVideoUrl={videoData?.videoOriginalUrl || ''}
+                originVideoUrl={originalUrl || ''}
                 isDownloadable={'isDownloadable' in lesson ? lesson.isDownloadable : false}
               />
             )}
