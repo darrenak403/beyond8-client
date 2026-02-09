@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { formatCurrency } from '@/lib/utils/formatCurrency'
 import { useCartContext } from '../context/CartContext'
+import type { CartItem } from '@/lib/api/services/fetchOrder'
 import { useGetCart, useCheckout, useProcessPayment } from '@/hooks/useOrder'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -20,13 +21,11 @@ export default function CartSummary() {
     if (selectedItems.size === 0) return
 
     try {
-      // Chuyển đổi selectedItems Set thành mảng CheckoutSelectedItem
       const selectedItemsArray = Array.from(selectedItems).map(courseId => ({
         courseId,
         instructorCouponCode: getInstructorCouponCode(courseId),
       }))
 
-      // Gọi useCheckout với các courseId đã được tick
       const checkoutResponse = await checkout({
         selectedItems: selectedItemsArray,
         couponCode: couponCode || null,
@@ -36,13 +35,11 @@ export default function CartSummary() {
       if (checkoutResponse.isSuccess && checkoutResponse.data) {
         const orderId = checkoutResponse.data.id
 
-        // Gọi useProcessPayment với orderId
         const paymentResponse = await processPayment({
           orderId,
         })
 
         if (paymentResponse.isSuccess && paymentResponse.data?.paymentUrl) {
-          // Tự động chuyển hướng đến paymentUrl
           window.location.href = paymentResponse.data.paymentUrl
         }
       }
@@ -56,6 +53,25 @@ export default function CartSummary() {
   }
 
   const isLoading = isCheckoutPending || isProcessPaymentPending
+
+  const hasSelection = selectedItems.size > 0
+
+  let originalTotal = 0
+  let subTotal = 0
+  let totalDiscount = 0
+
+  if (hasSelection) {
+    const selectedCartItems: CartItem[] = cart.items.filter(item =>
+      selectedItems.has(item.courseId)
+    )
+
+    originalTotal = selectedCartItems.reduce(
+      (sum, item) => sum + item.originalPrice,
+      0
+    )
+    subTotal = selectedTotal
+    totalDiscount = Math.max(originalTotal - subTotal, 0)
+  }
 
   return (
     <div className="sticky top-4 h-fit">
@@ -80,15 +96,25 @@ export default function CartSummary() {
 
         {/* Total */}
         <div className="pt-4 border-t border-border space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">
-              {selectedItems.size > 0
-                ? `Tổng cộng (${selectedItems.size} khóa học):`
-                : 'Tổng cộng:'}
-            </span>
-            <span className="text-lg font-bold text-brand-magenta">
-              {selectedItems.size > 0 ? formatCurrency(selectedTotal) : formatCurrency(0)}
-            </span>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Tạm tính</span>
+              <span>{formatCurrency(originalTotal)}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs text-red-500">
+              <span>Giảm giá</span>
+              <span>-{formatCurrency(totalDiscount)}</span>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-sm font-medium text-foreground">
+                {selectedItems.size > 0
+                  ? `Tổng cộng (${selectedItems.size} khóa học):`
+                  : 'Tổng cộng:'}
+              </span>
+              <span className="text-lg font-bold text-brand-magenta">
+                {formatCurrency(subTotal)}
+              </span>
+            </div>
           </div>
 
           {/* Payment Button */}

@@ -8,12 +8,19 @@ export interface CartItem {
   instructorId: string;
   instructorName: string;
   originalPrice: number;
+  discountPercent: number | null;
+  discountAmount: number | null;
+  discountEndsAt: string | null;
+  finalPrice: number;
+  hasDiscount: boolean;
 }
 
 export interface CartData {
   id: string;
   userId: string;
   items: CartItem[];
+  originalTotal: number;
+  totalDiscount: number;
   subTotal: number;
   totalItems: number;
 }
@@ -142,11 +149,18 @@ export interface PaymentItem {
   updatedAt: string | null;
 }
 
+export interface PaginationMetadata {
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
 export interface GetMyPaymentsResponse {
   isSuccess: boolean;
   message: string;
   data: PaymentItem[];
-  metadata: null;
+  metadata: PaginationMetadata | null;
 }
 
 const convertParamsToQuery = (params?: PaymentParams): RequestParams => {

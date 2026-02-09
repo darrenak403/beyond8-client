@@ -27,19 +27,53 @@ export default function PaymentCallbackPage() {
     let errorReason: string | undefined
     if (!isSuccess) {
       errorMessage = 'Giao dịch không thành công'
-      
-      if (responseCode === '24') {
-        errorReason = 'Khách hàng hủy giao dịch'
-      } else if (responseCode === '51') {
-        errorReason = 'Tài khoản không đủ số dư để thực hiện giao dịch'
-      } else if (responseCode === '65') {
-        errorReason = 'Tài khoản đã vượt quá hạn mức giao dịch trong ngày'
-      } else if (responseCode === '75') {
-        errorReason = 'Ngân hàng thanh toán đang bảo trì'
-      } else if (responseCode && responseCode !== '00') {
-        errorReason = `Mã lỗi: ${responseCode}`
-      } else {
-        errorMessage = 'Giao dịch không thành công. Vui lòng thử lại.'
+
+      // Mapping chỉ dành cho các trường hợp giao dịch thất bại
+      switch (responseCode) {
+        case '07':
+          errorReason =
+            'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).'
+          break
+        case '09':
+          errorReason = 'Thẻ/Tài khoản chưa đăng ký dịch vụ InternetBanking tại ngân hàng.'
+          break
+        case '10':
+          errorReason = 'Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần.'
+          break
+        case '11':
+          errorReason = 'Đã hết hạn chờ thanh toán.'
+          break
+        case '12':
+          errorReason = 'Thẻ/Tài khoản bị khóa.'
+          break
+        case '13':
+          errorReason = 'Quý khách nhập sai mật khẩu xác thực giao dịch (OTP).'
+          break
+        case '24':
+          errorReason = 'Khách hàng hủy giao dịch.'
+          break
+        case '51':
+          errorReason = 'Tài khoản không đủ số dư.'
+          break
+        case '65':
+          errorReason = 'Tài khoản đã vượt quá hạn mức giao dịch trong ngày.'
+          break
+        case '75':
+          errorReason = 'Ngân hàng thanh toán đang bảo trì.'
+          break
+        case '79':
+          errorReason = 'Nhập sai mật khẩu thanh toán quá số lần quy định.'
+          break
+        case '99':
+          errorReason = 'Lỗi không xác định.'
+          break
+        default:
+          if (responseCode) {
+            errorReason = `Mã lỗi: ${responseCode}`
+          } else {
+            errorMessage = 'Giao dịch không thành công. Vui lòng thử lại.'
+          }
+          break
       }
     }
     

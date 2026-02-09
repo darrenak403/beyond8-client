@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { BookOpen, Settings, History, Award } from "lucide-react";
+import { BookOpen, Settings, History, Award, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/useMobile";
 import Link from "next/link";
@@ -31,6 +31,12 @@ const sidebarMenuItems = [
     icon: History,
     value: "myusage",
   },
+  {
+    id: "payment-history",
+    label: "Lịch sử giao dịch",
+    icon: CreditCard,
+    value: "payment-history",
+  },
 ];
 
 interface SidebarProfileProps {
@@ -49,10 +55,15 @@ export default function SidebarProfile({ currentTab }: SidebarProfileProps) {
             const Icon = item.icon;
             const isActive = currentTab === item.value;
 
+            const href =
+              item.value === "payment-history"
+                ? "/mybeyond/payment-history"
+                : `/mybeyond?tab=${item.value}`;
+
             return (
               <Link
                 key={item.id}
-                href={`/mybeyond?tab=${item.value}`}
+                href={href}
                 className={cn(
                   'flex flex-col items-center justify-center p-2 rounded-lg transition-colors',
                   isActive ? 'text-purple-700' : 'text-gray-500 hover:text-gray-900'
@@ -76,6 +87,11 @@ export default function SidebarProfile({ currentTab }: SidebarProfileProps) {
             const Icon = item.icon;
             const isActive = currentTab === item.value;
             
+            const href =
+              item.value === "payment-history"
+                ? "/mybeyond/payment-history"
+                : `/mybeyond?tab=${item.value}`;
+
             return (
               <div key={item.id} className="relative">
                 {isActive && (
@@ -90,7 +106,7 @@ export default function SidebarProfile({ currentTab }: SidebarProfileProps) {
                   />
                 )}
                 <Link
-                  href={`/mybeyond?tab=${item.value}`}
+                  href={href}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                     isActive

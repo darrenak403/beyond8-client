@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import Image from 'next/image'
 import { formatCurrency } from '@/lib/utils/formatCurrency'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 import { useCartContext } from '../context/CartContext'
@@ -21,6 +20,9 @@ interface CartItemProps {
     courseThumbnail: string | null
     instructorName: string
     originalPrice: number
+    finalPrice: number
+    hasDiscount: boolean
+    discountPercent: number | null
   }
 }
 
@@ -63,7 +65,6 @@ export default function CartItem({ item }: CartItemProps) {
       onMouseEnter={() => setHoveredItemId(item.id)}
       onMouseLeave={() => setHoveredItemId(null)}
     >
-      {/* Checkbox - Show on hover or when selected with animation */}
       <AnimatePresence>
         {showCheckbox && (
           <motion.div
@@ -117,14 +118,26 @@ export default function CartItem({ item }: CartItemProps) {
               {item.courseTitle}
             </h4>
             <p className="text-xs text-muted-foreground mb-2">{item.instructorName}</p>
-            <span className="font-bold text-brand-magenta">
-              {formatCurrency(item.originalPrice)}
-            </span>
+            <div className="flex flex-col">
+              <span className="font-bold text-brand-magenta">
+                {formatCurrency(typeof item.finalPrice === 'number' ? item.finalPrice : item.originalPrice)}
+              </span>
+              {item.hasDiscount && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                  <span className="line-through">
+                    {formatCurrency(item.originalPrice)}
+                  </span>
+                  {item.discountPercent !== null && item.discountPercent !== undefined && item.discountPercent > 0 && (
+                    <span className="text-red-500 font-semibold">
+                      -{item.discountPercent}%
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           
-          {/* Right column: Coupon input, Apply button, Trash button */}
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            {/* Coupon Input & Apply Button */}
             <div className="flex gap-1.5 items-center">
               <Input
                 placeholder="Mã giảm giá"

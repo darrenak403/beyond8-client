@@ -143,7 +143,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!cart) return 0
     return cart.items
       .filter(item => selectedItems.has(item.courseId))
-      .reduce((sum, item) => sum + item.originalPrice, 0)
+      .reduce((sum, item) => {
+        const price = typeof item.finalPrice === 'number' ? item.finalPrice : item.originalPrice
+        return sum + price
+      }, 0)
   }, [cart, selectedItems])
 
   const setInstructorCouponCode = (courseId: string, couponCode: string) => {

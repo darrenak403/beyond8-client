@@ -26,6 +26,7 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
   const { removeFromCart, isPending: isRemoving } = useRemoveFromCart()
   const { clearCart, isPending: isClearing } = useClearCart()
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
+  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null)
 
   const handleRemoveItem = async (courseId: string) => {
     setRemovingItemId(courseId)
@@ -45,11 +46,31 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
     router.push('/cart')
   }
 
-  // Calculate total for all items
+  // Calculate total for all items (sử dụng subTotal sau giảm giá nếu có)
   const total = useMemo(() => {
     if (!cart) return 0
-    return cart.items.reduce((sum, item) => sum + item.originalPrice, 0)
+    // Ưu tiên subTotal từ API, fallback tính từ finalPrice/originalPrice
+    if (typeof cart.subTotal === 'number') {
+      return cart.subTotal
+    }
+    return cart.items.reduce((sum, item) => {
+      const price = typeof item.finalPrice === 'number' ? item.finalPrice : item.originalPrice
+      return sum + price
+    }, 0)
   }, [cart])
+
+  // Tổng tiền gốc và tổng giảm giá cho phần footer
+  const originalTotal = cart
+    ? (typeof cart.originalTotal === 'number'
+        ? cart.originalTotal
+        : cart.items.reduce((sum, item) => sum + item.originalPrice, 0))
+    : 0
+
+  const totalDiscount = cart
+    ? (typeof cart.totalDiscount === 'number'
+        ? cart.totalDiscount
+        : Math.max(originalTotal - total, 0))
+    : 0
 
   return (
     <AnimatePresence>
@@ -153,45 +174,91 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
                       transition={{ duration: 0.2 }}
-                      className="flex gap-3 p-3 rounded-lg border transition-colors bg-white dark:bg-black/50 border-border hover:border-brand-magenta/30"
+                      className="relative flex p-3 rounded-lg border transition-colors bg-white dark:bg-black/50 border-border hover:border-brand-magenta/30"
+                      onMouseEnter={() => setHoveredItemId(item.id)}
+                      onMouseLeave={() => setHoveredItemId(null)}
                     >
-                      {/* Thumbnail */}
-                      <div className="relative h-20 w-32 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                        {item.courseThumbnail ? (
-                          <SafeImage
-                            src={formatImageUrl(item.courseThumbnail) || '/bg-web.jpg'}
-                            alt={item.courseTitle}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-magenta/20 to-brand-purple/20">
-                            <ShoppingCart className="h-8 w-8 text-brand-magenta/50" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm line-clamp-2 mb-1 text-foreground">
-                          {item.courseTitle}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {item.instructorName}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-brand-magenta">
-                            {formatCurrency(item.originalPrice)}
-                          </span>
-                          <button
+                      {/* Hover delete button on the left */}
+                      <AnimatePresence>
+                        {hoveredItemId === item.id && (
+                          <motion.button
+                            type="button"
+                            initial={{ opacity: 0, scale: 0.5, x: -10 }}
+                            animate={{ opacity: 1, scale: 1, x: 0 }}
+                            exit={{ opacity: 0, scale: 0.5, x: -10 }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 300,
+                              damping: 20,
+                              duration: 0.2,
+                            }}
                             onClick={() => handleRemoveItem(item.courseId)}
                             disabled={removingItemId === item.courseId || isRemoving}
-                            className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 bg-white/80 dark:bg-black/80 shadow-sm cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                          </motion.button>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Content wrapper with slide animation when showing delete button */}
+                      <motion.div
+                        className="flex gap-3 flex-1"
+                        animate={{
+                          paddingLeft: hoveredItemId === item.id ? '2.5rem' : '0',
+                        }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 300,
+                          damping: 25,
+                          duration: 0.2,
+                        }}
+                      >
+                        {/* Thumbnail */}
+                        <div className="relative h-20 w-32 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                          {item.courseThumbnail ? (
+                            <SafeImage
+                              src={formatImageUrl(item.courseThumbnail) || '/bg-web.jpg'}
+                              alt={item.courseTitle}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-magenta/20 to-brand-purple/20">
+                              <ShoppingCart className="h-8 w-8 text-brand-magenta/50" />
+                            </div>
+                          )}
                         </div>
-                      </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-sm line-clamp-1 mb-1 text-foreground">
+                            {item.courseTitle}
+                          </h4>
+                          <p className="text-xs text-muted-foreground mb-2">
+                            {item.instructorName}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-brand-magenta">
+                                {formatCurrency(typeof item.finalPrice === 'number' ? item.finalPrice : item.originalPrice)}
+                              </span>
+                              {item.hasDiscount && (
+                                <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                                  <span className="line-through">
+                                    {formatCurrency(item.originalPrice)}
+                                  </span>
+                                  {item.discountPercent !== null && item.discountPercent !== undefined && item.discountPercent > 0 && (
+                                    <span className="text-red-500 font-semibold">
+                                      -{item.discountPercent}%
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -201,14 +268,24 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
             {/* Footer */}
             {isAuthenticated && cart && cart.items.length > 0 && (
               <div className="border-t border-brand-magenta/20 bg-white/50 dark:bg-black/50 backdrop-blur-sm p-4 space-y-3">
-                {/* Total */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">
-                    Tổng cộng ({cart.items.length} khóa học):
-                  </span>
-                  <span className="text-lg font-bold text-brand-magenta">
-                    {formatCurrency(total)}
-                  </span>
+                {/* Totals */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Tạm tính</span>
+                    <span>{formatCurrency(originalTotal)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-red-500">
+                    <span>Giảm giá</span>
+                    <span>-{formatCurrency(totalDiscount)}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-sm font-medium text-foreground">
+                      Tổng cộng ({cart.items.length} khóa học):
+                    </span>
+                    <span className="text-lg font-bold text-brand-magenta">
+                      {formatCurrency(total)}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Actions */}
