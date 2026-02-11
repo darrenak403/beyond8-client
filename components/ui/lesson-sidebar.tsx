@@ -1,15 +1,17 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { ChevronLeft, Play, Lock, FileText, Download, ListChecks, ClipboardCheck } from 'lucide-react'
+import { ChevronLeft, Play, Lock, FileText, Download, ListChecks, ClipboardCheck, CheckCircle2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { CourseDetail, SectionDetail, LessonType } from '@/lib/api/services/fetchCourse'
 import { cn } from '@/lib/utils'
+import { useCheckEnrollment, useGetCurriculumProgress } from '@/hooks/useEnroll'
 import { Lesson } from '@/lib/api/services/fetchLesson'
-import DocumentViewDialog from '@/components/widget/document/DocumentViewDialog'
+import { Badge } from '@/components/ui/badge'
 import DocumentDownloadButton from './document-download-button'
+import DocumentViewDialog from '../widget/document/DocumentViewDialog'
 
 interface LessonSidebarProps {
   course: CourseDetail
@@ -41,6 +43,73 @@ export default function LessonSidebar({
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
   const [isDocumentsExpanded, setIsDocumentsExpanded] = useState(false)
   const [selectedDoc, setSelectedDoc] = useState<{ url: string; title: string, isDownloadable: boolean } | null>(null)
+
+  // Fetch enrollment data to get ID
+  const { enrollmentId } = useCheckEnrollment(courseId, { enabled: isEnrolled })
+  // Fetch curriculum progress
+  const { curriculumProgress } = useGetCurriculumProgress(enrollmentId as string, { enabled: !!enrollmentId })
+
+  // Create a map of completion status
+  const completionMap = useMemo(() => {
+    if (!isEnrolled || !curriculumProgress) return new Map<string, { isCompleted: boolean; isPassed: boolean }>()
+
+    const map = new Map<string, { isCompleted: boolean; isPassed: boolean }>()
+    curriculumProgress.sections.forEach(s => {
+      s.lessons.forEach(l => {
+        map.set(l.lessonId, { isCompleted: l.isCompleted, isPassed: l.isPassed })
+      })
+    })
+    return map
+  }, [curriculumProgress, isEnrolled])
+
+  // Calculate locked lessons
+  const lockedLessonIds = useMemo(() => {
+    if (!isEnrolled) return new Set<string>()
+
+    const locked = new Set<string>()
+    let foundFirstIncomplete = false
+
+    // Traverse course structure to determine locks based on linear progression
+    for (const section of course.sections) {
+
+      for (const lesson of section.lessons) {
+        if (foundFirstIncomplete) {
+          locked.add(lesson.id)
+          continue
+        }
+
+        const progress = completionMap.get(lesson.id)
+
+        // Determine if lesson is effectively "done" based on type
+        // Quiz: must be passed
+        // Others: must be completed
+        let isEffectivelyDone = false
+        if (progress) {
+          if (lesson.type === LessonType.Quiz) {
+            isEffectivelyDone = progress.isPassed
+          } else {
+            isEffectivelyDone = progress.isCompleted
+          }
+        }
+
+        if (!isEffectivelyDone) {
+          foundFirstIncomplete = true
+          // This lesson is the "current" one, so it's accessible.
+          // Subsequent ones will be locked.
+        }
+      }
+
+      // Check Section Assignment Locking
+      // If any lesson in this section is incomplete OR if we already found an incomplete lesson before this section
+      // Then the assignment is locked.
+      // Note: foundFirstIncomplete covers "before this section" AND "in this section".
+      // But we need to make sure we lock it if it's the *next* thing after the lessons.
+      if (foundFirstIncomplete && section.assignmentId) {
+        locked.add(section.assignmentId)
+      }
+    }
+    return locked
+  }, [course.sections, completionMap, isEnrolled])
 
   // Determine effective IDs (prop takes precedence over params)
   const currentLessonId = propLessonId || params.lessonId
@@ -202,10 +271,22 @@ export default function LessonSidebar({
                           {section.lessons.map((lesson) => {
                             const isActive = currentLessonId === lesson.id
                             const lessonUrl = getLessonUrl(section, lesson)
-                            const canAccessLesson = isEnrolled || lesson.isPreview
+                            // Lesson is accessible if:
+                            // 1. It is preview (always accessible)
+                            // 2. It is NOT locked by progress (if enrolled)
+
+                            const isLocked = mode !== 'preview' && isEnrolled && lockedLessonIds.has(lesson.id)
+                            const canAccessLesson = mode === 'preview' || lesson.isPreview || (isEnrolled ? !isLocked : false)
 
                             const renderLessonIcon = () => {
                               if (!canAccessLesson) return <Lock className="h-4 w-4 text-gray-400" />
+
+                              const progress = completionMap.get(lesson.id)
+                              const isCompleted = progress?.isCompleted || (lesson.type === LessonType.Quiz && progress?.isPassed)
+
+                              if (isCompleted) {
+                                return <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                              }
 
                               switch (lesson.type) {
                                 case LessonType.Video:
@@ -228,7 +309,9 @@ export default function LessonSidebar({
                                   <div
                                     className={cn(
                                       "text-sm truncate",
-                                      isActive ? "text-black font-medium" : "text-gray-700"
+                                      isActive ? "text-black font-medium" : "text-gray-700",
+                                      !canAccessLesson && "text-gray-400",
+                                      (completionMap.get(lesson.id)?.isCompleted || (lesson.type === LessonType.Quiz && completionMap.get(lesson.id)?.isPassed)) && !isActive && "text-emerald-600"
                                     )}
                                   >
                                     {lesson.orderIndex}. {lesson.title}
@@ -241,8 +324,8 @@ export default function LessonSidebar({
                                       : "N/A"}
                                   </div>
                                 </div>
-                                {isActive && (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-brand-purple shrink-0 mr-1" />
+                                {lesson.isPreview && (
+                                  <Badge variant="outline" className="mr-2 text-[10px] px-2 py-0 h-5 border-brand-pink text-brand-pink hover:bg-brand-pink/5 uppercase font-medium">Xem trước</Badge>
                                 )}
                               </div>
                             )
@@ -286,7 +369,7 @@ export default function LessonSidebar({
                                 className={cn(
                                   "block px-3 py-3 rounded-xl cursor-not-allowed opacity-50 grayscale",
                                   isActive
-                                    ? "bg-gray-100"
+                                    ? "bg-gray-100" // Should probably not highlight if locked, but if active somehow?
                                     : "transparent"
                                 )}
                                 aria-disabled="true"
@@ -297,26 +380,75 @@ export default function LessonSidebar({
                           })}
 
                           {/* Section Assignment */}
-                          {('assignmentId' in section && section.assignmentId) && (
-                            <Link
-                              href={`/courses/${slug}/${courseId}/${section.id}/asm-attempt/${section.assignmentId}`}
-                              className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="flex-shrink-0 w-8 flex justify-center">
-                                  <ClipboardCheck className="h-5 w-5 text-amber-500 group-hover/assign:scale-110 transition-transform" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-sm font-medium text-gray-800 truncate">
-                                    Bài tập cuối chương
+                          {('assignmentId' in section && section.assignmentId) && (() => {
+                            const isAssignmentLocked = mode !== 'preview' && isEnrolled && lockedLessonIds.has(section.assignmentId!)
+
+                            if (isAssignmentLocked) {
+                              return (
+                                <div className="block px-3 py-3 rounded-xl cursor-not-allowed opacity-50 grayscale bg-gray-100">
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex-shrink-0 w-8 flex justify-center">
+                                      <Lock className="h-4 w-4 text-gray-400" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-sm font-medium text-gray-500 truncate">
+                                        Bài tập cuối chương
+                                      </div>
+                                      <div className="text-xs text-gray-400 mt-0.5 font-medium">
+                                        Hoàn thành các bài học trước để mở khóa
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="text-xs text-amber-600/80 mt-0.5 font-medium">
-                                    Bắt buộc
+                                </div>
+                              )
+                            }
+
+                            if (onNavigate) {
+                              return (
+                                <div
+                                  key={`assignment-${section.assignmentId}`}
+                                  onClick={() => onNavigate(section.id, section.assignmentId!)}
+                                  className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex-shrink-0 w-8 flex justify-center">
+                                      <ClipboardCheck className="h-5 w-5 text-amber-500 group-hover/assign:scale-110 transition-transform" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-sm font-medium text-gray-800 truncate">
+                                        Bài tập cuối chương
+                                      </div>
+                                      <div className="text-xs text-amber-600/80 mt-0.5 font-medium">
+                                        Bắt buộc
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </Link>
-                          )}
+                              )
+                            }
+
+                            return (
+                              <Link
+                                key={`assignment-${section.assignmentId}`}
+                                href={`/courses/${slug}/${courseId}/${section.id}/asm-attempt/${section.assignmentId}`}
+                                className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="flex-shrink-0 w-8 flex justify-center">
+                                    <ClipboardCheck className="h-5 w-5 text-amber-500 group-hover/assign:scale-110 transition-transform" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium text-gray-800 truncate">
+                                      Bài tập cuối chương
+                                    </div>
+                                    <div className="text-xs text-amber-600/80 mt-0.5 font-medium">
+                                      Bắt buộc
+                                    </div>
+                                  </div>
+                                </div>
+                              </Link>
+                            )
+                          })()}
                         </div>
                       )}
                     </div>

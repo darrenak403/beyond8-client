@@ -58,6 +58,7 @@ export interface LessonProgress {
   title: string;
   order: number;
   isCompleted: boolean;
+  isPassed: boolean;
 }
 
 export interface SectionProgress {
@@ -76,6 +77,36 @@ export interface CurriculumProgressData {
   completedLessons: number;
   totalLessons: number;
   sections: SectionProgress[];
+}
+
+export interface UpdateLearningRequest {
+  lastPositionSeconds: number;
+  markComplete: boolean;
+}
+
+export interface Learning {
+  id: string
+  lessonId: string
+  enrollmentId: string
+  courseId: string
+  status: string
+  isPassed: boolean
+  lastPositionSeconds: number
+  totalDurationSeconds: number
+  watchPercent: number
+  quizAttempts: unknown
+  quizBestScore: unknown
+  startedAt: string
+  completedAt: string | null
+  lastAccessedAt: string | null
+  isManuallyCompleted: boolean
+}
+
+export interface UpdateLearningResponse {
+  isSuccess: boolean;
+  message: string;
+  data: Learning;
+  metadata: unknown;
 }
 
 export interface CurriculumProgressResponse {
@@ -122,6 +153,15 @@ export const fetchEnroll = {
   ): Promise<CurriculumProgressResponse> => {
     const response = await apiService.get<CurriculumProgressResponse>(
       `api/v1/enrollments/${enrollmentId}/curriculum-progress`
+    );
+    return response.data;
+  },
+
+  //Cập nhật tiến độ bài học (heartbeat): vị trí xem / đánh dấu hoàn thành
+  updateLearning: async (lessonId: string, data: UpdateLearningRequest): Promise<UpdateLearningResponse> => {
+    const response = await apiService.put<UpdateLearningResponse>(
+      `api/v1/enrollments/lesson/${lessonId}/heartbeat`,
+      data
     );
     return response.data;
   },

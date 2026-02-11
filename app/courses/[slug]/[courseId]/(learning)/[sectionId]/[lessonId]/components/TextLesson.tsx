@@ -1,19 +1,54 @@
-'use client'
-
-import { useState } from 'react'
-import { Maximize2, Minimize2 } from 'lucide-react'
+import { useState, useMemo } from 'react' // Import useMemo
+import { Maximize2, Minimize2, CheckCircle } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { Button } from '@/components/ui/button'
+import { useUpdateLearning, useCheckEnrollment, useGetCurriculumProgress } from '@/hooks/useEnroll' // Updated imports
+import { useParams } from 'next/navigation' // Import useParams
 
 interface TextLessonProps {
+    lessonId: string
     title: string
     content: string | null
 }
 
-export default function TextLesson({ title, content }: TextLessonProps) {
+export default function TextLesson({ lessonId, title, content }: TextLessonProps) {
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const { updateLearning, isPending } = useUpdateLearning()
+
+    // Needed for checking status
+    const params = useParams()
+    const courseId = params?.courseId as string
+
+    // Check enrollment and progress to determine if already completed
+    const { enrollmentId } = useCheckEnrollment(courseId, { enabled: !!courseId })
+    const { curriculumProgress } = useGetCurriculumProgress(enrollmentId || undefined, { enabled: !!enrollmentId })
+
+    const isCompleted = useMemo(() => {
+        if (!curriculumProgress) return false;
+
+        for (const section of curriculumProgress.sections) {
+            const lesson = section.lessons.find(l => l.lessonId === lessonId)
+            if (lesson) return lesson.isCompleted
+        }
+        return false
+    }, [curriculumProgress, lessonId])
+
+    const handleComplete = async () => {
+        try {
+            await updateLearning({
+                lessonId,
+                data: {
+                    lastPositionSeconds: 0,
+                    markComplete: true
+                }
+            })
+        } catch (error) {
+            console.error("Failed to mark lesson as complete:", error)
+        }
+    }
 
     if (!content) return null
 
@@ -85,6 +120,32 @@ export default function TextLesson({ title, content }: TextLessonProps) {
                         >
                             {content}
                         </ReactMarkdown>
+
+                        {/* Completion Button */}
+                        <div className="mt-8 flex justify-center pb-4">
+                            <Button
+                                onClick={handleComplete}
+                                disabled={isPending || isCompleted}
+                                className={`
+                                    rounded-full px-8 py-6 text-base font-semibold shadow-lg transition-all
+                                    ${isCompleted
+                                        ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200 cursor-default'
+                                        : 'bg-gradient-to-r from-brand-purple to-brand-pink text-white hover:opacity-90 hover:scale-[1.02]'
+                                    }
+                                `}
+                            >
+                                {isCompleted ? (
+                                    <>
+                                        <CheckCircle className="w-5 h-5 mr-2" />
+                                        Đã hoàn thành
+                                    </>
+                                ) : (
+                                    <>
+                                        {isPending ? 'Đang xử lý...' : 'Đánh dấu hoàn thành'}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>

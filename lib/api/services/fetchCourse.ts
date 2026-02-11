@@ -24,7 +24,6 @@ export enum LessonType {
     Video = "Video",
     Quiz = "Quiz",
     Text = "Text",
-    Assignment = "Assignment"
 }
 
 export interface Course {

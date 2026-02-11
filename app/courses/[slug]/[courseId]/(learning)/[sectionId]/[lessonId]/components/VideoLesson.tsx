@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import DocumentDownloadButton from '@/components/ui/document-download-button'
+import { useUpdateLearning } from '@/hooks/useEnroll'
 
 // Custom Play Button Component with Animation
 function CustomPlayButton() {
@@ -234,6 +235,7 @@ function TimeDisplay({ durationSeconds }: { durationSeconds?: number | null }) {
 }
 
 interface VideoLessonProps {
+  lessonId: string
   title: string
   description?: string | null
   videoUrl?: string
@@ -245,20 +247,20 @@ interface VideoLessonProps {
   isDownloadable?: boolean
 }
 
-export default function VideoLesson({ title, description, videoUrl, thumbnailUrl, variants, durationSeconds, originVideoUrl, isDownloadable = false }: VideoLessonProps) {
+export default function VideoLesson({ lessonId, title, description, videoUrl, thumbnailUrl, variants, durationSeconds, originVideoUrl, isDownloadable = false }: VideoLessonProps) {
   const [isMounted, setIsMounted] = useState(false)
   const [isTheaterMode, setIsTheaterMode] = useState(false)
   const [currentSrc, setCurrentSrc] = useState(videoUrl)
   const playerRef = React.useRef<MediaPlayerInstance>(null)
 
+  const { updateLearning } = useUpdateLearning()
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true)
   }, [])
 
   // Sync currentSrc with videoUrl when prop changes (lesson change)
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentSrc(videoUrl)
   }, [videoUrl])
 
@@ -310,6 +312,21 @@ export default function VideoLesson({ title, description, videoUrl, thumbnailUrl
       setCurrentSrc(newUrl)
     }
   }
+
+  const handleVideoEnded = async () => {
+    try {
+      await updateLearning({
+        lessonId,
+        data: {
+          lastPositionSeconds: durationSeconds || 0,
+          markComplete: true
+        }
+      })
+    } catch (error) {
+      console.error("Failed to update learning progress:", error)
+    }
+  }
+
 
   // Handle ESC key to exit theater mode
   useEffect(() => {
@@ -384,6 +401,7 @@ export default function VideoLesson({ title, description, videoUrl, thumbnailUrl
           aspectRatio="16/9"
           load="eager"
           className="w-full h-full"
+          onEnded={handleVideoEnded}
         >
           <MediaProvider>
             <Poster className="vds-poster object-cover w-full h-full absolute inset-0 block opacity-0 data-[visible]:opacity-100 transition-opacity duration-200" src={thumbnailUrl || undefined} alt={title} />

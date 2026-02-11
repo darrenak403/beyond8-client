@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useGetCourseDetails, useGetCourseSummary } from '@/hooks/useCourse'
 import type { CourseDetail, CourseSummary, LessonSummary, SectionSummary, SectionDetail } from '@/lib/api/services/fetchCourse'
 import type { Lesson } from '@/lib/api/services/fetchLesson'
@@ -11,7 +11,7 @@ import TextLesson from './components/TextLesson'
 import LessonInfo from './components/LessonInfo'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatHls, getResolvedHlsVariants } from '@/lib/utils/formatHls'
-import { useUserById } from '@/hooks/useUserProfile'
+
 import { useGetVideoByLessonId } from '@/hooks/useLesson'
 
 
@@ -170,6 +170,7 @@ export default function LessonPage() {
           <div className="w-full max-w-6xl mx-auto">
             {lesson.type === 'Video' && (
               <VideoLesson
+                lessonId={lesson.id}
                 title={lesson.title}
                 description={lesson.description}
                 videoUrl={videoUrl || ''}
@@ -184,6 +185,7 @@ export default function LessonPage() {
             )}
             {lesson.type === 'Text' && (
               <TextLesson
+                lessonId={lesson.id}
                 title={lesson.title}
                 content={'textContent' in lesson ? lesson.textContent : null}
               />

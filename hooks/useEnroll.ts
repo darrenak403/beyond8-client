@@ -7,6 +7,8 @@ import {
   MyEnrollmentData,
   CurriculumProgressResponse,
   CurriculumProgressData,
+  UpdateLearningResponse,
+  UpdateLearningRequest,
 } from "@/lib/api/services/fetchEnroll";
 import { toast } from "sonner";
 
@@ -14,7 +16,6 @@ interface UseCheckEnrollmentOptions {
   enabled?: boolean;
 }
 
-// Hook kiểm tra xem user hiện tại đã enroll khoá học hay chưa
 export function useCheckEnrollment(
   courseId?: string,
   options?: UseCheckEnrollmentOptions
@@ -22,16 +23,17 @@ export function useCheckEnrollment(
   const { data, isLoading, isError, refetch } = useQuery<
     CheckEnrollmentResponse,
     Error,
-    boolean
+    CheckEnrollmentResponse // Change select to return full response to get metadata
   >({
-      queryKey: ["enrollments", "check", courseId],
+    queryKey: ["enrollments", "check", courseId],
     queryFn: () => fetchEnroll.checkEnrollment(courseId as string),
     enabled: options?.enabled ?? !!courseId,
-    select: (res) => res.data,
+    // Remove select to get full response, or select what we need
   });
 
   return {
-    isEnrolled: data ?? false,
+    isEnrolled: data?.data ?? false,
+    enrollmentId: data?.metadata?.enrollmentId ?? null,
     isLoading,
     isError,
     refetch,
@@ -122,5 +124,46 @@ export function useGetCurriculumProgress(
     isLoading,
     isError,
     refetch,
+  };
+}
+
+export function useUpdateLearning() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending } = useMutation<
+    UpdateLearningResponse,
+    Error,
+    { lessonId: string; data: UpdateLearningRequest }
+  >({
+    mutationFn: ({ lessonId, data }) =>
+      fetchEnroll.updateLearning(lessonId, data),
+    onSuccess: (response) => {
+      const { courseId, enrollmentId } = response.data;
+
+      // Cập nhật lại trạng thái enroll và course summary sau khi tham gia khoá học
+      queryClient.invalidateQueries({
+        queryKey: ["enrollments", "check", courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["course", "summary", courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["course", "details", courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["courses", "public"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["enrollments", "curriculum-progress", enrollmentId],
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể cập nhật tiến độ bài học!");
+    },
+  });
+
+  return {
+    updateLearning: mutateAsync,
+    isPending,
   };
 }

@@ -1,4 +1,5 @@
-"use client";
+
+import AssignmentPreview from "@/components/widget/assignment/AssignmentPreview";
 
 import { useGetCourseDetailsPreview, useApproveCourse, useRejectCourse } from "@/hooks/useCourse";
 import {
@@ -69,8 +70,10 @@ export function CoursePreviewDialog({
 
     // Find current lesson data if selected
     let currentLessonData: Lesson | undefined;
+    let currentSectionData: SectionDetail | undefined;
     if (selectedLesson && courseDetailsPreview) {
         const section = (courseDetailsPreview.sections as SectionDetail[]).find(s => s.id === selectedLesson.sectionId);
+        currentSectionData = section;
         currentLessonData = section?.lessons.find(l => l.id === selectedLesson.lessonId) as Lesson | undefined;
     }
 
@@ -174,12 +177,13 @@ export function CoursePreviewDialog({
                         ) : (
                             <div className="bg-white min-h-full">
                                 <div ref={topRef} />
-                                {selectedLesson && currentLessonData ? (
+                                {selectedLesson && (currentLessonData || currentSectionData?.assignmentId === selectedLesson.lessonId) ? (
                                     <div className="w-full px-4 relative">
                                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-8">
                                             <div className="lg:col-span-3 space-y-8">
-                                                {currentLessonData.type === LessonType.Video && (
+                                                {currentLessonData && currentLessonData.type === LessonType.Video && (
                                                     <VideoLesson
+                                                        lessonId={currentLessonData.id}
                                                         title={currentLessonData.title}
                                                         description={currentLessonData.description}
                                                         videoUrl={
@@ -194,23 +198,29 @@ export function CoursePreviewDialog({
                                                         isDownloadable={'isDownloadable' in currentLessonData ? currentLessonData.isDownloadable : false}
                                                     />
                                                 )}
-                                                {currentLessonData.type === LessonType.Text && (
+                                                {currentLessonData && currentLessonData.type === LessonType.Text && (
                                                     <TextLesson
+                                                        lessonId={currentLessonData.id}
                                                         title={currentLessonData.title}
                                                         content={currentLessonData.textContent}
                                                     />
                                                 )}
-                                                {currentLessonData.type === LessonType.Quiz && (
+                                                {currentLessonData && currentLessonData.type === LessonType.Quiz && (
                                                     <QuizPreview lesson={currentLessonData} />
                                                 )}
-                                                <LessonInfo
-                                                    course={courseDetailsPreview}
-                                                    currentLesson={currentLessonData}
-                                                    slug={courseDetailsPreview.slug}
-                                                    courseId={courseDetailsPreview.id}
-                                                    onNavigate={handleNavigate}
-                                                    instructor={instructor}
-                                                />
+                                                {currentSectionData?.assignmentId === selectedLesson.lessonId && (
+                                                    <AssignmentPreview assignmentId={currentSectionData.assignmentId} />
+                                                )}
+                                                {currentLessonData && currentLessonData.type !== LessonType.Quiz && (
+                                                    <LessonInfo
+                                                        course={courseDetailsPreview}
+                                                        currentLesson={currentLessonData}
+                                                        slug={courseDetailsPreview.slug}
+                                                        courseId={courseDetailsPreview.id}
+                                                        onNavigate={handleNavigate}
+                                                        instructor={instructor}
+                                                    />
+                                                )}
                                             </div>
                                             <div className="lg:col-span-1 relative">
                                                 <div className="sticky top-4 h-[calc(100vh-12rem)] overflow-hidden rounded-xl border border-gray-200">
@@ -223,8 +233,9 @@ export function CoursePreviewDialog({
                                                         isMobile={false}
                                                         onClose={() => setIsSidebarOpen(false)}
                                                         onOpen={() => setIsSidebarOpen(true)}
-                                                        currentLessonId={currentLessonData.id}
+                                                        currentLessonId={currentLessonData?.id || selectedLesson.lessonId}
                                                         onNavigate={handleNavigate}
+                                                        mode="preview"
                                                     />
                                                 </div>
                                             </div>

@@ -17,10 +17,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useMemo } from 'react'
 import { CourseSummary, CourseDetail as CourseDetailType, LessonType } from '@/lib/api/services/fetchCourse'
-import { useGetCurriculumProgress } from '@/hooks/useEnroll'
+import { useGetCurriculumProgress, useCheckEnrollment } from '@/hooks/useEnroll'
 
 interface CourseCurriculumProps {
   course: CourseSummary | CourseDetailType
@@ -48,9 +50,65 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
   const slug = params?.slug as string || 'course-slug'
   const courseId = params?.courseId as string || course.id
 
-  const { curriculumProgress } = useGetCurriculumProgress(enrollmentId, {
-    enabled: !!enrollmentId && mode === 'details'
+  // If enrollmentId is not passed, try to fetch it
+  const { enrollmentId: fetchedEnrollmentId } = useCheckEnrollment(courseId, { enabled: !enrollmentId })
+  const effectiveEnrollmentId = enrollmentId || fetchedEnrollmentId
+
+  const { curriculumProgress } = useGetCurriculumProgress(effectiveEnrollmentId as string, {
+    enabled: !!effectiveEnrollmentId
   })
+
+  // Calculate locked lessons
+  const lockedLessonIds = useMemo(() => {
+    if (!effectiveEnrollmentId || !curriculumProgress) return new Set<string>()
+
+    // Create a map of completion status
+    const completionMap = new Map<string, { isCompleted: boolean; isPassed: boolean }>()
+    curriculumProgress.sections.forEach(s => {
+      s.lessons.forEach(l => {
+        completionMap.set(l.lessonId, { isCompleted: l.isCompleted, isPassed: l.isPassed })
+      })
+    })
+
+    const locked = new Set<string>()
+    let foundFirstIncomplete = false
+
+    // Traverse course structure to determine locks based on linear progression
+    for (const section of course.sections) {
+      for (const lesson of section.lessons) {
+        if (foundFirstIncomplete) {
+          locked.add(lesson.id)
+          continue
+        }
+
+        const progress = completionMap.get(lesson.id)
+
+        // Determine if lesson is effectively "done" based on type
+        // Quiz: must be passed
+        // Others: must be completed
+        let isEffectivelyDone = false
+        if (progress) {
+          if (lesson.type === LessonType.Quiz) {
+            isEffectivelyDone = progress.isPassed
+          } else {
+            isEffectivelyDone = progress.isCompleted
+          }
+        }
+
+        if (!isEffectivelyDone) {
+          foundFirstIncomplete = true
+          // This lesson is the "current" one, so it's accessible.
+          // Subsequent ones will be locked.
+        }
+      }
+
+      // Check Section Assignment Locking
+      if (foundFirstIncomplete && 'assignmentId' in section && section.assignmentId) {
+        locked.add(section.assignmentId)
+      }
+    }
+    return locked
+  }, [course.sections, curriculumProgress, effectiveEnrollmentId])
 
   const sectionProgressMap = new Map(
     curriculumProgress?.sections.map(section => [section.sectionId, section]) || []
@@ -130,8 +188,32 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                         ? lesson.duration
                         : '0m'
 
-                    const canClick =
-                      mode === 'details' || mode === 'preview' ? true : lesson.isPreview
+                    // Determine lock status
+                    const isLocked = mode !== 'preview' && effectiveEnrollmentId && lockedLessonIds.has(lesson.id)
+                    // Accessible if:
+                    // 1. Details/Preview mode (usually instructor or generic preview?) -> Actually 'preview' mode might just mean "show preview content", not "preview access". 
+                    //    But let's stick to the requested logic:
+                    //    If preview lesson -> accessible.
+                    //    If enrolled -> check lock.
+                    //    If not enrolled -> check preview.
+                    const isPreviewLesson = lesson.isPreview
+
+                    // Logic from Sidebar: canAccess = lesson.isPreview || (isEnrolled ? !isLocked : false)
+                    // Here we might have 'mode'. 
+                    // if mode === 'details', maybe we behave like enrolled view?
+                    // if mode === 'preview', maybe strictly preview?
+                    // Let's assume standard access rules apply.
+
+                    // If we have an enrollmentId, we are likely enrolled (or instructor view which might have different rules, but assuming student logic here)
+                    const canAccess = isPreviewLesson || (effectiveEnrollmentId ? !isLocked : false)
+
+                    // If mode is specifically 'details' (maybe instructor?), usually we might allow all? 
+                    // But requirement says "logic similar into CourseCurriculum".
+                    // Let's rely on canAccess. 
+                    // Exception: maybe if we WANT to click it to see "You must enroll".
+                    // But Sidebar disables click.
+
+                    const canClick = canAccess
 
                     const lessonProgress = lessonProgressMap.get(lesson.id)
                     const isLessonCompleted = lessonProgress?.isCompleted || false
@@ -173,12 +255,6 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                               <FileText className="w-3.5 h-3.5" />
                             </div>
                           )
-                        case LessonType.Assignment:
-                          return (
-                            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                              <ClipboardList className="w-3.5 h-3.5" />
-                            </div>
-                          )
                         default:
                           return (
                             <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
@@ -190,14 +266,20 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
 
                     const content = (
                       <div
-                        className="flex items-center gap-4 px-6 py-3.5 hover:bg-muted/30 transition-colors group"
+                        className={cn(
+                          "flex items-center gap-4 px-6 py-3.5 transition-colors group",
+                          canClick ? "hover:bg-muted/30 cursor-pointer" : "opacity-60 cursor-not-allowed bg-gray-50/50"
+                        )}
                       >
                         <div className="shrink-0">
                           {renderLessonIcon()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm text-foreground/80 group-hover:text-brand-magenta transition-colors truncate">
+                            <p className={cn(
+                              "font-medium text-sm transition-colors truncate",
+                              canClick ? "text-foreground/80 group-hover:text-brand-magenta" : "text-gray-500"
+                            )}>
                               {lesson.title}
                             </p>
                           </div>
@@ -209,7 +291,7 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           {lesson.isPreview && (
-                            <Badge variant="outline" className="text-[10px] uppercase border-brand-pink/50 text-brand-pink bg-brand-pink/5">
+                            <Badge variant="outline" className="text-[10px] uppercase border-brand-pink text-brand-pink hover:bg-brand-pink/5 font-medium px-2 py-0 h-5">
                               Xem trước
                             </Badge>
                           )}
@@ -252,8 +334,34 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                   })}
 
                   {/* Section Assignment */}
-                  {('assignmentId' in section && section.assignmentId) && (
-                    <Link href={`/courses/${slug}/${courseId}/${section.id}/asm-attempt/${section.assignmentId}`} className="block cursor-pointer">
+                  {('assignmentId' in section && section.assignmentId) && (() => {
+                    const isAssignmentLocked = mode !== 'preview' && effectiveEnrollmentId && lockedLessonIds.has(section.assignmentId!)
+
+                    if (isAssignmentLocked) {
+                      return (
+                        <div className="block cursor-not-allowed opacity-60 bg-gray-50/50">
+                          <div className="flex items-center gap-4 px-6 py-3.5 border-t border-dashed grayscale">
+                            <div className="shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                <Lock className="w-3.5 h-3.5" />
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-sm text-gray-500 truncate">
+                                  Bài tập cuối chương
+                                </p>
+                              </div>
+                              <p className="text-xs text-gray-400 mt-0.5 truncate">
+                                Hoàn thành các bài học trước để mở khóa
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    }
+
+                    const AssignmentContent = (
                       <div className="flex items-center gap-4 px-6 py-3.5 hover:bg-muted/30 transition-colors group border-t border-dashed">
                         <div className="shrink-0">
                           <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
@@ -265,17 +373,32 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                             <p className="font-medium text-sm text-foreground/80 group-hover:text-brand-magenta transition-colors truncate">
                               Bài tập cuối chương
                             </p>
-                            {/* <Badge variant="secondary" className="text-[10px] bg-amber-100 text-amber-700 hover:bg-amber-100">
-                              Bắt buộc
-                            </Badge> */}
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">
                             Hoàn thành bài tập để tổng kết phần học này
                           </p>
                         </div>
                       </div>
-                    </Link>
-                  )}
+                    )
+
+                    if (onLessonSelect) {
+                      return (
+                        <div
+                          key={`assignment-${section.assignmentId}`}
+                          onClick={() => onLessonSelect(section.id, section.assignmentId!)}
+                          className="block cursor-pointer"
+                        >
+                          {AssignmentContent}
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <Link href={`/courses/${slug}/${courseId}/${section.id}/asm-attempt/${section.assignmentId}`} className="block cursor-pointer">
+                        {AssignmentContent}
+                      </Link>
+                    )
+                  })()}
                 </div>
               </AccordionContent>
             </AccordionItem>
