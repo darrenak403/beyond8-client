@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import type { PaginationState } from "@tanstack/react-table";
 import { usePaymentHistory } from "@/hooks/usePaymentHistory";
 import { PaymentHistoryTable } from "./components/PaymentHistoryTable";
+import { CouponFloatingPanel } from "@/components/widget/coupon-floating";
 
 export default function PaymentHistoryPage() {
   const searchParams = useSearchParams();
@@ -79,6 +80,7 @@ export default function PaymentHistoryPage() {
 
   return (
     <div className="flex flex-col space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto min-h-screen">
+      <CouponFloatingPanel />
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-black">
