@@ -178,7 +178,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         }, [descriptionValue]);
 
         return (
-            <div className="flex-1 flex flex-col h-full overflow-hidden bg-white relative">
+            <div className="flex-1 flex flex-col h-[calc(100vh-100px)] overflow-hidden bg-white relative">
                 <HeaderPortal>
                     {/* Header with Tab Switcher */}
                     <div className="flex items-center justify-between px-8 py-3 h-14 bg-white w-full">

@@ -176,7 +176,7 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
               )}
 
               {/* Right Panel Wrapper with Toolbar */}
-              <div className="flex flex-1 overflow-hidden">
+              <div className="flex flex-1 w-0 h-full overflow-hidden">
                 <ContentEditor
                   ref={editorRef}
                   courseId={courseId}
