@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useGetAssignmentById, useGetSubmissionSumaryBySection } from "@/hooks/useAssignment"
 import { useUserById } from "@/hooks/useUserProfile"
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
@@ -8,7 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { CheckCircle, Clock } from "lucide-react"
+import { CheckCircle, Clock, Eye } from "lucide-react"
+import { AssignmentDialog } from "@/components/widget/assignment/AssignmentDialog"
 import { format } from "date-fns"
 import {
     Table,
@@ -26,6 +28,8 @@ interface GradingAssignmentDetailProps {
 }
 
 export function GradingAssignmentDetail({ assignmentId, onBack }: GradingAssignmentDetailProps) {
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+
     // 1. Get Assignment Details to find Section ID
     const { assignment, isLoading: isLoadingAssignment } = useGetAssignmentById(assignmentId)
 
@@ -58,74 +62,92 @@ export function GradingAssignmentDetail({ assignmentId, onBack }: GradingAssignm
     const submissions: SubmissionAssigment[] = assignmentData?.submissions || []
 
     return (
-        <div className="p-4 space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold">{assignment.title}</h2>
-                    <p className="text-muted-foreground mt-1">
-                        Tổng số bài nộp: {assignmentData?.totalSubmissions || 0} • Cần chấm: {assignmentData?.ungradedSubmissions || 0}
-                    </p>
+        <>
+            <div className="p-4 space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-2xl font-bold">{assignment.title}</h2>
+                        <p className="text-muted-foreground mt-1">
+                            Tổng số bài nộp: {assignmentData?.totalSubmissions || 0} • Cần chấm: {assignmentData?.ungradedSubmissions || 0}
+                        </p>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsDialogOpen(true)}
+                            className="gap-2"
+                        >
+                            <Eye className="w-4 h-4" />
+                            Xem chi tiết
+                        </Button>
+                        <Button variant="outline" onClick={onBack}>Quay lại</Button>
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={onBack}>Quay lại</Button>
+
+                <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Học viên</TableHead>
+                                <TableHead>Ngày nộp</TableHead>
+                                <TableHead>Trạng thái</TableHead>
+                                <TableHead>Điểm</TableHead>
+                                <TableHead className="text-right">Hành động</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {submissions.length > 0 ? (
+                                submissions.map((submission) => (
+                                    <TableRow key={submission.id}>
+                                        <TableCell className="font-medium">
+                                            <StudentInfo studentId={submission.studentId} />
+                                        </TableCell>
+                                        <TableCell>
+                                            {format(new Date(submission.submittedAt), "dd/MM/yyyy HH:mm")}
+                                        </TableCell>
+                                        <TableCell>
+                                            <StatusBadge status={submission.status} />
+                                        </TableCell>
+                                        <TableCell>
+                                            {submission.finalScore !== null ? (
+                                                <span className="font-bold">{submission.finalScore} / {assignment.totalPoints}</span>
+                                            ) : (
+                                                <span className="text-muted-foreground">-</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button
+                                                size="sm"
+                                                variant={submission.status === 'Graded' ? "outline" : "default"}
+                                                onClick={() => {
+                                                    router.push(`/instructor/grading/${assignmentId}/submission/${submission.id}`)
+                                                }}
+                                            >
+                                                {submission.status === 'Graded' ? "Xem lại" : "Chấm điểm"}
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                        Chưa có bài nộp nào
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </div>
             </div>
 
-            <div className="border rounded-lg overflow-hidden">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Học viên</TableHead>
-                            <TableHead>Ngày nộp</TableHead>
-                            <TableHead>Trạng thái</TableHead>
-                            <TableHead>Điểm</TableHead>
-                            <TableHead className="text-right">Hành động</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {submissions.length > 0 ? (
-                            submissions.map((submission) => (
-                                <TableRow key={submission.id}>
-                                    <TableCell className="font-medium">
-                                        <StudentInfo studentId={submission.studentId} />
-                                    </TableCell>
-                                    <TableCell>
-                                        {format(new Date(submission.submittedAt), "dd/MM/yyyy HH:mm")}
-                                    </TableCell>
-                                    <TableCell>
-                                        <StatusBadge status={submission.status} />
-                                    </TableCell>
-                                    <TableCell>
-                                        {submission.finalScore !== null ? (
-                                            <span className="font-bold">{submission.finalScore} / {assignment.totalPoints}</span>
-                                        ) : (
-                                            <span className="text-muted-foreground">-</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button
-                                            size="sm"
-                                            variant={submission.status === 'Graded' ? "outline" : "default"}
-                                            onClick={() => {
-                                                router.push(`/instructor/grading/${assignmentId}/submission/${submission.id}`)
-                                            }}
-                                        >
-                                            {submission.status === 'Graded' ? "Xem lại" : "Chấm điểm"}
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                    Chưa có bài nộp nào
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-        </div>
+            <AssignmentDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                assignment={assignment}
+                sectionId={sectionId || ""}
+                readOnly={true}
+            />
+        </>
     )
 }
 

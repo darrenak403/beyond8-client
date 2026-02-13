@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FileIcon, ExternalLink, Loader2, Download } from "lucide-react"
+import { FileIcon, Loader2, Download } from "lucide-react"
 import { AiFeedbackDisplay } from "./AiFeedbackDisplay"
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 import DownloadableFileItem from "@/components/widget/assignment/DownloadableFileItem"
@@ -120,7 +120,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
             <div className="flex-1 flex flex-col border rounded-lg bg-white overflow-hidden min-h-[500px] lg:min-h-0">
                 <div className="p-4 border-b bg-white flex justify-between items-center">
                     <h3 className="font-semibold text-lg flex items-center gap-2">
-                        <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">AI Đánh giá & Gợi ý</span>
+                        <span className="bg-linear-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">AI Đánh giá & Gợi ý</span>
                     </h3>
                     {submission.aiScore !== null && (
                         <span className="text-sm font-bold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-100">
@@ -179,7 +179,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
                             value={feedback}
                             onChange={(e) => setFeedback(e.target.value)}
                             placeholder="Nhập nhận xét chi tiết..."
-                            className="min-h-[100px] resize-none p-3 text-base"
+                            className="min-h-[200px] resize-none p-3 text-base"
                         />
                     </div>
                 </div>

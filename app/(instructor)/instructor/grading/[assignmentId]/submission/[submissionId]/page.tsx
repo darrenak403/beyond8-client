@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useGetAssignmentById, useGetSubmissionSumaryBySection } from "@/hooks/useAssignment"
 import { useUserById } from "@/hooks/useUserProfile"
@@ -8,9 +9,12 @@ import { GradingInterface } from "@/app/(instructor)/instructor/grading/componen
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Eye } from "lucide-react"
+import { AssignmentDialog } from "@/components/widget/assignment/AssignmentDialog"
 
 export default function GradingSubmissionPage() {
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+
     const params = useParams()
     const router = useRouter()
     const assignmentId = params.assignmentId as string
@@ -77,7 +81,7 @@ export default function GradingSubmissionPage() {
             {/* Header */}
             <div className="sticky top-0 z-10 bg-white border-b px-6 py-3 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" onClick={() => router.back()} className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground">
+                    <Button variant="outline" size="icon" onClick={() => router.push(`/instructor/grading?courseId=${assignment?.courseId}&assignmentId=${assignmentId}`)} className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground">
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <div className="flex items-center gap-3">
@@ -106,6 +110,16 @@ export default function GradingSubmissionPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsDialogOpen(true)}
+                        className="h-9 px-4 gap-2 rounded-xl"
+                    >
+                        <Eye className="h-4 w-4" />
+                        Xem chi tiết
+                    </Button>
+                    <div className="h-4 w-px bg-border/60" />
                     <Button
                         variant="outline"
                         size="sm"
@@ -151,6 +165,14 @@ export default function GradingSubmissionPage() {
                     }}
                 />
             </div>
+
+            <AssignmentDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                assignment={assignment}
+                sectionId={sectionId || ""}
+                readOnly={true}
+            />
         </div>
     )
 }

@@ -67,6 +67,11 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
       s.lessons.forEach(l => {
         completionMap.set(l.lessonId, { isCompleted: l.isCompleted, isPassed: l.isPassed })
       })
+      // Add assignment completion status if it exists
+      const section = course.sections.find(sec => sec.id === s.sectionId)
+      if (section && 'assignmentId' in section && section.assignmentId) {
+        completionMap.set(section.assignmentId, { isCompleted: s.assignmentPassed, isPassed: s.assignmentPassed })
+      }
     })
 
     const locked = new Set<string>()
@@ -104,6 +109,12 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
       // Check Section Assignment Locking
       if (foundFirstIncomplete && 'assignmentId' in section && section.assignmentId) {
         locked.add(section.assignmentId)
+      } else if ('assignmentId' in section && section.assignmentId) {
+        // Check if assignment is passed
+        const assignmentProgress = completionMap.get(section.assignmentId)
+        if (!assignmentProgress?.isPassed) {
+          foundFirstIncomplete = true
+        }
       }
     }
     return locked
@@ -113,10 +124,16 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
     curriculumProgress?.sections.map(section => [section.sectionId, section]) || []
   )
   const lessonProgressMap = new Map<string, { isCompleted: boolean }>()
+  const assignmentProgressMap = new Map<string, { isPassed: boolean }>()
   curriculumProgress?.sections.forEach(section => {
     section.lessons.forEach(lesson => {
       lessonProgressMap.set(lesson.lessonId, { isCompleted: lesson.isCompleted })
     })
+    // Add assignment progress
+    const courseSection = course.sections.find(s => s.id === section.sectionId)
+    if (courseSection && 'assignmentId' in courseSection && courseSection.assignmentId) {
+      assignmentProgressMap.set(courseSection.assignmentId, { isPassed: section.assignmentPassed })
+    }
   })
 
   return (
@@ -317,6 +334,8 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                   {/* Section Assignment */}
                   {('assignmentId' in section && section.assignmentId) && (() => {
                     const isAssignmentLocked = mode !== 'preview' && effectiveEnrollmentId && lockedLessonIds.has(section.assignmentId!)
+                    const assignmentProgress = assignmentProgressMap.get(section.assignmentId!)
+                    const isAssignmentPassed = assignmentProgress?.isPassed || false
 
                     if (isAssignmentLocked) {
                       return (
@@ -345,18 +364,27 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                     const AssignmentContent = (
                       <div className="flex items-center gap-4 px-6 py-3.5 hover:bg-muted/30 transition-colors group border-t border-dashed">
                         <div className="shrink-0">
-                          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                            <ClipboardCheck className="w-3.5 h-3.5" />
-                          </div>
+                          {isAssignmentPassed ? (
+                            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                              <Check className="w-4 h-4" />
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                              <ClipboardCheck className="w-3.5 h-3.5" />
+                            </div>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm text-foreground/80 group-hover:text-brand-magenta transition-colors truncate">
+                            <p className={cn(
+                              "font-medium text-sm transition-colors truncate",
+                              isAssignmentPassed ? "text-green-600" : "text-foreground/80 group-hover:text-brand-magenta"
+                            )}>
                               Bài tập cuối chương
                             </p>
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            Hoàn thành bài tập để tổng kết phần học này
+                            {isAssignmentPassed ? "Đã hoàn thành" : "Hoàn thành bài tập để tổng kết phần học này"}
                           </p>
                         </div>
                       </div>

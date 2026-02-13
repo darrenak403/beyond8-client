@@ -67,6 +67,11 @@ export interface SectionProgress {
   order: number;
   isCompleted: boolean;
   lessons: LessonProgress[];
+  assignmentSubmitted: boolean;
+  assignmentGrade: number | null;
+  assignmentSubmittedAt: string | null;
+  assignmentGradedAt: string | null;
+  assignmentPassed: boolean;
 }
 
 export interface CurriculumProgressData {

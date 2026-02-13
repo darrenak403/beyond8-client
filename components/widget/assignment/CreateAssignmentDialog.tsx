@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select"
 import { useMediaAssignment, useMediaDocumentCourse } from "@/hooks/useMedia"
 import { toast } from "sonner"
+import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 
 interface CreateAssignmentDialogProps {
     open: boolean
@@ -64,6 +65,8 @@ export function CreateAssignmentDialog({
     const [submissionType, setSubmissionType] = useState<SubmissionType>(SubmissionType.Text)
     const [gradingMode, setGradingMode] = useState<GradingMode>(GradingMode.AiAssisted)
     const [totalPoints, setTotalPoints] = useState(100)
+    const [passScorePercent, setPassScorePercent] = useState(60)
+    const [maxSubmissions, setMaxSubmissions] = useState(3)
     const [timeLimitMinutes, setTimeLimitMinutes] = useState<number | null>(null)
     const [maxTextLength, setMaxTextLength] = useState<number | null>(5000)
     const [allowedFileTypes, setAllowedFileTypes] = useState<string[]>([".pdf", ".doc", ".docx"])
@@ -145,6 +148,8 @@ export function CreateAssignmentDialog({
                 maxTextLength: (submissionType === SubmissionType.Text || submissionType === SubmissionType.Both) ? maxTextLength : null,
                 gradingMode,
                 totalPoints,
+                passScorePercent,
+                maxSubmissions,
                 rubricUrl,
                 timeLimitMinutes
             })
@@ -157,6 +162,8 @@ export function CreateAssignmentDialog({
                 setSubmissionType(SubmissionType.Text)
                 setGradingMode(GradingMode.AiAssisted)
                 setTotalPoints(100)
+                setPassScorePercent(60)
+                setMaxSubmissions(3)
                 setTimeLimitMinutes(null)
                 setMaxTextLength(5000)
                 setAllowedFileTypes([".pdf", ".doc", ".docx"])
@@ -172,7 +179,7 @@ export function CreateAssignmentDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
-                <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 flex-shrink-0">
+                <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-sm bg-blue-600 text-white">
                             <Settings className="w-5 h-5" />
@@ -193,9 +200,9 @@ export function CreateAssignmentDialog({
                         {/* Column 1: Basic Information */}
                         <div className="space-y-6">
                             <Card className="border-blue-100/50 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
-                                <CardHeader className="pb-3 border-b border-blue-100/50 bg-gradient-to-r from-blue-50/50 to-cyan-50/50">
+                                <CardHeader className="pb-3 border-b border-blue-100/50 bg-linear-to-r from-blue-50/50 to-cyan-50/50">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-lg bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
                                             <FileText className="w-4 h-4 text-white" />
                                         </div>
                                         Thông tin cơ bản
@@ -250,9 +257,9 @@ export function CreateAssignmentDialog({
                                                     {attachmentUrls.map((attachment, index) => (
                                                         <div key={index} className="flex items-center justify-between p-2 bg-gray-50 border rounded-lg group hover:bg-gray-100 transition-colors">
                                                             <div className="flex items-center gap-2 overflow-hidden">
-                                                                <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                                                                <FileText className="w-4 h-4 text-gray-500 shrink-0" />
                                                                 <a
-                                                                    href={attachment.url}
+                                                                    href={formatImageUrl(attachment.url)}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     className="text-sm text-gray-700 truncate hover:text-blue-600 hover:underline"
@@ -304,9 +311,9 @@ export function CreateAssignmentDialog({
                         {/* Column 2: Settings */}
                         <div className="space-y-6">
                             <Card className="border-cyan-100/50 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
-                                <CardHeader className="pb-3 border-b border-cyan-100/50 bg-gradient-to-r from-cyan-50/50 to-blue-50/50">
+                                <CardHeader className="pb-3 border-b border-cyan-100/50 bg-linear-to-r from-cyan-50/50 to-blue-50/50">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-lg bg-linear-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
                                             <Settings className="w-4 h-4 text-white" />
                                         </div>
                                         Thiết lập & Tùy chọn
@@ -359,7 +366,7 @@ export function CreateAssignmentDialog({
                                                         key={fileType}
                                                         variant={allowedFileTypes.includes(fileType) ? "default" : "outline"}
                                                         className={`cursor-pointer transition-all duration-200 ${allowedFileTypes.includes(fileType)
-                                                            ? "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg transform hover:scale-105"
+                                                            ? "bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg transform hover:scale-105"
                                                             : "hover:bg-blue-50 hover:border-blue-300"
                                                             }`}
                                                         onClick={() => toggleFileType(fileType)}
@@ -422,43 +429,80 @@ export function CreateAssignmentDialog({
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value={GradingMode.AiAssisted}>Hỗ trợ AI (AI Assisted)</SelectItem>
+                                                <SelectItem value={GradingMode.AiAssisted}>AI hỗ trợ</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
 
                                     <Separator />
 
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-semibold text-gray-500 uppercase">Tổng điểm</Label>
-                                        <div className="relative">
-                                            <Input
-                                                type="number"
-                                                min={1}
-                                                value={totalPoints}
-                                                onChange={(e) => setTotalPoints(Number(e.target.value))}
-                                                className="pl-9 h-10 bg-white"
-                                            />
-                                            <Trophy className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                                            <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">điểm</span>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-semibold text-gray-500 uppercase">Tổng điểm</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type="number"
+                                                    min={1}
+                                                    value={totalPoints}
+                                                    onChange={(e) => setTotalPoints(Number(e.target.value))}
+                                                    className="pl-9 h-10 bg-white"
+                                                />
+                                                <Trophy className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                                                <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">điểm</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-semibold text-gray-500 uppercase">Số lần nộp tối đa</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type="number"
+                                                    min={1}
+                                                    value={maxSubmissions}
+                                                    onChange={(e) => setMaxSubmissions(Number(e.target.value))}
+                                                    className="pl-9 h-10 bg-white"
+                                                />
+                                                <FileText className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                                                <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">lần</span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-500">Số lần học viên được phép nộp bài</p>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-semibold text-gray-500 uppercase">Thời gian làm bài</Label>
-                                        <div className="relative">
-                                            <Input
-                                                type="number"
-                                                min={1}
-                                                value={timeLimitMinutes || ""}
-                                                onChange={(e) => setTimeLimitMinutes(e.target.value ? Number(e.target.value) : null)}
-                                                placeholder="Để trống nếu không giới hạn"
-                                                className="pl-9 h-10 bg-white"
-                                            />
-                                            <Clock className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                                            <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">phút</span>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-semibold text-gray-500 uppercase">Điểm đạt (%)</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type="number"
+                                                    min={0}
+                                                    max={100}
+                                                    value={passScorePercent}
+                                                    onChange={(e) => setPassScorePercent(Number(e.target.value))}
+                                                    className="pl-9 h-10 bg-white"
+                                                />
+                                                <CheckCircle2 className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                                                <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">%</span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-500">Phần trăm điểm tối thiểu để đạt</p>
                                         </div>
-                                        <p className="text-[10px] text-gray-500">Để trống nếu không giới hạn thời gian</p>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-semibold text-gray-500 uppercase">Thời gian làm bài</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type="number"
+                                                    min={1}
+                                                    value={timeLimitMinutes || ""}
+                                                    onChange={(e) => setTimeLimitMinutes(e.target.value ? Number(e.target.value) : null)}
+                                                    placeholder="Để trống nếu không giới hạn"
+                                                    className="pl-9 h-10 bg-white"
+                                                />
+                                                <Clock className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                                                <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">phút</span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-500">Để trống nếu không giới hạn thời gian</p>
+                                        </div>
                                     </div>
 
                                     <Separator />
@@ -469,15 +513,22 @@ export function CreateAssignmentDialog({
                                         </Label>
                                         <div className="flex items-center gap-2">
                                             {rubricUrl ? (
-                                                <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-100 rounded-lg w-full">
-                                                    <FileText className="w-4 h-4 text-blue-500" />
-                                                    <span className="text-sm text-gray-700 flex-1 truncate">
-                                                        {rubricUrl.split('/').pop()}
-                                                    </span>
+                                                <div className="flex items-center justify-between p-2 bg-blue-50 border border-blue-100 rounded-lg w-full group hover:bg-blue-100 transition-colors">
+                                                    <div className="flex items-center gap-2 overflow-hidden">
+                                                        <FileText className="w-4 h-4 text-blue-500 shrink-0" />
+                                                        <a
+                                                            href={formatImageUrl(rubricUrl)}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-sm text-gray-700 truncate hover:text-blue-600 hover:underline"
+                                                        >
+                                                            {rubricUrl.split('/').pop()}
+                                                        </a>
+                                                    </div>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-6 w-6 text-gray-400 hover:text-red-500"
+                                                        className="h-6 w-6 text-gray-400 hover:text-red-500 shrink-0"
                                                         onClick={() => setRubricUrl(null)}
                                                     >
                                                         <X className="w-3 h-3" />
@@ -517,14 +568,14 @@ export function CreateAssignmentDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="px-6 py-4 border-t border-blue-100/50 bg-gradient-to-r from-white via-blue-50/30 to-cyan-50/30 flex-shrink-0 shadow-[0_-8px_30px_rgba(59,130,246,0.12)]">
+                <DialogFooter className="px-6 py-4 border-t border-blue-100/50 bg-linear-to-r from-white via-blue-50/30 to-cyan-50/30 shrink-0 shadow-[0_-8px_30px_rgba(59,130,246,0.12)]">
                     <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
                         Hủy bỏ
                     </Button>
                     <Button
                         onClick={handleSubmit}
                         disabled={!title || !rubricUrl || isPending}
-                        className="rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-600 hover:from-blue-700 hover:via-blue-600 hover:to-cyan-700 text-white shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 px-6 transition-all duration-200 transform hover:scale-105"
+                        className="rounded-xl bg-linear-to-r from-blue-600 via-blue-500 to-cyan-600 hover:from-blue-700 hover:via-blue-600 hover:to-cyan-700 text-white shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 px-6 transition-all duration-200 transform hover:scale-105"
                     >
                         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                         Tạo bài tập

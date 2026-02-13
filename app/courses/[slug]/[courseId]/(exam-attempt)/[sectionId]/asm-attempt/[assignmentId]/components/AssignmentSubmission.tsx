@@ -17,6 +17,8 @@ interface AssignmentSubmissionProps {
     submission?: SubmissionAssigment
     onSubmit: (data: { textContent: string; fileUrls: string[] }) => void
     isSubmitting: boolean
+    isResubmitting?: boolean
+    onCancelResubmit?: () => void
 }
 
 interface AttachmentFile {
@@ -31,11 +33,12 @@ export default function AssignmentSubmission({
     submission,
     onSubmit,
     isSubmitting,
-    isLoadingSubmission
+    isLoadingSubmission,
+    isResubmitting = false,
+    onCancelResubmit
 }: AssignmentSubmissionProps & { isLoadingSubmission?: boolean }) {
     const [textContent, setTextContent] = useState('')
     const [files, setFiles] = useState<AttachmentFile[]>([])
-    const [isResubmitting, setIsResubmitting] = useState(false)
     const { uploadSubmissionAssignment } = useMediaAssignment()
 
     const updateFileStatus = (id: string, status: AttachmentFile['status'], url?: string) => {
@@ -148,20 +151,9 @@ export default function AssignmentSubmission({
     if (submission && !isResubmitting) {
         return (
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900 mb-1">Kết quả bài làm</h2>
-                        <p className="text-sm text-muted-foreground">Chi tiết bài nộp và kết quả chấm điểm</p>
-                    </div>
-                    {submission.status !== 'Graded' && (
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsResubmitting(true)}
-                            className="text-brand-purple border-brand-purple/20 hover:bg-brand-purple/10"
-                        >
-                            Nộp lại bài
-                        </Button>
-                    )}
+                <div>
+                    <h2 className="text-xl font-bold text-gray-900 mb-1">Kết quả bài làm</h2>
+                    <p className="text-sm text-muted-foreground">Chi tiết bài nộp và kết quả chấm điểm</p>
                 </div>
 
                 <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -319,8 +311,8 @@ export default function AssignmentSubmission({
                         </h2>
                         <p className="text-sm text-muted-foreground">Vui lòng hoàn thành bài tập và nộp trước thời hạn</p>
                     </div>
-                    {isResubmitting && (
-                        <Button variant="ghost" onClick={() => setIsResubmitting(false)}>
+                    {isResubmitting && onCancelResubmit && (
+                        <Button variant="ghost" onClick={onCancelResubmit}>
                             Hủy
                         </Button>
                     )}

@@ -27,8 +27,10 @@ export interface CreateAssignmentRequest {
     maxTextLength: number | null
     gradingMode: GradingMode | string
     totalPoints: number
+    passScorePercent: number
     rubricUrl: string | null
     timeLimitMinutes: number | null
+    maxSubmissions: number
 }
 
 export interface UpdateAssignmentRequest {
@@ -42,8 +44,10 @@ export interface UpdateAssignmentRequest {
     maxTextLength: number | null
     gradingMode: GradingMode | string
     totalPoints: number
+    passScorePercent: number
     rubricUrl: string | null
     timeLimitMinutes: number | null
+    maxSubmissions: number
 }
 
 export interface Assignment {
@@ -58,6 +62,7 @@ export interface Assignment {
     updatedAt: string
     rubricUrl: string | null
     totalPoints: number
+    passScorePercent: number
     timeLimitMinutes: number | null
     maxTextLength: number | null
     allowedFileTypes: string[]
@@ -65,6 +70,7 @@ export interface Assignment {
     attachmentUrls: Attachment[]
     submissionType: SubmissionType | string
     gradingMode: GradingMode | string
+    maxSubmissions: number
 }
 
 export interface SubmissionAssigment {

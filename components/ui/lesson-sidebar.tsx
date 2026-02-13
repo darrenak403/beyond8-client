@@ -49,7 +49,7 @@ export default function LessonSidebar({
   // Fetch curriculum progress
   const { curriculumProgress } = useGetCurriculumProgress(enrollmentId as string, { enabled: !!enrollmentId })
 
-  // Create a map of completion status
+  // Create a map of completion status (for lessons and assignments)
   const completionMap = useMemo(() => {
     if (!isEnrolled || !curriculumProgress) return new Map<string, { isCompleted: boolean; isPassed: boolean }>()
 
@@ -58,9 +58,16 @@ export default function LessonSidebar({
       s.lessons.forEach(l => {
         map.set(l.lessonId, { isCompleted: l.isCompleted, isPassed: l.isPassed })
       })
+      // Add assignment completion status if it exists
+      if ('assignmentId' in course.sections.find(sec => sec.id === s.sectionId)!) {
+        const section = course.sections.find(sec => sec.id === s.sectionId)
+        if (section && 'assignmentId' in section && section.assignmentId) {
+          map.set(section.assignmentId, { isCompleted: s.assignmentPassed, isPassed: s.assignmentPassed })
+        }
+      }
     })
     return map
-  }, [curriculumProgress, isEnrolled])
+  }, [curriculumProgress, isEnrolled, course.sections])
 
   // Calculate locked lessons
   const lockedLessonIds = useMemo(() => {
@@ -106,6 +113,12 @@ export default function LessonSidebar({
       // But we need to make sure we lock it if it's the *next* thing after the lessons.
       if (foundFirstIncomplete && section.assignmentId) {
         locked.add(section.assignmentId)
+      } else if (section.assignmentId) {
+        // Check if assignment is passed
+        const assignmentProgress = completionMap.get(section.assignmentId)
+        if (!assignmentProgress?.isPassed) {
+          foundFirstIncomplete = true
+        }
       }
     }
     return locked
@@ -302,7 +315,7 @@ export default function LessonSidebar({
 
                             const content = (
                               <div className="flex items-center gap-2">
-                                <div className="flex-shrink-0">
+                                <div className="shrink-0">
                                   {renderLessonIcon()}
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -382,12 +395,14 @@ export default function LessonSidebar({
                           {/* Section Assignment */}
                           {('assignmentId' in section && section.assignmentId) && (() => {
                             const isAssignmentLocked = mode !== 'preview' && isEnrolled && lockedLessonIds.has(section.assignmentId!)
+                            const assignmentProgress = completionMap.get(section.assignmentId!)
+                            const isAssignmentPassed = assignmentProgress?.isPassed || false
 
                             if (isAssignmentLocked) {
                               return (
                                 <div className="block px-3 py-3 rounded-xl cursor-not-allowed opacity-50 grayscale bg-gray-100">
-                                  <div className="flex items-center gap-3">
-                                    <div className="flex-shrink-0 w-8 flex justify-center">
+                                  <div className="flex items-center gap-2">
+                                    <div className="shrink-0">
                                       <Lock className="h-4 w-4 text-gray-400" />
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -410,16 +425,23 @@ export default function LessonSidebar({
                                   onClick={() => onNavigate(section.id, section.assignmentId!)}
                                   className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign"
                                 >
-                                  <div className="flex items-center gap-3">
-                                    <div className="flex-shrink-0 w-8 flex justify-center">
-                                      <ClipboardCheck className="h-5 w-5 text-amber-500 group-hover/assign:scale-110 transition-transform" />
+                                  <div className="flex items-center gap-2">
+                                    <div className="shrink-0">
+                                      {isAssignmentPassed ? (
+                                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                      ) : (
+                                        <ClipboardCheck className="h-5 w-5 text-amber-500 group-hover/assign:scale-110 transition-transform" />
+                                      )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <div className="text-sm font-medium text-gray-800 truncate">
+                                      <div className={cn(
+                                        "text-sm font-medium truncate",
+                                        isAssignmentPassed ? "text-emerald-600" : "text-gray-800"
+                                      )}>
                                         Bài tập cuối chương
                                       </div>
                                       <div className="text-xs text-amber-600/80 mt-0.5 font-medium">
-                                        Bắt buộc
+                                        {isAssignmentPassed ? "Đã hoàn thành" : "Bắt buộc"}
                                       </div>
                                     </div>
                                   </div>
@@ -433,16 +455,23 @@ export default function LessonSidebar({
                                 href={`/courses/${slug}/${courseId}/${section.id}/asm-attempt/${section.assignmentId}`}
                                 className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign"
                               >
-                                <div className="flex items-center gap-3">
-                                  <div className="flex-shrink-0 w-8 flex justify-center">
-                                    <ClipboardCheck className="h-5 w-5 text-amber-500 group-hover/assign:scale-110 transition-transform" />
+                                <div className="flex items-center gap-2">
+                                  <div className="shrink-0">
+                                    {isAssignmentPassed ? (
+                                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                    ) : (
+                                      <ClipboardCheck className="h-5 w-5 text-amber-500 group-hover/assign:scale-110 transition-transform" />
+                                    )}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium text-gray-800 truncate">
+                                    <div className={cn(
+                                      "text-sm font-medium truncate",
+                                      isAssignmentPassed ? "text-emerald-600" : "text-gray-800"
+                                    )}>
                                       Bài tập cuối chương
                                     </div>
                                     <div className="text-xs text-amber-600/80 mt-0.5 font-medium">
-                                      Bắt buộc
+                                      {isAssignmentPassed ? "Đã hoàn thành" : "Bắt buộc"}
                                     </div>
                                   </div>
                                 </div>

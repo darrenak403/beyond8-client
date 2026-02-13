@@ -39,18 +39,21 @@ import {
 } from "@/components/ui/select"
 import { useMediaAssignment, useMediaDocumentCourse } from "@/hooks/useMedia"
 import { toast } from "sonner"
+import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 
 interface AssignmentDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     assignment: Assignment | null
     sectionId: string
+    readOnly?: boolean
 }
 
 export function AssignmentDialog({
     open,
     onOpenChange,
-    assignment
+    assignment,
+    readOnly = false
 }: AssignmentDialogProps) {
     const { updateAssignment, isPending } = useUpdateAssignment()
     const [isEditMode, setIsEditMode] = useState(false)
@@ -77,6 +80,8 @@ export function AssignmentDialog({
             maxTextLength: null,
             gradingMode: GradingMode.AiAssisted,
             totalPoints: 10,
+            passScorePercent: 60,
+            maxSubmissions: 3,
             rubricUrl: null,
             timeLimitMinutes: null,
             totalSubmissions: 0,
@@ -197,6 +202,8 @@ export function AssignmentDialog({
                 allowedFileTypes: formData.allowedFileTypes,
                 gradingMode: formData.gradingMode,
                 totalPoints: formData.totalPoints,
+                passScorePercent: formData.passScorePercent,
+                maxSubmissions: formData.maxSubmissions,
                 timeLimitMinutes: formData.timeLimitMinutes,
                 attachmentUrls: formData.attachmentUrls,
                 maxTextLength: formData.maxTextLength,
@@ -213,7 +220,7 @@ export function AssignmentDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
-                <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 flex-shrink-0">
+                <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 shrink-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-sm bg-purple-600 text-white">
@@ -228,7 +235,7 @@ export function AssignmentDialog({
                                 </DialogDescription>
                             </div>
                         </div>
-                        {!isEditMode && (
+                        {!isEditMode && !readOnly && (
                             <div className="flex items-center gap-2">
                                 <Button
                                     variant="outline"
@@ -244,14 +251,14 @@ export function AssignmentDialog({
                     </div>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/30 p-6">
+                <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 via-purple-50/30 to-indigo-50/30 p-6">
                     <div className="grid grid-cols-1 gap-6">
                         {/* Column 1: Basic Information */}
                         <div className="space-y-6">
                             <Card className="border-purple-100/50 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
-                                <CardHeader className="pb-3 border-b border-purple-100/50 bg-gradient-to-r from-purple-50/50 to-indigo-50/50">
+                                <CardHeader className="pb-3 border-b border-purple-100/50 bg-linear-to-r from-purple-50/50 to-indigo-50/50">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-lg bg-linear-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
                                             <FileText className="w-4 h-4 text-white" />
                                         </div>
                                         Thông tin cơ bản
@@ -314,9 +321,9 @@ export function AssignmentDialog({
                                                     {formData.attachmentUrls.map((attachment, index) => (
                                                         <div key={index} className="flex items-center justify-between p-2 bg-gray-50 border rounded-lg group hover:bg-gray-100 transition-colors">
                                                             <div className="flex items-center gap-2 overflow-hidden">
-                                                                <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                                                                <FileText className="w-4 h-4 text-gray-500 shrink-0" />
                                                                 <a
-                                                                    href={attachment.url}
+                                                                    href={formatImageUrl(attachment.url)}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     className="text-sm text-gray-700 truncate hover:text-blue-600 hover:underline"
@@ -376,9 +383,9 @@ export function AssignmentDialog({
                         {/* Column 2: Settings */}
                         <div className="space-y-6">
                             <Card className="border-indigo-100/50 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm">
-                                <CardHeader className="pb-3 border-b border-indigo-100/50 bg-gradient-to-r from-indigo-50/50 to-purple-50/50">
+                                <CardHeader className="pb-3 border-b border-indigo-100/50 bg-linear-to-r from-indigo-50/50 to-purple-50/50">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-lg bg-linear-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
                                             <Settings className="w-4 h-4 text-white" />
                                         </div>
                                         Thiết lập & Tùy chọn
@@ -404,7 +411,7 @@ export function AssignmentDialog({
                                                 </SelectContent>
                                             </Select>
                                         ) : (
-                                            <Badge variant="secondary" className="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border-purple-200/50">
+                                            <Badge variant="secondary" className="bg-linear-to-r from-purple-100 to-indigo-100 text-purple-700 border-purple-200/50">
                                                 {assignment.submissionType === SubmissionType.Text && "Văn bản (Text)"}
                                                 {assignment.submissionType === SubmissionType.File && "Tệp tin (File)"}
                                                 {assignment.submissionType === SubmissionType.Both && "Cả hai (Both)"}
@@ -445,7 +452,7 @@ export function AssignmentDialog({
                                                                 key={fileType}
                                                                 variant={formData.allowedFileTypes.includes(fileType) ? "default" : "outline"}
                                                                 className={`cursor-pointer transition-all duration-200 ${formData.allowedFileTypes.includes(fileType)
-                                                                    ? "bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform hover:scale-105"
+                                                                    ? "bg-linear-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 shadow-md hover:shadow-lg transform hover:scale-105"
                                                                     : "hover:bg-purple-50 hover:border-purple-300"
                                                                     }`}
                                                                 onClick={() => toggleFileType(fileType)}
@@ -508,56 +515,107 @@ export function AssignmentDialog({
                                         <Label className="text-sm font-medium text-gray-700">
                                             Phương thức chấm điểm <span className="text-red-500">*</span>
                                         </Label>
-                                        <Badge variant="secondary" className="bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 border-emerald-200/50">Hỗ trợ AI (AI Assisted)</Badge>
+                                        <Badge variant="secondary" className="bg-linear-to-r from-emerald-100 to-teal-100 text-emerald-700 border-emerald-200/50">AI hỗ trợ</Badge>
                                     </div>
 
                                     <Separator />
 
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-semibold text-gray-500 uppercase">Tổng điểm</Label>
-                                        {isEditMode ? (
-                                            <div className="relative">
-                                                <Input
-                                                    type="number"
-                                                    min={1}
-                                                    value={formData.totalPoints}
-                                                    onChange={(e) => setFormData({ ...formData, totalPoints: Number(e.target.value) })}
-                                                    className="pl-9 h-10 bg-white"
-                                                />
-                                                <Trophy className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                                                <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">điểm</span>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2">
-                                                <Trophy className="w-4 h-4 text-gray-400" />
-                                                <span className="text-gray-900 font-medium">{assignment.totalPoints} điểm</span>
-                                            </div>
-                                        )}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-semibold text-gray-500 uppercase">Tổng điểm</Label>
+                                            {isEditMode ? (
+                                                <div className="relative">
+                                                    <Input
+                                                        type="number"
+                                                        min={1}
+                                                        value={formData.totalPoints}
+                                                        onChange={(e) => setFormData({ ...formData, totalPoints: Number(e.target.value) })}
+                                                        className="pl-9 h-10 bg-white"
+                                                    />
+                                                    <Trophy className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                                                    <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">điểm</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <Trophy className="w-4 h-4 text-gray-400" />
+                                                    <span className="text-gray-900 font-medium">{assignment.totalPoints} điểm</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-semibold text-gray-500 uppercase">Số lần nộp tối đa</Label>
+                                            {isEditMode ? (
+                                                <div className="relative">
+                                                    <Input
+                                                        type="number"
+                                                        min={1}
+                                                        value={formData.maxSubmissions}
+                                                        onChange={(e) => setFormData({ ...formData, maxSubmissions: Number(e.target.value) })}
+                                                        className="pl-9 h-10 bg-white"
+                                                    />
+                                                    <FileText className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                                                    <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">lần</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="w-4 h-4 text-gray-400" />
+                                                    <span className="text-gray-900 font-medium">{assignment.maxSubmissions} lần</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label className="text-xs font-semibold text-gray-500 uppercase">Thời gian làm bài</Label>
-                                        {isEditMode ? (
-                                            <div className="relative">
-                                                <Input
-                                                    type="number"
-                                                    min={1}
-                                                    value={formData.timeLimitMinutes || ""}
-                                                    onChange={(e) => setFormData({ ...formData, timeLimitMinutes: e.target.value ? Number(e.target.value) : null })}
-                                                    placeholder="Để trống nếu không giới hạn"
-                                                    className="pl-9 h-10 bg-white"
-                                                />
-                                                <Clock className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                                                <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">phút</span>
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center gap-2">
-                                                <Clock className="w-4 h-4 text-gray-400" />
-                                                <span className="text-gray-900 font-medium">
-                                                    {assignment.timeLimitMinutes ? `${assignment.timeLimitMinutes} phút` : "Không giới hạn"}
-                                                </span>
-                                            </div>
-                                        )}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-semibold text-gray-500 uppercase">Điểm đạt (%)</Label>
+                                            {isEditMode ? (
+                                                <div className="relative">
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        max={100}
+                                                        value={formData.passScorePercent}
+                                                        onChange={(e) => setFormData({ ...formData, passScorePercent: Number(e.target.value) })}
+                                                        className="pl-9 h-10 bg-white"
+                                                    />
+                                                    <CheckCircle2 className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                                                    <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">%</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <CheckCircle2 className="w-4 h-4 text-gray-400" />
+                                                    <span className="text-gray-900 font-medium">{assignment.passScorePercent}%</span>
+                                                </div>
+                                            )}
+                                            <p className="text-[10px] text-gray-500">Phần trăm điểm tối thiểu để đạt</p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-semibold text-gray-500 uppercase">Thời gian làm bài</Label>
+                                            {isEditMode ? (
+                                                <div className="relative">
+                                                    <Input
+                                                        type="number"
+                                                        min={1}
+                                                        value={formData.timeLimitMinutes || ""}
+                                                        onChange={(e) => setFormData({ ...formData, timeLimitMinutes: e.target.value ? Number(e.target.value) : null })}
+                                                        placeholder="Để trống nếu không giới hạn"
+                                                        className="pl-9 h-10 bg-white"
+                                                    />
+                                                    <Clock className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                                                    <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">phút</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="w-4 h-4 text-gray-400" />
+                                                    <span className="text-gray-900 font-medium">
+                                                        {assignment.timeLimitMinutes ? `${assignment.timeLimitMinutes} phút` : "Không giới hạn"}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <p className="text-[10px] text-gray-500">Để trống nếu không giới hạn thời gian</p>
+                                        </div>
                                     </div>
 
                                     <Separator />
@@ -569,15 +627,22 @@ export function AssignmentDialog({
                                         {isEditMode ? (
                                             <div className="flex items-center gap-2">
                                                 {formData.rubricUrl ? (
-                                                    <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-100 rounded-lg w-full">
-                                                        <FileText className="w-4 h-4 text-blue-500" />
-                                                        <span className="text-sm text-gray-700 flex-1 truncate">
-                                                            {formData.rubricUrl.split('/').pop()}
-                                                        </span>
+                                                    <div className="flex items-center justify-between p-2 bg-blue-50 border border-blue-100 rounded-lg w-full group hover:bg-blue-100 transition-colors">
+                                                        <div className="flex items-center gap-2 overflow-hidden">
+                                                            <FileText className="w-4 h-4 text-blue-500 shrink-0" />
+                                                            <a
+                                                                href={formatImageUrl(formData.rubricUrl)}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-sm text-gray-700 truncate hover:text-blue-600 hover:underline"
+                                                            >
+                                                                {formData.rubricUrl.split('/').pop()}
+                                                            </a>
+                                                        </div>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-6 w-6 text-gray-400 hover:text-red-500"
+                                                            className="h-6 w-6 text-gray-400 hover:text-red-500 shrink-0"
                                                             onClick={() => setFormData({ ...formData, rubricUrl: null })}
                                                         >
                                                             <X className="w-3 h-3" />
@@ -611,10 +676,10 @@ export function AssignmentDialog({
                                             </div>
                                         ) : (
                                             assignment.rubricUrl ? (
-                                                <div className="flex items-center gap-2">
-                                                    <FileText className="w-4 h-4 text-blue-500" />
+                                                <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-100 rounded-lg group hover:bg-blue-100 transition-colors">
+                                                    <FileText className="w-4 h-4 text-blue-500 shrink-0" />
                                                     <a
-                                                        href={assignment.rubricUrl}
+                                                        href={formatImageUrl(assignment.rubricUrl)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="text-sm text-blue-600 hover:underline truncate"
@@ -634,7 +699,7 @@ export function AssignmentDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="px-6 py-4 border-t border-purple-100/50 bg-gradient-to-r from-white via-purple-50/30 to-indigo-50/30 flex-shrink-0 shadow-[0_-8px_30px_rgba(139,92,246,0.12)]">
+                <DialogFooter className="px-6 py-4 border-t border-purple-100/50 bg-linear-to-r from-white via-purple-50/30 to-indigo-50/30 shrink-0 shadow-[0_-8px_30px_rgba(139,92,246,0.12)]">
                     <div className="flex items-center justify-end w-full gap-2">
                         {isEditMode ? (
                             <>
@@ -644,7 +709,7 @@ export function AssignmentDialog({
                                 <Button
                                     onClick={handleSubmit}
                                     disabled={!formData.title || !formData.rubricUrl || isPending}
-                                    className="rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 hover:from-purple-700 hover:via-purple-600 hover:to-indigo-700 text-white shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 px-6 transition-all duration-200 transform hover:scale-105"
+                                    className="rounded-xl bg-linear-to-r from-purple-600 via-purple-500 to-indigo-600 hover:from-purple-700 hover:via-purple-600 hover:to-indigo-700 text-white shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 px-6 transition-all duration-200 transform hover:scale-105"
                                 >
                                     {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                                     Cập nhật

@@ -41,7 +41,7 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
                 </div>
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     <div className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
                         <div className="p-2 rounded-lg bg-brand-magenta/10">
                             <Target className="w-5 h-5 text-brand-magenta" />
@@ -49,6 +49,16 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
                         <div>
                             <p className="text-xs text-muted-foreground">Điểm số</p>
                             <p className="text-xl font-bold text-brand-magenta">{assignment.totalPoints}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
+                        <div className="p-2 rounded-lg bg-emerald-500/10">
+                            <Target className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Điểm cần đạt</p>
+                            <p className="text-xl font-bold text-emerald-600">{assignment.passScorePercent}%</p>
                         </div>
                     </div>
 
@@ -63,12 +73,22 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
                     </div>
 
                     <div className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
+                        <div className="p-2 rounded-lg bg-amber-500/10">
+                            <FileText className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Số lần nộp</p>
+                            <p className="text-xl font-bold text-amber-600">{assignment.maxSubmissions}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-200">
                         <div className="p-2 rounded-lg bg-brand-pink/10">
                             <FileText className="w-5 h-5 text-brand-pink" />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                             <p className="text-xs text-muted-foreground">Loại bài</p>
-                            <p className="text-sm font-bold text-brand-pink truncate">
+                            <p className="text-sm font-bold text-brand-pink">
                                 {assignment.submissionType === 'File' ? 'File' :
                                     assignment.submissionType === 'Text' ? 'Văn bản' : 'Cả văn bản và file'}
                             </p>
