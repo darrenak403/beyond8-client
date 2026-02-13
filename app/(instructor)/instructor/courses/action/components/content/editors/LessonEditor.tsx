@@ -439,14 +439,10 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         if (pendingVideoFile) {
           await new Promise<void>((resolve) => {
             const connection = getHubConnection();
-            const timeout = setTimeout(() => {
-              resolve();
-            }, 60000); // 1 minute timeout
 
             // Define handler with type matching the event
             const handler = (data: { metadata?: { lessonId?: string } }) => {
               if (data?.metadata?.lessonId === lessonId) {
-                clearTimeout(timeout);
                 connection.off("TranscodingVideoSuccess", handler);
                 resolve();
               }
@@ -456,7 +452,6 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
           });
           setUploadProgress(100);
         }
-
         // Clear pending state on success
         setPendingVideoFile(null);
 
@@ -716,7 +711,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                 variant="ghost"
                 size="sm"
                 onClick={handleBackCheck}
-                className="gap-2 text-gray-500 hover:text-gray-900 pl-2 pr-4 rounded-full hover:bg-gray-100 hover:text-gray-900"
+                className="gap-2 text-gray-500 hover:text-gray-900 pl-2 pr-4 rounded-full hover:bg-gray-100"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Quay lại chương
@@ -734,7 +729,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                     value={lessonTitleValue}
                     onChange={(e) => setLessonTitleValue(e.target.value)}
                     placeholder="Untitled"
-                    className="flex-1 text-4xl font-bold text-gray-900 border-none focus:ring-0 focus:outline-none placeholder:text-gray-300 resize-none bg-transparent overflow-hidden break-words"
+                    className="flex-1 text-4xl font-bold text-gray-900 border-none focus:ring-0 focus:outline-none placeholder:text-gray-300 resize-none bg-transparent overflow-hidden wrap-break-word"
                     rows={1}
                     style={{
                       height: "auto",
@@ -790,7 +785,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                   value={lessonDescriptionValue}
                   onChange={(e) => setLessonDescriptionValue(e.target.value)}
                   placeholder="Thêm mô tả cho bài học..."
-                  className="w-full text-lg text-gray-600 border-none focus:ring-0 focus:outline-none placeholder:text-gray-300 resize-none bg-transparent overflow-hidden break-words"
+                  className="w-full text-lg text-gray-600 border-none focus:ring-0 focus:outline-none placeholder:text-gray-300 resize-none bg-transparent overflow-hidden wrap-break-word"
                   rows={2}
                   style={{
                     minHeight: "60px",

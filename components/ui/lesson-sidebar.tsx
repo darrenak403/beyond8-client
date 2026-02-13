@@ -180,7 +180,7 @@ export default function LessonSidebar({
             </div>
 
             <div
-              className="flex-1 overflow-y-auto px-4 pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+              className="flex-1 overflow-y-auto px-4 pb-4"
             >
               <div className="space-y-6">
                 {/* Course Documents */}

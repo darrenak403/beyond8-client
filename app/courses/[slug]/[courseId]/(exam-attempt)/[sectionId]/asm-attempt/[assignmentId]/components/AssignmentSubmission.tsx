@@ -278,7 +278,7 @@ export default function AssignmentSubmission({
                         {/* Right Column: AI Feedback */}
                         {(submission.aiFeedback || submission.aiScore !== null) && (
                             <div className="space-y-6">
-                                {submission.aiScore !== null && (
+                                {/* {submission.aiScore !== null && (
                                     <div className="text-center py-4 bg-white rounded-xl border border-blue-100 shadow-sm">
                                         <span className="text-sm font-medium text-gray-500 uppercase tracking-wider block mb-2">Điểm AI chấm</span>
                                         <div className="flex items-baseline justify-center gap-2">
@@ -286,7 +286,7 @@ export default function AssignmentSubmission({
                                             <span className="text-xl text-gray-400 font-medium">/ {assignment.totalPoints}</span>
                                         </div>
                                     </div>
-                                )}
+                                )} */}
 
                                 {submission.aiFeedback && (
                                     <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm">

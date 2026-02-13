@@ -78,6 +78,17 @@ export default function QuizAttemptOverviewPage() {
     router.push(`/courses/${slug}/${courseId}/${sectionId}/${lessonId}/quiz-attempt/${quizId}`)
   }
 
+  const handleBack = () => {
+    // Check if user came from a result page
+    const isFromResult = typeof document !== 'undefined' && document.referrer && document.referrer.includes('/result')
+
+    if (isFromResult || window.history.length <= 1) {
+      router.push(`/courses/${slug}/${courseId}/${sectionId}/${lessonId}`)
+    } else {
+      router.back()
+    }
+  }
+
   if (!quizId || isLoadingOverview || isLoadingCourse) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -105,7 +116,7 @@ export default function QuizAttemptOverviewPage() {
         <Button
           variant="outline"
           className="rounded-2xl border-brand-magenta/20 text-brand-magenta hover:bg-brand-magenta/10 hover:text-brand-magenta"
-          onClick={() => router.back()}
+          onClick={handleBack}
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
           Quay lại bài học

@@ -42,7 +42,7 @@ export default function QuizInfoCard({ quizOverview }: QuizInfoCardProps) {
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Số câu hỏi</p>
-            <p className="text-2xl font-bold text-brand-magenta">{quizOverview.questionCount}</p>
+            <p className="text-2xl font-bold text-brand-magenta">{quizOverview.questionCount || 0}</p>
           </div>
         </div>
 

@@ -6,7 +6,6 @@ import {
   Play,
   Lock,
   FileText,
-  ClipboardList,
   ListChecks,
   ClipboardCheck,
   Check,
@@ -140,7 +139,7 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
               value={section.id}
               className="border rounded-xl bg-card overflow-hidden data-[state=open]:border-brand-purple/50 transition-all duration-300 hover:border-brand-purple/30"
             >
-              <AccordionTrigger className="px-6 py-4 hover:bg-muted/50 hover:no-underline [&[data-state=open]]:bg-brand-purple/5">
+              <AccordionTrigger className="px-6 py-4 hover:bg-muted/50 hover:no-underline data-[state=open]:bg-brand-purple/5">
                 <div className="flex items-center gap-4 text-left w-full">
                   <div className="w-8 h-8 rounded-full bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-sm shrink-0">
                     {index + 1}
@@ -190,29 +189,11 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
 
                     // Determine lock status
                     const isLocked = mode !== 'preview' && effectiveEnrollmentId && lockedLessonIds.has(lesson.id)
-                    // Accessible if:
-                    // 1. Details/Preview mode (usually instructor or generic preview?) -> Actually 'preview' mode might just mean "show preview content", not "preview access". 
-                    //    But let's stick to the requested logic:
-                    //    If preview lesson -> accessible.
-                    //    If enrolled -> check lock.
-                    //    If not enrolled -> check preview.
                     const isPreviewLesson = lesson.isPreview
 
-                    // Logic from Sidebar: canAccess = lesson.isPreview || (isEnrolled ? !isLocked : false)
-                    // Here we might have 'mode'. 
-                    // if mode === 'details', maybe we behave like enrolled view?
-                    // if mode === 'preview', maybe strictly preview?
-                    // Let's assume standard access rules apply.
-
-                    // If we have an enrollmentId, we are likely enrolled (or instructor view which might have different rules, but assuming student logic here)
-                    const canAccess = isPreviewLesson || (effectiveEnrollmentId ? !isLocked : false)
-
-                    // If mode is specifically 'details' (maybe instructor?), usually we might allow all? 
-                    // But requirement says "logic similar into CourseCurriculum".
-                    // Let's rely on canAccess. 
-                    // Exception: maybe if we WANT to click it to see "You must enroll".
-                    // But Sidebar disables click.
-
+                    // In preview mode, all lessons are accessible
+                    // Otherwise: preview lessons are accessible, or enrolled users can access unlocked lessons
+                    const canAccess = mode === 'preview' || isPreviewLesson || (effectiveEnrollmentId ? !isLocked : false)
                     const canClick = canAccess
 
                     const lessonProgress = lessonProgressMap.get(lesson.id)

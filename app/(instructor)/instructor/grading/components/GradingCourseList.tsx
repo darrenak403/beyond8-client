@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 import { useGetCourseByInstructor } from "@/hooks/useCourse"
 import { useAuth } from "@/hooks/useAuth"
 import { Course, CourseLevel, CourseStatus } from "@/lib/api/services/fetchCourse"
@@ -7,9 +9,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, Users } from "lucide-react"
-import Image from "next/image"
+
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 import { motion } from "framer-motion"
+import SafeImage from "@/components/ui/SafeImage"
+import CoursePagination from "@/app/courses/components/CoursePagination"
 
 interface GradingCourseListProps {
     onSelectCourse: (courseId: string) => void
@@ -17,13 +21,16 @@ interface GradingCourseListProps {
 
 export function GradingCourseList({ onSelectCourse }: GradingCourseListProps) {
     const { user } = useAuth()
+    const [page, setPage] = useState(1)
+    const pageSize = 12
 
     // Fetch all courses for the instructor
-    const { courses, isLoading } = useGetCourseByInstructor({
+    const { courses, isLoading, totalPages, count } = useGetCourseByInstructor({
         instructorId: user?.id,
-        pageNumber: 1,
-        pageSize: 100, // Fetch more to show relevant ones
+        pageNumber: page,
+        pageSize: pageSize,
         isDescending: true,
+        status: CourseStatus.Published,
         level: 'All' as CourseLevel // Cast to satisfy type
     })
 
@@ -61,27 +68,27 @@ export function GradingCourseList({ onSelectCourse }: GradingCourseListProps) {
                         >
                             <div className="relative h-48 w-full overflow-hidden shrink-0 bg-secondary/20">
                                 {imageUrl ? (
-                                    <Image
+                                    <SafeImage
                                         src={imageUrl}
                                         alt={course.title}
                                         fill
                                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
                                 ) : (
-                                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-magenta/5 to-brand-purple/5">
+                                    <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-brand-magenta/5 to-brand-purple/5">
                                         <BookOpen className="h-12 w-12 text-brand-magenta/20" />
                                     </div>
                                 )}
                                 <div className="absolute top-3 right-3">
-                                    <Badge variant={course.status === CourseStatus.Approved ? "default" : "secondary"} className="shadow-sm backdrop-blur-md bg-white/90 text-black hover:bg-white/100">
-                                        {course.status === CourseStatus.Approved ? "Đã duyệt" : course.status === CourseStatus.Draft ? "Bản nháp" : "Chờ duyệt"}
+                                    <Badge variant={course.status === CourseStatus.Approved || course.status === CourseStatus.Published ? "default" : "secondary"} className="shadow-sm backdrop-blur-md bg-white/90 text-black hover:bg-white">
+                                        {course.status === CourseStatus.Approved ? "Đã duyệt" : course.status === CourseStatus.Published ? "Đã xuất bản" : course.status === CourseStatus.Draft ? "Bản nháp" : "Chờ duyệt"}
                                     </Badge>
                                 </div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             </div>
 
-                            <div className="flex flex-col flex-grow p-5 space-y-4">
-                                <div className="space-y-2 flex-grow">
+                            <div className="flex flex-col grow p-5 space-y-4">
+                                <div className="space-y-2 grow">
                                     <h3 className="line-clamp-2 text-lg font-semibold leading-tight group-hover:text-brand-magenta transition-colors">
                                         {course.title}
                                     </h3>
@@ -117,6 +124,19 @@ export function GradingCourseList({ onSelectCourse }: GradingCourseListProps) {
                     </div>
                     <h3 className="text-lg font-medium text-foreground">Không tìm thấy khóa học nào</h3>
                     <p className="text-muted-foreground mt-1">Bạn chưa được phân công khóa học nào để giảng dạy.</p>
+                </div>
+            )}
+
+
+            {courses.length > 0 && (
+                <div className="col-span-full mt-6">
+                    <CoursePagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        pageSize={pageSize}
+                        totalItems={count}
+                        onPageChange={setPage}
+                    />
                 </div>
             )}
         </motion.div>

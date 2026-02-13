@@ -66,7 +66,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
     <div className="px-4 lg:px-0 pb-20">
       <div className="w-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-black to-gray-700">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-black to-gray-700">
             {currentLesson.title}
           </h1>
 
@@ -96,14 +96,14 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
             {nextLesson ? (
               onNavigate ? (
                 <Button
-                  className="rounded-full bg-gradient-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium"
+                  className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium"
                   onClick={() => onNavigate(nextLesson.sectionId, nextLesson.id)}
                 >
                   Bài tiếp theo <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               ) : (
                 <Link href={getLessonUrl(nextLesson)}>
-                  <Button className="rounded-full bg-gradient-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
+                  <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
                     Bài tiếp theo <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
@@ -146,7 +146,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
               </p>
 
               {isQuizLesson && quizOverview && (
-                <div className="my-8 p-6 rounded-2xl bg-gradient-to-br from-brand-purple/20 to-brand-magenta/10 border border-brand-purple/30 backdrop-blur-sm relative overflow-hidden">
+                <div className="my-8 p-6 rounded-2xl bg-linear-to-br from-brand-purple/20 to-brand-magenta/10 border border-brand-purple/30 backdrop-blur-sm relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
                   <div className="relative z-10">

@@ -133,7 +133,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
 
   return (
     <Card className="sticky top-40 overflow-hidden border-brand-magenta/20 shadow-xl shadow-brand-magenta/5 backdrop-blur-xl bg-white/80">
-      <div className="h-2 bg-gradient-to-r from-brand-pink via-brand-magenta to-brand-purple" />
+      <div className="h-2 bg-linear-to-r from-brand-pink via-brand-magenta to-brand-purple" />
       <CardContent className="p-6 space-y-6">
         {/* Price Section */}
         <div>
@@ -174,22 +174,19 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
           {preview ? (
             <>
               <Button
-                className="w-full text-lg py-7 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(173,28,154,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(173,28,154,0.6)] border border-white/10 relative overflow-hidden group"
-                onClick={handleBuyNow}
-                disabled={isProcessingPayment}
+                className="w-full text-lg py-7 rounded-2xl bg-primary/50 cursor-not-allowed border border-white/10 relative overflow-hidden"
+                disabled
               >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <span className="font-semibold text-white relative z-10">
-                  {isProcessingPayment ? 'Đang xử lý...' : 'Đăng ký ngay'}
+                  Đăng ký ngay
                 </span>
               </Button>
               <Button
                 variant="outline"
-                className="w-full h-12 rounded-2xl text-base font-semibold border-brand-magenta/20 hover:bg-brand-magenta/5 hover:text-brand-magenta transition-colors"
-                onClick={handleAddToCart}
-                disabled={isAddingToCart || isInCart}
+                className="w-full h-12 rounded-2xl text-base font-semibold border-brand-magenta/20 bg-gray-50 cursor-not-allowed"
+                disabled
               >
-                {isAddingToCart ? 'Đang thêm...' : isInCart ? 'Đã có trong giỏ hàng' : 'Thêm vào giỏ hàng'}
+                Thêm vào giỏ hàng
               </Button>
             </>
           ) : isAuthenticated && isCheckingEnroll ? (

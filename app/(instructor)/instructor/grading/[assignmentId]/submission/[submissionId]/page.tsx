@@ -8,7 +8,7 @@ import { GradingInterface } from "@/app/(instructor)/instructor/grading/componen
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ChevronLeft } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 export default function GradingSubmissionPage() {
     const params = useParams()
@@ -75,34 +75,32 @@ export default function GradingSubmissionPage() {
     return (
         <div className="bg-gray-50/50 flex flex-col">
             {/* Header */}
-            <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b px-6 py-4 flex items-center justify-between">
+            <div className="sticky top-0 z-10 bg-white border-b px-6 py-3 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
-                        <ChevronLeft className="h-5 w-5" />
+                    <Button variant="outline" size="icon" onClick={() => router.back()} className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground">
+                        <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <div>
-                        <h1 className="font-semibold text-lg">{assignment.title}</h1>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm text-muted-foreground mr-2">Bài nộp của:</span>
+                    <div className="flex items-center gap-3">
+                        <h1 className="font-bold text-lg leading-tight line-clamp-1 max-w-[500px]">{assignment.title}</h1>
+                        <div className="h-4 w-px bg-border/60 mx-1" />
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">Bài nộp của:</span>
                             {student ? (
-                                <div className="flex items-center gap-2">
-                                    <Avatar className="h-10 w-10">
+                                <div className="flex items-center gap-2 bg-secondary/50 pr-3 pl-1 py-0.5 rounded-full transition-colors">
+                                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
                                         <AvatarImage
                                             src={formatImageUrl(student.avatarUrl)}
                                             alt={student.fullName}
                                             referrerPolicy="no-referrer"
                                         />
-                                        <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
+                                        <AvatarFallback className="text-[10px] bg-purple-100 text-purple-700 font-bold">
                                             {student.fullName?.charAt(0).toUpperCase() || "S"}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div className="flex flex-col">
-                                        <span className="font-medium text-sm">{student.fullName}</span>
-                                        <span className="text-xs text-muted-foreground">{student.email}</span>
-                                    </div>
+                                    <span className="font-medium text-sm text-foreground/80 whitespace-nowrap">{student.fullName}</span>
                                 </div>
                             ) : (
-                                <span className="text-sm font-medium">{submission.studentId}</span>
+                                <span className="text-sm font-medium text-foreground">{submission.studentId}</span>
                             )}
                         </div>
                     </div>
@@ -117,11 +115,13 @@ export default function GradingSubmissionPage() {
                             }
                         }}
                         disabled={!prevSubmission}
+                        className="h-9 px-4 gap-2 rounded-xl"
                     >
-                        Previous
+                        <ChevronLeft className="h-4 w-4" />
+                        Trước
                     </Button>
                     <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
                         onClick={() => {
                             if (nextSubmission) {
@@ -129,8 +129,10 @@ export default function GradingSubmissionPage() {
                             }
                         }}
                         disabled={!nextSubmission}
+                        className="h-9 px-4 gap-2 rounded-xl"
                     >
-                        Next
+                        Tiếp
+                        <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
@@ -141,7 +143,11 @@ export default function GradingSubmissionPage() {
                     submission={submission}
                     assignment={assignment}
                     onGraded={() => {
-                        // Invalidate queries handled by hook
+                        if (assignment?.courseId) {
+                            router.push(`/instructor/grading?courseId=${assignment.courseId}&assignmentId=${assignmentId}`)
+                        } else {
+                            router.back()
+                        }
                     }}
                 />
             </div>

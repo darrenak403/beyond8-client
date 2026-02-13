@@ -82,7 +82,7 @@ export function useMediaVideoLesson() {
       return await mediaService.uploadThumnailVideoLesson(file);
     },
     onSuccess: (data: MediaFile) => {
-      toast.success("Upload ảnh thumbnail video bài học thành công!");
+      //toast.success("Upload ảnh thumbnail video bài học thành công!");
       queryClient.invalidateQueries({ queryKey: ["media"] });
       return data;
     },
@@ -96,7 +96,7 @@ export function useMediaVideoLesson() {
       return await mediaService.uploadVideoLesson(file);
     },
     onSuccess: (data: MediaFile) => {
-      toast.success("Upload video bài học thành công!");
+      //toast.success("Upload video bài học thành công!");
       queryClient.invalidateQueries({ queryKey: ["media"] });
       return data;
     },
@@ -128,7 +128,7 @@ export function useMediaDocumentCourse() {
       return await mediaService.uploadDocumentCourse(file);
     },
     onSuccess: (data: MediaFile) => {
-      toast.success("Upload tài liệu khóa học thành công!");
+      //toast.success("Upload tài liệu khóa học thành công!");
       queryClient.invalidateQueries({ queryKey: ["media"] });
       return data;
     },
@@ -168,12 +168,12 @@ export function useMediaAssignment() {
       return await mediaService.uploadRubricAssignment(file);
     },
     onSuccess: (data: MediaFile) => {
-      toast.success("Upload rubric thành công!");
+      toast.success("Upload tiêu chí đánh giá thành công!");
       queryClient.invalidateQueries({ queryKey: ["media"] });
       return data;
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Upload rubric thất bại!");
+      toast.error(error.message || "Upload tiêu chí đánh giá thất bại!");
     },
   });
 

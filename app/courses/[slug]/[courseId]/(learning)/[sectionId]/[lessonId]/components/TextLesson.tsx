@@ -85,15 +85,15 @@ export default function TextLesson({ lessonId, title, content }: TextLessonProps
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
-                                p: ({ children }) => <p className="text-gray-700 text-base leading-relaxed mb-4 break-words">{children}</p>,
+                                p: ({ children }) => <p className="text-gray-700 text-base leading-relaxed mb-4 wrap-break-word">{children}</p>,
                                 h1: ({ children }) => <h1 className="text-3xl font-bold text-gray-900 mt-8 mb-4">{children}</h1>,
                                 h2: ({ children }) => <h2 className="text-2xl font-bold text-gray-900 mt-6 mb-3">{children}</h2>,
                                 h3: ({ children }) => <h3 className="text-xl font-semibold text-gray-900 mt-5 mb-2">{children}</h3>,
                                 strong: ({ children }) => <strong className="font-bold text-gray-900">{children}</strong>,
                                 em: ({ children }) => <em className="italic text-gray-800">{children}</em>,
-                                ul: ({ children }) => <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4 ml-4 break-words">{children}</ul>,
-                                ol: ({ children }) => <ol className="list-decimal list-inside space-y-2 text-gray-700 mb-4 ml-4 break-words">{children}</ol>,
-                                li: ({ children }) => <li className="text-gray-700 break-words">{children}</li>,
+                                ul: ({ children }) => <ul className="list-disc list-inside space-y-2 text-gray-700 mb-4 ml-4 wrap-break-word">{children}</ul>,
+                                ol: ({ children }) => <ol className="list-decimal list-inside space-y-2 text-gray-700 mb-4 ml-4 wrap-break-word">{children}</ol>,
+                                li: ({ children }) => <li className="text-gray-700 wrap-break-word">{children}</li>,
                                 blockquote: ({ children }) => <blockquote className="border-l-4 border-brand-purple/50 pl-4 italic text-gray-600 my-4">{children}</blockquote>,
                                 a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-pink hover:underline">{children}</a>,
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -105,7 +105,7 @@ export default function TextLesson({ lessonId, title, content }: TextLessonProps
                                             style={vscDarkPlus}
                                             language={match[1]}
                                             PreTag="div"
-                                            className="rounded-lg !bg-[#1e1e1e] !p-4 my-4 border border-white/10 text-sm shadow-xl overflow-x-auto"
+                                            className="rounded-lg bg-[#1e1e1e]! p-4! my-4 border border-white/10 text-sm shadow-xl overflow-x-auto"
                                             showLineNumbers={false}
                                         >
                                             {String(children).replace(/\n$/, '')}
@@ -130,7 +130,7 @@ export default function TextLesson({ lessonId, title, content }: TextLessonProps
                                     rounded-full px-8 py-6 text-base font-semibold shadow-lg transition-all
                                     ${isCompleted
                                         ? 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-200 cursor-default'
-                                        : 'bg-gradient-to-r from-brand-purple to-brand-pink text-white hover:opacity-90 hover:scale-[1.02]'
+                                        : 'bg-linear-to-r from-brand-purple to-brand-pink text-white hover:opacity-90 hover:scale-[1.02]'
                                     }
                                 `}
                             >

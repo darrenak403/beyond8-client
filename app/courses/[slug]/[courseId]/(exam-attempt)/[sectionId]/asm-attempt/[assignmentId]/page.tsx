@@ -1,12 +1,12 @@
-
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
 import { useGetAssignmentByIdForStudent, useGetSubmissionByStudent, useSubmitAssignment } from '@/hooks/useAssignment'
 import AssignmentOverview from './components/AssignmentOverview'
 import AssignmentSubmission from './components/AssignmentSubmission'
+import AssignmentSkeleton from './components/AssignmentSkeleton'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, Loader2 } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 
@@ -27,15 +27,7 @@ export default function AssignmentAttemptPage() {
   }
 
   if (isLoadingAssignment || isLoadingSubmission) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
-        </div>
-        <Footer />
-      </div>
-    )
+    return <AssignmentSkeleton />
   }
 
   if (!assignment) {

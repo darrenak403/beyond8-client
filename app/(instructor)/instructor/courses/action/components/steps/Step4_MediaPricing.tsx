@@ -6,7 +6,7 @@ import { Image as ImageIcon } from 'lucide-react'
 import { useMedia } from '@/hooks/useMedia'
 import { useRef } from 'react'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
-import { CurrencyInput } from '@/components/ui/currency-input'
+import { Input } from '@/components/ui/input'
 import SafeImage from '@/components/ui/SafeImage'
 
 interface Step3MediaPricingProps {
@@ -54,11 +54,16 @@ export default function Step4MediaPricing({ data, onChange }: Step3MediaPricingP
 
                     <div className="grid grid-cols-1 gap-4 sm:gap-6">
                         <div className="space-y-3">
-                            <CurrencyInput
+                            <Input
+                                type="number"
                                 value={data.price}
-                                onValueChange={(val) => onChange({ price: val })}
-                                className="pl-8 sm:pl-10 h-10 sm:h-12 text-xl sm:text-2xl font-bold tracking-tight bg-transparent border border-gray-400 focus-visible:border-black rounded-lg w-full"
+                                onChange={(e) => {
+                                    const val = parseFloat(e.target.value)
+                                    onChange({ price: isNaN(val) ? 0 : val })
+                                }}
+                                className="h-10 sm:h-12 text-xl sm:text-2xl font-bold tracking-tight bg-transparent border border-gray-400 focus-visible:border-black rounded-lg w-full"
                                 placeholder="0"
+                                min={0}
                             />
                             <p className="text-xs sm:text-sm text-muted-foreground font-medium">
                                 {data.price === 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.price)}
