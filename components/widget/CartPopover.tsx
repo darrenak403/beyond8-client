@@ -46,10 +46,8 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
     router.push('/cart')
   }
 
-  // Calculate total for all items (sử dụng subTotal sau giảm giá nếu có)
   const total = useMemo(() => {
     if (!cart) return 0
-    // Ưu tiên subTotal từ API, fallback tính từ finalPrice/originalPrice
     if (typeof cart.subTotal === 'number') {
       return cart.subTotal
     }
@@ -59,7 +57,6 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
     }, 0)
   }, [cart])
 
-  // Tổng tiền gốc và tổng giảm giá cho phần footer
   const originalTotal = cart
     ? (typeof cart.originalTotal === 'number'
         ? cart.originalTotal
@@ -100,28 +97,28 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
                   </p>
                 </div>
               </div>
-              <button
-                onClick={onClose}
-                className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            {/* Clear All Button */}
-            {isAuthenticated && cart && cart.items.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-border flex items-center justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearCart}
-                  disabled={isClearing}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-auto py-1 px-2"
+              <div className="flex items-center gap-2">
+                {/* Clear All Button */}
+                {isAuthenticated && cart && cart.items.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearCart}
+                    disabled={isClearing}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-auto py-1.5 px-2"
+                  >
+                    <Trash className="h-4 w-4 mr-1" />
+                    Xóa tất cả
+                  </Button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
-                  <Trash className="h-4 w-4 mr-1" />
-                  Xóa tất cả
-                </Button>
+                  <X className="h-5 w-5" />
+                </button>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Content */}
