@@ -1,9 +1,8 @@
 'use client'
 
-import { Trash2 } from 'lucide-react'
+import { Trash2, Tag, Ticket, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils/formatCurrency'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
@@ -11,6 +10,7 @@ import { useCartContext } from '../context/CartContext'
 import { useState } from 'react'
 import { useRemoveFromCart } from '@/hooks/useOrder'
 import SafeImage from '@/components/ui/SafeImage'
+import CouponDialog from '@/components/widget/CouponDialog'
 
 interface CartItemProps {
   item: {
@@ -32,6 +32,7 @@ export default function CartItem({ item }: CartItemProps) {
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null)
   const [couponCode, setCouponCode] = useState<string>(getInstructorCouponCode(item.courseId) || '')
+  const [couponDialogOpen, setCouponDialogOpen] = useState(false)
 
   const isSelected = selectedItems.has(item.courseId)
   const isHovered = hoveredItemId === item.id
@@ -46,9 +47,14 @@ export default function CartItem({ item }: CartItemProps) {
     }
   }
 
-  const handleCouponChange = (value: string) => {
-    setCouponCode(value)
-    setInstructorCouponCode(item.courseId, value)
+  const handleApplyCoupon = (code: string) => {
+    setCouponCode(code)
+    setInstructorCouponCode(item.courseId, code)
+  }
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('')
+    setInstructorCouponCode(item.courseId, '')
   }
 
   return (
@@ -138,22 +144,32 @@ export default function CartItem({ item }: CartItemProps) {
           </div>
           
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            <div className="flex gap-1.5 items-center">
-              <Input
-                placeholder="Mã giảm giá"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                className="h-8 w-50 text-xs px-2"
-              />
+            {/* Coupon section */}
+            {couponCode ? (
+              <div className="flex items-center gap-1.5 rounded-lg border border-brand-pink/30 bg-brand-pink/5 dark:bg-brand-purple/10 px-2 py-1">
+                <Ticket className="h-3.5 w-3.5 text-brand-magenta" />
+                <span className="text-xs font-medium text-brand-magenta">{couponCode}</span>
+                <button
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  className="rounded-full p-0.5 text-brand-magenta/50 hover:bg-brand-pink/10 hover:text-brand-magenta transition-colors"
+                  aria-label="Xóa mã giảm giá"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
               <Button
-                size="sm"
                 variant="outline"
-                onClick={() => handleCouponChange(couponCode)}
-                className="h-8 px-2 text-xs rounded-2xl"
+                size="sm"
+                className="h-8 gap-1.5 text-xs text-muted-foreground"
+                onClick={() => setCouponDialogOpen(true)}
               >
-                Áp dụng
+                <Tag className="h-3.5 w-3.5" />
+                Mã giảm giá
               </Button>
-            </div>
+            )}
+
             {/* Trash Button */}
             <button
               onClick={() => handleRemoveItem(item.courseId)}
@@ -165,6 +181,15 @@ export default function CartItem({ item }: CartItemProps) {
           </div>
         </div>
       </motion.div>
+
+      {/* Coupon Dialog - filtered by courseId */}
+      <CouponDialog
+        open={couponDialogOpen}
+        onOpenChange={setCouponDialogOpen}
+        onApply={handleApplyCoupon}
+        filterByCourseId={item.courseId}
+        strictCourseFilter
+      />
     </motion.div>
   )
 }
