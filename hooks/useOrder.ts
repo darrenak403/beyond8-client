@@ -17,6 +17,8 @@ import {
   ProcessPaymentResponse,
   PaymentParams,
   GetMyPaymentsResponse,
+  CheckCourseResponse,
+  CancelOrderResponse,
 }from "@/lib/api/services/fetchOrder";
 import { toast } from "sonner";
 
@@ -304,5 +306,58 @@ export function useGetMyPayments(options?: UseGetMyPaymentsOptions) {
     isLoading,
     isError,
     refetch,
+  };
+}
+
+// Hook kiểm tra khóa học đã được mua hay chưa
+export function useCheckCourse(courseId: string, options?: { enabled?: boolean }) {
+  const { data, isLoading, isError, refetch } = useQuery<
+    CheckCourseResponse,
+    Error,
+    boolean
+  >({
+    queryKey: ["check-course", courseId],
+    queryFn: () => fetchOrder.checkCourse(courseId),
+    enabled: options?.enabled ?? true,
+    select: (res) => res.data,
+  });
+
+  return {
+    isPurchased: data,
+    isLoading,
+    isError,
+    refetch,
+  };
+}
+
+// Hook hủy đơn hàng
+export function useCancelOrder() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending } = useMutation<
+    CancelOrderResponse,
+    Error,
+    string
+  >({
+    mutationFn: (orderId: string) => fetchOrder.cancelOrder(orderId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ["my-payments"],
+      });
+
+      if (data.isSuccess) {
+        toast.success(data.message || "Hủy đơn hàng thành công!");
+      }else {
+        toast.error(data.message || "Không thể hủy đơn hàng!");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể hủy đơn hàng!");
+    },
+  });
+
+  return {
+    cancelOrder: mutateAsync,
+    isPending,
   };
 }

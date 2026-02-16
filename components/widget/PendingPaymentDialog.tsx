@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertCircle, CreditCard } from 'lucide-react'
+import { AlertCircle, CreditCard, History, X }from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 }from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 
 interface PendingPaymentDialogProps {
   open: boolean
@@ -42,6 +43,13 @@ export function PendingPaymentDialog({
               <AlertDialogTitle className="text-xl font-bold text-orange-700">
                 Đơn hàng chưa thanh toán
               </AlertDialogTitle>
+              <button
+                onClick={() => onOpenChange(false)}
+                className="ml-auto p-1 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Đóng"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
             </div>
             <AlertDialogDescription className="text-gray-600 text-base leading-relaxed pl-12 space-y-2">
               <p>Đơn hàng này hiện chưa thanh toán trước đó.</p>
@@ -56,14 +64,17 @@ export function PendingPaymentDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
         </div>
-
         <div className="px-6 py-4 bg-gray-50 flex items-center justify-end gap-3 border-t">
           <AlertDialogCancel
             className={cn(
               'rounded-full border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-black hover:border-gray-300 mt-0'
             )}
           >
-            Đóng
+            <Link href={`/mybeyond/payment-history`} className="flex items-center gap-2">
+              <History className="w-4 h-4" />
+              Xem lịch sử giao dịch
+            </Link>
+           
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleProceedToPayment}

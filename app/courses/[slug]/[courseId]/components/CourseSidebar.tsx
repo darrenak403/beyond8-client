@@ -16,9 +16,10 @@ import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/servi
 import { useCheckEnrollment, useEnrollCourse }from '@/hooks/useEnroll'
 import { ConfirmDialog }from '@/components/widget/confirm-dialog'
 import { useAuth } from '@/hooks/useAuth'
-import { useAddToCart, useGetCart, useBuyNow, useProcessPayment }from '@/hooks/useOrder'
+import { useAddToCart, useGetCart, useBuyNow, useCheckCourse }from '@/hooks/useOrder'
 import { startOfToday, differenceInCalendarDays }from 'date-fns'
 import { PendingPaymentDialog }from '@/components/widget/PendingPaymentDialog'
+import { useRouter } from 'next/navigation'
 
 interface CourseSidebarProps {
   course: CourseSummary | CourseDetailType
@@ -74,6 +75,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   const [pendingPaymentUrl, setPendingPaymentUrl] = useState('')
   const [pendingOrderNumber, setPendingOrderNumber] = useState('')
   
+  const router = useRouter()
   const { enrollCourse, isPending }= useEnrollCourse()
   const { isAuthenticated } = useAuth()
   const { isEnrolled, isLoading: isCheckingEnroll } = useCheckEnrollment(course.id, {
@@ -81,6 +83,9 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   })
   const { addToCart, isPending: isAddingToCart } = useAddToCart()
   const { cart } = useGetCart({ enabled: isAuthenticated })
+  const { isPurchased }= useCheckCourse(course.id, {
+    enabled: !!course.id,
+  })
   const { buyNow, isPending: isBuyNowPending } = useBuyNow({
     onPendingPayment: (paymentUrl, orderNumber) => {
       setPendingPaymentUrl(paymentUrl)
@@ -88,10 +93,9 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
       setPendingPaymentDialogOpen(true)
     }
   })
-  const { processPayment, isPending: isProcessPaymentPending } = useProcessPayment()
   
   const isInCart = cart?.items?.some(item => item.courseId === course.id) ?? false
-  const isProcessingPayment = isBuyNowPending || isProcessPaymentPending
+  const isProcessingPayment = isBuyNowPending
 
   const handleFreeEnroll = async () => {
     try {
@@ -121,6 +125,14 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
     }
 
     try {
+      if (!isPurchased) {
+        if (!isInCart) {
+          await addToCart({ courseId: course.id })
+        }
+        router.push('/cart')
+        return
+      }
+
       const buyNowResponse = await buyNow({
         courseId: course.id,
         instructorCouponCode: null,
@@ -131,17 +143,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
       if (buyNowResponse.isSuccess && buyNowResponse.data?.pendingPaymentInfo) {
         return
       }
-
-      if (buyNowResponse.isSuccess && buyNowResponse.data?.id) {
-        const paymentResponse = await processPayment({
-          orderId: buyNowResponse.data.id,
-        })
-
-        if (paymentResponse.isSuccess && paymentResponse.data?.paymentUrl) {
-          window.location.href = paymentResponse.data.paymentUrl
-        }
-      }
-    } catch (error) {
+    }catch (error) {
       console.error('Buy now error:', error)
     }
   }

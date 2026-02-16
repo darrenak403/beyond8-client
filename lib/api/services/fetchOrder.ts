@@ -260,6 +260,24 @@ export interface GetMyPaymentsResponse {
   metadata: PaginationMetadata | null;
 }
 
+export interface CheckCourseResponse {
+  isSuccess: boolean;
+  message: string;
+  data: boolean;
+  metadata: null;
+}
+
+export interface CancelOrderRequest {
+  orderId: string;
+}
+
+export interface CancelOrderResponse {
+  isSuccess: boolean;
+  message: string;
+  data: OrderData;
+  metadata: null;
+}
+
 const convertParamsToQuery = (params?: PaymentParams): RequestParams => {
   if (!params) return {};
   const query: RequestParams = {};
@@ -358,6 +376,23 @@ export const fetchOrder = {
     const response = await apiService.get<GetMyPaymentsResponse>(
       "api/v1/payments/my-payments",
       query
+    );
+    return response.data;
+  },
+
+  // Kiểm tra khóa học đã được mua hay chưa
+  checkCourse: async (courseId: string): Promise<CheckCourseResponse> => {
+    const response = await apiService.get<CheckCourseResponse>(
+      `api/v1/orders/check-course/${courseId}`
+    );
+    return response.data;
+  },
+
+  // Hủy đơn hàng
+  cancelOrder: async (orderId: string): Promise<CancelOrderResponse> => {
+    const response = await apiService.post<CancelOrderResponse, null>(
+      `api/v1/orders/${orderId}/cancel`,
+      null
     );
     return response.data;
   },
