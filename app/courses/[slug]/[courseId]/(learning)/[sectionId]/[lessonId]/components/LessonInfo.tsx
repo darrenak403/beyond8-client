@@ -27,9 +27,10 @@ interface LessonInfoProps {
     avatar?: string
     bio?: string
   }
+  progressPercent?: number
 }
 
-export default function LessonInfo({ course, currentLesson, slug, courseId, onNavigate, instructor, isNextDisabled }: LessonInfoProps) {
+export default function LessonInfo({ course, currentLesson, slug, courseId, onNavigate, instructor, isNextDisabled, progressPercent }: LessonInfoProps) {
 
   // Find prev/next lesson
   const allLessons = course.sections.flatMap(s => s.lessons.map(l => ({ ...l, sectionId: s.id })))
@@ -94,8 +95,31 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
               </Button>
             )}
 
-            {nextLesson ? (
-              onNavigate ? (
+
+            {nextLesson ? (() => {
+              const section = course.sections.find(s => s.id === nextLesson.sectionId)
+              let buttonText = "Bài tiếp theo"
+              let targetUrl = getLessonUrl(nextLesson)
+              let forceFullNav = false
+
+              if (nextLesson.type === LessonType.Quiz) {
+                buttonText = "Bài kiểm tra"
+                targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${nextLesson.quizId}`
+                forceFullNav = true
+              } else if (section) {
+                const lastLesson = section.lessons[section.lessons.length - 1]
+                if (lastLesson.id === nextLesson.id) {
+                  buttonText = "Bài tập Cuối Chương"
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const assignmentId = (section as any).assignmentId
+                  if (assignmentId) {
+                    targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/asm-attempt/${assignmentId}`
+                    forceFullNav = true
+                  }
+                }
+              }
+
+              return (onNavigate && !forceFullNav) ? (
                 <Button
                   className={`
                     rounded-full px-6 h-10 transition-all font-medium border-none shadow-lg
@@ -111,17 +135,29 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                   }}
                   disabled={isNextDisabled}
                 >
-                  Bài tiếp theo <ChevronRight className="w-4 h-4 ml-1" />
+                  {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               ) : (
-                <Link href={getLessonUrl(nextLesson)}>
+                <Link href={targetUrl}>
                   <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
-                    Bài tiếp theo <ChevronRight className="w-4 h-4 ml-1" />
+                    {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
               )
-            ) : (
-              <Button className="rounded-full bg-green-600 hover:bg-green-700 text-white border-none px-6 h-10 font-medium">
+            })() : (
+              <Button
+                className={`rounded-full px-6 h-10 font-medium border-none ${(progressPercent === 100)
+                  ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                disabled={progressPercent !== 100}
+                onClick={() => {
+                  if (progressPercent === 100) {
+                    // Navigate to course home
+                    window.location.href = `/courses/${slug}/${courseId}`
+                  }
+                }}
+              >
                 Hoàn thành khóa học
               </Button>
             )}

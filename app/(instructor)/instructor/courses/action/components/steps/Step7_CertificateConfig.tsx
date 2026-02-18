@@ -43,40 +43,32 @@ export default function Step7CertificateConfig({ courseId }: Step7CertificateCon
             </div>
         )
     }
-
     return (
-        <div className="flex flex-col flex-1 max-w-5xl w-full mx-auto transition-all duration-700 ease-in-out justify-center min-h-[calc(100vh-300px)]">
-            <div className="w-full space-y-10 pb-12">
-                {/* Header with gradient */}
-                <div className="space-y-3">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-200">
-                        <Award className="w-4 h-4 text-yellow-600" />
-                        <span className="text-sm font-medium text-yellow-900">Cấu hình chứng chỉ</span>
-                    </div>
-                    <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-yellow-600 to-amber-600 bg-clip-text text-transparent">
-                        Điều kiện cấp chứng chỉ
-                    </h2>
-                    <p className="text-lg text-muted-foreground max-w-2xl">
-                        Thiết lập điểm tối thiểu để học viên đủ điều kiện nhận chứng chỉ hoàn thành khóa học.
-                    </p>
-                </div>
+        <div className="w-full mx-auto py-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-2">
+                <h2 className="text-2xl font-bold tracking-tight">Điều kiện cấp chứng chỉ</h2>
+                <p className="text-muted-foreground">
+                    Thiết lập điểm tối thiểu để học viên đủ điều kiện nhận chứng chỉ hoàn thành khóa học.
+                </p>
+            </div>
 
-                <div className="space-y-6">
-                    {/* Quiz Average Minimum */}
-                    <div className="group relative overflow-hidden space-y-4 p-6 rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 hover:shadow-lg hover:shadow-blue-100 transition-all duration-300">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300 rounded-full blur-3xl opacity-20" />
-                        <div className="relative flex items-start gap-4">
-                            <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg">
-                                <Percent className="w-6 h-6" />
-                            </div>
-                            <div className="flex-1">
-                                <Label className="text-lg font-bold text-gray-900">Điểm trung bình Quiz tối thiểu</Label>
-                                <p className="text-sm text-muted-foreground mt-1.5">
-                                    Học viên cần đạt điểm trung bình tối thiểu này cho tất cả các quiz trong khóa học
-                                </p>
-                            </div>
+            <div className="space-y-6">
+                {/* Quiz Average Minimum */}
+                <div className="space-y-4 p-6 rounded-xl border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all">
+                    <div className="flex items-start gap-4">
+                        <div className="p-2 rounded-lg bg-blue-100 text-blue-600 shrink-0">
+                            <Percent className="w-5 h-5" />
                         </div>
-                        <div className="relative">
+                        <div className="flex-1 space-y-1">
+                            <Label className="text-base font-semibold text-gray-900">Điểm trung bình Quiz tối thiểu</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Học viên cần đạt điểm trung bình tối thiểu này cho tất cả các quiz trong khóa học
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="pl-11 space-y-3">
+                        <div className="relative max-w-xs">
                             <Input
                                 type="number"
                                 min="0"
@@ -89,36 +81,39 @@ export default function Step7CertificateConfig({ courseId }: Step7CertificateCon
                                         setQuizMinPercent(value)
                                     }
                                 }}
-                                className="text-lg h-14 pr-16 border-2 focus:border-blue-500 focus:ring-blue-500 bg-white"
-                                placeholder="Nhập phần trăm (0-100) hoặc để trống"
+                                className="h-11 text-base pr-12 focus-visible:ring-blue-500"
+                                placeholder="Nhập % (0-100)"
                             />
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-600 font-semibold text-lg">
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 font-medium text-gray-500">
                                 %
                             </div>
                         </div>
+
                         {quizMinPercent === null && (
-                            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg w-fit">
                                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                Để trống = không yêu cầu điểm quiz tối thiểu
+                                Không yêu cầu điểm quiz tối thiểu
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {/* Assignment Average Minimum */}
-                    <div className="group relative overflow-hidden space-y-4 p-6 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-lg hover:shadow-green-100 transition-all duration-300">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-green-300 rounded-full blur-3xl opacity-20" />
-                        <div className="relative flex items-start gap-4">
-                            <div className="p-3 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-lg">
-                                <Percent className="w-6 h-6" />
-                            </div>
-                            <div className="flex-1">
-                                <Label className="text-lg font-bold text-gray-900">Điểm trung bình Assignment tối thiểu</Label>
-                                <p className="text-sm text-muted-foreground mt-1.5">
-                                    Học viên cần đạt điểm trung bình tối thiểu này cho tất cả các assignment trong khóa học
-                                </p>
-                            </div>
+                {/* Assignment Average Minimum */}
+                <div className="space-y-4 p-6 rounded-xl border-2 border-dashed border-gray-200 hover:border-green-300 hover:bg-green-50/50 transition-all">
+                    <div className="flex items-start gap-4">
+                        <div className="p-2 rounded-lg bg-green-100 text-green-600 shrink-0">
+                            <Percent className="w-5 h-5" />
                         </div>
-                        <div className="relative">
+                        <div className="flex-1 space-y-1">
+                            <Label className="text-base font-semibold text-gray-900">Điểm trung bình Assignment tối thiểu</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Học viên cần đạt điểm trung bình tối thiểu này cho tất cả các assignment trong khóa học
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="pl-11 space-y-3">
+                        <div className="relative max-w-xs">
                             <Input
                                 type="number"
                                 min="0"
@@ -131,61 +126,46 @@ export default function Step7CertificateConfig({ courseId }: Step7CertificateCon
                                         setAssignmentMinPercent(value)
                                     }
                                 }}
-                                className="text-lg h-14 pr-16 border-2 focus:border-green-500 focus:ring-green-500 bg-white"
-                                placeholder="Nhập phần trăm (0-100) hoặc để trống"
+                                className="h-11 text-base pr-12 focus-visible:ring-green-500"
+                                placeholder="Nhập % (0-100)"
                             />
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-green-600 font-semibold text-lg">
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 font-medium text-gray-500">
                                 %
                             </div>
                         </div>
+
                         {assignmentMinPercent === null && (
-                            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg w-fit">
                                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                Để trống = không yêu cầu điểm assignment tối thiểu
+                                Không yêu cầu điểm assignment tối thiểu
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {/* Save Button */}
-                    <div className="pt-6">
-                        <Button
-                            onClick={handleSave}
-                            disabled={isPending}
-                            className="w-full h-14 text-base font-semibold bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-700 hover:to-amber-700 shadow-lg shadow-yellow-200"
-                            size="lg"
-                        >
-                            {isPending ? 'Đang lưu...' : 'Lưu cấu hình'}
-                        </Button>
-                    </div>
+                {/* Save Button */}
+                <div className="pt-4 border-t">
+                    <Button
+                        onClick={handleSave}
+                        disabled={isPending}
+                        className="w-full h-11 text-base font-medium rounded-xl"
+                        size="lg"
+                    >
+                        {isPending ? 'Đang xử lí...' : 'Cập nhật'}
+                    </Button>
+                </div>
 
-                    {/* Info Note */}
-                    <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50 border-2 border-blue-200 rounded-xl p-6 text-sm">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-200 rounded-full blur-3xl opacity-30" />
-                        <div className="relative">
-                            <p className="font-bold text-base mb-3 text-blue-900 flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                                Lưu ý quan trọng
-                            </p>
-                            <ul className="space-y-2.5 text-blue-900">
-                                <li className="flex items-start gap-2">
-                                    <span className="text-blue-600 mt-0.5">•</span>
-                                    <span>Nếu để trống cả hai trường, học viên chỉ cần hoàn thành tất cả bài học để nhận chứng chỉ</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-blue-600 mt-0.5">•</span>
-                                    <span>Điểm trung bình được tính dựa trên tất cả các quiz/assignment trong khóa học</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-blue-600 mt-0.5">•</span>
-                                    <span>Học viên phải đạt cả hai điều kiện (nếu có) để được cấp chứng chỉ</span>
-                                </li>
-                                <li className="flex items-start gap-2">
-                                    <span className="text-blue-600 mt-0.5">•</span>
-                                    <span>Cấu hình này áp dụng cho tất cả học viên của khóa học</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                {/* Info Note */}
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900 space-y-2">
+                    <p className="font-semibold flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                        Lưu ý
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-blue-800/80 pl-2">
+                        <li>Nếu để trống cả hai trường, học viên chỉ cần hoàn thành tất cả bài học để nhận chứng chỉ</li>
+                        <li>Điểm trung bình được tính dựa trên tất cả các quiz/assignment trong khóa học</li>
+                        <li>Học viên phải đạt cả hai điều kiện (nếu có) để được cấp chứng chỉ</li>
+                    </ul>
                 </div>
             </div>
         </div>

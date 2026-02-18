@@ -339,6 +339,7 @@ export default function LessonPage() {
             }
           }}
           isNextDisabled={isNextDisabled}
+          progressPercent={curriculumProgress?.progressPercent}
         />
       </div>
     </div>

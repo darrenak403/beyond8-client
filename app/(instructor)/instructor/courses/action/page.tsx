@@ -329,7 +329,7 @@ export function CourseAction({ initialData, isEditMode: initialIsEditMode = fals
                           {currentStep === 5 && (initialData?.id || createdCourseId) && (
                             <Step5_Documents courseId={initialData?.id || createdCourseId!} />
                           )}
-                          {currentStep === 7 && (initialData?.id || createdCourseId) && (
+                          {currentStep === 7 && (initialData?.id || createdCourseId) && initialData?.status === CourseStatus.Published && (
                             <Step7_CertificateConfig courseId={initialData?.id || createdCourseId!} />
                           )}
                           {currentStep === 6 && (initialData?.id || createdCourseId) && initialData?.status === CourseStatus.Published && (

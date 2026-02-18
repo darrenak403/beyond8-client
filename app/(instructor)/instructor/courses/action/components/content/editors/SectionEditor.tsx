@@ -46,6 +46,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const [showDeleteAssignmentDialog, setShowDeleteAssignmentDialog] = useState(false);
         const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
         const [isViewAssignmentDialogOpen, setIsViewAssignmentDialogOpen] = useState(false);
+        const [pendingAction, setPendingAction] = useState<{ type: 'exit' } | { type: 'navigate_lesson', lessonId: string } | { type: 'back_to_info' } | null>(null);
         const router = useRouter();
 
         const { updateSection, isPending: isUpdating } = useUpdateSection(courseId);
@@ -87,14 +88,53 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
 
         const handleExit = () => {
             if (hasChanges) {
+                setPendingAction({ type: 'exit' });
                 setShowUnsaveDialog(true);
             } else {
                 router.push('/instructor/courses');
             }
         };
 
-        const confirmExit = () => {
-            router.push('/instructor/courses');
+        const processPendingAction = () => {
+            if (!pendingAction) return;
+
+            if (pendingAction.type === 'exit') {
+                router.push('/instructor/courses');
+            } else if (pendingAction.type === 'navigate_lesson') {
+                onLessonSelect?.(pendingAction.lessonId);
+            } else if (pendingAction.type === 'back_to_info') {
+                onBackToInfo?.();
+            }
+            setPendingAction(null);
+        };
+
+        const handleDiscard = () => {
+            processPendingAction();
+            setShowUnsaveDialog(false);
+        };
+
+        const handleSaveAndProceed = async () => {
+            await handleSave();
+            processPendingAction();
+            setShowUnsaveDialog(false);
+        };
+
+        const handleLessonSelect = (lessonId: string) => {
+            if (hasChanges) {
+                setPendingAction({ type: 'navigate_lesson', lessonId });
+                setShowUnsaveDialog(true);
+            } else {
+                onLessonSelect?.(lessonId);
+            }
+        };
+
+        const handleBackToInfoSelect = () => {
+            if (hasChanges) {
+                setPendingAction({ type: 'back_to_info' });
+                setShowUnsaveDialog(true);
+            } else {
+                onBackToInfo?.();
+            }
         };
 
         const handleCreateLesson = async (type: "Video" | "Text" | "Quiz") => {
@@ -199,7 +239,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                             <div className="absolute left-1/2 -translate-x-1/2">
                                 <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-full">
                                     <button
-                                        onClick={onBackToInfo}
+                                        onClick={handleBackToInfoSelect}
                                         className="px-6 py-2 text-sm font-medium rounded-full transition-all text-gray-500 hover:text-gray-900"
                                     >
                                         Thông tin khóa học
@@ -261,9 +301,12 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                         <UnsaveDialog
                             open={showUnsaveDialog}
                             onOpenChange={setShowUnsaveDialog}
-                            onDiscard={confirmExit}
-                            onSave={handleSave}
-                            onCancel={() => setShowUnsaveDialog(false)}
+                            onDiscard={handleDiscard}
+                            onSave={handleSaveAndProceed}
+                            onCancel={() => {
+                                setShowUnsaveDialog(false);
+                                setPendingAction(null);
+                            }}
                             title="Chưa lưu thay đổi"
                             description="Bạn có thay đổi chưa lưu trong chương này. Bạn có muốn lưu lại trước khi thoát không?"
                         />
@@ -399,7 +442,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                                                 initial={{ opacity: 0, x: -10 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: index * 0.05 }}
-                                                onClick={() => onLessonSelect?.(lesson.id)}
+                                                onClick={() => handleLessonSelect(lesson.id)}
                                                 className={`group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${!lesson.isPublished ? 'opacity-50 grayscale' : ''}`}
                                             >
                                                 {/* Icon */}

@@ -4,6 +4,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useGetQuizOverview, useGetMyQuizAttempts, useStartQuizAttempt, useCheckQuizInProgress } from '@/hooks/useQuiz'
 import { useGetCourseDetails } from '@/hooks/useCourse'
+import { useCheckEnrollment, useGetCurriculumProgress } from '@/hooks/useEnroll'
 import QuizOverview from './components/QuizOverview'
 import { QuizOverviewSkeleton } from './components/QuizOverviewSkeleton'
 import { toast } from 'sonner'
@@ -12,7 +13,9 @@ import { Footer } from '@/components/layout/Footer'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import QuizAttemptFooter from './[quizId]/components/QuizAttemptFooter'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { LessonType } from '@/lib/api/services/fetchLesson'
+import Link from 'next/link'
 
 export default function QuizAttemptOverviewPage() {
   const params = useParams()
@@ -32,6 +35,18 @@ export default function QuizAttemptOverviewPage() {
   const { startQuizAttempt, isPending: isStarting } = useStartQuizAttempt()
   const { refetch: checkInProgress } = useCheckQuizInProgress(quizId || '')
   const [showInProgressDialog, setShowInProgressDialog] = useState(false)
+
+  // 1. Kiểm tra enrollment để lấy enrollmentId
+  const { enrollmentId: userEnrollmentId } = useCheckEnrollment(courseId, {
+    enabled: !!courseId,
+  })
+
+  // 1.2 Curriculum Progress
+  const { curriculumProgress } = useGetCurriculumProgress(userEnrollmentId || undefined, {
+    enabled: !!userEnrollmentId
+  })
+
+  const progressPercent = curriculumProgress?.progressPercent || 0
 
   useEffect(() => {
     const handlePopState = () => {
@@ -107,20 +122,121 @@ export default function QuizAttemptOverviewPage() {
     )
   }
 
+
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
 
       {/* Back to lesson button */}
       <div className="container mx-auto py-4">
-        <Button
-          variant="outline"
-          className="rounded-2xl border-brand-magenta/20 text-brand-magenta hover:bg-brand-magenta/10 hover:text-brand-magenta"
-          onClick={handleBack}
-        >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Quay lại bài học
-        </Button>
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            className="rounded-2xl border-brand-magenta/20 text-brand-magenta hover:bg-brand-magenta/10 hover:text-brand-magenta"
+            onClick={handleBack}
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Quay lại
+          </Button>
+
+          {course && (() => {
+            // Find next lesson logic
+            const allLessons = course.sections.flatMap(s => s.lessons.map(l => ({ ...l, sectionId: s.id })))
+            const currentIndex = allLessons.findIndex(l => l.id === lessonId)
+            const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
+
+            // Find current section
+            const currentSection = course.sections.find(s => s.id === sectionId)
+
+            // Check if current lesson is the last lesson of the current section
+            const isLastLessonOfSection = currentSection && currentSection.lessons.length > 0 && currentSection.lessons[currentSection.lessons.length - 1].id === lessonId
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const sectionAssignmentId = (currentSection as any)?.assignmentId
+
+            if (isLastLessonOfSection && sectionAssignmentId) {
+              return (
+                <Link href={`/courses/${slug}/${courseId}/${sectionId}/asm-attempt/${sectionAssignmentId}`}>
+                  <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
+                    Bài tập Cuối Chương <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              )
+            }
+
+            if (!nextLesson) {
+              return (
+                <Button
+                  className={`rounded-full px-6 h-10 font-medium border-none ${(progressPercent === 100)
+                    ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  disabled={progressPercent !== 100}
+                  onClick={() => {
+                    if (progressPercent === 100) {
+                      // Navigate to course home
+                      window.location.href = `/courses/${slug}/${courseId}`
+                    }
+                  }}
+                >
+                  Hoàn thành khóa học
+                </Button>
+              )
+            }
+
+            const getNextButtonText = () => {
+              // const section = course.sections.find(s => s.id === nextLesson.sectionId)
+              if (nextLesson.type === LessonType.Quiz) {
+                return "Bài kiểm tra"
+              }
+              // Previous logic for assignment check is now handled above for the *current* section.
+              // We keep this just in case nextLesson points to an assignment in a weird way, but unlikely if structures are standard.
+              // Actually, LessonInfo logic had this:
+              /*
+              if (section) {
+                const lastLesson = section.lessons[section.lessons.length - 1]
+                if (lastLesson.id === nextLesson.id) {
+                   return "Bài tập Cuối Chương"
+                }
+              }
+              */
+              // But here nextLesson is strictly from the lessons array.
+              return "Bài tiếp theo"
+            }
+
+            const getNextLessonUrl = () => {
+              // const section = course.sections.find(s => s.id === nextLesson.sectionId)
+              if (nextLesson.type === LessonType.Quiz) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const quizId = (nextLesson as any).quizId
+                return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${quizId}`
+              }
+              /*
+              if (section) {
+                 const lastLesson = section.lessons[section.lessons.length - 1]
+                 if (lastLesson.id === nextLesson.id) {
+                   const assignmentId = (section as any).assignmentId
+                   if (assignmentId) {
+                     return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/asm-attempt/${assignmentId}`
+                   }
+                 }
+              }
+              */
+              return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}`
+            }
+
+            const buttonText = getNextButtonText()
+            const targetUrl = getNextLessonUrl()
+
+            return (
+              <Link href={targetUrl}>
+                <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
+                  {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+            )
+          })()}
+        </div>
       </div>
 
       <div className="flex-1 flex relative">

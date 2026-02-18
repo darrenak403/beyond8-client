@@ -65,19 +65,18 @@ export default function CourseActionSidebar({
                     title: 'Tài liệu khóa học',
                     icon: Paperclip,
                 })
-                // Add Certificate Config step in edit mode
-                baseSteps.push({
-                    id: 7,
-                    title: 'Điều kiện chứng chỉ',
-                    icon: Award,
-                })
             }
-            // Add Discount step if course is published
+            // Add Steps for Published Courses
             if (isEditMode && courseStatus === CourseStatus.Published) {
                 baseSteps.push({
                     id: 6,
                     title: 'Giảm giá',
                     icon: Tag,
+                })
+                baseSteps.push({
+                    id: 7,
+                    title: 'Điều kiện chứng chỉ',
+                    icon: Award,
                 })
             }
             return baseSteps

@@ -68,7 +68,7 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Thời gian</p>
-                            <p className="text-base font-bold text-brand-purple">{formatTime(assignment.timeLimitMinutes)}</p>
+                            <p className="text-sm font-bold text-brand-purple">{formatTime(assignment.timeLimitMinutes)}</p>
                         </div>
                     </div>
 
