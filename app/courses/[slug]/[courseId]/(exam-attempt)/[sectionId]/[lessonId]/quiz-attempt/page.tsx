@@ -155,6 +155,16 @@ export default function QuizAttemptOverviewPage() {
             const sectionAssignmentId = (currentSection as any)?.assignmentId
 
             if (isLastLessonOfSection && sectionAssignmentId) {
+              const isQuizPassed = myQuizAttempts?.attempts?.some(attempt => attempt.isPassed)
+
+              if (!isQuizPassed) {
+                return (
+                  <Button disabled className="rounded-full bg-gray-300 text-gray-500 cursor-not-allowed border-none shadow-none px-6 h-10 font-medium">
+                    Bài tập Cuối Chương <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                )
+              }
+
               return (
                 <Link href={`/courses/${slug}/${courseId}/${sectionId}/asm-attempt/${sectionAssignmentId}`}>
                   <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
@@ -227,6 +237,16 @@ export default function QuizAttemptOverviewPage() {
 
             const buttonText = getNextButtonText()
             const targetUrl = getNextLessonUrl()
+
+            const isQuizPassed = myQuizAttempts?.attempts?.some(attempt => attempt.isPassed)
+
+            if (!isQuizPassed) {
+              return (
+                <Button disabled className="rounded-full bg-gray-300 text-gray-500 cursor-not-allowed border-none shadow-none px-6 h-10 font-medium">
+                  {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              )
+            }
 
             return (
               <Link href={targetUrl}>

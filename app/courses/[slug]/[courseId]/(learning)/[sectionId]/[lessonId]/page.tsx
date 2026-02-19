@@ -267,24 +267,29 @@ export default function LessonPage() {
       }
     }
 
+    // Check if current section has assignment that we need to go to
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const currentSectionAssignmentId = (section as any)?.assignmentId
+    const isLastLesson = section && section.lessons[section.lessons.length - 1].id === lessonId
+
+    if (isLastLesson && currentSectionAssignmentId) {
+      // Navigate to assignment instead of next lesson (which would be next section)
+      router.push(`${baseUrl}/${sectionId}/asm-attempt/${currentSectionAssignmentId}`)
+      return
+    }
+
     if (nextLesson) {
       setIsNavigating(true)
 
-      // Determine target URL
-      const section = course.sections.find(s => s.id === nextLesson.sectionId)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const assignmentId = (section as any)?.assignmentId
+      // Determine target URL for next lesson (could be next section)
+      // We already handled assignment above.
 
       let targetUrl = `${baseUrl}/${nextLesson.sectionId}/${nextLesson.id}`
 
       if (nextLesson.type === 'Quiz' && 'quizId' in nextLesson) {
         targetUrl = `${baseUrl}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${nextLesson.quizId}`
-      } else if (section) {
-        const lastLesson = section.lessons[section.lessons.length - 1]
-        if (lastLesson.id === nextLesson.id && assignmentId) {
-          targetUrl = `${baseUrl}/${nextLesson.sectionId}/asm-attempt/${assignmentId}`
-        }
       }
+      // Removed check for assignment here because we check it relative to CURRENT lesson now.
 
       router.push(targetUrl)
     } else {

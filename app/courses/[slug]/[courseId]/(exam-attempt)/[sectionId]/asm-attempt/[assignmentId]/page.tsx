@@ -84,6 +84,8 @@ export default function AssignmentAttemptPage() {
   // Check if can resubmit
   const canResubmit = currentSubmission?.finalScore !== null && currentSubmission?.finalScore !== undefined
 
+
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
@@ -106,6 +108,16 @@ export default function AssignmentAttemptPage() {
             const nextSection = sectionIndex !== -1 && sectionIndex < course.sections.length - 1 ? course.sections[sectionIndex + 1] : null
             const nextLesson = nextSection && nextSection.lessons.length > 0 ? nextSection.lessons[0] : null
 
+            // Calculate pass status (Safe to do here as we aren't using hooks inside this IIFE anymore)
+            // Note: We are still inside an IIFE here, but we removed the useMemo that was causing the issue.
+            // Converting this to a standard block would be better but this minimal fix removes the hook violation.
+
+            let isPassed = false
+            if (currentSubmission && currentSubmission.finalScore !== null && assignment) {
+              const percent = (currentSubmission.finalScore / assignment.totalPoints) * 100
+              isPassed = percent >= assignment.passScorePercent
+            }
+
             if (!nextLesson) {
               return (
                 <Button
@@ -126,35 +138,35 @@ export default function AssignmentAttemptPage() {
               )
             }
 
-            const getNextButtonText = () => {
-              // Since we are moving to the next section, it's always "Next Chapter"
-              return "Chương tiếp theo"
-            }
+            let buttonText = "Chương tiếp theo"
+            let targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}`
 
-            const getNextLessonUrl = () => {
-              if (nextLesson.type === LessonType.Quiz) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const quizId = (nextLesson as any).quizId
-                return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${quizId}`
-              }
-              // Check if next lesson is an assignment (unlikely for first lesson, but for consistency)
+            if (nextLesson.type === LessonType.Quiz) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              if ((nextLesson as any).type === 'Assignment') {
-                // Logic for assignment URL if needed, but usually assignment is separate entity attached to section
-              }
-
-              return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}`
+              const quizId = (nextLesson as any).quizId
+              targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${quizId}`
+              buttonText = "Bài kiểm tra"
             }
-
-            const buttonText = getNextButtonText()
-            const targetUrl = getNextLessonUrl()
 
             return (
-              <Link href={targetUrl}>
-                <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
-                  {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
+              <div className="flex flex-col gap-2">
+                {/* Only show next button if passed */}
+                <div className={!isPassed ? "cursor-not-allowed opacity-50" : ""}>
+                  <Link href={isPassed ? targetUrl : "#"} aria-disabled={!isPassed} className={!isPassed ? "pointer-events-none" : ""}>
+                    <Button
+                      disabled={!isPassed}
+                      className={`rounded-full border-none shadow-lg px-6 h-10 transition-all font-medium
+                                ${!isPassed
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                          : 'bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white'
+                        }
+                            `}
+                    >
+                      {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
             )
           })()}
         </div>

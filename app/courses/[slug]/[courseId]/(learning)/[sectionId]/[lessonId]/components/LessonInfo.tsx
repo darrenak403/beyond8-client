@@ -97,29 +97,30 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
 
 
             {nextLesson ? (() => {
-              const section = course.sections.find(s => s.id === nextLesson.sectionId)
               let buttonText = "Bài tiếp theo"
               let targetUrl = getLessonUrl(nextLesson)
               let forceFullNav = false
 
-              if (nextLesson.sectionId !== allLessons[currentIndex].sectionId) {
+              // Check if the CURRENT lesson is the last one in its section
+              const currentLessonWithSection = allLessons[currentIndex]
+              const currentSection = course.sections.find(s => s.id === currentLessonWithSection.sectionId)
+
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const currentSectionAssignmentId = (currentSection as any)?.assignmentId
+              const isLastLessonInCurrentSection = currentSection
+                && currentSection.lessons[currentSection.lessons.length - 1].id === currentLesson.id
+
+              if (isLastLessonInCurrentSection && currentSectionAssignmentId) {
+                buttonText = "Bài tập Cuối Chương"
+                targetUrl = `/courses/${slug}/${courseId}/${currentLessonWithSection.sectionId}/asm-attempt/${currentSectionAssignmentId}`
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                forceFullNav = true
+              } else if (nextLesson.sectionId !== currentLessonWithSection.sectionId) {
                 buttonText = "Chương tiếp theo"
               } else if (nextLesson.type === LessonType.Quiz) {
                 buttonText = "Bài kiểm tra"
                 targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${nextLesson.quizId}`
                 forceFullNav = true
-              } else if (section) {
-                const lastLesson = section.lessons[section.lessons.length - 1]
-                if (lastLesson.id === nextLesson.id) {
-                  buttonText = "Bài tập Cuối Chương"
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  const assignmentId = (section as any).assignmentId
-                  if (assignmentId) {
-                    targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/asm-attempt/${assignmentId}`
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    forceFullNav = true
-                  }
-                }
               }
 
               return (onNavigate && !isNextDisabled) ? (

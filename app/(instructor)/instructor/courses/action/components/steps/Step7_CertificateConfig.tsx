@@ -11,15 +11,22 @@ interface Step7CertificateConfigProps {
     courseId: string
 }
 
-export default function Step7CertificateConfig({ courseId }: Step7CertificateConfigProps) {
-    const { courseCertificateConfig, isLoading } = useGetCourseCertificateConfig(courseId)
+interface CertificateConfigFormProps {
+    courseId: string
+    initialData?: {
+        assignmentAverageMinPercent: number | null
+        quizAverageMinPercent: number | null
+    }
+}
+
+function CertificateConfigForm({ courseId, initialData }: CertificateConfigFormProps) {
     const { updateCourseCertificateConfig, isPending } = useUpdateCourseCertificateConfig()
 
     const [assignmentMinPercent, setAssignmentMinPercent] = useState<number | null>(
-        courseCertificateConfig?.assignmentAverageMinPercent ?? null
+        initialData?.assignmentAverageMinPercent ?? null
     )
     const [quizMinPercent, setQuizMinPercent] = useState<number | null>(
-        courseCertificateConfig?.quizAverageMinPercent ?? null
+        initialData?.quizAverageMinPercent ?? null
     )
 
     const handleSave = async () => {
@@ -36,13 +43,6 @@ export default function Step7CertificateConfig({ courseId }: Step7CertificateCon
         }
     }
 
-    if (isLoading) {
-        return (
-            <div className="flex flex-col flex-1 max-w-4xl w-full mx-auto justify-center items-center min-h-[calc(100vh-300px)]">
-                <p className="text-muted-foreground">Đang tải cấu hình...</p>
-            </div>
-        )
-    }
     return (
         <div className="w-full mx-auto py-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
@@ -170,4 +170,17 @@ export default function Step7CertificateConfig({ courseId }: Step7CertificateCon
             </div>
         </div>
     )
+}
+
+export default function Step7CertificateConfig({ courseId }: Step7CertificateConfigProps) {
+    const { courseCertificateConfig, isLoading } = useGetCourseCertificateConfig(courseId)
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col flex-1 max-w-4xl w-full mx-auto justify-center items-center min-h-[calc(100vh-300px)]">
+                <p className="text-muted-foreground">Đang tải cấu hình...</p>
+            </div>
+        )
+    }
+    return <CertificateConfigForm courseId={courseId} initialData={courseCertificateConfig} />
 }

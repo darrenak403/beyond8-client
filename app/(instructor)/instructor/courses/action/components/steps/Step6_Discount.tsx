@@ -129,12 +129,12 @@ export default function Step6Discount({ courseId, initialData }: Step6DiscountPr
                         <Label className="text-base font-semibold">
                             {discountType === 'percent' ? 'Phần trăm giảm giá' : 'Số tiền giảm giá'}
                         </Label>
-                        <div className="relative">
+                        <div className="space-y-3 relative">
                             <Input
                                 type="number"
                                 min="0"
                                 max={discountType === 'percent' ? 100 : undefined}
-                                value={discountType === 'percent' ? discountPercent : discountAmount}
+                                value={(discountType === 'percent' ? discountPercent : discountAmount) === 0 ? '' : (discountType === 'percent' ? discountPercent : discountAmount)}
                                 onChange={(e) => {
                                     const value = parseFloat(e.target.value) || 0
                                     if (discountType === 'percent') {
@@ -143,12 +143,16 @@ export default function Step6Discount({ courseId, initialData }: Step6DiscountPr
                                         setDiscountAmount(Math.max(0, value))
                                     }
                                 }}
-                                className="h-12 text-base pr-12"
-                                placeholder={discountType === 'percent' ? 'Nhập phần trăm (0-100)' : 'Nhập số tiền'}
+                                className="h-14 sm:h-16 text-2xl sm:text-3xl font-bold tracking-tight bg-transparent border border-gray-400 focus-visible:border-black rounded-lg w-full px-4"
+                                style={{ fontSize: '1.8rem' }}
+                                placeholder="0"
                             />
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 font-medium text-gray-500">
-                                {discountType === 'percent' ? '%' : 'VND'}
-                            </div>
+                            <p className="text-base sm:text-lg text-muted-foreground font-medium">
+                                {discountType === 'percent'
+                                    ? `${discountPercent}%`
+                                    : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discountAmount)
+                                }
+                            </p>
                         </div>
                     </div>
                 )}
