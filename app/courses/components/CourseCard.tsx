@@ -157,8 +157,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                 className="h-9 shrink-0 bg-green-50 border-green-500 text-green-600 hover:bg-green-100 cursor-default"
                 disabled
               >
-                <Check className="h-2 w-2 mr-1" />
-                Đã thêm
+                <Check className="h-4 w-4" />
               </Button>
             ) : (
               <Button

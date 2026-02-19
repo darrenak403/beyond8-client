@@ -2,10 +2,11 @@
 
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ColumnDef, OnChangeFn, PaginationState } from "@tanstack/react-table";
 import { useMemo } from "react";
 import { format } from "date-fns";
-import { CreditCard, Clock, CheckCircle, XCircle } from "lucide-react";
+import { CreditCard, Clock, CheckCircle, XCircle, ExternalLink }from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PaymentItem } from "@/lib/api/services/fetchOrder";
 import { PaymentHistoryTableSkeleton } from "./PaymentHistoryTableSkeleton";
@@ -52,7 +53,7 @@ export function PaymentHistoryTable({
                 {row.getValue("paymentNumber")}
               </span>
               <span className="text-xs text-gray-500">
-                #{row.original.orderId.slice(0, 8)}
+                #{row.original.orderId?.slice(0, 8)}
               </span>
             </div>
           </div>
@@ -140,6 +141,34 @@ export function PaymentHistoryTable({
               {icon}
               {label}
             </Badge>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: "Hành động",
+        cell: ({ row }) => {
+          const item = row.original;
+          const paymentInfo = item.pendingPaymentInfo?.paymentInfo;
+
+          if (!paymentInfo) {
+            return <span className="text-xs text-gray-400">-</span>;
+          }
+
+          return (
+            <Button
+              size="sm"
+              variant="default"
+              className="gap-2 h-8 text-xs bg-gradient-to-r from-brand-magenta to-brand-purple text-white hover:opacity-90"
+              onClick={() => {
+                if (paymentInfo.paymentUrl) {
+                  window.location.href = paymentInfo.paymentUrl;
+                }
+              }}
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Thanh toán
+            </Button>
           );
         },
       },

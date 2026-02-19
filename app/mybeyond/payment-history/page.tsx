@@ -3,7 +3,7 @@
 import { useMemo, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { PaginationState } from "@tanstack/react-table";
-import { usePaymentHistory } from "@/hooks/usePaymentHistory";
+import { useGetMyPayments } from "@/hooks/useOrder";
 import { PaymentHistoryTable } from "./components/PaymentHistoryTable";
 import { CouponFloatingPanel } from "@/components/widget/coupon-floating";
 
@@ -66,7 +66,7 @@ export default function PaymentHistoryPage() {
     }
   }, [searchParams, router]);
 
-  const { payments, metadata, isLoading } = usePaymentHistory({
+  const { payments, metadata, isLoading } = useGetMyPayments({
     params: {
       pageNumber: pagination.pageIndex + 1,
       pageSize: pagination.pageSize,
@@ -74,9 +74,7 @@ export default function PaymentHistoryPage() {
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const meta = metadata as any;
-  const pageCount = meta?.totalPages ?? 1;
+  const pageCount = metadata?.totalPages ?? 1
 
   return (
     <div className="flex flex-col space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto min-h-screen">

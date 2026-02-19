@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -16,7 +15,7 @@ import {
 import { formatCurrency }from '@/lib/utils/formatCurrency'
 import { useActiveCoupons } from '@/hooks/useCoupon'
 import type { Coupon } from '@/lib/api/services/fetchCoupon'
-import { Ticket, Percent, Clock }from 'lucide-react'
+import { Ticket, Percent, Clock } from 'lucide-react'
 
 function CouponCard({
   coupon,
@@ -149,13 +148,23 @@ function CouponCard({
 interface CouponDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onApply: (couponCode: string) => void
+  onApply: (couponCode: string | null) => Promise<boolean> | boolean
   filterByCourseId?: string
   strictCourseFilter?: boolean
+  currentCouponCode?: string | null
 }
 
-export default function CouponDialog({ open, onOpenChange, onApply, filterByCourseId, strictCourseFilter = false }: CouponDialogProps) {
+export default function CouponDialog({ 
+  open, 
+  onOpenChange, 
+  onApply, 
+  filterByCourseId, 
+  strictCourseFilter = false,
+  currentCouponCode 
+}: CouponDialogProps) {
   const { coupons: allCoupons, isLoading: isCouponsLoading } = useActiveCoupons()
+  const [manualCode, setManualCode] = useState('')
+  const [isApplying, setIsApplying] = useState(false)
 
   const coupons = filterByCourseId
     ? allCoupons.filter((c) =>
@@ -164,36 +173,47 @@ export default function CouponDialog({ open, onOpenChange, onApply, filterByCour
           : c.applicableCourseId === filterByCourseId || c.applicableCourseId === null
       )
     : allCoupons
-  const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null)
-  const [manualCode, setManualCode] = useState('')
+  
+  const [selectedCouponId, setSelectedCouponId] = useState<string | null>(() => {
+    if (currentCouponCode) {
+      const found = coupons.find(c => c.code === currentCouponCode)
+      return found?.id || null
+    }
+    return null
+  })
+  useEffect(() => {
+    if (currentCouponCode) {
+      const found = coupons.find(c => c.code === currentCouponCode)
+      setSelectedCouponId(found?.id || null)
+    } else {
+      setSelectedCouponId(null)
+    }
+  }, [currentCouponCode, coupons])
 
   const handleSelectCoupon = (couponId: string) => {
     setSelectedCouponId(selectedCouponId === couponId ? null : couponId)
   }
 
-  const handleApplyManualCode = () => {
-    if (!manualCode.trim()) return
-    const found = coupons.find(
-      (c) => c.code.toLowerCase() === manualCode.trim().toLowerCase()
-    )
-    if (found) {
-      setSelectedCouponId(found.id)
-    } else {
-      onApply(manualCode.trim())
-      resetState()
+  const handleApplyCoupon = async () => {
+    setIsApplying(true)
+    
+    try {
+      const selected = coupons.find((c) => c.id === selectedCouponId)
+      const couponToApply = selected ? selected.code : null
+      
+      const result = await onApply(couponToApply)
+      
+      if (result) {
+        resetState()
+      }
+    } finally {
+      setIsApplying(false)
     }
-  }
-
-  const handleApplyCoupon = () => {
-    const selected = coupons.find((c) => c.id === selectedCouponId)
-    if (selected) {
-      onApply(selected.code)
-    }
-    resetState()
   }
 
   const resetState = () => {
     setManualCode('')
+    setSelectedCouponId(null)
     onOpenChange(false)
   }
 
@@ -206,7 +226,7 @@ export default function CouponDialog({ open, onOpenChange, onApply, filterByCour
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open}onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden">
         {/* Header */}
         <DialogHeader className="px-6 pt-6 pb-4">
@@ -215,30 +235,6 @@ export default function CouponDialog({ open, onOpenChange, onApply, filterByCour
             Chọn một mã giảm giá để áp dụng cho đơn hàng
           </DialogDescription>
         </DialogHeader>
-
-        {/* Manual code input */}
-        <div className="mx-6 mb-4 flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-2">
-          <span className="shrink-0 text-xs font-medium text-muted-foreground pl-1">
-            Mã Voucher
-          </span>
-          <div className="h-4 w-px bg-border" />
-          <Input
-            placeholder="Nhập mã voucher tại đây"
-            className="h-8 border-0 bg-transparent shadow-none focus-visible:ring-0 text-sm"
-            value={manualCode}
-            onChange={(e) => setManualCode(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleApplyManualCode()}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            className="shrink-0 h-8 text-xs"
-            onClick={handleApplyManualCode}
-            disabled={!manualCode.trim()}
-          >
-            Áp dụng
-          </Button>
-        </div>
 
         {/* Coupon list header */}
         <div className="mx-6 mb-2">
@@ -292,15 +288,16 @@ export default function CouponDialog({ open, onOpenChange, onApply, filterByCour
             variant="outline"
             onClick={() => handleOpenChange(false)}
             className="min-w-[100px]"
+            disabled={isApplying}
           >
             Trở lại
           </Button>
           <Button
-            disabled={!selectedCouponId}
             onClick={handleApplyCoupon}
             className="min-w-[100px] bg-gradient-to-r from-brand-magenta to-brand-purple text-white hover:opacity-90"
+            disabled={isApplying}
           >
-            Đồng ý
+            {isApplying ? 'Đang xử lý...' : 'Đồng ý'}
           </Button>
         </DialogFooter>
       </DialogContent>

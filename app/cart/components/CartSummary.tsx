@@ -1,31 +1,53 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { formatCurrency } from '@/lib/utils/formatCurrency'
-import { useCartContext } from '../context/CartContext'
-import type { CartItem } from '@/lib/api/services/fetchOrder'
-import { useGetCart, useCheckout, useProcessPayment } from '@/hooks/useOrder'
+import { useState, useEffect }from 'react'
+import { Button }from '@/components/ui/button'
+import { formatCurrency }from '@/lib/utils/formatCurrency'
+import { useCartContext }from '../context/CartContext'
+import { useGetCart, useCheckout, useProcessPayment, useCheckoutPreview }from '@/hooks/useOrder'
 import { useAuth } from '@/hooks/useAuth'
 import CouponDialog from '@/components/widget/CouponDialog'
-import { Tag, Ticket, X } from 'lucide-react'
+import { PendingPaymentDialog }from '@/components/widget/PendingPaymentDialog'
+import { Tag, Ticket, Edit }from 'lucide-react'
 
 export default function CartSummary() {
-  const { isAuthenticated }= useAuth()
+  const { isAuthenticated } = useAuth()
   const { cart }= useGetCart({ enabled: isAuthenticated })
-  const { selectedItems, selectedTotal, getInstructorCouponCode }= useCartContext()
-  const { checkout, isPending: isCheckoutPending } = useCheckout()
-  const { processPayment, isPending: isProcessPaymentPending } = useProcessPayment()
-
-  const [couponCode, setCouponCode] = useState<string>('')
+  const { selectedItems, selectedTotal, getInstructorCouponCode, systemCouponCode, setSystemCouponCode }= useCartContext()
+  
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [pendingPaymentDialogOpen, setPendingPaymentDialogOpen] = useState(false)
+  const [pendingPaymentUrl, setPendingPaymentUrl] = useState('')
+  const [pendingOrderNumber, setPendingOrderNumber] = useState('')
+  
+  const { checkout, isPending: isCheckoutPending } = useCheckout()
+  const { processPayment, isPending: isProcessPaymentPending }= useProcessPayment()
+  const { previewCheckout, isPending: isPreviewPending, previewData }= useCheckoutPreview()
 
-  const handleRemoveCoupon = () => {
-    setCouponCode('')
-  }
+  // Trigger preview when coupon or selected items change
+  useEffect(() => {
+    if (selectedItems.size > 0 && systemCouponCode) {
+      const selectedItemsArray = Array.from(selectedItems).map(courseId => ({
+        courseId,
+        instructorCouponCode: getInstructorCouponCode(courseId),
+      }))
 
-  const handleCheckout = async () => {
-    if (selectedItems.size === 0) return
+      previewCheckout({
+        items: selectedItemsArray,
+        couponCode: systemCouponCode || null,
+      })
+    }
+  }, [systemCouponCode, selectedItems, getInstructorCouponCode, previewCheckout])
+
+  const handleApplyCoupon = async (code: string | null): Promise<boolean> => {
+    if (!code) {
+      setSystemCouponCode('')
+      return true
+    }
+
+    if (selectedItems.size === 0) {
+      return false
+    }
 
     try {
       const selectedItemsArray = Array.from(selectedItems).map(courseId => ({
@@ -33,25 +55,56 @@ export default function CartSummary() {
         instructorCouponCode: getInstructorCouponCode(courseId),
       }))
 
-      const checkoutResponse = await checkout({
-        selectedItems: selectedItemsArray,
-        couponCode: couponCode || null,
-        notes: null,
+      await previewCheckout({
+        items: selectedItemsArray,
+        couponCode: code,
       })
 
-      if (checkoutResponse.isSuccess && checkoutResponse.data) {
-        const orderId = checkoutResponse.data.id
+      // If no error thrown, coupon is valid
+      setSystemCouponCode(code)
+      return true
+    }catch (error) {
+      // Error thrown means coupon is invalid
+      console.error('Coupon validation error:', error)
+      return false
+    }
+  }
 
-        const paymentResponse = await processPayment({
-          orderId,
-        })
+  const handleCheckout = async () => {
+    if (selectedItems.size === 0) return
 
-        if (paymentResponse.isSuccess && paymentResponse.data?.paymentUrl) {
-          window.location.href = paymentResponse.data.paymentUrl
-        }
+    const selectedItemsArray = Array.from(selectedItems).map(courseId => ({
+      courseId,
+      instructorCouponCode: getInstructorCouponCode(courseId),
+    }))
+
+    const checkoutResponse = await checkout({
+      selectedItems: selectedItemsArray,
+      couponCode: systemCouponCode || null,
+      notes: null,
+    })
+
+    // Kiểm tra nếu có pendingPaymentInfo
+    if (checkoutResponse.isSuccess && checkoutResponse.data?.pendingPaymentInfo) {
+      const paymentInfo = checkoutResponse.data.pendingPaymentInfo
+      setPendingPaymentUrl(paymentInfo.paymentInfo.paymentUrl)
+      setPendingOrderNumber(paymentInfo.orderNumber)
+      setPendingPaymentDialogOpen(true)
+      return
+    }
+
+    // Nếu checkout thành công và có orderId, tiếp tục process payment
+    if (checkoutResponse.isSuccess && checkoutResponse.data?.id) {
+      const orderId = checkoutResponse.data.id
+
+      const paymentResponse = await processPayment({
+        orderId,
+      })
+
+      if (paymentResponse.isSuccess && paymentResponse.data?.paymentUrl) {
+        localStorage.removeItem('cartSystemCoupon')
+        window.location.href = paymentResponse.data.paymentUrl
       }
-    } catch (error) {
-      console.error('Checkout error:', error)
     }
   }
 
@@ -68,16 +121,22 @@ export default function CartSummary() {
   let totalDiscount = 0
 
   if (hasSelection) {
-    const selectedCartItems: CartItem[] = cart.items.filter(item =>
-      selectedItems.has(item.courseId)
-    )
+    if (systemCouponCode && previewData) {
+      originalTotal = previewData.subTotal
+      subTotal = previewData.totalAmount
+      totalDiscount = previewData.totalDiscountAmount
+    }else {
+      const selectedCartItems = cart.items.filter(item =>
+        selectedItems.has(item.courseId)
+      )
 
-    originalTotal = selectedCartItems.reduce(
-      (sum, item) => sum + item.originalPrice,
-      0
-    )
-    subTotal = selectedTotal
-    totalDiscount = Math.max(originalTotal - subTotal, 0)
+      originalTotal = selectedCartItems.reduce(
+        (sum, item) => sum + item.originalPrice,
+        0
+      )
+      subTotal = selectedTotal
+      totalDiscount = Math.max(originalTotal - subTotal, 0)
+    }
   }
 
   return (
@@ -88,21 +147,21 @@ export default function CartSummary() {
         {/* Coupon Section */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Mã giảm giá</label>
-          {couponCode ? (
+          {systemCouponCode ? (
             <div className="flex items-center justify-between rounded-lg border border-brand-pink/30 bg-brand-pink/5 dark:bg-brand-purple/10 px-3 py-2">
               <div className="flex items-center gap-2">
                 <Ticket className="h-4 w-4 text-brand-magenta" />
                 <span className="text-sm font-medium text-brand-magenta">
-                  {couponCode}
+                  {systemCouponCode}
                 </span>
               </div>
               <button
                 type="button"
-                onClick={handleRemoveCoupon}
-                className="rounded-full p-0.5 text-brand-magenta/50 hover:bg-brand-pink/10 hover:text-brand-magenta transition-colors"
-                aria-label="Xóa mã giảm giá"
+                onClick={() => setDialogOpen(true)}
+                className="rounded-full p-1 text-brand-magenta/70 hover:bg-brand-pink/10 hover:text-brand-magenta transition-colors"
+                aria-label="Sửa mã giảm giá"
               >
-                <X className="h-3.5 w-3.5" />
+                <Edit className="h-3.5 w-3.5" />
               </button>
             </div>
           ) : (
@@ -121,7 +180,16 @@ export default function CartSummary() {
         <CouponDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
-          onApply={(code) => setCouponCode(code)}
+          onApply={handleApplyCoupon}
+          currentCouponCode={systemCouponCode}
+        />
+
+        {/* Pending Payment Dialog */}
+        <PendingPaymentDialog
+          open={pendingPaymentDialogOpen}
+          onOpenChange={setPendingPaymentDialogOpen}
+          paymentUrl={pendingPaymentUrl}
+          orderNumber={pendingOrderNumber}
         />
 
         {/* Total */}
@@ -142,7 +210,11 @@ export default function CartSummary() {
                   : 'Tổng cộng:'}
               </span>
               <span className="text-lg font-bold text-brand-magenta">
-                {formatCurrency(subTotal)}
+                {isPreviewPending && systemCouponCode ? (
+                  <span className="text-sm text-muted-foreground">Đang tính...</span>
+                ) : (
+                  formatCurrency(subTotal)
+                )}
               </span>
             </div>
           </div>
@@ -151,7 +223,7 @@ export default function CartSummary() {
           <Button
             size="lg"
             className="w-full bg-gradient-to-r from-brand-magenta to-brand-purple text-white hover:opacity-90"
-            disabled={selectedItems.size === 0 || isLoading}
+            disabled={selectedItems.size === 0 || isLoading || (isPreviewPending && !!systemCouponCode)}
             onClick={handleCheckout}
           >
             {isLoading ? 'Đang xử lý...' : 'Thanh toán'}

@@ -14,6 +14,8 @@ interface CartContextType {
   instructorCouponCodes: Map<string, string>
   setInstructorCouponCode: (courseId: string, couponCode: string) => void
   getInstructorCouponCode: (courseId: string) => string | null
+  systemCouponCode: string
+  setSystemCouponCode: (couponCode: string) => void
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -41,6 +43,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { cart } = useGetCart({ enabled: true })
   const [selectedItems, setSelectedItems] = useState<Set<string>>(() => initializeSelectedItems(cart))
   const [instructorCouponCodes, setInstructorCouponCodes] = useState<Map<string, string>>(new Map())
+  const [systemCouponCode, setSystemCouponCode] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cartSystemCoupon') || ''
+    }
+    return ''
+  })
   const prevCartItemsRef = useRef<string>('')
 
   // Sync selectedItems to localStorage
@@ -51,6 +59,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('cartSelectedItems')
     }
   }, [selectedItems])
+
+  // Sync systemCouponCode to localStorage
+  useEffect(() => {
+    if (systemCouponCode) {
+      localStorage.setItem('cartSystemCoupon', systemCouponCode)
+    } else {
+      localStorage.removeItem('cartSystemCoupon')
+    }
+  }, [systemCouponCode])
 
   const cartItemsString = cart?.items.map(item => item.courseId).sort().join(',') || ''
   
@@ -178,6 +195,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         instructorCouponCodes,
         setInstructorCouponCode,
         getInstructorCouponCode,
+        systemCouponCode,
+        setSystemCouponCode,
       }}
     >
       {children}

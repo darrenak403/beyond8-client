@@ -16,8 +16,10 @@ import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/servi
 import { useCheckEnrollment, useEnrollCourse } from '@/hooks/useEnroll'
 import { ConfirmDialog } from '@/components/widget/confirm-dialog'
 import { useAuth } from '@/hooks/useAuth'
-import { useAddToCart, useGetCart, useBuyNow, useProcessPayment } from '@/hooks/useOrder'
+import { useAddToCart, useGetCart, useBuyNow, useCheckCourse } from '@/hooks/useOrder'
 import { startOfToday, differenceInCalendarDays } from 'date-fns'
+import { PendingPaymentDialog } from '@/components/widget/PendingPaymentDialog'
+import { useRouter } from 'next/navigation'
 
 interface CourseSidebarProps {
   course: CourseSummary | CourseDetailType
@@ -69,6 +71,11 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   }
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [pendingPaymentDialogOpen, setPendingPaymentDialogOpen] = useState(false)
+  const [pendingPaymentUrl, setPendingPaymentUrl] = useState('')
+  const [pendingOrderNumber, setPendingOrderNumber] = useState('')
+
+  const router = useRouter()
   const { enrollCourse, isPending } = useEnrollCourse()
   const { isAuthenticated } = useAuth()
   const { isEnrolled, isLoading: isCheckingEnroll } = useCheckEnrollment(course.id, {
@@ -79,8 +86,19 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   const { buyNow, isPending: isBuyNowPending } = useBuyNow()
   const { processPayment, isPending: isProcessPaymentPending } = useProcessPayment()
 
+  const { isPurchased } = useCheckCourse(course.id, {
+    enabled: !!course.id,
+  })
+  const { buyNow, isPending: isBuyNowPending } = useBuyNow({
+    onPendingPayment: (paymentUrl, orderNumber) => {
+      setPendingPaymentUrl(paymentUrl)
+      setPendingOrderNumber(orderNumber)
+      setPendingPaymentDialogOpen(true)
+    }
+  })
+
   const isInCart = cart?.items?.some(item => item.courseId === course.id) ?? false
-  const isProcessingPayment = isBuyNowPending || isProcessPaymentPending
+  const isProcessingPayment = isBuyNowPending
 
   const handleFreeEnroll = async () => {
     try {
@@ -110,6 +128,14 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
     }
 
     try {
+      if (!isPurchased) {
+        if (!isInCart) {
+          await addToCart({ courseId: course.id })
+        }
+        router.push('/cart')
+        return
+      }
+
       const buyNowResponse = await buyNow({
         courseId: course.id,
         instructorCouponCode: null,
@@ -117,14 +143,8 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
         notes: null,
       })
 
-      if (buyNowResponse.isSuccess && buyNowResponse.data?.id) {
-        const paymentResponse = await processPayment({
-          orderId: buyNowResponse.data.id,
-        })
-
-        if (paymentResponse.isSuccess && paymentResponse.data?.paymentUrl) {
-          window.location.href = paymentResponse.data.paymentUrl
-        }
+      if (buyNowResponse.isSuccess && buyNowResponse.data?.pendingPaymentInfo) {
+        return
       }
     } catch (error) {
       console.error('Buy now error:', error)
@@ -246,6 +266,14 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
 
         <Separator />
 
+        {/* Pending Payment Dialog */}
+        <PendingPaymentDialog
+          open={pendingPaymentDialogOpen}
+          onOpenChange={setPendingPaymentDialogOpen}
+          paymentUrl={pendingPaymentUrl}
+          orderNumber={pendingOrderNumber}
+        />
+
         {/* Course Features */}
         <div className="space-y-4">
           <h3 className="font-semibold text-brand-dark">Khóa học bao gồm:</h3>
@@ -256,7 +284,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
             </li>
             <li className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-brand-purple" />
-              <span>{totalLessons} bài học</span>
+              <span>{totalLessons}bài học</span>
             </li>
             <li className="flex items-center gap-3">
               <Trophy className="w-5 h-5 text-brand-purple" />

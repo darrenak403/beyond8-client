@@ -160,15 +160,22 @@ export interface OrderData {
   orderNumber: string;
   status: string;
   subTotal: number;
+  subTotalAfterInstructorDiscount: number;
+  instructorDiscountAmount: number;
+  systemDiscountAmount: number;
   discountAmount: number;
   taxAmount: number;
   totalAmount: number;
   currency: string;
-  couponId: string | null;
+  platformFeeAmount: number;
+  instructorEarnings: number;
+  instructorCouponId: string | null;
+  systemCouponId: string | null;
   paidAt: string | null;
   ipAddress: string | null;
   userAgent: string | null;
   orderItems: OrderItem[];
+  pendingPaymentInfo: PendingPaymentInfo | null;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -204,10 +211,27 @@ export interface PaymentParams {
   isDescending?: boolean;
 }
 
+export interface PaymentInfo {
+  paymentId: string;
+  paymentNumber: string;
+  purpose: string;
+  paymentUrl: string;
+  expiredAt: string;
+}
+
+export interface PendingPaymentInfo {
+  orderId: string;
+  orderNumber: string;
+  paymentInfo: PaymentInfo;
+  message: string;
+}
+
 export interface PaymentItem {
   id: string;
-  orderId: string;
+  orderId: string | null;
+  walletId: string | null;
   paymentNumber: string;
+  purpose: string;
   status: string;
   amount: number;
   currency: string;
@@ -219,6 +243,7 @@ export interface PaymentItem {
   failureReason: string | null;
   createdAt: string;
   updatedAt: string | null;
+  pendingPaymentInfo: PendingPaymentInfo | null;
 }
 
 export interface PaginationMetadata {
@@ -233,6 +258,24 @@ export interface GetMyPaymentsResponse {
   message: string;
   data: PaymentItem[];
   metadata: PaginationMetadata | null;
+}
+
+export interface CheckCourseResponse {
+  isSuccess: boolean;
+  message: string;
+  data: boolean;
+  metadata: null;
+}
+
+export interface CancelOrderRequest {
+  orderId: string;
+}
+
+export interface CancelOrderResponse {
+  isSuccess: boolean;
+  message: string;
+  data: OrderData;
+  metadata: null;
 }
 
 const convertParamsToQuery = (params?: PaymentParams): RequestParams => {
@@ -333,6 +376,23 @@ export const fetchOrder = {
     const response = await apiService.get<GetMyPaymentsResponse>(
       "api/v1/payments/my-payments",
       query
+    );
+    return response.data;
+  },
+
+  // Kiểm tra khóa học đã được mua hay chưa
+  checkCourse: async (courseId: string): Promise<CheckCourseResponse> => {
+    const response = await apiService.get<CheckCourseResponse>(
+      `api/v1/orders/check-course/${courseId}`
+    );
+    return response.data;
+  },
+
+  // Hủy đơn hàng
+  cancelOrder: async (orderId: string): Promise<CancelOrderResponse> => {
+    const response = await apiService.post<CancelOrderResponse, null>(
+      `api/v1/orders/${orderId}/cancel`,
+      null
     );
     return response.data;
   },

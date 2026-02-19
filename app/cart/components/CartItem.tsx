@@ -1,7 +1,7 @@
 'use client'
 
-import { Trash2, Tag, Ticket, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Trash2, Tag, Ticket, Edit } from 'lucide-react'
+import { motion, AnimatePresence }from 'framer-motion'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils/formatCurrency'
@@ -27,7 +27,7 @@ interface CartItemProps {
 }
 
 export default function CartItem({ item }: CartItemProps) {
-  const { selectedItems, toggleItem, setInstructorCouponCode, getInstructorCouponCode } = useCartContext()
+  const { selectedItems, toggleItem, setInstructorCouponCode, getInstructorCouponCode }= useCartContext()
   const { removeFromCart, isPending: isRemoving } = useRemoveFromCart()
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null)
@@ -42,19 +42,15 @@ export default function CartItem({ item }: CartItemProps) {
     setRemovingItemId(courseId)
     try {
       await removeFromCart(courseId)
-    } finally {
+    }finally {
       setRemovingItemId(null)
     }
   }
 
-  const handleApplyCoupon = (code: string) => {
-    setCouponCode(code)
-    setInstructorCouponCode(item.courseId, code)
-  }
-
-  const handleRemoveCoupon = () => {
-    setCouponCode('')
-    setInstructorCouponCode(item.courseId, '')
+  const handleApplyCoupon = async (code: string | null): Promise<boolean> => {
+    setCouponCode(code || '')
+    setInstructorCouponCode(item.courseId, code || '')
+    return true
   }
 
   return (
@@ -151,11 +147,11 @@ export default function CartItem({ item }: CartItemProps) {
                 <span className="text-xs font-medium text-brand-magenta">{couponCode}</span>
                 <button
                   type="button"
-                  onClick={handleRemoveCoupon}
+                  onClick={() => setCouponDialogOpen(true)}
                   className="rounded-full p-0.5 text-brand-magenta/50 hover:bg-brand-pink/10 hover:text-brand-magenta transition-colors"
-                  aria-label="Xóa mã giảm giá"
+                  aria-label="Sửa mã giảm giá"
                 >
-                  <X className="h-3 w-3" />
+                  <Edit className="h-3 w-3" />
                 </button>
               </div>
             ) : (
@@ -189,6 +185,7 @@ export default function CartItem({ item }: CartItemProps) {
         onApply={handleApplyCoupon}
         filterByCourseId={item.courseId}
         strictCourseFilter
+        currentCouponCode={couponCode}
       />
     </motion.div>
   )
