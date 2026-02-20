@@ -6,7 +6,6 @@ import { getColumns } from "./components/Column"
 import { CouponTableToolbar } from "./components/CouponTableToolbar"
 import { useState, useEffect } from "react"
 import { useSearchParams, usePathname, useRouter } from "next/navigation"
-import { CouponDialog } from "./components/CouponDialog"
 import { MobileCouponCard } from "./components/MobileCouponCard"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AlertCircle } from "lucide-react"
@@ -21,6 +20,7 @@ import { useGetCouponForAdmin, useDeleteCoupon, useToggleCoupon } from "@/hooks/
 import { Coupon } from "@/lib/api/services/fetchCoupon"
 import { ConfirmDialog } from "@/components/widget/confirm-dialog"
 import { useIsMobile } from "@/hooks/useMobile"
+import { CouponDialog } from "@/components/widget/coupon/CouponDialog"
 
 const CouponManagementPage = () => {
     const router = useRouter()

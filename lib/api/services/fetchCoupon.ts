@@ -49,6 +49,7 @@ export interface CreateCouponRequest {
 }
 
 export interface CreateCouponInstructorRequest {
+	instructorId: string;
 	applicableCourseId: string;
 	code: string;
 	description: string | null;
