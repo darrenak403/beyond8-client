@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronRight, Home, FolderOpen, Plus, Ticket } from "lucide-react"
-import { useGetCouponForInstructor, useDeleteCoupon, useToggleCoupon } from "@/hooks/useCoupon"
+import { useGetCouponForInstructor, useToggleCoupon } from "@/hooks/useCoupon"
 import { useGetCourseByInstructor } from "@/hooks/useCourse"
 import { Coupon } from "@/lib/api/services/fetchCoupon"
 import { CourseLevel } from "@/lib/api/services/fetchCourse"
@@ -29,7 +29,6 @@ export function CouponExplorer() {
         isDescending: true,
         level: CourseLevel.All
     })
-    const { deleteCoupon } = useDeleteCoupon()
     const { toggleCoupon } = useToggleCoupon()
 
     // Compute stats
@@ -72,10 +71,6 @@ export function CouponExplorer() {
         setIsDialogOpen(true)
     }
 
-    const handleDelete = async (coupon: Coupon) => {
-        await deleteCoupon(coupon.id)
-    }
-
     const handleToggleStatus = async (coupon: Coupon) => {
         await toggleCoupon(coupon.id)
     }
@@ -83,9 +78,9 @@ export function CouponExplorer() {
     const isLoading = isLoadingCoupons || isLoadingCourses
 
     return (
-        <div className="space-y-6 py-3 relative min-h-[500px]">
+        <div className="space-y-6 py-3 relative">
             {/* Header: Breadcrumb Navigation + Action Buttons */}
-            <div className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-2 -mx-2 px-2 border-b border-transparent transition-all data-[scrolled=true]:border-border/50 rounded-lg">
+            <div className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-2 border-b border-transparent transition-all data-[scrolled=true]:border-border/50 rounded-lg">
                 {/* Breadcrumb Navigation */}
                 <div className="flex items-center gap-2 text-md">
                     <button
@@ -150,6 +145,7 @@ export function CouponExplorer() {
                                     <CourseFolderCard
                                         courseName={course.title}
                                         couponCount={courseStats[course.id] || 0}
+                                        thumbnailUrl={course.thumbnailUrl}
                                         onClick={() => handleCourseClick(course.id)}
                                     />
                                 </motion.div>
@@ -182,7 +178,6 @@ export function CouponExplorer() {
                                         coupon={coupon}
                                         index={index}
                                         onEdit={handleEdit}
-                                        onDelete={handleDelete}
                                         onToggleStatus={handleToggleStatus}
                                     />
                                 ))}
@@ -200,7 +195,7 @@ export function CouponExplorer() {
                                 <p className="text-muted-foreground mb-6">
                                     Khóa học này chưa có mã giảm giá nào. Hãy tạo mã mới ngay!
                                 </p>
-                                <Button onClick={handleAdd} variant="outline" className="border-brand-magenta text-brand-magenta hover:bg-brand-magenta/5">
+                                <Button onClick={handleAdd} variant="outline" className="border-brand-magenta text-brand-magenta hover:bg-brand-magenta/5 hover:text-primary">
                                     <Plus className="mr-2 h-4 w-4" />
                                     Tạo mã giảm giá cho khóa học này
                                 </Button>

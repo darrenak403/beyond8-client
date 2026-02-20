@@ -35,6 +35,9 @@ export function useCreateCoupon() {
 			queryClient.invalidateQueries({
 				queryKey: ["coupons", "admin"],
 			});
+			queryClient.invalidateQueries({
+				queryKey: ["coupons", "instructor"],
+			});
 			toast.success("Tạo mã khuyến mãi thành công!");
 		},
 		onError: (error: ApiError) => {
@@ -58,6 +61,9 @@ export function useUpdateCoupon() {
 			});
 			queryClient.invalidateQueries({
 				queryKey: ["coupons", "admin"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["coupons", "instructor"],
 			});
 			toast.success("Cập nhật mã khuyến mãi thành công!");
 		},
@@ -83,6 +89,9 @@ export function useDeleteCoupon() {
 			queryClient.invalidateQueries({
 				queryKey: ["coupons", "admin"],
 			});
+			queryClient.invalidateQueries({
+				queryKey: ["coupons", "instructor"],
+			});
 			toast.success("Xóa mã khuyến mãi thành công!");
 		},
 		onError: (error: ApiError) => {
@@ -106,6 +115,9 @@ export function useToggleCoupon() {
 			});
 			queryClient.invalidateQueries({
 				queryKey: ["coupons", "admin"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["coupons", "instructor"],
 			});
 			toast.success("Bật/tắt mã khuyến mãi thành công!");
 		},
@@ -142,6 +154,9 @@ export function useCreateCouponForCourse() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: ["coupons", "active"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["coupons", "instructor"],
 			});
 			toast.success("Tạo mã khuyến mãi thành công!");
 		},

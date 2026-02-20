@@ -28,9 +28,12 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Loader2, RefreshCcw, Ticket, Percent, DollarSign, Tag, Users, CalendarDays, CheckCircle2 } from "lucide-react"
+import { Loader2, RefreshCcw, Ticket, Percent, DollarSign, Tag, Users, CalendarDays, CheckCircle2, CalendarIcon, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
 
@@ -449,11 +452,62 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                         control={form.control}
                                                         name="validFrom"
                                                         render={({ field }) => (
-                                                            <FormItem className="space-y-2">
+                                                            <FormItem className="flex flex-col space-y-2">
                                                                 <FormLabel className="text-sm text-gray-700">Bắt đầu</FormLabel>
-                                                                <FormControl>
-                                                                    <Input type="datetime-local" {...field} className="h-11 bg-white border-gray-200 block w-full" />
-                                                                </FormControl>
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <FormControl>
+                                                                            <Button
+                                                                                variant={"outline"}
+                                                                                className={cn(
+                                                                                    "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-orange-500 focus:ring-orange-500 hover:bg-white hover:text-black",
+                                                                                    !field.value && "text-muted-foreground"
+                                                                                )}
+                                                                            >
+                                                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                                                {field.value ? (
+                                                                                    format(new Date(field.value), "dd/MM/yyyy HH:mm")
+                                                                                ) : (
+                                                                                    <span>Chọn ngày bắt đầu</span>
+                                                                                )}
+                                                                            </Button>
+                                                                        </FormControl>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-auto p-4" align="start">
+                                                                        <Calendar
+                                                                            mode="single"
+                                                                            selected={field.value ? new Date(field.value) : undefined}
+                                                                            onSelect={(date) => {
+                                                                                if (date) {
+                                                                                    const existing = field.value ? new Date(field.value) : new Date();
+                                                                                    date.setHours(existing.getHours(), existing.getMinutes());
+                                                                                    field.onChange(date.toISOString());
+                                                                                } else {
+                                                                                    field.onChange("");
+                                                                                }
+                                                                            }}
+                                                                            initialFocus
+                                                                        />
+                                                                        <div className="p-3 border-t border-border mt-3">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                                                                <Input
+                                                                                    type="time"
+                                                                                    value={field.value ? format(new Date(field.value), "HH:mm") : "00:00"}
+                                                                                    onChange={(e) => {
+                                                                                        if (field.value && e.target.value) {
+                                                                                            const date = new Date(field.value);
+                                                                                            const [hours, minutes] = e.target.value.split(":");
+                                                                                            date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+                                                                                            field.onChange(date.toISOString());
+                                                                                        }
+                                                                                    }}
+                                                                                    className="h-8 w-full"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
                                                                 <FormMessage />
                                                             </FormItem>
                                                         )}
@@ -462,11 +516,62 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                         control={form.control}
                                                         name="validTo"
                                                         render={({ field }) => (
-                                                            <FormItem className="space-y-2">
+                                                            <FormItem className="flex flex-col space-y-2">
                                                                 <FormLabel className="text-sm text-gray-700">Kết thúc</FormLabel>
-                                                                <FormControl>
-                                                                    <Input type="datetime-local" {...field} className="h-11 bg-white border-gray-200 block w-full" />
-                                                                </FormControl>
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <FormControl>
+                                                                            <Button
+                                                                                variant={"outline"}
+                                                                                className={cn(
+                                                                                    "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-orange-500 focus:ring-orange-500 hover:bg-white hover:text-black",
+                                                                                    !field.value && "text-muted-foreground"
+                                                                                )}
+                                                                            >
+                                                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                                                {field.value ? (
+                                                                                    format(new Date(field.value), "dd/MM/yyyy HH:mm")
+                                                                                ) : (
+                                                                                    <span>Chọn ngày kết thúc</span>
+                                                                                )}
+                                                                            </Button>
+                                                                        </FormControl>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-auto p-4" align="start">
+                                                                        <Calendar
+                                                                            mode="single"
+                                                                            selected={field.value ? new Date(field.value) : undefined}
+                                                                            onSelect={(date) => {
+                                                                                if (date) {
+                                                                                    const existing = field.value ? new Date(field.value) : new Date();
+                                                                                    date.setHours(existing.getHours(), existing.getMinutes());
+                                                                                    field.onChange(date.toISOString());
+                                                                                } else {
+                                                                                    field.onChange("");
+                                                                                }
+                                                                            }}
+                                                                            initialFocus
+                                                                        />
+                                                                        <div className="p-3 border-t border-border mt-3">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                                                                <Input
+                                                                                    type="time"
+                                                                                    value={field.value ? format(new Date(field.value), "HH:mm") : "00:00"}
+                                                                                    onChange={(e) => {
+                                                                                        if (field.value && e.target.value) {
+                                                                                            const date = new Date(field.value);
+                                                                                            const [hours, minutes] = e.target.value.split(":");
+                                                                                            date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+                                                                                            field.onChange(date.toISOString());
+                                                                                        }
+                                                                                    }}
+                                                                                    className="h-8 w-full"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
                                                                 <FormMessage />
                                                             </FormItem>
                                                         )}
