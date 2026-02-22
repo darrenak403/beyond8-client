@@ -77,7 +77,7 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 10, scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="absolute right-0 top-full mt-2 z-50 flex h-[600px] w-[420px] flex-col overflow-hidden rounded-2xl border-none bg-white shadow-2xl shadow-brand-magenta/20 backdrop-blur-xl dark:bg-black/95 origin-top-right"
+          className="absolute right-0 top-full mt-2 z-50 flex h-[600px] w-[420px] flex-col overflow-hidden rounded-2xl border-none bg-white shadow-2xl shadow-brand-magenta/20 backdrop-blur-xl origin-top-right"
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
         >
@@ -171,7 +171,7 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
                       transition={{ duration: 0.2 }}
-                      className="relative flex p-3 rounded-lg border transition-colors bg-white dark:bg-black/50 border-border hover:border-brand-magenta/30"
+                      className="relative flex p-3 rounded-lg border transition-colors bg-white border-border hover:border-brand-magenta/30"
                       onMouseEnter={() => setHoveredItemId(item.id)}
                       onMouseLeave={() => setHoveredItemId(null)}
                     >
@@ -191,7 +191,7 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
                             }}
                             onClick={() => handleRemoveItem(item.courseId)}
                             disabled={removingItemId === item.courseId || isRemoving}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 bg-white/80 dark:bg-black/80 shadow-sm cursor-pointer"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 bg-white/80 shadow-sm cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </motion.button>
@@ -264,7 +264,7 @@ export default function CartPopover({ isOpen, onClose, onMouseEnter, onMouseLeav
 
             {/* Footer */}
             {isAuthenticated && cart && cart.items.length > 0 && (
-              <div className="border-t border-brand-magenta/20 bg-white/50 dark:bg-black/50 backdrop-blur-sm p-4 space-y-3">
+              <div className="border-t border-brand-magenta/20 bg-white/50 backdrop-blur-sm p-4 space-y-3">
                 {/* Totals */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">

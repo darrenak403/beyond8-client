@@ -59,9 +59,9 @@ export default function CartItem({ item }: CartItemProps) {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.2 }}
-      className={`flex gap-3 p-3 rounded-lg border transition-colors bg-white dark:bg-black/50 relative overflow-hidden ${
+      className={`flex gap-3 p-3 rounded-lg border transition-colors bg-white relative overflow-hidden ${
         isSelected
-          ? 'border-brand-magenta bg-brand-magenta/5 dark:bg-brand-magenta/10'
+          ? 'border-brand-magenta bg-brand-magenta/5'
           : 'border-border hover:border-brand-magenta/30'
       }`}
       onMouseEnter={() => setHoveredItemId(item.id)}
@@ -142,7 +142,7 @@ export default function CartItem({ item }: CartItemProps) {
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
             {/* Coupon section */}
             {couponCode ? (
-              <div className="flex items-center gap-1.5 rounded-lg border border-brand-pink/30 bg-brand-pink/5 dark:bg-brand-purple/10 px-2 py-1">
+              <div className="flex items-center gap-1.5 rounded-lg border border-brand-pink/30 bg-brand-pink/5 px-2 py-1">
                 <Ticket className="h-3.5 w-3.5 text-brand-magenta" />
                 <span className="text-xs font-medium text-brand-magenta">{couponCode}</span>
                 <button

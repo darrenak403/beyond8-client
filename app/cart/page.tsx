@@ -33,7 +33,7 @@ function CartPageContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Cart Items */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-black/50 rounded-2xl border border-border overflow-hidden">
+            <div className="bg-white rounded-2xl border border-border overflow-hidden">
               <CartHeader />
 
               {/* Content */}

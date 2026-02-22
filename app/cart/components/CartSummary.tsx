@@ -141,14 +141,14 @@ export default function CartSummary() {
 
   return (
     <div className="sticky top-4 h-fit">
-      <div className="border border-border rounded-2xl bg-white dark:bg-black/50 p-6 space-y-4">
+      <div className="border border-border rounded-2xl bg-white p-6 space-y-4">
         <h3 className="font-bold text-lg text-foreground mb-4">Tóm tắt đơn hàng</h3>
 
         {/* Coupon Section */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Mã giảm giá</label>
           {systemCouponCode ? (
-            <div className="flex items-center justify-between rounded-lg border border-brand-pink/30 bg-brand-pink/5 dark:bg-brand-purple/10 px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-brand-pink/30 bg-brand-pink/5 px-3 py-2">
               <div className="flex items-center gap-2">
                 <Ticket className="h-4 w-4 text-brand-magenta" />
                 <span className="text-sm font-medium text-brand-magenta">
