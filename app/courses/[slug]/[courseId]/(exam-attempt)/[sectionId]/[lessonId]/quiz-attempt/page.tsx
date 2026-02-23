@@ -141,50 +141,49 @@ export default function QuizAttemptOverviewPage() {
           </Button>
 
           {course && (() => {
-            // Find next lesson logic
             const allLessons = course.sections.flatMap(s => s.lessons.map(l => ({ ...l, sectionId: s.id })))
             const currentIndex = allLessons.findIndex(l => l.id === lessonId)
             const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
 
-            // Find current section
             const currentSection = course.sections.find(s => s.id === sectionId)
-
-            // Check if current lesson is the last lesson of the current section
-            const isLastLessonOfSection = currentSection && currentSection.lessons.length > 0 && currentSection.lessons[currentSection.lessons.length - 1].id === lessonId
+            const isLastLessonOfSection = currentSection && currentSection.lessons.length > 0
+              && currentSection.lessons[currentSection.lessons.length - 1].id === lessonId
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const sectionAssignmentId = (currentSection as any)?.assignmentId
+            const isQuizPassed = myQuizAttempts?.attempts?.some(attempt => attempt.isPassed)
 
+            const activeBtn = "rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium"
+            const disabledBtn = "rounded-full bg-gray-300 text-gray-500 cursor-not-allowed border-none shadow-none px-6 h-10 font-medium"
+
+            // Case 1: Last lesson of section AND section has assignment → Bài tập Cuối Chương
             if (isLastLessonOfSection && sectionAssignmentId) {
-              const isQuizPassed = myQuizAttempts?.attempts?.some(attempt => attempt.isPassed)
-
               if (!isQuizPassed) {
                 return (
-                  <Button disabled className="rounded-full bg-gray-300 text-gray-500 cursor-not-allowed border-none shadow-none px-6 h-10 font-medium">
+                  <Button disabled className={disabledBtn}>
                     Bài tập Cuối Chương <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 )
               }
-
               return (
                 <Link href={`/courses/${slug}/${courseId}/${sectionId}/asm-attempt/${sectionAssignmentId}`}>
-                  <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
+                  <Button className={activeBtn}>
                     Bài tập Cuối Chương <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
               )
             }
 
-            if (!nextLesson) {
+            // Case 2: Last lesson of section, no assignment, no next lesson → Hoàn thành khóa học
+            if (isLastLessonOfSection && !sectionAssignmentId && !nextLesson) {
               return (
                 <Button
-                  className={`rounded-full px-6 h-10 font-medium border-none ${(progressPercent === 100)
+                  className={`rounded-full px-6 h-10 font-medium border-none ${progressPercent === 100
                     ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   disabled={progressPercent !== 100}
                   onClick={() => {
                     if (progressPercent === 100) {
-                      // Navigate to course home
                       window.location.href = `/courses/${slug}/${courseId}`
                     }
                   }}
@@ -194,63 +193,66 @@ export default function QuizAttemptOverviewPage() {
               )
             }
 
-            const getNextButtonText = () => {
-              // const section = course.sections.find(s => s.id === nextLesson.sectionId)
-              if (nextLesson.type === LessonType.Quiz) {
-                return "Bài kiểm tra"
-              }
-              // Previous logic for assignment check is now handled above for the *current* section.
-              // We keep this just in case nextLesson points to an assignment in a weird way, but unlikely if structures are standard.
-              // Actually, LessonInfo logic had this:
-              /*
-              if (section) {
-                const lastLesson = section.lessons[section.lessons.length - 1]
-                if (lastLesson.id === nextLesson.id) {
-                   return "Bài tập Cuối Chương"
-                }
-              }
-              */
-              // But here nextLesson is strictly from the lessons array.
-              return "Bài tiếp theo"
-            }
-
-            const getNextLessonUrl = () => {
-              // const section = course.sections.find(s => s.id === nextLesson.sectionId)
-              if (nextLesson.type === LessonType.Quiz) {
+            // Case 3: Last lesson of section, no assignment, has next lesson → Chương tiếp theo
+            if (isLastLessonOfSection && !sectionAssignmentId && nextLesson) {
+              const nextChapterUrl = nextLesson.type === LessonType.Quiz
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const quizId = (nextLesson as any).quizId
-                return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${quizId}`
+                ? `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${(nextLesson as any).quizId}`
+                : `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}`
+
+              if (!isQuizPassed) {
+                return (
+                  <Button disabled className={disabledBtn}>
+                    Chương tiếp theo <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                )
               }
-              /*
-              if (section) {
-                 const lastLesson = section.lessons[section.lessons.length - 1]
-                 if (lastLesson.id === nextLesson.id) {
-                   const assignmentId = (section as any).assignmentId
-                   if (assignmentId) {
-                     return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/asm-attempt/${assignmentId}`
-                   }
-                 }
-              }
-              */
-              return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}`
+              return (
+                <Link href={nextChapterUrl}>
+                  <Button className={activeBtn}>
+                    Chương tiếp theo <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              )
             }
 
-            const buttonText = getNextButtonText()
-            const targetUrl = getNextLessonUrl()
-
-            const isQuizPassed = myQuizAttempts?.attempts?.some(attempt => attempt.isPassed)
-
-            if (!isQuizPassed) {
+            // Case 4: Not last lesson of section, no next lesson (shouldn't happen but guard)
+            if (!nextLesson) {
               return (
-                <Button disabled className="rounded-full bg-gray-300 text-gray-500 cursor-not-allowed border-none shadow-none px-6 h-10 font-medium">
-                  {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
+                <Button
+                  className={`rounded-full px-6 h-10 font-medium border-none ${progressPercent === 100
+                    ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  disabled={progressPercent !== 100}
+                  onClick={() => {
+                    if (progressPercent === 100) {
+                      window.location.href = `/courses/${slug}/${courseId}`
+                    }
+                  }}
+                >
+                  Hoàn thành khóa học
                 </Button>
               )
             }
 
+            // Case 5: Next lesson in same section
+            const buttonText = nextLesson.type === LessonType.Quiz ? "Bài kiểm tra" : "Bài tiếp theo"
+            const targetUrl = nextLesson.type === LessonType.Quiz
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ? `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${(nextLesson as any).quizId}`
+              : `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}`
+
+            if (!isQuizPassed) {
+              return (
+                <Button disabled className={disabledBtn}>
+                  {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              )
+            }
             return (
               <Link href={targetUrl}>
-                <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
+                <Button className={activeBtn}>
                   {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>

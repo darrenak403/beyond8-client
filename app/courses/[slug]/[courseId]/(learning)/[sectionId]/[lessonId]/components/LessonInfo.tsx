@@ -117,6 +117,11 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                 forceFullNav = true
               } else if (nextLesson.sectionId !== currentLessonWithSection.sectionId) {
                 buttonText = "Chương tiếp theo"
+                // Next lesson may be a Quiz in the next section — ensure correct URL
+                if (nextLesson.type === LessonType.Quiz && nextLesson.quizId) {
+                  targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${nextLesson.quizId}`
+                  forceFullNav = true
+                }
               } else if (nextLesson.type === LessonType.Quiz) {
                 buttonText = "Bài kiểm tra"
                 targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${nextLesson.quizId}`
@@ -150,21 +155,53 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                 )
               )
             })() : (
-              <Button
-                className={`rounded-full px-6 h-10 font-medium border-none ${(progressPercent === 100)
-                  ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
-                disabled={progressPercent !== 100}
-                onClick={() => {
-                  if (progressPercent === 100) {
-                    // Navigate to course home
-                    window.location.href = `/courses/${slug}/${courseId}`
+              (() => {
+                // Check if current lesson is last in section and section has assignment
+                const currentLessonWithSection = allLessons[currentIndex]
+                const currentSection = course.sections.find(s => s.id === currentLessonWithSection?.sectionId)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const currentSectionAssignmentId = (currentSection as any)?.assignmentId
+                const isLastLessonInCurrentSection = currentSection
+                  && currentSection.lessons[currentSection.lessons.length - 1].id === currentLesson.id
+
+                if (isLastLessonInCurrentSection && currentSectionAssignmentId) {
+                  const asmUrl = `/courses/${slug}/${courseId}/${currentLessonWithSection.sectionId}/asm-attempt/${currentSectionAssignmentId}`
+                  if (onNavigate) {
+                    return (
+                      <Button
+                        className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium"
+                        onClick={() => onNavigate(currentLessonWithSection.sectionId, currentLesson.id)}
+                      >
+                        Bài tập Cuối Chương <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    )
                   }
-                }}
-              >
-                Hoàn thành khóa học
-              </Button>
+                  return (
+                    <Link href={asmUrl}>
+                      <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
+                        Bài tập Cuối Chương <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </Link>
+                  )
+                }
+
+                return (
+                  <Button
+                    className={`rounded-full px-6 h-10 font-medium border-none ${(progressPercent === 100)
+                      ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    disabled={progressPercent !== 100}
+                    onClick={() => {
+                      if (progressPercent === 100) {
+                        window.location.href = `/courses/${slug}/${courseId}`
+                      }
+                    }}
+                  >
+                    Hoàn thành khóa học
+                  </Button>
+                )
+              })()
             )}
           </div>
         </div>

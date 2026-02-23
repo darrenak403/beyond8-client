@@ -358,15 +358,14 @@ export default function LessonPage() {
           currentLesson={lesson as Lesson}
           slug={slug}
           courseId={courseId}
-          onNavigate={(sectionId, lessonId) => {
-            // We want to intercept Next Lesson click.
-            // LessonInfo passes sectionId/lessonId. 
-            // If it matches nextLesson, use our handler.
-            if (nextLesson && nextLesson.id === lessonId) {
+          onNavigate={(navSectionId, navLessonId) => {
+            // Intercept Next Lesson click OR last-lesson → assignment click.
+            // Both cases should call handleNextLesson() to mark complete first.
+            if ((nextLesson && nextLesson.id === navLessonId) || (!nextLesson && navLessonId === lessonId)) {
               handleNextLesson()
             } else {
               // Fallback for prev lesson or others
-              router.push(`${baseUrl}/${sectionId}/${lessonId}`)
+              router.push(`${baseUrl}/${navSectionId}/${navLessonId}`)
             }
           }}
           isNextDisabled={isNextDisabled}
