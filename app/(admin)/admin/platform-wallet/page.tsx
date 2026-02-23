@@ -20,10 +20,10 @@ export default function PlatformWalletPage() {
     });
 
     return (
-        <div className="space-y-6 sm:space-y-8 mx-auto max-w-[1650px] p-4 lg:p-8">
+        <div className="space-y-4 mx-auto max-w-[1650px] p-4">
             {/* Header */}
             <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-bold text-gray-900">Ví nền tảng (Platform Wallet)</h1>
+                {/* <h1 className="text-2xl font-bold text-gray-900">Ví nền tảng (Platform Wallet)</h1> */}
                 <p className="text-muted-foreground">
                     Quản lý doanh thu chiết khấu và lịch sử giao dịch tổng của nền tảng
                 </p>

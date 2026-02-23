@@ -233,3 +233,26 @@ export function useGetSubmissionSumaryBySection(sectionId: string) {
         isFetching,
     }
 }
+
+export function useResetSubmission(assignmentId: string) {
+    const queryClient = useQueryClient()
+    const mutation = useMutation<SubmissionAssigmentResponse, Error, string>({
+        mutationFn: (studentId: string) => assignmentService.resetSubmission(assignmentId, studentId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["assignments"] })
+            queryClient.invalidateQueries({ queryKey: ["assignments", assignmentId] })
+            toast.success("Làm mới lượt nộp bài thành công!")
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || "Làm mới lượt nộp bài thất bại!")
+        },
+    })
+
+    return {
+        resetSubmission: mutation.mutate,
+        resetSubmissionAsync: mutation.mutateAsync,
+        isPending: mutation.isPending,
+        error: mutation.error,
+        isSuccess: mutation.isSuccess,
+    }
+}

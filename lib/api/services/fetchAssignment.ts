@@ -253,4 +253,10 @@ export const assignmentService = {
         return response.data
     },
 
+    //Instructor reset lượt nộp bài cho student cụ thể
+    resetSubmission: async (assignmentId: string, studentId: string): Promise<SubmissionAssigmentResponse> => {
+        const response = await apiService.post<SubmissionAssigmentResponse>(`api/v1/assignment-submissions/assignment/${assignmentId}/reset-submissions/${studentId}`)
+        return response.data
+    }
+
 }
