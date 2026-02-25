@@ -318,7 +318,7 @@ export function AssignmentDialog({
                                         <div className="space-y-3">
                                             {formData.attachmentUrls && formData.attachmentUrls.length > 0 && (
                                                 <div className="space-y-2">
-                                                    {formData.attachmentUrls.map((attachment, index) => (
+                                                    {formData.attachmentUrls?.map((attachment, index) => (
                                                         <div key={index} className="flex items-center justify-between p-2 bg-gray-50 border rounded-lg group hover:bg-gray-100 transition-colors">
                                                             <div className="flex items-center gap-2 overflow-hidden">
                                                                 <FileText className="w-4 h-4 text-gray-500 shrink-0" />
@@ -461,10 +461,10 @@ export function AssignmentDialog({
                                                             </Badge>
                                                         ))}
                                                     </div>
-                                                    {formData.allowedFileTypes.length > 0 && (
+                                                    {(formData.allowedFileTypes?.length ?? 0) > 0 && (
                                                         <div className="flex flex-wrap gap-2 p-2 bg-gray-50 rounded-md border">
                                                             <span className="text-xs text-gray-500">Đã chọn:</span>
-                                                            {formData.allowedFileTypes.map(fileType => (
+                                                            {formData.allowedFileTypes?.map(fileType => (
                                                                 <Badge key={fileType} variant="secondary" className="gap-1">
                                                                     {fileType}
                                                                     <X
@@ -501,7 +501,7 @@ export function AssignmentDialog({
                                                 </>
                                             ) : (
                                                 <div className="flex flex-wrap gap-2">
-                                                    {assignment.allowedFileTypes.map(fileType => (
+                                                    {assignment.allowedFileTypes?.map((fileType: string) => (
                                                         <Badge key={fileType} variant="secondary">{fileType}</Badge>
                                                     ))}
                                                 </div>

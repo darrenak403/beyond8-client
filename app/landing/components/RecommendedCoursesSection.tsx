@@ -179,7 +179,7 @@ export default function RecommendedCoursesSection() {
                   <CarouselItem key={item.id} className="relative">
                     <Link href={item.link || "/courses"} className="block">
                       <div
-                        className={`relative w-full ${isMobile ? "aspect-[16/9]" : "aspect-[4/1]"} rounded-2xl overflow-hidden group cursor-pointer`}
+                        className={`relative w-full ${isMobile ? "aspect-video" : "aspect-4/1"} rounded-2xl overflow-hidden group cursor-pointer`}
                       >
                         <SafeImage
                           src={item.src}
