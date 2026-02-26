@@ -16,7 +16,7 @@ import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/servi
 import { useCheckEnrollment, useEnrollCourse } from '@/hooks/useEnroll'
 import { ConfirmDialog } from '@/components/widget/confirm-dialog'
 import { useAuth } from '@/hooks/useAuth'
-import { useAddToCart, useGetCart, useBuyNow, useCheckCourse, useProcessPayment } from '@/hooks/useOrder'
+import { useAddToCart, useGetCart, useBuyNow, useCheckCourse } from '@/hooks/useOrder'
 import { startOfToday, differenceInCalendarDays } from 'date-fns'
 import { PendingPaymentDialog } from '@/components/widget/PendingPaymentDialog'
 import { useRouter } from 'next/navigation'
@@ -83,8 +83,6 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   })
   const { addToCart, isPending: isAddingToCart } = useAddToCart()
   const { cart } = useGetCart({ enabled: isAuthenticated })
-  //const { buyNow, isPending: isBuyNowPending } = useBuyNow()
-  const { processPayment, isPending: isProcessPaymentPending } = useProcessPayment()
 
   const { isPurchased } = useCheckCourse(course.id, {
     enabled: !!course.id,
@@ -156,10 +154,11 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
       <div className="h-2 bg-linear-to-r from-brand-pink via-brand-magenta to-brand-purple" />
       <CardContent className="p-6 space-y-6">
         {/* Price Section */}
-        <div>
+        {!isEnrolled && (
+          <div>
           {hasDiscount && effectiveDiscountPercent > 0 && (
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-brand-magenta font-medium bg-brand-magenta/10 px-2 py-1 rounded">
+              <span className="text-sm text-brand-magenta font-medium bg-brand-magenta/10 px-2 py-1 rounded-2xl">
                 Ưu đãi ra mắt
               </span>
               <span className="text-sm font-bold text-green-600">
@@ -168,9 +167,16 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
             </div>
           )}
           <div className="flex items-baseline gap-2">
+            { course.finalPrice > 0 && (
             <span className="text-4xl font-bold text-slate-900">
               {formatCurrency(finalPrice)}
             </span>
+            )}
+            { course.finalPrice === 0 && (
+              <span className="text-4xl font-bold text-slate-900">
+                Miễn phí
+              </span>
+            )}
             {hasDiscount && (
               <span className="text-lg text-muted-foreground line-through decoration-red-500/50">
                 {formatCurrency(originalPrice)}
@@ -188,6 +194,8 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
             </div>
           )}
         </div>
+        )}
+        
 
         {/* Action Buttons */}
         <div className="space-y-3">

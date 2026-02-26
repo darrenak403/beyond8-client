@@ -114,9 +114,16 @@ export default function CourseCard({ course }: CourseCardProps) {
 
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-primary">
-                {formatCurrency(finalPrice)}
-              </span>
+              { course.finalPrice > 0 && (
+                <span className="text-2xl font-bold text-primary">
+                  {formatCurrency(finalPrice)}
+                </span>
+              )}
+              { course.finalPrice === 0 && (
+                <span className="text-2xl font-bold text-primary">
+                  Miễn phí
+                </span>
+              )}
               {hasDiscount && (
                 <>
                   <span className="text-sm text-muted-foreground line-through decoration-red-500/50">
@@ -150,25 +157,28 @@ export default function CourseCard({ course }: CourseCardProps) {
                 <span>{formatDuration(course.totalDurationMinutes)}</span>
               </div>
             </div>
-            {isInCart ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-9 shrink-0 bg-green-50 border-green-500 text-green-600 hover:bg-green-100 cursor-default"
-                disabled
-              >
-                <Check className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-9 w-9 shrink-0 bg-purple-50 border-purple-500 text-purple-500 hover:bg-primary hover:text-white"
-                onClick={handleAddToCart}
-                disabled={isPending}
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
+            
+            {course.finalPrice > 0 && (
+              isInCart ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 shrink-0 bg-green-50 border-green-500 text-green-600 hover:bg-green-100 cursor-default"
+                  disabled
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-9 w-9 shrink-0 bg-purple-50 border-purple-500 text-purple-500 hover:bg-primary hover:text-white"
+                  onClick={handleAddToCart}
+                  disabled={isPending}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                </Button>
+              )
             )}
           </div>
         </div>

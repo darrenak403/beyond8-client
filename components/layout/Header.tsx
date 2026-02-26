@@ -851,7 +851,7 @@ export function Header() {
                   size="icon"
                   className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}
                 >
-                  <ShoppingCart className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                  <ShoppingCart className={`${isMobile ? 'h-4 w-4' : 'h-7 w-7'}`} />
                   {cart && cart.totalItems > 0 && (
                     <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
                       <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-brand-magenta to-brand-purple border-[2px] border-white text-[10px] font-bold text-white">

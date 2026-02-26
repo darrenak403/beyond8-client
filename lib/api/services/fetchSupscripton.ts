@@ -9,6 +9,11 @@ export interface PaymentData {
   paymentUrl: string;
   expiredAt: string;
 }
+export interface PaymentResponse{
+  isSuccess: boolean;
+  message: string;
+  data: PaymentData;
+}
 
 export interface BuySubscriptionRequest {
   planCode: string;
@@ -25,8 +30,8 @@ export const subscriptionService = {
     return response.data;
   },
 
-  buySubscription: async (planCode: string): Promise<ApiResponse<PaymentData>> => {
-    const response = await apiService.post<ApiResponse<PaymentData>>("api/v1/orders/buy-subscription", { planCode });
+  buySubscription: async (planCode: string): Promise<PaymentResponse> => {
+    const response = await apiService.post<PaymentResponse>("api/v1/orders/buy-subscription", { planCode });
     return response.data;
   },
 };

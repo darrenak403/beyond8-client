@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { useState } from 'react'
 import {
   Star,
   Users,
@@ -9,7 +10,8 @@ import {
   BookOpen,
   Calendar,
   Share2,
-  Heart
+  Heart,
+  MessageSquare
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -19,6 +21,7 @@ import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/servi
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 import { useUserById } from '@/hooks/useUserProfile'
+import CourseReviewDialog from '@/components/widget/CourseReviewDialog'
 
 interface CourseHeroProps {
   course: CourseSummary | CourseDetailType
@@ -27,6 +30,7 @@ interface CourseHeroProps {
     avatar?: string
     bio?: string
   }
+  enrollmentId?: string
 }
 
 // Format duration from minutes to readable string
@@ -41,9 +45,10 @@ const formatDuration = (minutes: number): string => {
   return `${mins}m`
 }
 
-export default function CourseHero({ course, instructor }: CourseHeroProps) {
+export default function CourseHero({ course, instructor, enrollmentId }: CourseHeroProps) {
   const params = useParams()
   const { user: instructorUser } = useUserById(course.instructorId)
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false)
   // Ensure we have params before constructing URL, fallback to '#' if not
   const profileUrl = params?.slug && params?.courseId
     ? `/courses/${params.slug}/${params.courseId}/instructor/${course.instructorId}`
@@ -211,6 +216,16 @@ export default function CourseHero({ course, instructor }: CourseHeroProps) {
             <div className="flex-1" />
 
             <div className="flex gap-2">
+              {enrollmentId && (
+                <Button
+                  variant="outline"
+                  onClick={() => setIsReviewDialogOpen(true)}
+                  className="h-9 bg-white/5 border-white/10 hover:bg-white/10 text-white hover:text-brand-pink transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Viết đánh giá
+                </Button>
+              )}
               <Button variant="outline" size="icon" className="h-9 w-9 bg-white/5 border-white/10 hover:bg-white/10 text-white hover:text-brand-pink transition-colors">
                 <Heart className="w-4 h-4" />
               </Button>
@@ -221,6 +236,16 @@ export default function CourseHero({ course, instructor }: CourseHeroProps) {
           </div>
         </div>
       </div>
+
+      {/* Review Dialog */}
+      {enrollmentId && (
+        <CourseReviewDialog
+          open={isReviewDialogOpen}
+          onOpenChange={setIsReviewDialogOpen}
+          courseId={course.id}
+          enrollmentId={enrollmentId}
+        />
+      )}
     </div>
   )
 }

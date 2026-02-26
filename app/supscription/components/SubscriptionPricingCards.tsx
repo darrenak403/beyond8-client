@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 export function SubscriptionPricingCard() {
   const { plans, isLoading, error } = useSubscriptionPlans();
@@ -83,7 +84,7 @@ export function SubscriptionPricingCard() {
                 <span className="text-4xl font-bold text-gray-900">Miễn phí</span>
               ) : (
                 <div className="flex items-end gap-1">
-                  <span className="text-4xl font-bold text-gray-900">{plan.price}K</span>
+                  <span className="text-4xl font-bold text-gray-900">{formatCurrency(plan.price)}</span>
                   <span className="text-gray-500 text-sm mb-1">/{plan.durationDays} ngày</span>
                 </div>
               )}

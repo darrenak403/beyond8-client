@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import { format } from "date-fns";
 import { CreditCard, Clock, CheckCircle, XCircle, ExternalLink }from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { PaymentItem } from "@/lib/api/services/fetchOrder";
+import type { PaymentItem, OrderItem } from "@/lib/api/services/fetchOrder";
 import { PaymentHistoryTableSkeleton } from "./PaymentHistoryTableSkeleton";
 
 interface PaymentHistoryTableProps {
@@ -41,32 +41,69 @@ export function PaymentHistoryTable({
   const columns = useMemo<ColumnDef<PaymentItem>[]>(
     () => [
       {
-        accessorKey: "paymentNumber",
-        header: "Mã giao dịch",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-purple-50 text-purple-600">
-              <CreditCard className="w-3.5 h-3.5" />
+        id: "orderInfo",
+        header: "Thông tin đơn hàng",
+        cell: ({ row }) => {
+          const item = row.original;
+          const orderSummary = item.orderSummary;
+
+          // If orderSummary exists, show order info
+          if (orderSummary) {
+            const items = orderSummary.items || [];
+            return (
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-purple-50 text-purple-600">
+                  <CreditCard className="w-3.5 h-3.5" />
+                </div>
+                {items.slice(0, 2).map((orderItem: OrderItem, index: number) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-800 line-clamp-1">
+                        {orderItem.courseTitle}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {orderItem.instructorName}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {items.length > 2 && (
+                  <span className="text-xs text-brand-magenta font-medium pl-9">
+                    +{items.length - 2} khóa học khác
+                  </span>
+                )}
+              </div>
+            );
+          }
+
+          // If orderSummary is null, show only purpose
+          return (
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-md bg-purple-50 text-purple-600">
+                <CreditCard className="w-3.5 h-3.5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-medium text-gray-800">
+                  {item.purpose}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {item.paymentNumber}
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="font-medium text-gray-800">
-                {row.getValue("paymentNumber")}
-              </span>
-              <span className="text-xs text-gray-500">
-                #{row.original.orderId?.slice(0, 8)}
-              </span>
-            </div>
-          </div>
-        ),
+          );
+        },
       },
       {
         accessorKey: "amount",
         header: "Số tiền",
         cell: ({ row }) => {
           const item = row.original;
+          const amount = item.orderSummary?.totalAmount || item.amount;
+          const currency = item.orderSummary?.currency || item.currency;
           return (
             <div className="font-semibold text-gray-900">
-              {formatCurrency(item.amount, item.currency)}
+              {formatCurrency(amount, currency)}
             </div>
           );
         },
@@ -123,7 +160,7 @@ export function PaymentHistoryTable({
           const label = isSuccess
             ? "Thành công"
             : isPending
-            ? "Đang xử lý"
+            ? "Chờ thanh toán"
             : "Thất bại";
 
           return (
@@ -149,27 +186,27 @@ export function PaymentHistoryTable({
         header: "Hành động",
         cell: ({ row }) => {
           const item = row.original;
+          const status = item.status;
+          const isPending = status === "Pending" || status === "Processing";
           const paymentInfo = item.pendingPaymentInfo?.paymentInfo;
 
-          if (!paymentInfo) {
-            return <span className="text-xs text-gray-400">-</span>;
+          // Show payment button for pending payments
+          if (isPending && paymentInfo?.paymentUrl) {
+            return (
+              <Button
+                size="sm"
+                variant="default"
+                className="gap-2 h-8 text-xs bg-linear-to-r from-brand-magenta to-brand-purple text-white hover:opacity-90"
+                onClick={() => {
+                  window.location.href = paymentInfo.paymentUrl;
+                }}
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Thanh toán
+              </Button>
+            );
           }
 
-          return (
-            <Button
-              size="sm"
-              variant="default"
-              className="gap-2 h-8 text-xs bg-gradient-to-r from-brand-magenta to-brand-purple text-white hover:opacity-90"
-              onClick={() => {
-                if (paymentInfo.paymentUrl) {
-                  window.location.href = paymentInfo.paymentUrl;
-                }
-              }}
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              Thanh toán
-            </Button>
-          );
         },
       },
     ],
@@ -196,4 +233,3 @@ export function PaymentHistoryTable({
     </div>
   );
 }
-

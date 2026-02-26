@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { subscriptionService } from "@/lib/api/services/fetchSupscripton";
 import { toast } from "sonner";
+import { PaymentResponse } from "@/lib/api/services/fetchSupscripton";
+
 
 export interface UseBuySubscriptionOptions {
   onSuccess?: (data: unknown) => void;
@@ -43,18 +45,14 @@ export function useBuySubscription(options?: UseBuySubscriptionOptions) {
   const queryClient = useQueryClient();
   const { onSuccess, onError } = options ?? {};
 
-  const { mutateAsync, isPending, error, isError } = useMutation({
+  const { mutateAsync, isPending, error, isError } = useMutation<PaymentResponse, Error, string>({
     mutationFn: async (planCode: string) => {
-      const response = await subscriptionService.buySubscription(planCode);
-      if (!response.isSuccess) {
-        throw new Error(response.message);
-      }
-      return response.data;
+      return await subscriptionService.buySubscription(planCode);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      toast.success("Mua gói thành công!");
-      onSuccess?.(data);
+      toast.success(data.message || "Mua gói thành công!");
+      onSuccess?.(data.data);
     },
     onError: (error: Error) => {
       toast.error(error.message || "Mua gói thất bại!");
