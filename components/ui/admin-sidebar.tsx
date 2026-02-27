@@ -44,6 +44,11 @@ import { AdminNotificationPanel } from "../widget/admin-notification-panel";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
+  {
+    icon: Wallet,
+    label: "Ví và giao dịch",
+    href: "/admin/platform-wallet",
+  },
   { icon: Users, label: "Quản lý người dùng", href: "/admin/user" },
   { icon: FileCheck, label: "Duyệt giảng viên", href: "/admin/instructor-registration" },
   {
@@ -56,11 +61,7 @@ const menuItems = [
       { label: "Quản lý khuyến mãi", href: "/admin/coupon", icon: Ticket },
     ],
   },
-  {
-    icon: Wallet,
-    label: "Ví và giao dịch",
-    href: "/admin/platform-wallet",
-  },
+
   {
     icon: Bot,
     label: "Quản lý AI",
@@ -70,7 +71,6 @@ const menuItems = [
       { label: "Quản lý prompt", href: "/admin/ai-management/prompts", icon: MessageSquare },
     ],
   },
-  { icon: BarChart3, label: "Báo cáo", href: "/admin/report" },
 ];
 
 interface AdminSidebarProps {
