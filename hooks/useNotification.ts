@@ -130,6 +130,24 @@ export function useDeleteNotification() {
   });
 }
 
+export function useDeleteInstructorNotification() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await notificationService.deleteInstructorNotifications();
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["instructor-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notification-status"] });
+    },
+  });
+}
+
 export function useDeleteAllNotifications() {
   const queryClient = useQueryClient();
 

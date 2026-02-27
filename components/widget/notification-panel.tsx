@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useInstructorNotification, useMarkReadAll, useDeleteNotification, useDeleteAllNotifications } from "@/hooks/useNotification";
+import { useInstructorNotification, useMarkReadAll, useDeleteNotification, useDeleteInstructorNotification } from "@/hooks/useNotification";
 import { notificationService, NotificationChannel, NotificationStatus } from "@/lib/api/services/fetchNotification";
 import type { NotificationItem } from "@/lib/api/services/fetchNotification";
 import { formatDistanceToNow, isToday } from "date-fns";
@@ -122,7 +122,7 @@ const NotificationItemComponent = ({ notification, onDelete }: NotificationItemP
       {!notification.read && (
         <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 z-10">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
+          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-linear-to-r from-purple-600 to-indigo-600 border-2 border-white"></span>
         </span>
       )}
     </div>
@@ -429,7 +429,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
   const markAllReadMutation = useMarkReadAll();
   const deleteMutation = useDeleteNotification();
-  const deleteAllMutation = useDeleteAllNotifications();
+  const deleteAllMutation = useDeleteInstructorNotification();
 
   const markAllAsRead = async () => {
       try {
@@ -546,7 +546,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
               </TabsList>
             </div>
 
-            <ScrollArea className="flex-1 bg-gradient-to-b from-white to-gray-50/50">
+            <ScrollArea className="flex-1 bg-linear-to-b from-white to-gray-50/50">
                 <AnimatePresence mode="wait">
                   {showSkeleton ? (
                     <motion.div

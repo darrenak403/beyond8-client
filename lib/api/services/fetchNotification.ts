@@ -125,7 +125,14 @@ export const notificationService = {
 
   deleteAllNotifications: async (): Promise<ApiResponse<boolean>> => {
     const response = await apiService.delete<ApiResponse<boolean>>(
-      "api/v1/notifications/delete-all"
+      "api/v1/notifications/student/delete-all"
+    );
+    return response.data;
+  },
+
+  deleteInstructorNotifications : async (): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.delete<ApiResponse<boolean>>(
+      "api/v1/notifications/instructor/delete-all"
     );
     return response.data;
   },
