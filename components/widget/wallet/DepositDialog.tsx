@@ -9,27 +9,47 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PlusCircle, Loader2 } from "lucide-react";
+import { PlusCircle, Loader2, AlertCircle } from "lucide-react";
 import { useChargeWallet } from "@/hooks/useWallet";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface DepositDialogProps {
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     hideTrigger?: boolean;
+    triggerClassName?: string;
 }
 
-export function DepositDialog({ open, onOpenChange, hideTrigger }: DepositDialogProps = {}) {
+export function DepositDialog({ open, onOpenChange, hideTrigger, triggerClassName }: DepositDialogProps = {}) {
     const [internalOpen, setInternalOpen] = useState(false);
     const isOpen = open !== undefined ? open : internalOpen;
     const setIsOpen = onOpenChange !== undefined ? onOpenChange : setInternalOpen;
     const [amount, setAmount] = useState<string>("");
     const { chargeWallet, isPending } = useChargeWallet();
+    const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null);
+    const [pendingDialogOpen, setPendingDialogOpen] = useState(false);
 
     const presetAmounts = [50000, 100000, 200000, 500000, 1000000, 2000000];
+
+    const navigateToPayment = (url: string) => {
+        sessionStorage.setItem("isWalletTopUp", "true");
+        sessionStorage.setItem("walletTopUpReturnUrl", window.location.pathname);
+        window.location.href = url;
+    };
 
     const handleDeposit = async () => {
         const numAmount = parseInt(amount.replace(/\D/g, ""), 10);
@@ -42,9 +62,13 @@ export function DepositDialog({ open, onOpenChange, hideTrigger }: DepositDialog
         try {
             const response = await chargeWallet({ amount: numAmount });
             if (response?.isSuccess && response.data?.paymentUrl) {
-                sessionStorage.setItem("isWalletTopUp", "true");
-                sessionStorage.setItem("walletTopUpReturnUrl", window.location.pathname);
-                window.location.href = response.data.paymentUrl;
+                if (response.data.isPending) {
+                    setPendingPaymentUrl(response.data.paymentUrl);
+                    setIsOpen(false);
+                    setPendingDialogOpen(true);
+                } else {
+                    navigateToPayment(response.data.paymentUrl);
+                }
             } else {
                 toast.error(response?.message || "Không thể tạo liên kết thanh toán.");
             }
@@ -64,10 +88,11 @@ export function DepositDialog({ open, onOpenChange, hideTrigger }: DepositDialog
     };
 
     return (
+        <>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             {!hideTrigger && (
                 <DialogTrigger asChild>
-                    <Button className="rounded-full bg-violet-600 hover:bg-violet-700 text-white gap-2 shadow-md shadow-violet-200 transition-all hover:shadow-lg">
+                    <Button variant="outline" className={cn("rounded-full hover:bg-gray-50 hover:text-black gap-2 border-2 transition-all", triggerClassName)}>
                         <PlusCircle className="h-4 w-4" />
                         Nạp tiền
                     </Button>
@@ -153,5 +178,29 @@ export function DepositDialog({ open, onOpenChange, hideTrigger }: DepositDialog
                 </div>
             </DialogContent>
         </Dialog>
+
+        <AlertDialog open={pendingDialogOpen} onOpenChange={setPendingDialogOpen}>
+            <AlertDialogContent className="rounded-2xl">
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+                        <AlertCircle className="h-5 w-5" />
+                        Bạn đang có giao dịch chưa xử lý
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-600">
+                        Bạn còn một giao dịch nạp tiền đang chờ xử lý. Vui lòng hoàn tất giao dịch đó trước khi tạo giao dịch mới. Bạn có muốn tiếp tục thanh toán giao dịch đang chờ không?
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-xl">Đóng</AlertDialogCancel>
+                    <AlertDialogAction
+                        onClick={() => pendingPaymentUrl && navigateToPayment(pendingPaymentUrl)}
+                        className="rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold"
+                    >
+                        Tiếp tục thanh toán
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+        </>
     );
 }

@@ -63,7 +63,7 @@ export function PlatformUpcomingSettlementsTable({
                             <TableHead>Mã đơn hàng</TableHead>
                             <TableHead>Ngày dự kiến</TableHead>
                             <TableHead>Trạng thái nền tảng</TableHead>
-                            {/* <TableHead className="text-right">Số tiền giảng viên</TableHead> */}
+                            <TableHead className="text-right">Số tiền giảng viên</TableHead>
                             <TableHead className="text-right">Số tiền nền tảng</TableHead>
                             <TableHead className="text-center">Cập nhật ngày xử lý</TableHead>
                         </TableRow>
@@ -75,7 +75,7 @@ export function PlatformUpcomingSettlementsTable({
                                     <TableCell><Skeleton className="h-5 w-auto" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-auto" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-auto" /></TableCell>
-                                    {/* <TableCell><Skeleton className="h-5 w-[100px] ml-auto" /></TableCell> */}
+                                    <TableCell><Skeleton className="h-5 w-[100px] ml-auto" /></TableCell>
                                     <TableCell><Skeleton className="h-8 w-8 rounded-md mx-auto" /></TableCell>
                                 </TableRow>
                             ))
@@ -89,7 +89,7 @@ export function PlatformUpcomingSettlementsTable({
                             settlements.map((item) => (
                                 <TableRow key={item.orderId}>
                                     <TableCell className="font-medium">
-                                        {item.orderId}
+                                        {item.orderNumber}
                                     </TableCell>
                                     <TableCell>
                                         {item.availableAt ? format(new Date(item.availableAt.endsWith('Z') ? item.availableAt : `${item.availableAt}Z`), "dd/MM/yyyy HH:mm", { locale: vi }) : "N/A"}
@@ -105,9 +105,9 @@ export function PlatformUpcomingSettlementsTable({
                                             {item.platformStatus === "Pending" ? "Chờ xử lý" : "Đã xử lý"}
                                         </Badge>
                                     </TableCell>
-                                    {/* <TableCell className="text-right font-medium">
+                                    <TableCell className="text-right font-medium">
                                         {item.instructorAmount.toLocaleString()} VNĐ
-                                    </TableCell> */}
+                                    </TableCell>
                                     <TableCell className="text-right font-medium text-green-600">
                                         +{item.platformAmount.toLocaleString()} VNĐ
                                     </TableCell>

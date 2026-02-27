@@ -60,6 +60,8 @@ export interface ChargeWalletResponse {
     isSuccess: boolean
     message: string
     data: {
+        isPending: boolean
+        status: string
         paymentId: string
         paymentNumber: string
         purpose: string
@@ -84,6 +86,7 @@ export interface TransactionsResponse {
 
 export interface UpcomingSettlement {
     orderId: string
+    orderNumber: string
     instructorAmount: number
     platformAmount: number
     availableAt: string | null

@@ -115,7 +115,7 @@ export function useSearchCourses(filterParams?: SearchCourseParams) {
       // metadata của /search có thể null, nên dùng optional chaining & default
       count: data.metadata?.totalItems ?? data.data.length ?? 0,
       page: data.metadata?.pageNumber ?? 1,
-      pageSize: data.metadata?.pageSize ?? (filterParams?.pageSize ?? 10),
+      pageSize: data.metadata?.pageSize ?? filterParams?.pageSize ?? 10,
       totalPages: data.metadata?.totalPages ?? 1,
       hasNextPage: data.metadata?.hasNextPage ?? false,
       hasPreviousPage: data.metadata?.hasPreviousPage ?? false,
@@ -205,7 +205,11 @@ export function useGetCourseSummary(
     enabled?: boolean;
   }
 ) {
-  const { data, isLoading, isError, refetch } = useQuery<CourseSummaryResponse, Error, CourseSummary>({
+  const { data, isLoading, isError, refetch } = useQuery<
+    CourseSummaryResponse,
+    Error,
+    CourseSummary
+  >({
     queryKey: ["course", "summary", id],
     queryFn: () => fetchCourse.getCourseSummary(id),
     select: (data) => data.data,
@@ -226,13 +230,15 @@ export function useGetCourseDetails(
     enabled?: boolean;
   }
 ) {
-  const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>({
-    queryKey: ["course", "details", id],
-    queryFn: () => fetchCourse.getCourseDetails(id),
-    select: (data: CourseDetailResponse) => data.data,
-    // Cho phép truyền enabled từ ngoài để kiểm soát khi nào được phép fetch details
-    enabled: options?.enabled ?? !!id,
-  });
+  const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>(
+    {
+      queryKey: ["course", "details", id],
+      queryFn: () => fetchCourse.getCourseDetails(id),
+      select: (data: CourseDetailResponse) => data.data,
+      // Cho phép truyền enabled từ ngoài để kiểm soát khi nào được phép fetch details
+      enabled: options?.enabled ?? !!id,
+    }
+  );
 
   return {
     courseDetails: data,
@@ -253,6 +259,9 @@ export function useUpdateCourse() {
       });
       queryClient.invalidateQueries({
         queryKey: ["course", "details-preview", variables.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["courses", "instructor", "instructor-stats"]
       });
       toast.success("Cập nhật khóa học thành công!");
     },
@@ -297,8 +306,13 @@ export function useCreateCourseDocument() {
 export function useUpdateCourseDocument() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ id, courseData }: { id: string; courseData: Partial<UpdateCourseDocumentRequest> }) =>
-      fetchCourse.updateCourseDocument(id, courseData),
+    mutationFn: ({
+      id,
+      courseData,
+    }: {
+      id: string;
+      courseData: Partial<UpdateCourseDocumentRequest>;
+    }) => fetchCourse.updateCourseDocument(id, courseData),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -317,7 +331,11 @@ export function useUpdateCourseDocument() {
 }
 
 export function useGetCourseDocument(id: string) {
-  const { data, isLoading, isError, refetch } = useQuery<CourseDocumentResponse, Error, CourseDocument[]>({
+  const { data, isLoading, isError, refetch } = useQuery<
+    CourseDocumentResponse,
+    Error,
+    CourseDocument[]
+  >({
     queryKey: ["course", "document", id],
     queryFn: () => fetchCourse.getCourseDocument(id),
     select: (data) => data.data,
@@ -335,8 +353,7 @@ export function useGetCourseDocument(id: string) {
 export function useDeleteCourseDocument() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ id }: { id: string }) =>
-      fetchCourse.deleteCourseDocument(id),
+    mutationFn: ({ id }: { id: string }) => fetchCourse.deleteCourseDocument(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -357,8 +374,7 @@ export function useDeleteCourseDocument() {
 export function useToggleDownloadCourseDocument() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ id }: { id: string }) =>
-      fetchCourse.toggleDownloadCourseDocument(id),
+    mutationFn: ({ id }: { id: string }) => fetchCourse.toggleDownloadCourseDocument(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -382,12 +398,14 @@ export function useGetCourseDetailsPreview(
     enabled?: boolean;
   }
 ) {
-  const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>({
-    queryKey: ["course", "details-preview", id],
-    queryFn: () => fetchCourse.getCourseDetailsPreview(id),
-    select: (data: CourseDetailResponse) => data.data,
-    enabled: options?.enabled ?? !!id,
-  });
+  const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>(
+    {
+      queryKey: ["course", "details-preview", id],
+      queryFn: () => fetchCourse.getCourseDetailsPreview(id),
+      select: (data: CourseDetailResponse) => data.data,
+      enabled: options?.enabled ?? !!id,
+    }
+  );
 
   return {
     courseDetailsPreview: data,
@@ -416,8 +434,7 @@ export function useSubmitCourseForReview() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ id }: { id: string }) =>
-      fetchCourse.submitCourseForReview(id),
+    mutationFn: ({ id }: { id: string }) => fetchCourse.submitCourseForReview(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -454,13 +471,19 @@ export function useGetCourseReviews(params: CourseReviewParams) {
       hasPreviousPage: boolean;
     }
   >({
-    queryKey: ["course-reviews", params.courseId, params.pageNumber, params.pageSize, params.isDescending],
+    queryKey: [
+      "course-reviews",
+      params.courseId,
+      params.pageNumber,
+      params.pageSize,
+      params.isDescending,
+    ],
     queryFn: () => fetchCourse.getCourseReviews(params),
     select: (data) => ({
       reviews: data.data,
       count: data.metadata?.totalItems ?? data.data.length ?? 0,
       page: data.metadata?.pageNumber ?? 1,
-      pageSize: data.metadata?.pageSize ?? (params.pageSize ?? 10),
+      pageSize: data.metadata?.pageSize ?? params.pageSize ?? 10,
       totalPages: data.metadata?.totalPages ?? 1,
       hasNextPage: data.metadata?.hasNextPage ?? false,
       hasPreviousPage: data.metadata?.hasPreviousPage ?? false,
@@ -560,8 +583,7 @@ export function useRejectCourse() {
 export function usePublishCourse() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ id }: { id: string }) =>
-      fetchCourse.publishCourse(id),
+    mutationFn: ({ id }: { id: string }) => fetchCourse.publishCourse(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -585,8 +607,7 @@ export function usePublishCourse() {
 export function useUnpublishCourse() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ id }: { id: string }) =>
-      fetchCourse.unpublishCourse(id),
+    mutationFn: ({ id }: { id: string }) => fetchCourse.unpublishCourse(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -610,8 +631,7 @@ export function useUnpublishCourse() {
 export function useDeleteCourse() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ id }: { id: string }) =>
-      fetchCourse.deleteCourse(id),
+    mutationFn: ({ id }: { id: string }) => fetchCourse.deleteCourse(id),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -635,8 +655,7 @@ export function useDeleteCourse() {
 export function usePublishCourses() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ ids }: { ids: string[] }) =>
-      fetchCourse.publicCourses(ids),
+    mutationFn: ({ ids }: { ids: string[] }) => fetchCourse.publicCourses(ids),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -688,6 +707,9 @@ export function useUpdateCourseDiscount() {
       queryClient.invalidateQueries({
         queryKey: ["course"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["courses", "instructor", "instructor-stats"],
+      });
       toast.success("Cập nhật giảm giá khóa học thành công!");
     },
     onError: (error: ApiError) => {
@@ -702,7 +724,10 @@ export function useUpdateCourseDiscount() {
 }
 
 export function useGetCourseCertificateConfig(courseId: string) {
-  const { data, isLoading, refetch, isFetching, isError } = useQuery<CourseCertificateConfigResponse, Error>({
+  const { data, isLoading, refetch, isFetching, isError } = useQuery<
+    CourseCertificateConfigResponse,
+    Error
+  >({
     queryKey: ["course-certificate-config", courseId],
     queryFn: () => fetchCourse.getCourseCertificateConfig(courseId),
     enabled: !!courseId,
@@ -720,8 +745,13 @@ export function useGetCourseCertificateConfig(courseId: string) {
 export function useUpdateCourseCertificateConfig() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ courseId, data }: { courseId: string; data: UpdateCourseCertificateConfigRequest }) =>
-      fetchCourse.updateCourseCertificateConfig(courseId, data),
+    mutationFn: ({
+      courseId,
+      data,
+    }: {
+      courseId: string;
+      data: UpdateCourseCertificateConfigRequest;
+    }) => fetchCourse.updateCourseCertificateConfig(courseId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -741,4 +771,3 @@ export function useUpdateCourseCertificateConfig() {
     isPending,
   };
 }
-

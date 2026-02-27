@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -25,9 +25,7 @@ const TransactionTypeLabels: Record<string, string> = {
   [TransactionType.CouponHold]: "Tạm giữ (Coupon)",
   [TransactionType.CouponRelease]: "Hoàn trả (Coupon)",
   [TransactionType.CouponUsage]: "Sử dụng Coupon",
-  "Revenue": "Doanh thu",
-  "CouponCost": "Chi phí Coupon",
-  "Settlement": "Thanh toán",
+  [TransactionType.Settlement]: "Thanh toán định kỳ"
 };
 
 interface TransactionHistoryTableProps {
@@ -47,15 +45,7 @@ export function TransactionHistoryTable({
 }: TransactionHistoryTableProps) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Lịch sử giao dịch</h2>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Download className="h-4 w-4" />
-          Xuất báo cáo
-        </Button>
-      </div>
-
-      <div className="rounded-md border bg-white">
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -70,11 +60,11 @@ export function TransactionHistoryTable({
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell><Skeleton className="h-5 w-[200px]" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-[100px]" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-[80px]" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-[100px]" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-[120px] ml-auto" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-50" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-25" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-25" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-30 ml-auto" /></TableCell>
                 </TableRow>
               ))
             ) : transactions.length === 0 ? (
@@ -93,7 +83,7 @@ export function TransactionHistoryTable({
 
                 return (
                   <TableRow key={transaction.id}>
-                    <TableCell className="font-medium max-w-[200px] truncate" title={transaction.description}>
+                    <TableCell className="font-medium max-w-50 truncate" title={transaction.description}>
                       {transaction.description || transaction.referenceType}
                     </TableCell>
                     <TableCell>
@@ -117,9 +107,9 @@ export function TransactionHistoryTable({
                           transaction.status === "Pending" ? "Đang xử lý" : "Thất bại"}
                       </Badge>
                     </TableCell>
-                    <TableCell className={`text-right font-medium ${isPositive ? "text-green-600" : "text-gray-900"}`}>
+                    <TableCell className={`text-right font-medium [font-variant-numeric:tabular-nums] ${isPositive ? "text-green-600" : "text-foreground"}`}>
                       {isPositive ? "+" : "-"}
-                      {transaction.amount.toLocaleString()} VNĐ
+                      {new Intl.NumberFormat('vi-VN').format(transaction.amount)} VNĐ
                     </TableCell>
                   </TableRow>
                 );
@@ -131,7 +121,7 @@ export function TransactionHistoryTable({
 
       {!isLoading && pageCount > 1 && (
         <div className="flex items-center justify-between px-2">
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+          <div className="flex w-25 items-center justify-center text-sm font-medium">
             Trang {pagination.pageIndex + 1} / {pageCount}
           </div>
           <div className="flex items-center space-x-2">
@@ -140,18 +130,18 @@ export function TransactionHistoryTable({
               className="h-8 w-8 p-0"
               onClick={() => setPagination(p => ({ ...p, pageIndex: p.pageIndex - 1 }))}
               disabled={pagination.pageIndex === 0}
+              aria-label="Trang trước"
             >
-              <span className="sr-only">Go to previous page</span>
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </Button>
             <Button
               variant="outline"
               className="h-8 w-8 p-0"
               onClick={() => setPagination(p => ({ ...p, pageIndex: p.pageIndex + 1 }))}
               disabled={pagination.pageIndex >= pageCount - 1}
+              aria-label="Trang tiếp"
             >
-              <span className="sr-only">Go to next page</span>
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>

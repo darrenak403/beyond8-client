@@ -4,13 +4,13 @@ import React, { useState } from "react";
 import { WalletStatsCards } from "./components/WalletStatsCards";
 import { TransactionHistoryTable } from "./components/TransactionHistoryTable";
 import { WithdrawalSection } from "./components/WithdrawalSection";
-import { ChartLineInteractive } from "../dashboard/components/ChartLineInteractive";
 import { useGetMyWallet, useGetMyTransactions } from "@/hooks/useWallet";
-import { DepositDialog } from "@/components/widget/wallet/DepositDialog";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UpcomingSettlementsTable } from "./components/UpcomingSettlementsTable";
@@ -84,13 +84,11 @@ export default function WalletPage() {
             {wallet?.createdAt ? ` • Tham gia từ: ${new Date(wallet.createdAt).toLocaleDateString('vi-VN')}` : ''}
           </p>
         </div>
-        <DepositDialog />
       </div>
 
       {/* Stats Cards */}
       <WalletStatsCards
         totalRevenue={wallet?.totalEarnings || 0}
-        currentBalance={wallet?.availableBalance || 0}
         pendingBalance={wallet?.pendingBalance || 0}
         holdBalance={wallet?.holdBalance || 0}
         totalWithdrawn={wallet?.totalWithdrawn || 0}
@@ -103,7 +101,7 @@ export default function WalletPage() {
         {/* Left Column - Main Content */}
         <div className="xl:col-span-2 space-y-6">
           {/* Chart Section */}
-          <ChartLineInteractive />
+          {/* <ChartLineInteractive /> */}
 
           {/* Transactions & Upcoming Section */}
           <Tabs defaultValue="transactions" className="w-full">
@@ -112,6 +110,10 @@ export default function WalletPage() {
                 <TabsTrigger value="transactions">Lịch sử giao dịch</TabsTrigger>
                 <TabsTrigger value="upcoming">Giao dịch đang xử lý</TabsTrigger>
               </TabsList>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="h-4 w-4" aria-hidden="true" />
+                Xuất báo cáo
+              </Button>
             </div>
 
             <TabsContent value="transactions" className="mt-0">
@@ -138,7 +140,11 @@ export default function WalletPage() {
 
         {/* Right Column - Sidebar */}
         <div className="xl:col-span-1">
-          <WithdrawalSection lastPayoutAt={wallet?.lastPayoutAt || null} />
+          <WithdrawalSection
+            lastPayoutAt={wallet?.lastPayoutAt || null}
+            currentBalance={wallet?.availableBalance || 0}
+            isLoading={isWalletLoading}
+          />
         </div>
       </div>
     </div>

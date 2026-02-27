@@ -288,8 +288,10 @@ export default function LessonSidebar({
                             // 1. It is preview (always accessible)
                             // 2. It is NOT locked by progress (if enrolled)
 
-                            const isLocked = mode !== 'preview' && isEnrolled && lockedLessonIds.has(lesson.id)
-                            const canAccessLesson = mode === 'preview' || lesson.isPreview || (isEnrolled ? !isLocked : false)
+                            const isProgressLocked = isEnrolled && lockedLessonIds.has(lesson.id)
+                            const isEnrollLocked = !isEnrolled && !lesson.isPreview
+                            const isLocked = isProgressLocked || isEnrollLocked
+                            const canAccessLesson = !isLocked
 
                             const renderLessonIcon = () => {
                               if (!canAccessLesson) return <Lock className="h-4 w-4 text-gray-400" />
@@ -394,7 +396,7 @@ export default function LessonSidebar({
 
                           {/* Section Assignment */}
                           {('assignmentId' in section && section.assignmentId) && (() => {
-                            const isAssignmentLocked = mode !== 'preview' && isEnrolled && lockedLessonIds.has(section.assignmentId!)
+                            const isAssignmentLocked = !isEnrolled || (isEnrolled && lockedLessonIds.has(section.assignmentId!))
                             const assignmentProgress = completionMap.get(section.assignmentId!)
                             const isAssignmentPassed = assignmentProgress?.isPassed || false
 

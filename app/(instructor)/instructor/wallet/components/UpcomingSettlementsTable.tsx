@@ -33,7 +33,7 @@ export function UpcomingSettlementsTable({
 }: UpcomingSettlementsTableProps) {
     return (
         <div className="space-y-4">
-            <div className="rounded-md border bg-white">
+            <div className="rounded-md border bg-card">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -47,10 +47,10 @@ export function UpcomingSettlementsTable({
                         {isLoading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-5 w-[150px]" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-[150px]" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-[100px]" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-[120px] ml-auto" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-37.5" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-37.5" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-25" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-30 ml-auto" /></TableCell>
                                 </TableRow>
                             ))
                         ) : settlements.length === 0 ? (
@@ -62,7 +62,7 @@ export function UpcomingSettlementsTable({
                         ) : (
                             settlements.map((item) => (
                                 <TableRow key={item.transactionId}>
-                                    <TableCell className="font-medium">
+                                    <TableCell className="font-medium max-w-40 truncate" title={item.orderId || item.transactionId}>
                                         {item.orderId || item.transactionId}
                                     </TableCell>
                                     <TableCell>
@@ -79,8 +79,8 @@ export function UpcomingSettlementsTable({
                                             {item.status === "Pending" ? "Chờ xử lý" : "Đã xử lý"}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right font-medium text-green-600">
-                                        +{item.amount.toLocaleString()} VNĐ
+                                    <TableCell className="text-right font-medium text-green-600 [font-variant-numeric:tabular-nums]">
+                                        +{new Intl.NumberFormat('vi-VN').format(item.amount)} VNĐ
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -91,7 +91,7 @@ export function UpcomingSettlementsTable({
 
             {!isLoading && pageCount > 1 && (
                 <div className="flex items-center justify-between px-2">
-                    <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                    <div className="flex w-25 items-center justify-center text-sm font-medium">
                         Trang {pagination.pageIndex + 1} / {pageCount}
                     </div>
                     <div className="flex items-center space-x-2">
@@ -100,18 +100,18 @@ export function UpcomingSettlementsTable({
                             className="h-8 w-8 p-0"
                             onClick={() => setPagination(p => ({ ...p, pageIndex: p.pageIndex - 1 }))}
                             disabled={pagination.pageIndex === 0}
+                            aria-label="Trang trước"
                         >
-                            <span className="sr-only">Go to previous page</span>
-                            <ChevronLeft className="h-4 w-4" />
+                            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                         </Button>
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"
                             onClick={() => setPagination(p => ({ ...p, pageIndex: p.pageIndex + 1 }))}
                             disabled={pagination.pageIndex >= pageCount - 1}
+                            aria-label="Trang tiếp"
                         >
-                            <span className="sr-only">Go to next page</span>
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRight className="h-4 w-4" aria-hidden="true" />
                         </Button>
                     </div>
                 </div>
