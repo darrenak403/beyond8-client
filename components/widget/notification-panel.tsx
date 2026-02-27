@@ -15,9 +15,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/useAuth";
-import { useNotification, useInstructorNotification, useMarkAllRead, useDeleteNotification, useDeleteAllNotifications } from "@/hooks/useNotification";
-import { notificationService, NotificationItem as ApiNotificationItem, NotificationChannel as ApiNotificationChannel, NotificationStatus as ApiNotificationStatus } from "@/lib/api/services/fetchNotification";
+import { useInstructorNotification, useMarkReadAll, useDeleteNotification, useDeleteInstructorNotification } from "@/hooks/useNotification";
+import { notificationService, NotificationChannel, NotificationStatus } from "@/lib/api/services/fetchNotification";
+import type { NotificationItem } from "@/lib/api/services/fetchNotification";
 import { formatDistanceToNow, isToday } from "date-fns";
 import { vi } from "date-fns/locale";
 
@@ -98,7 +98,7 @@ const NotificationSkeleton = () => (
   </div>
 );
 
-const NotificationItem = ({ notification, onDelete }: NotificationItemProps) => (
+const NotificationItemComponent = ({ notification, onDelete }: NotificationItemProps) => (
   <motion.div
     layout
     variants={itemVariants}
@@ -122,7 +122,7 @@ const NotificationItem = ({ notification, onDelete }: NotificationItemProps) => 
       {!notification.read && (
         <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 z-10">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
+          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-linear-to-r from-purple-600 to-indigo-600 border-2 border-white"></span>
         </span>
       )}
     </div>
@@ -195,7 +195,7 @@ const GroupedNotifications = ({ list, onDelete, isLoading, observerRef, isFetchi
             Hôm nay
           </h5>
           <AnimatePresence mode="popLayout">
-            {today.map(n => <NotificationItem key={n.id} notification={n} onDelete={onDelete} />)}
+            {today.map(n => <NotificationItemComponent key={n.id} notification={n} onDelete={onDelete} />)}
           </AnimatePresence>
         </div>
       )}
@@ -207,7 +207,7 @@ const GroupedNotifications = ({ list, onDelete, isLoading, observerRef, isFetchi
            Trước đó
          </h5>
          <AnimatePresence mode="popLayout">
-           {earlier.map(n => <NotificationItem key={n.id} notification={n} onDelete={onDelete} />)}
+           {earlier.map(n => <NotificationItemComponent key={n.id} notification={n} onDelete={onDelete} />)}
          </AnimatePresence>
        </div>
       )}
@@ -225,21 +225,21 @@ const GroupedNotifications = ({ list, onDelete, isLoading, observerRef, isFetchi
 };
 
 export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { isInstructor } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
   const [loadingTab, setLoadingTab] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const observerRef = useRef<HTMLDivElement>(null);
   const [sentinelElement, setSentinelElement] = useState<HTMLDivElement | null>(null);
   
-  const [allNotifications, setAllNotifications] = useState<ApiNotificationItem[]>([]);
+  const [allNotifications, setAllNotifications] = useState<NotificationItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false); 
 
   const params = useMemo(() => {
     const base = {
-      status: ApiNotificationStatus.Delivered,
-      channel: ApiNotificationChannel.App,
+      status: NotificationStatus.Delivered,
+      channel: NotificationChannel.App,
       pageNumber: 1,
       pageSize: 10,
       isDescending: true
@@ -251,72 +251,27 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     return base;
   }, [activeTab]); 
 
-  const { 
-    data: instructorUnreadData
-  } = useInstructorNotification({
-    ...params, 
-    status: ApiNotificationStatus.Delivered,
-    channel: ApiNotificationChannel.App,
-    isRead: false,
-    pageSize: 1,
-    pageNumber: 1
-  }, { enabled: !!isInstructor && open });
-
-  const { totalCount: studentUnreadCount } = useNotification({
-    status: ApiNotificationStatus.Delivered,
-    channel: ApiNotificationChannel.App,
-    isRead: false,
-    pageSize: 1,
-    pageNumber: 1
-  }, { enabled: !isInstructor && open });
-
-  const realUnreadCount = isInstructor 
-    ? (instructorUnreadData?.userNotifications?.totalCount || 0)
-    : (studentUnreadCount || 0);
-
+  // Removed useNotificationStatus call as per user request to use ONLY useInstructorNotification
+  
   const { 
     data: instructorData, 
     isLoading: loadingInstructor 
-  } = useInstructorNotification(params, { enabled: !!isInstructor && open });
+  } = useInstructorNotification(params, { enabled: open });
   
-  const { 
-    notifications: studentList, 
-    totalCount: studentTotal,
-    isLoading: loadingStudent 
-  } = useNotification(params, { enabled: !isInstructor && open });
-
-  const isLoadingInitial = isInstructor ? loadingInstructor : loadingStudent;
+  const isLoadingInitial = loadingInstructor;
 
   useEffect(() => {
     if (!open) return;
     if (currentPage > 1) return; 
 
-    let totalCount = 0;
-
-    if (isInstructor) {
-      if (instructorData?.userNotifications) {
-        totalCount = instructorData.userNotifications.totalCount;
-      }
-    } else {
-       totalCount = studentTotal;
-    }
-
-    if (totalCount > 0) {
-       const firstPageLength = isInstructor 
-         ? (instructorData?.userNotifications?.items?.length || 0)
-         : (studentList?.length || 0);
-       const hasMoreItems = firstPageLength < totalCount;
-       setHasMore(hasMoreItems);
-       
-       // Force check if sentinel is already visible
-    //    if (hasMoreItems && observerRef.current) {
-    //      const rect = observerRef.current.getBoundingClientRect();
-    //      const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-    //    }
+    // With flat array, we determine hasMore based on whether we got a full page of items
+    // This assumes if we get less than pageSize items, we are at the end.
+    if (instructorData && Array.isArray(instructorData)) {
+      setHasMore(instructorData.length >= (params.pageSize || 10));
     } else {
        setHasMore(false);
     }
-  }, [isInstructor, instructorData, studentList, studentTotal, open, currentPage]);
+  }, [instructorData, open, currentPage, params.pageSize]);
 
 
   const handleLoadMore = useCallback(async () => {
@@ -328,44 +283,23 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     try {
       const nextPage = currentPage + 1;
       const currentParams = {
-          status: ApiNotificationStatus.Delivered,
-          channel: ApiNotificationChannel.App,
+          status: NotificationStatus.Delivered,
+          channel: NotificationChannel.App,
           pageNumber: nextPage,
           pageSize: 10,
           isDescending: true,
           isRead: activeTab === "unread" ? false : undefined
       };
 
-      let response;
-      let totalCount = 0;
-      
-      if (isInstructor) {
-          response = await notificationService.getInstructorNotifications(currentParams);
-      } else {
-          response = await notificationService.getMyNotifications(currentParams);
-      }
+      const response = await notificationService.getInstructorNotifications(currentParams);
 
-      if (response.isSuccess && response.data) {
-          let newItems: ApiNotificationItem[] = [];
+      if (response.isSuccess && response.data && Array.isArray(response.data)) {
+          const newItems = response.data;
           
-          if (isInstructor) {
-              // @ts-expect-error - Handling conditional types from two different endpoints
-              newItems = response.data.userNotifications?.items || [];
-              // @ts-expect-error - Getting total count
-              totalCount = response.data.userNotifications?.totalCount || 0;
-          } else {
-              // @ts-expect-error - Handling conditional types
-              newItems = response.data.notifications || [];
-              // @ts-expect-error - Getting total count
-              totalCount = response.data.totalCount || 0;
-          }
-
-
           if (newItems.length > 0) {
               if (currentPage === 1) {
-                  const firstPageData = isInstructor 
-                    ? (instructorData?.userNotifications?.items || [])
-                    : (studentList || []);
+                  const firstPageData = (Array.isArray(instructorData) ? instructorData : []);
+                  
                   const existingIds = new Set(firstPageData.map(n => n.id));
                   const uniqueNew = newItems.filter(n => !existingIds.has(n.id));
                   setAllNotifications([...firstPageData, ...uniqueNew]);
@@ -378,13 +312,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
               }
               
               setCurrentPage(nextPage);
-              
-              const currentDataLength = currentPage === 1 
-                ? ((isInstructor ? (instructorData?.userNotifications?.items?.length || 0) : (studentList?.length || 0)))
-                : allNotifications.length;
-              const totalLoaded = currentDataLength + newItems.length;
-              const hasMoreItems = totalLoaded < totalCount;
-              setHasMore(hasMoreItems);
+              setHasMore(newItems.length >= 10);
           } else {
               setHasMore(false);
           }
@@ -397,7 +325,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, hasMore, open, currentPage, isInstructor, activeTab, instructorData, studentList, allNotifications]);
+  }, [isLoadingMore, hasMore, open, currentPage, activeTab, instructorData]);
 
   const sentinelRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
@@ -408,11 +336,8 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
   useEffect(() => {
     if (!open || !sentinelElement) {
-      if (!sentinelElement) {
-      }
       return;
     }
-    
     
     const observer = new IntersectionObserver(
       (entries) => {
@@ -434,6 +359,18 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     };
   }, [hasMore, isLoadingMore, isLoadingInitial, handleLoadMore, open, currentPage, sentinelElement]);
 
+  const handleClose = () => {
+    setIsClosing(true);
+  };
+
+  const handleOpenChangeInternal = (newOpen: boolean) => {
+    if (!newOpen) {
+      handleClose();
+    } else {
+      onOpenChange(newOpen);
+    }
+  };
+
   const handleTabChange = (value: string) => {
     if (value === activeTab) return;
     setLoadingTab(true);
@@ -449,23 +386,22 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
   };
 
 
-
-
   const notifications = useMemo(() => {
     if (currentPage === 1) {
-      return isInstructor 
-        ? (instructorData?.userNotifications?.items || [])
-        : (studentList || []);
+      // Ensure instructorData is an array before sorting
+      return (Array.isArray(instructorData) ? instructorData : []).slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else {
       return allNotifications;
     }
-  }, [currentPage, isInstructor, instructorData, studentList, allNotifications]);
+  }, [currentPage, instructorData, allNotifications]);
 
-  const mapToNotification = (item: ApiNotificationItem): Notification => {
+  const mapToNotification = (item: NotificationItem): Notification => {
     const created = new Date(item.createdAt);
     const dateType: "today" | "earlier" = isToday(created) ? "today" : "earlier";
     
     let type: NotificationType = "message";
+    // Map status/channels to simpler types if needed
+    // "Pending" -> "warning" etc. logic preserved
     if (item.status === "Pending") type = "warning";
     if (item.status === "Failed") type = "system";
 
@@ -483,10 +419,17 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
   const notificationList = notifications.map(mapToNotification);
 
+  // Calculate realUnreadCount from the loaded notifications logic
+  // Note: This is client-side counting of visibility loaded items, 
+  // not strict server-side total count as API response doesn't provide it currently.
+  const realUnreadCount = useMemo(() => {
+    // Count unread from the mapped notification list
+    return notificationList.filter(n => !n.read).length;
+  }, [notificationList]);
 
-  const markAllReadMutation = useMarkAllRead();
+  const markAllReadMutation = useMarkReadAll();
   const deleteMutation = useDeleteNotification();
-  const deleteAllMutation = useDeleteAllNotifications();
+  const deleteAllMutation = useDeleteInstructorNotification();
 
   const markAllAsRead = async () => {
       try {
@@ -513,18 +456,24 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
   const showSkeleton = (isLoadingInitial && currentPage === 1) || loadingTab;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChangeInternal}>
       <AnimatePresence mode="wait">
-        {open && (
           <SheetContent 
             forceMount 
             className="w-full sm:max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none data-[state=open]:animate-none data-[state=closed]:animate-none focus:outline-none"
           >
             <motion.div
+              key="notification-panel"
               initial={{ x: "100%" }}
-              animate={{ x: 0 }}
+              animate={isClosing ? { x: "100%" } : { x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onAnimationComplete={() => {
+                if (isClosing) {
+                  onOpenChange(false);
+                  setIsClosing(false);
+                }
+              }}
               className="h-full w-full flex flex-col bg-white/95 backdrop-blur-2xl border-l border-gray-100 shadow-[0_0_50px_-12px_rgba(0,0,0,0.15)]"
             >
               <div className="h-full flex flex-col">
@@ -597,7 +546,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
               </TabsList>
             </div>
 
-            <ScrollArea className="flex-1 bg-gradient-to-b from-white to-gray-50/50">
+            <ScrollArea className="flex-1 bg-linear-to-b from-white to-gray-50/50">
                 <AnimatePresence mode="wait">
                   {showSkeleton ? (
                     <motion.div
@@ -631,9 +580,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
         </div>
             </motion.div>
           </SheetContent>
-        )}
       </AnimatePresence>
     </Sheet>
   );
 }
-

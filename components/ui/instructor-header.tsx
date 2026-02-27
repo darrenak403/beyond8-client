@@ -7,6 +7,7 @@ import { useAuth, useLogout } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useNotificationStatus } from "@/hooks/useNotification";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ import { NotificationPanel } from "../widget/notification-panel";
 const navItems = [
   { name: "Tổng quan", href: "/instructor/dashboard" },
   { name: "Khóa học của tôi", href: "/instructor/courses" },
+  { name: "Xử lý yêu cầu", href: "/instructor/request" },
   { name: "Ví của tôi", href: "/instructor/wallet" },
 ];
 
@@ -39,6 +41,7 @@ export function InstructorHeader() {
   const pathname = usePathname();
   const { subscription } = useSubscription();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const { status: notificationStatus } = useNotificationStatus({ enabled: isAuthenticated });
 
 
   // Refs for animation
@@ -59,14 +62,14 @@ export function InstructorHeader() {
 
   const getGradientStyle = (code?: string) => {
     switch (code?.toUpperCase()) {
-      case "ULTRA": 
+      case "ULTRA":
         return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
-      case "PRO": 
+      case "PRO":
         return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
       case "STANDARD":
-      case "PLUS": 
+      case "PLUS":
         return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
-      default: 
+      default:
         return null;
     }
   };
@@ -116,7 +119,7 @@ export function InstructorHeader() {
     }
   }, [pathname]);
 
-  if (isMobile) return null;
+
 
   return (
     <header className="border-b bg-background/95 sticky top-0 z-50">
@@ -135,53 +138,51 @@ export function InstructorHeader() {
         </div>
 
         {/* Center: Navigation Tabs (Desktop only) */}
-        {!isMobile && (
-          <nav ref={navRef} className="flex items-center gap-4 relative">
-            {/* Animated Underline */}
-            <div
-              ref={activeTabRef}
-              className="absolute bg-purple-600 h-0.5 bottom-0 left-0 pointer-events-none"
-              style={{ width: 0, opacity: 0 }} // Initial state
-            />
+        <nav ref={navRef} className="hidden lg:flex items-center gap-4 relative">
+          {/* Animated Underline */}
+          <div
+            ref={activeTabRef}
+            className="absolute bg-purple-600 h-0.5 bottom-0 left-0 pointer-events-none"
+            style={{ width: 0, opacity: 0 }} // Initial state
+          />
 
-            {navItems.map((item, index) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  ref={el => {
-                    tabRefs.current[index] = el;
-                  }}
-                  className={`relative z-10 py-2 text-base font-medium transition-colors ${isActive ? "text-purple-600" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-        )}
+          {navItems.map((item, index) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                ref={el => {
+                  tabRefs.current[index] = el;
+                }}
+                className={`relative z-10 py-2 text-base font-medium transition-colors ${isActive ? "text-purple-600" : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
 
         {/* Right: User Menu */}
         <div className="flex items-center gap-2">
-          
+
           {isAuthenticated ? (
             <>
-             {!isMobile && (
-            <Link href="/supscription">
-              <div className="relative group cursor-pointer mr-2">
-                <Button 
-                  className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
-                  variant="ghost"
-                >
-                  <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
-                </Button>
-              </div>
-            </Link>
-          )}
-            {subscription?.subscriptionPlan && !isMobile && (
+              {!isMobile && (
+                <Link href="/supscription">
+                  <div className="relative group cursor-pointer mr-2">
+                    <Button
+                      className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
+                      variant="ghost"
+                    >
+                      <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                      <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
+                    </Button>
+                  </div>
+                </Link>
+              )}
+              {subscription?.subscriptionPlan && !isMobile && (
                 <div className="flex items-center">
                   {/* <Badge 
                     variant="outline" 
@@ -195,9 +196,9 @@ export function InstructorHeader() {
                 <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
               ) : (
                 <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
-                  <div 
+                  <div
                     className={`relative p-[2px] rounded-full ${isMobile ? "w-9 h-9" : "w-11 h-11"} flex items-center justify-center transition-all duration-300 hover:scale-105`}
-                    style={{ 
+                    style={{
                       background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to gray-200 equivalent
                     }}
                   >
@@ -215,10 +216,10 @@ export function InstructorHeader() {
                       </div>
                     )}
                     {userProfile?.isActive && (
-                    <span className="absolute bottom-0 right-0 w-3 h-3 flex z-10">
+                      <span className="absolute bottom-0 right-0 w-3 h-3 flex z-10">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
-                    </span>
+                      </span>
                     )}
                   </div>
                 </Link>
@@ -226,8 +227,13 @@ export function InstructorHeader() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
+                  <Button variant="ghost" size="icon" className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
                     <Menu className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                    {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 flex z-10">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
+                      </span>)}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -262,9 +268,22 @@ export function InstructorHeader() {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
                     onSelect={() => setIsNotificationOpen(true)}>
-                    <div className="flex items-center gap-2">
-                      <Bell className="h-4 w-4" />
-                      Thông báo
+                    <div className="flex flex-row justify-between items-center gap-2 ">
+                      <div className="flex flex-row items-center gap-2">
+                        <div className="flex">
+                          <Bell className="h-4 w-4" />
+                        </div>
+                        Thông báo
+                      </div>
+                      <div>
+                        {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
+                            <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white text-[10px] font-bold text-white">
+                              {notificationStatus.unreadCount > 99 ? '99+' : notificationStatus.unreadCount}
+                            </span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">

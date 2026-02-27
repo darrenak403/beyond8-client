@@ -23,6 +23,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { AvatarCropperDialog } from "@/components/ui/cropper-image";
 
 interface ProfileHeaderProps {
   userProfile: {
@@ -41,7 +44,10 @@ export default function ProfileHeader({
   const { uploadAvatar, isUploadingAvatar, uploadCover, isUploadingCover } = useUploadImage();
   const { unhideProfile, isUnhiding } = useHiddenProfile();
   const [showHideDialog, setShowHideDialog] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
   const { subscription } = useSubscription();
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   
   const getGradientStyle = (code?: string) => {
     switch (code?.toUpperCase()) {
@@ -95,17 +101,19 @@ export default function ProfileHeader({
       if (file) {
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          alert("Kích thước file không được vượt quá 5MB");
+          toast.error("Kích thước file không được vượt quá 5MB");
           return;
         }
         
         // Validate file type
         if (!file.type.startsWith("image/")) {
-          alert("Vui lòng chọn file ảnh");
+          toast.error("Vui lòng chọn file ảnh");
           return;
         }
-        
-        uploadAvatar(file);
+
+        const objectUrl = URL.createObjectURL(file);
+        setAvatarPreview(objectUrl);
+        setIsCropperOpen(true);
       }
     };
     input.click();
@@ -122,13 +130,13 @@ export default function ProfileHeader({
       if (file) {
         // Validate file size (max 10MB for cover)
         if (file.size > 10 * 1024 * 1024) {
-          alert("Kích thước file không được vượt quá 10MB");
+          toast.error("Kích thước file không được vượt quá 10MB");
           return;
         }
         
         // Validate file type
         if (!file.type.startsWith("image/")) {
-          alert("Vui lòng chọn file ảnh");
+          toast.error("Vui lòng chọn file ảnh");
           return;
         }
         
@@ -147,6 +155,24 @@ export default function ProfileHeader({
 
   return (
     <div className="overflow-hidden">
+      <AvatarCropperDialog
+        open={isCropperOpen}
+        imageSrc={avatarPreview}
+        onClose={() => {
+          setIsCropperOpen(false);
+          if (avatarPreview) {
+            URL.revokeObjectURL(avatarPreview);
+            setAvatarPreview(null);
+          }
+        }}
+        onCropped={(file) => {
+          uploadAvatar(file);
+          if (avatarPreview) {
+            URL.revokeObjectURL(avatarPreview);
+            setAvatarPreview(null);
+          }
+        }}
+      />
       {/* Banner with Upload */}
       <div
         className={`bg-gradient-to-r from-primary to-brand-purple relative rounded-2xl overflow-hidden ${
@@ -270,7 +296,10 @@ export default function ProfileHeader({
             <Button
               variant="destructive"
               size={isMobile ? "sm" : "default"}
-              onClick={() => setShowHideDialog(true)}
+              onClick={() => {
+                setShowHideDialog(true);
+                setConfirmText("");
+              }}
               disabled={isUnhiding}
               className="gap-2 rounded-2xl cursor-pointer"
             >
@@ -286,18 +315,35 @@ export default function ProfileHeader({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận ẩn hồ sơ giảng viên</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2 border border-gray-200 p-4 rounded-md mt-4 bg-gray-50">
-              <p>Bạn có chắc là muốn ẩn hồ sơ giảng viên của mình không?</p>
-              <p className="font-semibold text-destructive">
-                Bạn sẽ không còn là giảng viên sau khi thực hiện hành động này nữa.
-              </p>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2 border border-red-200/50 bg-red-50/50 p-4 rounded-xl">
+                  <p className="font-semibold text-gray-900">Bạn có chắc là muốn ẩn hồ sơ giảng viên của mình không?</p>
+                  <p className="text-sm text-destructive font-medium">
+                    Bạn sẽ không còn là giảng viên sau khi thực hiện hành động này nữa.
+                  </p>
+                </div>
+                
+                <div className="space-y-3 pt-2">
+                   <p className="text-sm text-muted-foreground">
+                      Vui lòng nhập <span className="font-bold text-black select-none">{instructorProfile?.id?.split('-').pop()}</span> để xác nhận.
+                   </p>
+                   <Input 
+                      value={confirmText}
+                      onChange={(e) => setConfirmText(e.target.value)}
+                      placeholder={`Nhập '${instructorProfile?.id?.split('-').pop()}'`}
+                      className="w-full"
+                   />
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setShowHideDialog(false)}>Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleHideProfile}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={confirmText !== instructorProfile?.id?.split('-').pop()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Xác nhận ẩn
             </AlertDialogAction>

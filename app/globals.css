@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Vidstack Player Base Styles */
+@import '@vidstack/react/player/styles/base.css';
 
 @layer base {
   :root {
@@ -219,4 +221,144 @@ input[type="date"] {
   display: none;
   width: 0;
   height: 0;
+}
+
+.ProseMirror {
+  @apply px-4 pt-2;
+  outline: none !important;
+}
+
+h1.tiptap-heading {
+  @apply mb-6 mt-8 text-4xl font-bold;
+}
+
+h2.tiptap-heading {
+  @apply mb-4 mt-6 text-3xl font-bold;
+}
+
+h3.tiptap-heading {
+  @apply mb-3 mt-4 text-xl font-bold;
+}
+
+h1.tiptap-heading:first-child,
+h2.tiptap-heading:first-child,
+h3.tiptap-heading:first-child {
+  margin-top: 0;
+}
+
+h1.tiptap-heading+h2.tiptap-heading,
+h1.tiptap-heading+h3.tiptap-heading,
+h2.tiptap-heading+h1.tiptap-heading,
+h2.tiptap-heading+h3.tiptap-heading,
+h3.tiptap-heading+h1.tiptap-heading,
+h3.tiptap-heading+h2.tiptap-heading {
+  margin-top: 0;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  @apply pointer-events-none float-left h-0 text-accent-foreground;
+  content: attr(data-placeholder);
+}
+
+.tiptap ul,
+.tiptap ol {
+  padding: 0 1rem;
+}
+
+.tiptap blockquote {
+  border-left: 3px solid gray;
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+}
+
+/* Custom Scrollbar Styling - Match Brand Colors */
+/* For Chrome, Safari, Edge (Webkit browsers) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--brand-pink), var(--brand-magenta));
+  border-radius: 10px;
+  border: 2px solid var(--muted);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--brand-magenta), var(--brand-purple));
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-magenta) var(--muted);
+}
+
+/* Optional: Custom scrollbar for specific containers */
+.scrollbar-brand {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-magenta) var(--muted);
+}
+
+.scrollbar-brand::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-brand::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 8px;
+}
+
+.scrollbar-brand::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--brand-pink), var(--brand-magenta));
+  border-radius: 8px;
+}
+
+.scrollbar-brand::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--brand-magenta), var(--brand-purple));
+}
+
+/* Auto-show scrollbar on hover */
+.scrollbar-auto-show {
+  scrollbar-color: transparent transparent;
+  /* Firefox: thumb track */
+  transition: scrollbar-color 0.3s;
+}
+
+.scrollbar-auto-show:hover {
+  scrollbar-color: var(--brand-magenta) transparent;
+  /* Firefox: thumb track */
+}
+
+.scrollbar-auto-show::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-auto-show::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-auto-show::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+}
+
+.scrollbar-auto-show:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--brand-pink), var(--brand-magenta));
+  border-radius: 8px;
+  border: 2px solid var(--muted);
+}
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
 }

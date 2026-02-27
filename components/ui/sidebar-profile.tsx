@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { BookOpen, Settings, History } from "lucide-react";
+import { BookOpen, Settings, History, Award, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/useMobile";
 import Link from "next/link";
@@ -14,6 +14,12 @@ const sidebarMenuItems = [
     value: "mycourse",
   },
   {
+    id: "mycertificate",
+    label: "Chứng chỉ của tôi",
+    icon: Award,
+    value: "mycertificate",
+  },
+  {
     id: "myprofile",
     label: "Cài đặt tài khoản",
     icon: Settings,
@@ -24,6 +30,12 @@ const sidebarMenuItems = [
     label: "Lịch sử dùng AI",
     icon: History,
     value: "myusage",
+  },
+  {
+    id: "payment-history",
+    label: "Lịch sử giao dịch",
+    icon: CreditCard,
+    value: "payment-history",
   },
 ];
 
@@ -43,10 +55,15 @@ export default function SidebarProfile({ currentTab }: SidebarProfileProps) {
             const Icon = item.icon;
             const isActive = currentTab === item.value;
 
+            const href =
+              item.value === "payment-history"
+                ? "/mybeyond/payment-history"
+                : `/mybeyond?tab=${item.value}`;
+
             return (
               <Link
                 key={item.id}
-                href={`/mybeyond?tab=${item.value}`}
+                href={href}
                 className={cn(
                   'flex flex-col items-center justify-center p-2 rounded-lg transition-colors',
                   isActive ? 'text-purple-700' : 'text-gray-500 hover:text-gray-900'
@@ -64,12 +81,17 @@ export default function SidebarProfile({ currentTab }: SidebarProfileProps) {
   // Desktop Sidebar
   return (
     <aside className="w-64 flex-shrink-0">
-      <div className="p-4">
+      <div className="">
         <nav className="space-y-1">
           {sidebarMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.value;
             
+            const href =
+              item.value === "payment-history"
+                ? "/mybeyond/payment-history"
+                : `/mybeyond?tab=${item.value}`;
+
             return (
               <div key={item.id} className="relative">
                 {isActive && (
@@ -84,7 +106,7 @@ export default function SidebarProfile({ currentTab }: SidebarProfileProps) {
                   />
                 )}
                 <Link
-                  href={`/mybeyond?tab=${item.value}`}
+                  href={href}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                     isActive

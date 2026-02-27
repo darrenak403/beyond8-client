@@ -5,10 +5,8 @@ import { AdminSidebar } from '@/components/ui/admin-sidebar';
 import { AdminHeader } from '@/components/ui/admin-header';
 import { useIsMobile } from '@/hooks/useMobile';
 
-import { usePathname } from 'next/navigation';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const isMobile = useIsMobile();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isMobile);
 

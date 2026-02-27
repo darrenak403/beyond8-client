@@ -39,35 +39,6 @@ const AnimatedGrid = () => {
         }}
       />
 
-      {/* Floating Particles / Glow Spots */}
-      <motion.div
-        className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/40 rounded-full blur-[80px]"
-        animate={{
-          x: [0, 50, -50, 0],
-          y: [0, -50, 50, 0],
-          scale: [1, 1.2, 0.9, 1],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut",
-        }}
-      />
-      <motion.div
-        className="absolute bottom-1/3 right-1/3 w-64 h-64 bg-indigo-600/40 rounded-full blur-[60px]"
-        animate={{
-          x: [0, -30, 30, 0],
-          y: [0, 30, -30, 0],
-          scale: [1, 1.1, 0.9, 1],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut",
-        }}
-      />
     </div>
   );
 };

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,6 +12,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/useMobile";
+import SafeImage from "@/components/ui/SafeImage";
 
 export default function RecommendedCoursesSection() {
   const isMobile = useIsMobile();
@@ -20,6 +20,7 @@ export default function RecommendedCoursesSection() {
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     if (!api) return;
@@ -42,14 +43,14 @@ export default function RecommendedCoursesSection() {
 
   // Auto-play carousel
   useEffect(() => {
-    if (!api) return;
+    if (!api || isPaused) return;
 
     const autoplay = setInterval(() => {
       api.scrollNext();
     }, 5000);
 
     return () => clearInterval(autoplay);
-  }, [api]);
+  }, [api, isPaused]);
 
   const carouselData = [
     {
@@ -160,7 +161,11 @@ export default function RecommendedCoursesSection() {
           </div>
 
           {/* Right: Carousel */}
-          <div className={`${isMobile ? "" : "lg:col-span-8"} relative`}>
+          <div
+             className={`${isMobile ? "" : "lg:col-span-8"} relative`}
+             onMouseEnter={() => setIsPaused(true)}
+             onMouseLeave={() => setIsPaused(false)}
+          >
             <Carousel
               setApi={setApi}
               opts={{
@@ -174,9 +179,9 @@ export default function RecommendedCoursesSection() {
                   <CarouselItem key={item.id} className="relative">
                     <Link href={item.link || "/courses"} className="block">
                       <div
-                        className={`relative w-full ${isMobile ? "aspect-[16/9]" : "aspect-[4/1]"} rounded-2xl overflow-hidden group cursor-pointer`}
+                        className={`relative w-full ${isMobile ? "aspect-video" : "aspect-4/1"} rounded-2xl overflow-hidden group cursor-pointer`}
                       >
-                        <Image
+                        <SafeImage
                           src={item.src}
                           alt={item.alt}
                           fill
@@ -206,6 +211,7 @@ export default function RecommendedCoursesSection() {
                     onClick={() => api?.scrollPrev()}
                     disabled={!canScrollPrev}
                     className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 rounded-full z-10 cursor-pointer"
+                    aria-label="Previous slide"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -215,6 +221,7 @@ export default function RecommendedCoursesSection() {
                     onClick={() => api?.scrollNext()}
                     disabled={!canScrollNext}
                     className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 rounded-full z-10 cursor-pointer"
+                    aria-label="Next slide"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>

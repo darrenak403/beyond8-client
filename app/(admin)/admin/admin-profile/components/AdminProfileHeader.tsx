@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { useUploadImage } from "@/hooks/useUploadImage";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import SafeImage from "@/components/ui/SafeImage";
+import { toast } from "sonner";
 
 interface AdminProfileHeaderProps {
   userProfile: {
@@ -32,11 +33,11 @@ export default function AdminProfileHeader({ userProfile }: AdminProfileHeaderPr
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         if (file.size > 5 * 1024 * 1024) {
-          alert("Kích thước file không được vượt quá 5MB");
+          toast.error("Kích thước file không được vượt quá 5MB");
           return;
         }
         if (!file.type.startsWith("image/")) {
-          alert("Vui lòng chọn file ảnh");
+          toast.error("Vui lòng chọn file ảnh");
           return;
         }
         uploadAvatar(file);
@@ -55,11 +56,11 @@ export default function AdminProfileHeader({ userProfile }: AdminProfileHeaderPr
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         if (file.size > 10 * 1024 * 1024) {
-          alert("Kích thước file không được vượt quá 10MB");
+          toast.error("Kích thước file không được vượt quá 10MB");
           return;
         }
         if (!file.type.startsWith("image/")) {
-          alert("Vui lòng chọn file ảnh");
+          toast.error("Vui lòng chọn file ảnh");
           return;
         }
         uploadCover(file);

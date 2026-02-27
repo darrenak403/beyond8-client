@@ -53,14 +53,14 @@ export const getColumns = ({
             cell: ({ row }) => {
                 const areas = row.original.expertiseAreas || [];
                 return (
-                    <div className="flex gap-1 max-w-50">
+                    <div className="flex flex-wrap gap-1 max-w-75">
                         {areas.slice(0, 2).map((area, index) => (
-                            <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-xs">
+                            <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-xs max-w-37.5 truncate">
                                 {area}
                             </Badge>
                         ))}
                         {areas.length > 2 && (
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-xs">
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-xs shrink-0">
                                 +{areas.length - 2}
                             </Badge>
                         )}
@@ -76,14 +76,14 @@ export const getColumns = ({
             cell: ({ row }) => {
                 const languages = row.original.teachingLanguages || [];
                 return (
-                    <div className="flex flex-wrap gap-1 max-w-50">
+                    <div className="flex flex-wrap gap-1 max-w-[200px]">
                         {languages.slice(0, 2).map((lang, index) => (
-                            <Badge key={index} variant="outline" className="border-blue-200 text-blue-700 bg-blue-50 text-xs">
+                            <Badge key={index} variant="outline" className="border-blue-200 text-blue-700 bg-blue-50 text-xs max-w-[120px] truncate">
                                 {lang}
                             </Badge>
                         ))}
                         {languages.length > 2 && (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 text-xs">
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 text-xs flex-shrink-0">
                                 +{languages.length - 2}
                             </Badge>
                         )}

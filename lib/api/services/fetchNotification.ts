@@ -13,26 +13,6 @@ export enum NotificationChannel {
   Other = "Other",
 }
 
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  status: NotificationStatus;
-  channel: NotificationChannel;
-  isRead: boolean;
-  createdAt: string;
-  type?: string; 
-  sender?: {
-      name: string;
-      avatar: string;
-  }
-}
-
-export interface NotificationResponse {
-  notifications: NotificationItem[];
-  totalCount: number;
-}
-
 export interface NotificationParams {
   status?: NotificationStatus;
   channel?: NotificationChannel;
@@ -54,7 +34,6 @@ const convertParamsToQuery = (params: NotificationParams): RequestParams => {
   return query;
 };
 
-
 export interface NotificationItem {
   id: string;
   title: string;
@@ -66,31 +45,34 @@ export interface NotificationItem {
   readAt: string | null;
   isRead: boolean | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string | null;
 }
 
-export interface PaginatedNotifications {
-  items: NotificationItem[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
+export interface NotificationStatusData {
+  isRead: boolean;
+  unreadCount: number;
 }
 
-export interface InstructorNotificationsData {
-  userNotifications: PaginatedNotifications;
-  instructorNotifications: PaginatedNotifications;
+export interface NotificationLogItem {
+  id: string;
+  userId: string;
+  target: string;
+  status: string;
+  channels: string[];
+  readAt: string | null;
+  isRead: boolean | null;
+  context: string;
+  createdAt: string;
+  updatedAt: string | null;
 }
-
-
-
 
 export const notificationService = {
-  getMyNotifications: async (
+  getStudentNotifications: async (
     params: NotificationParams
-  ): Promise<ApiResponse<NotificationResponse>> => {
+  ): Promise<ApiResponse<NotificationItem[]>> => {
     const query = convertParamsToQuery(params);
-    const response = await apiService.get<ApiResponse<NotificationResponse>>(
-      "/api/v1/notifications/my-notifications",
+    const response = await apiService.get<ApiResponse<NotificationItem[]>>(
+      "api/v1/notifications/student",
       query
     );
     return response.data;
@@ -98,18 +80,37 @@ export const notificationService = {
 
   getInstructorNotifications: async (
     params: NotificationParams
-  ): Promise<ApiResponse<InstructorNotificationsData>> => {
+  ): Promise<ApiResponse<NotificationItem[]>> => {
     const query = convertParamsToQuery(params);
-    const response = await apiService.get<ApiResponse<InstructorNotificationsData>>(
-      "/api/v1/notifications/instructor-notifications",
+    const response = await apiService.get<ApiResponse<NotificationItem[]>>(
+      "api/v1/notifications/instructor",
       query
     );
     return response.data;
   },
 
-  markAllRead: async (): Promise<ApiResponse<boolean>> => {
+  getStaffNotifications: async (
+    params: NotificationParams
+  ): Promise<ApiResponse<NotificationItem[]>> => {
+    const query = convertParamsToQuery(params);
+    const response = await apiService.get<ApiResponse<NotificationItem[]>>(
+      "api/v1/notifications/staff",
+      query
+    );
+    return response.data;
+  },
+
+  markReadAll: async (): Promise<ApiResponse<boolean>> => {
     const response = await apiService.put<ApiResponse<boolean>>(
-      "/api/v1/notifications/read-all",
+      "api/v1/notifications/instructor/read-all",
+      {}
+    );
+    return response.data;
+  },
+
+  markAllReadStudent: async (): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.put<ApiResponse<boolean>>(
+      "api/v1/notifications/student/read-all",
       {}
     );
     return response.data;
@@ -117,14 +118,53 @@ export const notificationService = {
 
   deleteNotification: async (id: string): Promise<ApiResponse<boolean>> => {
     const response = await apiService.delete<ApiResponse<boolean>>(
-      `/api/v1/notifications/${id}`
+      `api/v1/notifications/${id}`
     );
     return response.data;
   },
 
   deleteAllNotifications: async (): Promise<ApiResponse<boolean>> => {
     const response = await apiService.delete<ApiResponse<boolean>>(
-      "/api/v1/notifications/delete-all"
+      "api/v1/notifications/student/delete-all"
+    );
+    return response.data;
+  },
+
+  deleteInstructorNotifications : async (): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.delete<ApiResponse<boolean>>(
+      "api/v1/notifications/instructor/delete-all"
+    );
+    return response.data;
+  },
+
+  getNotificationStatus: async (): Promise<ApiResponse<NotificationStatusData>> => {
+    const response = await apiService.get<ApiResponse<NotificationStatusData>>(
+      "api/v1/notifications/instructor/status"
+    );
+    return response.data;
+  },
+
+  getStudentNotificationStatus: async (): Promise<ApiResponse<NotificationStatusData>> => {
+    const response = await apiService.get<ApiResponse<NotificationStatusData>>(
+      "api/v1/notifications/student/status"
+    );
+    return response.data;
+  },
+
+  getStaffNotificationStatus: async (): Promise<ApiResponse<NotificationStatusData>> => {
+    const response = await apiService.get<ApiResponse<NotificationStatusData>>(
+      "api/v1/notifications/staff/status"
+    );
+    return response.data;
+  },
+
+  getAdminNotificationLogs: async (
+    params: NotificationParams
+  ): Promise<ApiResponse<NotificationLogItem[]>> => {
+    const query = convertParamsToQuery(params);
+    const response = await apiService.get<ApiResponse<NotificationLogItem[]>>(
+      "api/v1/notifications/admin/logs",
+      query
     );
     return response.data;
   },

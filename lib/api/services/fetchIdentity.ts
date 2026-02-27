@@ -28,6 +28,18 @@ export interface IdentityCardUploadResult {
   fileId: string;
   classifyResult: ClassifyResponse;
   isFront: boolean;
+  ekycImg?: string;
+}
+
+export interface FaceIdResponse {
+  isSuccess: boolean;
+  message: string;
+  data: {
+    result: string;
+    msg: unknown
+    prob: number
+  }
+  metadata: unknown
 }
 
 export const identityService = {
@@ -64,6 +76,8 @@ export const identityService = {
 
     const { img } = isIdentityResponse.data;
 
+    const ekycImg = isFront && img ? img : undefined;
+
     if (!img) {
       throw new Error("Không thể xử lý ảnh CCCD");
     }
@@ -81,11 +95,27 @@ export const identityService = {
       ? await mediaService.uploadIdentityCardFront(file)
       : await mediaService.uploadIdentityCardBack(file);
 
+    console.log("ekycImg", ekycImg);
+
     return {
       fileUrl: mediaFile.fileUrl,
       fileId: mediaFile.id,
       classifyResult: classifyResponse.data,
       isFront,
+      ekycImg: ekycImg,
     };
   },
+
+  faceId: async (faceFile: File, imgFrontHash: string): Promise<FaceIdResponse> => {
+    const formData = new FormData();
+    formData.append("faceFile", faceFile);
+    formData.append("imgFrontHash", imgFrontHash); // Pass EKYC image hash
+
+    const response = await apiService.post<FaceIdResponse>(
+      "api/v1/vnpt-ekyc/compare-face",
+      formData
+    );
+    return response.data;
+  },
+
 };

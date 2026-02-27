@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo} from "react";
-import { useSubscriptionPlans, useSubscription } from "@/hooks/useSubscription";
+import { useSubscriptionPlans, useSubscription, useBuySubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useMobile";
 import { LoginDialog } from "@/components/widget/auth/LoginDialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
-import { Check, Zap, Shield, Crown, Gem } from "lucide-react";
+import { Check, Zap, Shield, Crown, Gem, AlertTriangle, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 import {
   Carousel,
   CarouselContent,
@@ -26,14 +28,41 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 export function PricingSection() {
   const { plans, isLoading, error } = useSubscriptionPlans();
   const { subscription } = useSubscription();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated }= useAuth();
+  const router = useRouter();
+  const { buySubscription, isPending } = useBuySubscription({
+    onSuccess: (data) => {
+      const paymentData = data as { isPending?: boolean; paymentUrl?: string };
+      
+      // Check if there's a pending payment
+      if (paymentData.isPending) {
+        setPendingPaymentUrl(paymentData.paymentUrl || null);
+        setShowPendingPaymentDialog(true);
+        return;
+      }
+      
+      // Normal flow - redirect to payment
+      if (paymentData.paymentUrl) {
+        window.location.href = paymentData.paymentUrl;
+      }
+    },
+  });
   const isMobile = useIsMobile();
   const [api, setApi] = useState<CarouselApi>();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [showPendingPaymentDialog, setShowPendingPaymentDialog] = useState(false);
+  const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null);
+  const [selectedPlanCode, setSelectedPlanCode] = useState<string | null>(null);
+
+  // Check if user has active paid subscription (not free)
+  const hasActivePaidSubscription = subscription?.subscriptionPlan?.code &&
+    !["FREE", "BASIC", ""].includes(subscription.subscriptionPlan.code.toUpperCase());
 
   const initialIndex = useMemo(() => (plans && plans.length > 0) ? Math.floor(plans.length / 2) : 0, [plans]);
   const [current, setCurrent] = useState(initialIndex);
@@ -137,7 +166,7 @@ export function PricingSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-foreground to-foreground/70">
               Mở khóa sức mạnh AI
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto mt-4">
@@ -156,6 +185,7 @@ export function PricingSection() {
               {plans?.map((plan, index) => {
                 const isSelected = index === current;
                 const isPopular = plan.price > 0 && plan.price < 500000;  
+                const isTheBest = plan.price > 500000
                 const isRegistered = subscription?.subscriptionPlan?.code === plan.code;
                 
                 return (
@@ -222,14 +252,14 @@ export function PricingSection() {
                           </CardDescription>
                         </CardHeader>
 
-                        <CardContent className="flex-grow space-y-6">
+                        <CardContent className="grow space-y-6">
                           <div className="flex items-baseline gap-1">
                               {plan.price === 0 ? (
                                 <span className="text-4xl font-extrabold"> Miễn phí </span>
                               ) : (
                                 <>
                                 <span className="text-4xl font-extrabold">
-                                  {plan.price}K                           
+                                  {formatCurrency(plan.price)}                      
                                 </span>
                                 <span className="text-muted-foreground">
                                   /{plan.durationDays} ngày
@@ -290,26 +320,37 @@ export function PricingSection() {
                         </CardContent>
 
                         <CardFooter className="pt-6">
-                          <Button
-                            className={cn(
-                              "w-full h-12 text-base font-semibold rounded-xl transition-all",
-                              isRegistered
-                                ? "bg-gray-300 border-2 text-black cursor-not-allowed"
-                                : isPopular
-                                ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
-                                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                            )}
-                            disabled={isRegistered}
-                            onClick={() => {
-                                if (!isAuthenticated) {
-                                    setShowLoginDialog(true);
-                                }
-                            }}
-                          >
-                           {isRegistered
-                              ? "Đã đăng ký"
-                              : (plan.price === 0 ? "Bắt đầu miễn phí" : "Đăng ký ngay")}
-                          </Button>
+                          {plan.price !== 0 && (
+                            <Button
+                              className={cn(
+                                "w-full h-12 text-base font-semibold rounded-xl transition-all",
+                                isRegistered
+                                  ? "bg-gray-300 border-2 text-black cursor-not-allowed"
+                                  : isPopular
+                                  ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
+                                  : isTheBest
+                                  ? "bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg shadow-purple-200"
+                                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                              )}
+                              disabled={isRegistered || isPending}
+                              onClick={() => {
+                                  if (!isAuthenticated) {
+                                      setShowLoginDialog(true);
+                                  } else if (!isRegistered && plan.price !== 0) {
+                                      if (hasActivePaidSubscription) {
+                                          setSelectedPlanCode(plan.code);
+                                          setShowUpgradeDialog(true);
+                                      } else {
+                                          buySubscription(plan.code);
+                                      }
+                                  }
+                              }}
+                            >
+                             {isRegistered
+                                ? "Đã đăng ký"
+                                : "Đăng ký ngay"}
+                            </Button>
+                          )}
                         </CardFooter>
                       </Card>
                     </div>
@@ -326,6 +367,87 @@ export function PricingSection() {
             )}
           </Carousel>
           <LoginDialog open={showLoginDialog} onOpenChange={setShowLoginDialog} />
+
+          {/* Upgrade Confirmation Dialog */}
+          <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  Xác nhận đổi gói
+                </DialogTitle>
+                <DialogDescription className="text-base">
+                  Bạn đang có gói <span className="font-semibold text-primary">{subscription?.subscriptionPlan?.name}</span>. Khi đổi sang gói mới:
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-4">
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+                  <span className="text-sm">Gói mới của bạn sẽ bắt đầu ngay lập tức</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                  <span className="text-sm">Mọi khoản chiết khấu cho gói hiện tại của bạn sẽ kết thúc khi bạn đổi gói</span>
+                </div>
+              </div>
+              <DialogFooter className="sm:justify-between gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowUpgradeDialog(false)}
+                  className="w-full sm:w-auto rounded-2xl"
+                >
+                  Hủy
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (selectedPlanCode) {
+                      setShowUpgradeDialog(false);
+                      buySubscription(selectedPlanCode);
+                    }
+                  }}
+                  disabled={isPending}
+                  className="w-full sm:w-auto rounded-2xl"
+                >
+                  {isPending ? "Đang xử lý..." : "Tiếp tục đăng ký"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Pending Payment Dialog */}
+          <Dialog open={showPendingPaymentDialog} onOpenChange={setShowPendingPaymentDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  Đơn hàng chưa thanh toán
+                </DialogTitle>
+                <DialogDescription className="text-base">
+                  Bạn đang có đơn hàng chưa thanh toán. Vui lòng thanh toán để tiếp tục mua hàng.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/mybeyond/payment-history")}
+                  className="w-full sm:w-auto rounded-2xl"
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  Xem lịch sử giao dịch
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowPendingPaymentDialog(false);
+                    if (pendingPaymentUrl) {
+                      window.location.href = pendingPaymentUrl;
+                    }
+                  }}
+                  className="w-full sm:w-auto rounded-2xl"
+                >
+                  Thanh toán
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </section>

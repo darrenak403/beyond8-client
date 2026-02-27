@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
 import { useSubscription } from "@/hooks/useSubscription";
 import {
   Zap,
@@ -14,9 +14,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UpgradeSubscriptionDialog } from "@/components/widget/UpgradeSubscriptionDialog";
 
 const ServiceDetail = () => {
   const { subscription, isLoading, error } = useSubscription();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
   if (isLoading) {
     return (
@@ -62,7 +64,7 @@ const ServiceDetail = () => {
         <CardContent className="p-8 relative z-10">
           <div className="flex flex-col md:flex-row justify-between gap-8">
             <div className="space-y-4">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 text-xs font-bold uppercase tracking-wider ">
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-linear-to-r from-purple-100 to-pink-100 text-purple-700 text-xs font-bold uppercase tracking-wider ">
                 Gói hiện tại
               </div>
               {subscriptionPlan.price == 0 ? (
@@ -126,9 +128,9 @@ const ServiceDetail = () => {
              <div className="space-y-2">
                <div className="flex justify-between text-sm">
                  <span className="text-muted-foreground">Số request còn lại</span>
-                 <span className="font-bold text-foreground">{(maxRequestsPerWeek - remainingRequests) / maxRequestsPerWeek} /{remainingRequests} request</span>
+                 <span className="font-bold text-foreground">{(maxRequestsPerWeek - remainingRequests)}  /{remainingRequests} request</span>
                </div>
-               <Progress value={((maxRequestsPerWeek - remainingRequests) / maxRequestsPerWeek) * 100} className="h-2 bg-muted transition-all" />
+               <Progress value={((maxRequestsPerWeek - remainingRequests) * 100) / maxRequestsPerWeek} className="h-2 bg-muted transition-all" />
                <p className="text-xs text-muted-foreground">
                  {isRequestLimitedReached ? (
                     <span className="text-red-500 font-medium flex items-center gap-1">
@@ -166,13 +168,19 @@ const ServiceDetail = () => {
               )}
             </ul>
             <div className="mt-6">
-              <Button className="w-full bg-primary/80 text-primary-foreground hover:bg-primary rounded-2xl" variant="default">
+              <Button 
+                className="w-full bg-primary/80 text-primary-foreground hover:bg-primary rounded-2xl" 
+                variant="default"
+                onClick={() => setShowUpgradeDialog(true)}
+              >
                 Nâng cấp gói
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <UpgradeSubscriptionDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog} />
     </div>
   );
 };

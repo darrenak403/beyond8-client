@@ -6,16 +6,20 @@ import { OrbitControls, Stage } from "@react-three/drei";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 function Model() {
-  const gltf = useLoader(GLTFLoader, "/book1.glb");
+  const gltf = useLoader(GLTFLoader, "/book.glb");
   
   return (
-    <primitive object={gltf.scene} scale={50} />
+    <primitive object={gltf.scene} scale={25} />
   );
 }
 
-export default function ModelViewer() {
+interface ModelViewerProps {
+  isMobile?: boolean;
+}
+
+export default function ModelViewer({ isMobile = false }: ModelViewerProps) {
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ fov: 90, position: [0, 0, 18], rotation: [0, Math.PI / 2,0 ] }}>
+    <Canvas shadows={!isMobile} dpr={isMobile ? 1 : [1, 2]} camera={{ fov: 90, position: [0, 0, 18], rotation: [0, Math.PI / 2,0 ] }}>
       <Suspense fallback={null}>
         <Stage environment="city" intensity={1}>
           <Model />
@@ -27,8 +31,8 @@ export default function ModelViewer() {
         makeDefault 
         enableDamping={false}
         enableZoom={false}
-        minPolarAngle={Math.PI / 5} 
-        maxPolarAngle={Math.PI / 5} 
+        minPolarAngle={Math.PI / 13} 
+        maxPolarAngle={Math.PI / 13} 
       />
     </Canvas>
   );

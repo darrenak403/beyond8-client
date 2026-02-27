@@ -5,7 +5,7 @@ export function useNotification(params: NotificationParams, options?: { enabled?
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["notifications", params],
     queryFn: async () => {
-      const response = await notificationService.getMyNotifications(params);
+      const response = await notificationService.getStudentNotifications(params);
       if (!response.isSuccess) {
         throw new Error(response.message);
       }
@@ -16,8 +16,8 @@ export function useNotification(params: NotificationParams, options?: { enabled?
   });
 
   return {
-    notifications: data?.notifications || [],
-    totalCount: data?.totalCount || 0,
+    notifications: data || [],
+    totalCount: data?.length || 0,
     isLoading,
     error,
     refetch,
@@ -46,12 +46,34 @@ export function useInstructorNotification(params: NotificationParams, options?: 
   };
 }
 
-export function useMarkAllRead() {
+export function useStaffNotification(params: NotificationParams, options?: { enabled?: boolean }) {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["staff-notifications", params],
+    queryFn: async () => {
+      const response = await notificationService.getStaffNotifications(params);
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    refetchInterval: 30000,
+    enabled: options?.enabled
+  });
+
+  return {
+    data,
+    isLoading,
+    error,
+    refetch,
+  };
+}
+
+export function useMarkReadAll() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
-      const response = await notificationService.markAllRead();
+      const response = await notificationService.markReadAll();
       if (!response.isSuccess) {
         throw new Error(response.message);
       }
@@ -60,7 +82,28 @@ export function useMarkAllRead() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["instructor-notifications"] });
-      
+      queryClient.invalidateQueries({ queryKey: ["staff-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notification-status"] });
+      queryClient.invalidateQueries({ queryKey: ["student-notification-status"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-notification-status"] });
+    },
+  });
+}
+
+export function useMarkAllReadStudent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await notificationService.markAllReadStudent();
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["student-notification-status"] });
     },
   });
 }
@@ -79,6 +122,28 @@ export function useDeleteNotification() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["instructor-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notification-status"] });
+      queryClient.invalidateQueries({ queryKey: ["student-notification-status"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-notification-status"] });
+    },
+  });
+}
+
+export function useDeleteInstructorNotification() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await notificationService.deleteInstructorNotifications();
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["instructor-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notification-status"] });
     },
   });
 }
@@ -97,6 +162,98 @@ export function useDeleteAllNotifications() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["instructor-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notification-status"] });
+      queryClient.invalidateQueries({ queryKey: ["student-notification-status"] });
+      queryClient.invalidateQueries({ queryKey: ["staff-notification-status"] });
     },
   });
+}
+
+export function useNotificationStatus(options?: { enabled?: boolean }) {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["notification-status"],
+    queryFn: async () => {
+      const response = await notificationService.getNotificationStatus();
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    refetchInterval: 30000,
+    enabled: options?.enabled,
+  });
+
+  return {
+    status: data,
+    isLoading,
+    error,
+    refetch,
+  };
+}
+
+export function useStudentNotificationStatus(options?: { enabled?: boolean }) {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["student-notification-status"],
+    queryFn: async () => {
+      const response = await notificationService.getStudentNotificationStatus();
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    refetchInterval: 30000,
+    enabled: options?.enabled,
+  });
+
+  return {
+    status: data,
+    isLoading,
+    error,
+    refetch,
+  };
+}
+
+export function useStaffNotificationStatus(options?: { enabled?: boolean }) {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["staff-notification-status"],
+    queryFn: async () => {
+      const response = await notificationService.getStaffNotificationStatus();
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    refetchInterval: 30000,
+    enabled: options?.enabled,
+  });
+
+  return {
+    status: data,
+    isLoading,
+    error,
+    refetch,
+  };
+}
+
+export function useAdminNotificationLogs(params: NotificationParams, options?: { enabled?: boolean }) {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["admin-notification-logs", params],
+    queryFn: async () => {
+      const response = await notificationService.getAdminNotificationLogs(params);
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
+    refetchInterval: 30000,
+    enabled: options?.enabled,
+  });
+
+  return {
+    data,
+    isLoading,
+    error,
+    refetch,
+  };
 }

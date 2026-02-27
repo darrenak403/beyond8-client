@@ -99,24 +99,23 @@ export function AIUsageTable({ data, isLoading, pageCount, pagination, onPaginat
     ], []);
 
     return (
-        <div className="w-full h-full">
+        <div className="w-full h-full flex flex-col">
             <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Chi tiết hoạt động</h3>
                 <p className="text-sm text-gray-500 opacity-90">Danh sách các yêu cầu gần đây</p>
             </div>
             
-            <div>
+            <div className="flex-1 flex flex-col">
                 {isLoading ? (
                     <AIUsageTableSkeleton />
                 ) : (
-                     <DataTable
+                    <DataTable
                         columns={columns}
                         data={data}
                         pageCount={pageCount}
                         pagination={pagination}
                         onPaginationChange={onPaginationChange}
-                        className="border-none"
-                        fullHeight={false}
+                        className="border-none flex-1"
                     >
                         {() => null}
                     </DataTable>

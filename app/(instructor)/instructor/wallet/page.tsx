@@ -1,80 +1,99 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { WalletStatsCards } from "./components/WalletStatsCards";
-import { TransactionHistoryTable, Transaction } from "./components/TransactionHistoryTable";
+import { TransactionHistoryTable } from "./components/TransactionHistoryTable";
 import { WithdrawalSection } from "./components/WithdrawalSection";
-import { ChartLineInteractive } from "../dashboard/components/ChartLineInteractive";
+import { useGetMyWallet, useGetMyTransactions } from "@/hooks/useWallet";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
-// Mock data
-const walletData = {
-  totalRevenue: 154200000,
-  currentBalance: 24500000,
-  pendingClearance: 5200000,
-  totalWithdrawn: 124500000,
-};
-
-const transactions = [
-  {
-    id: "TRX-001",
-    source: "Khóa học React Advanced",
-    date: "27/01/2026",
-    amount: 500000,
-    status: "Completed",
-    type: "Sale",
-  },
-  {
-    id: "TRX-002",
-    source: "Rút tiền về Vietcombank",
-    date: "25/01/2026",
-    amount: 10000000,
-    status: "Completed",
-    type: "Withdrawal",
-  },
-  {
-    id: "TRX-003",
-    source: "Khóa học Next.js Master",
-    date: "24/01/2026",
-    amount: 1200000,
-    status: "Pending",
-    type: "Sale",
-  },
-  {
-    id: "TRX-004",
-    source: "Khóa học UI/UX Design",
-    date: "22/01/2026",
-    amount: 800000,
-    status: "Completed",
-    type: "Sale",
-  },
-  {
-    id: "TRX-005",
-    source: "Rút tiền về Vietcombank",
-    date: "15/01/2026",
-    amount: 5000000,
-    status: "Failed",
-    type: "Withdrawal",
-  },
-] satisfies Transaction[];
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UpcomingSettlementsTable } from "./components/UpcomingSettlementsTable";
+import { useGetMyUpcomingSettlements } from "@/hooks/useWallet";
 
 export default function WalletPage() {
+  const { wallet, isLoading: isWalletLoading } = useGetMyWallet();
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const [upcomingPagination, setUpcomingPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const { data: transactionsData, isLoading: isTransactionsLoading, refetch: refetchTransactions } = useGetMyTransactions({
+    pageNumber: pagination.pageIndex + 1,
+    pageSize: pagination.pageSize,
+    isDescending: true,
+  });
+
+  const { data: upcomingData, isLoading: isUpcomingLoading } = useGetMyUpcomingSettlements({
+    pageNumber: upcomingPagination.pageIndex + 1,
+    pageSize: upcomingPagination.pageSize,
+    isDescending: true,
+  });
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const processedRef = useRef(false);
+
+  useEffect(() => {
+    const vnp_ResponseCode = searchParams.get("vnp_ResponseCode");
+    const vnp_Amount = searchParams.get("vnp_Amount");
+
+    if (vnp_ResponseCode && !processedRef.current) {
+      processedRef.current = true;
+      if (vnp_ResponseCode === "00") {
+        const amount = vnp_Amount ? parseInt(vnp_Amount) / 100 : 0;
+        toast.success(`Nạp tiền thành công ${amount > 0 ? amount.toLocaleString() + ' VNĐ' : ''}`);
+        // Refetch to get updated wallet balance and transactions
+        refetchTransactions();
+      } else {
+        toast.error("Nạp tiền thất bại hoặc đã bị hủy.");
+      }
+
+      // Cleanup URL to remove VNPay params
+      router.replace(pathname, { scroll: false });
+    }
+  }, [searchParams, router, pathname, refetchTransactions]);
 
   return (
     <div className="space-y-6 sm:space-y-8 mx-auto max-w-[1650px] p-1">
       {/* Header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold">Ví của tôi</h1>
-        <p className="text-muted-foreground">
-          Quản lý thu nhập và lịch sử giao dịch của bạn
-        </p>
+      <div className="flex sm:flex-row flex-col gap-4 sm:items-center justify-between">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">Ví của tôi</h1>
+            {wallet && (
+              <Badge variant={wallet.isActive ? "default" : "destructive"}>
+                {wallet.isActive ? "Hoạt động" : "Bị khóa"}
+              </Badge>
+            )}
+          </div>
+          <p className="text-muted-foreground">
+            Quản lý thu nhập và lịch sử giao dịch của bạn
+            {wallet?.createdAt ? ` • Tham gia từ: ${new Date(wallet.createdAt).toLocaleDateString('vi-VN')}` : ''}
+          </p>
+        </div>
       </div>
 
       {/* Stats Cards */}
       <WalletStatsCards
-        totalRevenue={walletData.totalRevenue}
-        currentBalance={walletData.currentBalance}
-        pendingClearance={walletData.pendingClearance}
-        totalWithdrawn={walletData.totalWithdrawn}
+        totalRevenue={wallet?.totalEarnings || 0}
+        pendingBalance={wallet?.pendingBalance || 0}
+        holdBalance={wallet?.holdBalance || 0}
+        totalWithdrawn={wallet?.totalWithdrawn || 0}
+        nextAvailableAt={wallet?.nextAvailableAt || null}
+        isLoading={isWalletLoading}
       />
 
       {/* Main Content Grid */}
@@ -82,15 +101,50 @@ export default function WalletPage() {
         {/* Left Column - Main Content */}
         <div className="xl:col-span-2 space-y-6">
           {/* Chart Section */}
-          <ChartLineInteractive />
-          
-          {/* Transactions Section */}
-          <TransactionHistoryTable transactions={transactions} />
+          {/* <ChartLineInteractive /> */}
+
+          {/* Transactions & Upcoming Section */}
+          <Tabs defaultValue="transactions" className="w-full">
+            <div className="flex items-center justify-between mb-4">
+              <TabsList>
+                <TabsTrigger value="transactions">Lịch sử giao dịch</TabsTrigger>
+                <TabsTrigger value="upcoming">Giao dịch đang xử lý</TabsTrigger>
+              </TabsList>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="h-4 w-4" aria-hidden="true" />
+                Xuất báo cáo
+              </Button>
+            </div>
+
+            <TabsContent value="transactions" className="mt-0">
+              <TransactionHistoryTable
+                transactions={transactionsData?.data || []}
+                isLoading={isTransactionsLoading}
+                pagination={pagination}
+                setPagination={setPagination}
+                pageCount={transactionsData?.totalPages || 0}
+              />
+            </TabsContent>
+
+            <TabsContent value="upcoming" className="mt-0">
+              <UpcomingSettlementsTable
+                settlements={upcomingData?.data || []}
+                isLoading={isUpcomingLoading}
+                pagination={upcomingPagination}
+                setPagination={setUpcomingPagination}
+                pageCount={upcomingData?.totalPages || 0}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Right Column - Sidebar */}
         <div className="xl:col-span-1">
-          <WithdrawalSection />
+          <WithdrawalSection
+            lastPayoutAt={wallet?.lastPayoutAt || null}
+            currentBalance={wallet?.availableBalance || 0}
+            isLoading={isWalletLoading}
+          />
         </div>
       </div>
     </div>

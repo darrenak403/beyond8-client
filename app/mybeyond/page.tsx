@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import MyProfilePage from "./myprofile/page";
 import MyCoursePage from "./mycourse/page";
 import AIUsagePage from "./myusage/page";
+import MyCertificatePage from "./mycertificate/page";
 
 export default function MyBeyondPage() {
   const searchParams = useSearchParams();
@@ -16,6 +17,8 @@ export default function MyBeyondPage() {
       {currentTab === "mycourse" && <MyCoursePage/>}
 
       {currentTab === "myusage" && <AIUsagePage/>}
+
+      {currentTab === "mycertificate" && <MyCertificatePage/>}
     </>
   );
 }

@@ -5,68 +5,106 @@ import { AlertCircle, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from "@/components/ui/skeleton"
 
-import { topRatedCourses, newCourses } from '@/lib/data/mockCourses'
 import CourseGridItem from './components/CourseGridItem'
 import CourseListItem from './components/CourseListItem'
 import CourseToolbar from './components/CourseToolbar'
 import CoursePagination from './components/CoursePagination'
 
 import { useIsMobile } from '@/hooks/useMobile'
+import { CourseStatus, CourseLevel } from '@/lib/api/services/fetchCourse'
+import { useGetCoursesForAdmin } from '@/hooks/useCourse'
+import { CoursePreviewDialog } from '@/components/widget/CoursePreviewDialog'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
-// Combine mock data for demo
-const allCourses = [...topRatedCourses, ...newCourses]
-const ITEMS_PER_PAGE = 12
+const ITEMS_PER_PAGE = 10
 
 export default function CourseManagementPage() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
+
+  // Parse URL Params
+  const pageNumber = Number(searchParams.get('pageNumber') || '1')
+  const pageSize = Number(searchParams.get('pageSize') || ITEMS_PER_PAGE.toString())
+  const statusFilter = (searchParams.get('status') as CourseStatus | 'ALL') || 'ALL'
+  const isDescending = searchParams.get('isDescending')
+  const isDescendingPrice = searchParams.get('isDescendingPrice')
+  const level = (searchParams.get('level') as CourseLevel) || CourseLevel.All
+  const searchQuery = searchParams.get('keyword') || '' // Changed from 'search' to 'keyword' to match toolbar
+
+  // Ensure default params exist in URL (Matching Instructor Page pattern)
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    let hasChanged = false
+
+    if (!searchParams.has('pageNumber')) {
+      params.set('pageNumber', '1')
+      hasChanged = true
+    }
+    if (!searchParams.has('pageSize')) {
+      params.set('pageSize', ITEMS_PER_PAGE.toString())
+      hasChanged = true
+    }
+    if (!searchParams.has('status')) {
+      params.set('status', 'ALL')
+      hasChanged = true
+    }
+    if (!searchParams.has('level')) {
+      params.set('level', 'All')
+      hasChanged = true
+    }
+    // Default sort: isDescending=true, isDescendingPrice undefined
+    if (!searchParams.has('isDescending') && !searchParams.has('isDescendingPrice')) {
+      params.set('isDescending', 'true')
+      hasChanged = true
+    }
+
+    if (hasChanged) {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    }
+  }, [searchParams, pathname, router])
+
+
+  // Fetch courses with pagination
+  const {
+    courses,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetCoursesForAdmin({
+    keyword: searchQuery || undefined,
+    status: statusFilter === 'ALL' ? undefined : statusFilter as CourseStatus,
+    level: level,
+    pageNumber: pageNumber,
+    pageSize: pageSize,
+    isDescending: isDescending === 'true',
+    // Handle isDescendingPrice logic for API
+    isDescendingPrice: isDescendingPrice === 'true' ? true : isDescendingPrice === 'false' ? false : undefined
+  })
 
   const isMobile = useIsMobile()
+  const actualViewMode = isMobile ? 'grid' : viewMode
+  const allCourses = courses || []
+  const totalItems = allCourses.length // Note: API might need to return total count for correct pagination
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1
+  const currentCourses = allCourses
 
-  // Force grid view on mobile
-  useEffect(() => {
-    if (isMobile) {
-      setViewMode('grid')
-    }
-  }, [isMobile])
+  const [previewCourseId, setPreviewCourseId] = useState<string | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
-  // Simulate API Fetch
-  const fetchData = () => {
-    setIsLoading(true)
-    setIsError(false)
-    setTimeout(() => {
-      // Randomly simulate error (10% chance) for demo purpose
-      if (Math.random() < 0.1) {
-        setIsError(true)
-      }
-      setIsLoading(false)
-    }, 1500)
+  const handlePreview = (courseId: string) => {
+    setPreviewCourseId(courseId)
+    setIsPreviewOpen(true)
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  // Filter courses based on search
-  const filteredCourses = allCourses.filter(course =>
-    course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    course.instructor.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  // Pagination Logic
-  const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE)
-  const currentCourses = filteredCourses.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
-
-  // Reset to page 1 when search changes
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery])
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('pageNumber', page.toString())
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
+  }
 
   return (
     <div className="flex flex-col h-full p-2 space-y-4">
@@ -81,23 +119,19 @@ export default function CourseManagementPage() {
 
       {/* Toolbar */}
       <CourseToolbar
-        viewMode={viewMode}
+        viewMode={actualViewMode}
         setViewMode={setViewMode}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        totalCount={filteredCourses.length}
-        isMobile={isMobile}
-        onRefresh={fetchData}
+        onRefresh={refetch}
         isLoading={isLoading}
       />
 
       {/* Content */}
       <div className="flex-1">
         {isError ? (
-          <ErrorState onRetry={fetchData} />
+          <ErrorState onRetry={refetch} />
         ) : (
           <div className={`
-                ${viewMode === 'grid'
+                ${actualViewMode === 'grid'
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
               : 'flex flex-col gap-4'
             }
@@ -105,7 +139,7 @@ export default function CourseManagementPage() {
             {isLoading ? (
               // Render Skeletons
               Array.from({ length: 8 }).map((_, i) => (
-                viewMode === 'grid' ? (
+                actualViewMode === 'grid' ? (
                   <CourseGridItemSkeleton key={i} />
                 ) : (
                   <CourseListItemSkeleton key={i} />
@@ -114,25 +148,48 @@ export default function CourseManagementPage() {
             ) : (
               // Render Courses
               currentCourses.map((course) => (
-                viewMode === 'grid' ? (
-                  <CourseGridItem key={course.id} course={course} />
+                actualViewMode === 'grid' ? (
+                  <CourseGridItem
+                    key={course.id}
+                    course={course}
+                    onPreview={() => handlePreview(course.id)}
+                  />
                 ) : (
-                  <CourseListItem key={course.id} course={course} />
+                  <CourseListItem
+                    key={course.id}
+                    course={course}
+                    onPreview={() => handlePreview(course.id)}
+                  />
                 )
               ))
+            )}
+            {!isLoading && currentCourses.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-500">
+                <p>Không tìm thấy khóa học nào phù hợp.</p>
+              </div>
             )}
           </div>
         )}
       </div>
 
       {/* Pagination */}
-      {!isLoading && !isError && filteredCourses.length > 0 && (
+      {!isLoading && !isError && totalItems > 0 && (
         <CoursePagination
-          currentPage={currentPage}
+          currentPage={pageNumber}
           totalPages={totalPages}
           pageSize={ITEMS_PER_PAGE}
-          totalItems={filteredCourses.length}
-          onPageChange={setCurrentPage}
+          totalItems={totalItems}
+          onPageChange={handlePageChange}
+        />
+      )}
+
+      {/* Preview Dialog */}
+      {previewCourseId && (
+        <CoursePreviewDialog
+          courseId={previewCourseId}
+          open={isPreviewOpen}
+          onOpenChange={setIsPreviewOpen}
+          isAdmin={true}
         />
       )}
     </div>

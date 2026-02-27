@@ -6,10 +6,15 @@ import {
   LayoutGrid,
   LayoutList,
   Plus,
+  ListChecks,
+  X,
+  ClipboardCheck,
+  BookOpen
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+
 import {
   Carousel,
   CarouselContent,
@@ -20,12 +25,13 @@ import {
 import { useDebounce } from '@/hooks/useDebounce'
 import { useCategory } from '@/hooks/useCategory'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CourseFilterSheet } from './CourseFilterSheet'
+import { CourseFilterSheet } from '@/components/widget/CourseFilterSheet'
 
 interface CourseToolBarProps {
   viewMode: 'grid' | 'list'
   setViewMode: (mode: 'grid' | 'list') => void
-  isMobile: boolean
+  isSelectionMode: boolean
+  toggleSelectionMode: () => void
 }
 
 
@@ -33,22 +39,44 @@ interface CourseToolBarProps {
 export default function CourseToolBar({
   viewMode,
   setViewMode,
-  isMobile,
+  isSelectionMode,
+  toggleSelectionMode
 }: CourseToolBarProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const currentCategory = searchParams.get('categoryId') || ''
+  const currentCategory = searchParams.get('categoryName') || ''
 
   const [searchValue, setSearchValue] = useState(searchParams.get('keyword') || '')
   const debouncedSearch = useDebounce(searchValue, 500)
 
+
   const { categories: categoryData, isLoading: isLoadingCategories } = useCategory()
+
+  // Count active filters (excluding sort, pagination, keyword, and category)
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    const level = searchParams.get('level')
+    const status = searchParams.get('status')
+    const minPrice = searchParams.get('minPrice')
+    const maxPrice = searchParams.get('maxPrice')
+    const minRating = searchParams.get('minRating')
+    const language = searchParams.get('language')
+
+    if (level && level !== 'All') count++
+    if (status && status !== 'All') count++
+    if (minPrice && parseInt(minPrice) > 0) count++
+    if (maxPrice && parseInt(maxPrice) < 5000000) count++
+    if (minRating && minRating !== 'all') count++
+    if (language && language !== '') count++
+
+    return count
+  }, [searchParams])
 
   const categories = useMemo(() => {
     const apiCategories = categoryData?.data?.filter(c => c.isRoot).map(c => ({
       id: c.id,
       label: c.name,
-      value: c.id // Using ID as the value for filtering
+      value: c.name // Using name as the value for filtering
     })) || []
 
     return [
@@ -83,12 +111,13 @@ export default function CourseToolBar({
   const handleCategoryChange = (categoryValue: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (categoryValue) {
-      params.set('categoryId', categoryValue)
+      params.set('categoryName', categoryValue)
     } else {
-      params.delete('categoryId')
+      params.delete('categoryName')
     }
     router.push(`?${params.toString()}`)
   }
+
 
   const getPlaceholder = (categoryId: string) => {
     const selected = categories.find(c => c.value === categoryId)
@@ -96,9 +125,9 @@ export default function CourseToolBar({
   }
 
   return (
-    <div className={`flex flex-row items-center ${isMobile ? '' : 'justify-between'} `}>
+    <div className={`flex flex-col lg:flex-row items-center gap-4 lg:gap-0 lg:justify-between w-full`}>
       {/* Category Tabs */}
-      <div className="w-[500px] mx-10 relative">
+      <div className="w-full lg:w-[500px] lg:mx-10 relative order-2 lg:order-1">
         {isLoadingCategories ? (
           <div className="flex gap-2 overflow-hidden">
             {[1, 2, 3, 4].map(i => (
@@ -117,7 +146,7 @@ export default function CourseToolBar({
               {categories.map((category) => {
                 const isActive = currentCategory === category.value
                 return (
-                  <CarouselItem key={category.id} className="basis-1/4 pl-1">
+                  <CarouselItem key={category.id} className="basis-1/3 sm:basis-1/4 pl-1">
                     <button
                       onClick={() => handleCategoryChange(category.value)}
                       className={`
@@ -148,55 +177,96 @@ export default function CourseToolBar({
           </Carousel>
         )}
       </div>
+
       {/* Search and Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto order-1 lg:order-2">
         {/* Search */}
-        <div className={`relative ${isMobile ? 'w-80' : 'w-100'}`}>
+        <div className={`relative w-full sm:w-80 lg:w-96`}>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={getPlaceholder(currentCategory)}
-            className="pl-10 h-10 bg-white rounded-2xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="pl-10 h-10 bg-white rounded-2xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
           />
         </div>
 
-        {/* Filter Sheet */}
-        <CourseFilterSheet />
 
-        {/* View Toggle */}
-        {!isMobile && (
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Question Bank Button */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="hidden xl:block"
+          >
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/instructor/question-bank')}
+              className="bg-white border border-purple-200 hover:bg-white rounded-2xl px-3"
+            >
+              <BookOpen className="w-5 h-5 text-purple-600" />
+              <span className="hidden sm:inline ml-1 text-purple-600">Ngân hàng câu hỏi</span>
+              <span className="sm:hidden text-purple-600">Ngân hàng câu hỏi</span>
+            </Button>
+          </motion.div>
+
+          {/* Filter Sheet */}
+          <CourseFilterSheet activeFilterCount={activeFilterCount} />
+
+          {/* Selection Mode Toggle */}
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <Button
-              variant="ghost"
-              onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full p-0 flex items-center justify-center shrink-0"
+              variant={isSelectionMode ? "default" : "ghost"}
+              size="icon"
+              onClick={toggleSelectionMode}
+              className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${isSelectionMode
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              title={isSelectionMode ? "Hủy chọn nhiều" : "Chọn nhiều"}
             >
-              {viewMode === 'list' ? (
-                <LayoutGrid className="w-6 h-6 text-gray-700" />
-              ) : (
-                <LayoutList className="w-6 h-6 text-gray-700" />
-              )}
+              {isSelectionMode ? <X className="w-5 h-5" /> : <ListChecks className="w-5 h-5" />}
             </Button>
           </motion.div>
-        )}
 
-        <Link href="/instructor/courses/create">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button
-              variant="ghost"
-              className="bg-gray-100 hover:bg-gray-200 rounded-full"
+          {/* View Toggle (Hidden on Mobile/Tablet usually handled by parent but keeping as is for desktop) */}
+          <div className="hidden lg:block">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Plus className="w-5 h-5 text-gray-700" /> Thêm khóa học
-            </Button>
-          </motion.div>
-        </Link>
+              <Button
+                variant="ghost"
+                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full p-0 flex items-center justify-center shrink-0"
+              >
+                {viewMode === 'list' ? (
+                  <LayoutGrid className="w-6 h-6 text-gray-700" />
+                ) : (
+                  <LayoutList className="w-6 h-6 text-gray-700" />
+                )}
+              </Button>
+            </motion.div>
+          </div>
+
+          <Link href="/instructor/courses/action" className="sm:ml-auto">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Button
+                variant="ghost"
+                className="bg-gray-100 hover:bg-gray-200 rounded-full px-3 hover:text-black"
+              >
+                <Plus className="w-5 h-5 text-gray-700" /> <span className="hidden sm:inline ml-1">Thêm khóa học</span>
+                <span className="sm:hidden">Thêm</span>
+              </Button>
+            </motion.div>
+          </Link>
+        </div>
       </div>
     </div>
   )

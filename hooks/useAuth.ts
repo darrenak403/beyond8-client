@@ -1,6 +1,6 @@
 import { fetchAuth, LoginRequest, LoginResponse, ResetPasswordRequest, VerifyOtpRequest } from '@/lib/api/services/fetchAuth';
 import { useAppSelector, useAppDispatch } from '@/lib/redux/hooks'
-import { selectAuth, selectUser, selectIsAuthenticated, selectRefreshToken, setTokenWithRefresh, decodeToken, logout } from '@/lib/redux/slices/authSlice'
+import { selectAuth, selectUser, selectIsAuthenticated, selectRefreshToken, setTokenWithRefresh, decodeToken, logout, setupAutoRefresh } from '@/lib/redux/slices/authSlice'
 import { Roles } from '@/lib/types/roles'
 import { ApiError } from '@/types/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -31,6 +31,8 @@ export function useLogin() {
         refreshToken: data.data.refreshToken
       }));
       setCookie('authToken', data.data.accessToken, getAuthCookieConfig());
+      // Setup auto-refresh after setting token
+      setupAutoRefresh(data.data.accessToken, dispatch);
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       setError(null);
 
@@ -268,6 +270,8 @@ export function useRefreshToken() {
         refreshToken: data.data.refreshToken
       }));
       setCookie('authToken', data.data.accessToken, getAuthCookieConfig());
+      // Setup auto-refresh after setting token
+      setupAutoRefresh(data.data.accessToken, dispatch);
 
       reconnectHubConnection().catch(err => {
         console.error('[SignalR] Failed to reconnect after login:', err);
@@ -280,6 +284,10 @@ export function useRefreshToken() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['instructor-notifications'] });
       queryClient.invalidateQueries({ queryKey: ['signalr-connection'] });
+      queryClient.invalidateQueries({ queryKey: ['notification-status'] });
+      queryClient.invalidateQueries({ queryKey: ['student-notification-status'] });
+      queryClient.invalidateQueries({ queryKey: ['staff-notification-status'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-notification-status'] });
 
       reconnectHubConnection().catch(err => {
         console.error('[SignalR] Failed to reconnect after token refresh:', err);
@@ -329,6 +337,15 @@ export function useLogout() {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
       queryClient.removeQueries({ queryKey: ['subscription'] });
       queryClient.removeQueries({ queryKey: ['signalr-connection'] });
+
+      // Notify other tabs about logout so they can sync state
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(
+          'auth-event',
+          JSON.stringify({ type: 'LOGOUT', timestamp: Date.now() })
+        );
+      }
+
       toast.success('Đăng xuất thành công!');
       router.push('/login');
     },

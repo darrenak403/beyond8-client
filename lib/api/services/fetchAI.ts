@@ -105,6 +105,36 @@ export interface UpdateAIPromptRequest {
   tags: string[];
 }
 
+export interface EmbedFileRequest {
+  cloudFrontUrl: string;
+  courseId: string;
+  lessonId: string;
+  documentId: string;
+}
+
+// --- AI Quiz Question Explain Types ---
+
+export interface QuizOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface ExplainQuizQuestionRequest {
+  content: string;
+  options: QuizOption[];
+}
+
+export interface QuizAnswerExplanation {
+  answer: string;
+  isCorrect: boolean;
+  explanation: string;
+}
+
+export interface ExplainQuizQuestionResponse {
+  answers: QuizAnswerExplanation[];
+}
+
 export const fetchAI = {
   // Usage
   getStatistics: async (): Promise<ApiResponse<AIUsageStatistics>> => {
@@ -118,8 +148,8 @@ export const fetchAI = {
   },
 
   getAllHistory: async (params?: GetUsageHistoryParams): Promise<ApiResponse<AIUsageRecord[]>> => {
-      const response = await apiService.get<ApiResponse<AIUsageRecord[]>>("api/v1/ai-usage/all", params);
-      return response.data;
+    const response = await apiService.get<ApiResponse<AIUsageRecord[]>>("api/v1/ai-usage/all", params);
+    return response.data;
   },
 
   // Prompts
@@ -150,6 +180,24 @@ export const fetchAI = {
 
   toggleStatus: async (id: string): Promise<ApiResponse<boolean>> => {
     const response = await apiService.patch<ApiResponse<boolean>>(`api/v1/ai-prompts/${id}/toggle-status`, {});
+    return response.data;
+  },
+
+  //Check the health of the embedding service (Qdrant, Hugging Face)
+  checkHealthEmbed: async (): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.get<ApiResponse<boolean>>("api/v1/ai/embed/health");
+    return response.data;
+  },
+
+  //Gửi CloudFront URL của PDF, backend giải mã key, tải từ S3 và embed vào Qdrant (Instructor only)
+  embedFile: async (data: EmbedFileRequest): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.post<ApiResponse<boolean>>("api/v1/ai/embed", data);
+    return response.data;
+  },
+
+  // Explain quiz question
+  explainQuizQuestion: async (data: ExplainQuizQuestionRequest): Promise<ApiResponse<ExplainQuizQuestionResponse>> => {
+    const response = await apiService.post<ApiResponse<ExplainQuizQuestionResponse>>("api/v1/ai/quiz/question/explain", data);
     return response.data;
   },
 };

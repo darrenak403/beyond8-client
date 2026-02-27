@@ -1,13 +1,10 @@
-"use client"
-
-import { Loader2 } from "lucide-react"
+import { Loader2, AlertTriangle, CheckCircle2, HelpCircle, Info } from "lucide-react"
 import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
-    AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
@@ -23,7 +20,7 @@ interface ConfirmDialogProps {
     description: string
     confirmText?: string
     cancelText?: string
-    variant?: "default" | "destructive" | "success"
+    variant?: "default" | "destructive" | "success" | "info"
     isLoading?: boolean
     trigger?: React.ReactNode
     confirmClassName?: string
@@ -46,15 +43,27 @@ export function ConfirmDialog({
     cancelClassName,
 }: ConfirmDialogProps) {
     let buttonClass = ""
+    let icon = <HelpCircle className="w-6 h-6 text-purple-600" />
+    let titleClass = "text-purple-600"
+
     switch (variant) {
         case "destructive":
-            buttonClass = "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            buttonClass = "bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-200"
+            icon = <AlertTriangle className="w-6 h-6 text-red-600" />
+            titleClass = "text-red-700"
             break
         case "success":
-            buttonClass = "bg-green-600 hover:bg-green-700 text-white"
+            buttonClass = "bg-green-600 hover:bg-green-700 text-white shadow-md shadow-green-200"
+            icon = <CheckCircle2 className="w-6 h-6 text-green-600" />
+            titleClass = "text-green-700"
+            break
+        case "info":
+            buttonClass = "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200"
+            icon = <Info className="w-6 h-6 text-blue-600" />
+            titleClass = "text-blue-700"
             break
         default:
-            buttonClass = ""
+            buttonClass = "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-200"
             break
     }
 
@@ -63,79 +72,51 @@ export function ConfirmDialog({
             e.preventDefault()
             return
         }
-        // If we want to keep it open while loading, we should prevent default.
-        // If the user handles closing manually via onOpenChange(false) in onConfirm, that's fine.
-        // But AlertDialogAction usually closes automatically.
-        // So we prevent default if we want to handle it manually or if we are loading.
-        // However, standard AlertDialogAction closes on click.
-        // If we want to duplicate previous behavior:
-        // Previous behavior: <Button onClick={onConfirm}>
-        // The user's onConfirm function is responsible for closing or logic.
-        // BUT AlertDialogAction behaves differently, it closes by default.
-        // To strictly match previous behavior for controlled components, we might want to prevent close?
-        // Let's assume onConfirm logic handles what it needs.
-        // To prevent auto-close so async operations can finish (and show loading), we might need to prevent default.
-        // But if we prevent default, we MUST manually close it later.
-        // The existing ConfirmDialog usage does setIsConfirmOpen(false) in finally or success block?
-        // Let's look at usage in page.tsx:
-        // handleConfirmApprove: calls API, then setIsConfirmOpen(false).
-        // So it IS controlled throughout.
-
-        // If I use AlertDialogAction, it will try to close immediately.
-        // So I should probably prevent default if it's controlled `onConfirm` that is async?
-        // Or simpler: if onConfirm is passed, we call it.
-        // Using onClick={handleConfirm}.
-
-        // Actually, for the new usage, the user didn't show `open` prop.
-        // So for uncontrolled usage, AlertDialogAction auto-closing is GOOD.
-
-        // Compromise:
-        // If `isLoading` is true, definitely prevent default.
-        // Otherwise, if `onConfirm` is present, call it.
-        // If existing usages expect it to NOT close automatically until they say so, 
-        // passing `e` and `e.preventDefault()` might be needed?
-        // Most Shadcn AlertDialog examples imply Action closes it.
-        // Existing ConfirmDialog was just a Dialog with a Button. It didn't auto-close unless onConfirm did nothing? 
-        // No, standard button in standard dialog doesn't close dialog.
-        // AlertDialogAction DOES close dialog.
-        // So to maintain backward compatibility for "controlled + async wait" logic, 
-        // we might actually NOT want to use AlertDialogAction for the confirm button?
-        // OR we just prevent default in the handler.
-
-        // Let's use a standard Button inside AlertDialogFooter if we want full manual control? 
-        // Or just e.preventDefault() in AlertDialogAction.
-
-        // I will add code to call onConfirm.
-        // If the user wants to keep it open (e.g. loading), they should manage state.
-        // BUT AlertDialogAction closes it inherently.
-        // I will use `onClick={(e) => { ... }}`
-
         onConfirm()
     }
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             {trigger && <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>}
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{title}</AlertDialogTitle>
-                    <AlertDialogDescription asChild>
-                        <div className="border rounded-md bg-gray-100 p-3 text-sm text-muted-foreground">{description}</div>
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={onCancel} className={cn("rounded-2xl cursor-pointer hover:bg-gray-100 hover:text-black", cancelClassName)} disabled={isLoading}>
+            <AlertDialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden border-0 shadow-lg">
+                <div className="p-6 bg-white space-y-4">
+                    <AlertDialogHeader className="space-y-3">
+                        <div className="flex items-center gap-3">
+                            <div className={cn("p-2 rounded-full bg-opacity-10 shrink-0",
+                                variant === 'destructive' ? "bg-red-100" :
+                                    variant === 'success' ? "bg-green-100" :
+                                        variant === 'info' ? "bg-blue-100" : "bg-purple-100"
+                            )}>
+                                {icon}
+                            </div>
+                            <AlertDialogTitle className={cn("text-xl font-bold", titleClass)}>{title}</AlertDialogTitle>
+                        </div>
+                        <AlertDialogDescription className="text-gray-600 text-base leading-relaxed pl-12">
+                            {description}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                </div>
+
+                <div className="px-6 py-4 bg-gray-50 flex items-center justify-end gap-3 border-t">
+                    <AlertDialogCancel
+                        onClick={onCancel}
+                        className={cn(
+                            "rounded-full border-gray-200 text-gray-700 hover:bg-gray-100 hover:text-black hover:border-gray-300 mt-0",
+                            cancelClassName
+                        )}
+                        disabled={isLoading}
+                    >
                         {cancelText}
                     </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleConfirm}
-                        className={cn(buttonClass, "rounded-2xl cursor-pointer", confirmClassName)}
+                        className={cn(buttonClass, "rounded-full px-6 transition-all", confirmClassName)}
                         disabled={isLoading}
                     >
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {confirmText}
                     </AlertDialogAction>
-                </AlertDialogFooter>
+                </div>
             </AlertDialogContent>
         </AlertDialog>
     )

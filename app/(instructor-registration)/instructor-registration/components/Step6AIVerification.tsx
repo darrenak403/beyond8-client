@@ -136,11 +136,8 @@ interface ResultCardProps {
   onNavigateToStep?: (step: number) => void;
 }
 
-function ResultCard({ detail, index, onNavigateToStep }: ResultCardProps) {
+function ResultCard({ detail, onNavigateToStep }: ResultCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
-  const [progressValue, setProgressValue] = useState(60 + Math.random() * 35); // Start at random 60-95%
-  const [isRevealed, setIsRevealed] = useState(false);
   const vietnameseName = translateSectionName(detail.sectionName);
   const targetStep = getStepFromSection(detail.sectionName);
 
@@ -151,77 +148,11 @@ function ResultCard({ detail, index, onNavigateToStep }: ResultCardProps) {
     return <AlertCircle className="w-5 h-5 text-gray-400" />;
   };
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // First animate progress to 100%
-      gsap.to(progressRef.current, {
-        duration: 0.6,
-        delay: index * 0.1,
-        onUpdate: function() {
-          const currentStart = progressValue;
-          const progress = currentStart + (this.progress() * (100 - currentStart));
-          setProgressValue(progress);
-        },
-        onComplete: () => {
-          // Small delay before revealing content
-          setTimeout(() => {
-            setIsRevealed(true);
-            gsap.from(cardRef.current, {
-              opacity: 0,
-              y: 20,
-              duration: 0.4,
-              ease: "power2.out"
-            });
-          }, 100);
-        }
-      });
-    });
-
-    return () => ctx.revert();
-  }, [index, progressValue]);
-
   const handleCardClick = () => {
     if (onNavigateToStep && targetStep) {
       onNavigateToStep(targetStep);
     }
   };
-
-  if (!isRevealed) {
-    return (
-      <Card className="border-2 border-purple-100 rounded-4xl overflow-hidden">
-        <CardContent className="pt-4 px-4 pb-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-50">
-                  <div className="w-5 h-5 rounded-full border-2 border-purple-300 border-t-purple-600 animate-spin" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800">{vietnameseName}</p>
-                  <p className="text-sm text-gray-500">
-                    {progressValue >= 99 ? "Hoàn tất..." : "Đang hoàn tất..."}
-                  </p>
-                </div>
-              </div>
-              <span className="text-lg font-bold text-purple-600">
-                {Math.round(progressValue)}%
-              </span>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div 
-                  ref={progressRef}
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300"
-                  style={{ width: `${progressValue}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card 
@@ -373,13 +304,15 @@ export default function Step6AIVerification({  formData, onReviewComplete, onNav
                 </span>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Tiến độ kiểm tra</span>
-                  <span className="font-medium">{isReviewing ? "Đang xử lý..." : "Hoàn thành"}</span>
+              {isReviewing && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Tiến độ kiểm tra</span>
+                    <span className="font-medium">Đang xử lý...</span>
+                  </div>
+                  <Progress value={progress} className="h-3" />
                 </div>
-                <Progress value={progress} className="h-3" />
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>

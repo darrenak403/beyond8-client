@@ -61,7 +61,7 @@ export function useSignalRNotifications() {
           toast.info(
             title || 'Cập nhật quyền truy cập',
             {
-              description:'Tài khoản của bạn đã được duyệt thành công. Đang cập nhật quyền truy cập...',
+              description: 'Tài khoản của bạn đã được duyệt thành công. Đang cập nhật quyền truy cập...',
               duration: 2000,
             }
           )
@@ -70,12 +70,60 @@ export function useSignalRNotifications() {
         }
       }
 
+      const handleTranscodingVideoSuccess = (data: {
+        title?: string
+        message?: string
+        metadata?: {
+          lessonId?: string
+        }
+      }) => {
+        const { title, metadata, message } = data
+        console.log('[SignalR] Received TranscodingVideoSuccess:', data.metadata?.lessonId)
+
+        if (metadata?.lessonId) {
+          toast.info(
+            title || 'Xử lí video thành công',
+            {
+              description: message,
+              duration: 2000,
+            }
+          )
+        }
+      }
+
+      const handleCourseCompleted = (data: {
+        title?: string
+        message?: string
+        metadata?: {
+          courseId?: string
+        }
+      }) => {
+        const { title, metadata, message } = data
+        console.log('[SignalR] Received CourseCompleted:', data.metadata?.courseId)
+
+        // if (metadata?.courseId) {
+        //   toast.success(
+        //     title || 'Khóa học đã hoàn thành',
+        //     {
+        //       description: message,
+        //       duration: 2000,
+        //     }
+        //   )
+        // }
+      }
+
+
+
       connection.on('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
       connection.on('RequireReLogin', handleRequireReLogin)
+      connection.on('TranscodingVideoSuccess', handleTranscodingVideoSuccess)
+      connection.on('CourseCompleted', handleCourseCompleted)
 
       const cleanup = () => {
         connection.off('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
         connection.off('RequireReLogin', handleRequireReLogin)
+        connection.off('TranscodingVideoSuccess', handleTranscodingVideoSuccess)
+        connection.off('CourseCompleted', handleCourseCompleted)
       }
       handlersRef.current.push(cleanup)
     }
@@ -88,7 +136,7 @@ export function useSignalRNotifications() {
           setupListeners()
           clearInterval(checkInterval)
         }
-      }, 100) 
+      }, 100)
 
       const timeoutId = setTimeout(() => {
         clearInterval(checkInterval)

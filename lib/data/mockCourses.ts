@@ -1,6 +1,7 @@
 export interface Course {
   id: string
   title: string
+  slug?: string
   instructor: string
   instructorId?: string
   rating: number
@@ -23,6 +24,7 @@ export const topRatedCourses: Course[] = [
   {
     id: '1',
     title: 'Machine Learning A-Z: Hands-On Python & R',
+    slug: 'machine-learning-a-z-hands-on-python-r',
     instructor: 'Nguyễn Văn A',
     rating: 4.8,
     students: 15420,
@@ -35,6 +37,7 @@ export const topRatedCourses: Course[] = [
   {
     id: '2',
     title: 'Complete Web Development Bootcamp 2024',
+    slug: 'complete-web-development-bootcamp-2024',
     instructor: 'Trần Thị B',
     rating: 4.9,
     students: 23150,
@@ -47,6 +50,7 @@ export const topRatedCourses: Course[] = [
   {
     id: '3',
     title: 'Data Science và AI cho người mới bắt đầu',
+    slug: 'data-science-va-ai-cho-nguoi-moi-bat-dau',
     instructor: 'Lê Văn C',
     rating: 4.7,
     students: 12890,
@@ -59,6 +63,7 @@ export const topRatedCourses: Course[] = [
   {
     id: '4',
     title: 'Advanced React và Next.js Development',
+    slug: 'advanced-react-va-nextjs-development',
     instructor: 'Phạm Thị D',
     rating: 4.9,
     students: 18760,
@@ -71,6 +76,7 @@ export const topRatedCourses: Course[] = [
   {
     id: '5',
     title: 'Full-Stack JavaScript Masterclass',
+    slug: 'full-stack-javascript-masterclass',
     instructor: 'Hoàng Văn E',
     rating: 4.8,
     students: 16540,
@@ -83,6 +89,7 @@ export const topRatedCourses: Course[] = [
   {
     id: '6',
     title: 'Python for Data Analysis',
+    slug: 'python-for-data-analysis',
     instructor: 'Vũ Thị F',
     rating: 4.7,
     students: 14230,
@@ -95,6 +102,7 @@ export const topRatedCourses: Course[] = [
   {
     id: '7',
     title: 'AWS Cloud Practitioner Complete Course',
+    slug: 'aws-cloud-practitioner-complete-course',
     instructor: 'Đỗ Văn G',
     rating: 4.9,
     students: 19870,
@@ -107,6 +115,7 @@ export const topRatedCourses: Course[] = [
   {
     id: '8',
     title: 'Deep Learning Specialization',
+    slug: 'deep-learning-specialization',
     instructor: 'Bùi Thị H',
     rating: 4.8,
     students: 13450,
@@ -122,6 +131,7 @@ export const newCourses: Course[] = [
   {
     id: 'new-net-core-course',
     title: 'Lập trình Backend chuyên sâu với .NET 8 Web API',
+    slug: 'lap-trinh-backend-chuyen-sau-voi-net-8-web-api',
     description: 'Khóa học đi sâu vào kiến trúc Clean Architecture, CQRS và Entity Framework Core. Hướng dẫn xây dựng hệ thống Microservices có khả năng mở rộng cao.',
     shortDescription: 'Làm chủ .NET 8 và kiến trúc phần mềm trong 4 tuần.',
     categoryId: 'dc5b33f6-1f85-46b7-91a2-1bcfe36da91b',
@@ -155,6 +165,7 @@ export const newCourses: Course[] = [
   {
     id: '9',
     title: 'ChatGPT & AI Tools Masterclass 2024',
+    slug: 'chatgpt-ai-tools-masterclass-2024',
     instructor: 'Hoàng Văn E',
     rating: 4.6,
     students: 8920,
@@ -167,6 +178,7 @@ export const newCourses: Course[] = [
   {
     id: '10',
     title: 'Full-Stack Development với MERN Stack',
+    slug: 'full-stack-development-voi-mern-stack',
     instructor: 'Vũ Thị F',
     rating: 4.8,
     students: 11450,
@@ -179,6 +191,7 @@ export const newCourses: Course[] = [
   {
     id: '11',
     title: 'Python for Data Science và Machine Learning',
+    slug: 'python-for-data-science-va-machine-learning',
     instructor: 'Đỗ Văn G',
     rating: 4.7,
     students: 9870,
@@ -191,6 +204,7 @@ export const newCourses: Course[] = [
   {
     id: '12',
     title: 'Cloud Computing với AWS và Azure',
+    slug: 'cloud-computing-voi-aws-va-azure',
     instructor: 'Bùi Thị H',
     rating: 4.9,
     students: 13240,

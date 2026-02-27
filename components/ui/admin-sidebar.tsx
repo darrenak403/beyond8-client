@@ -1,10 +1,10 @@
-'use client';
-import { useState } from 'react';
-import { useIsMobile } from '@/hooks/useMobile';
+"use client";
+import { useState } from "react";
+import { useIsMobile } from "@/hooks/useMobile";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -19,43 +19,58 @@ import {
   ChevronRight,
   LayoutList,
   MessageSquare,
-} from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+  Bell,
+  Ticket,
+  BookCheckIcon,
+  Wallet,
+} from "lucide-react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { useLogout } from '@/hooks/useAuth';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { cn } from '@/lib/utils';
-import { formatImageUrl } from '@/lib/utils/formatImageUrl';
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLogout } from "@/hooks/useAuth";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { cn } from "@/lib/utils";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
+import { useNotificationStatus } from "@/hooks/useNotification";
+import { AdminNotificationPanel } from "../widget/admin-notification-panel";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
-  { icon: Users, label: 'Quản lý người dùng', href: '/admin/user' },
-  { icon: FileCheck, label: 'Duyệt giảng viên', href: '/admin/instructor-registration' },
-  { icon: LayoutList, label: 'Quản lý danh mục', href: '/admin/category' },
-  { icon: BookOpen, label: 'Khóa học', href: '/admin/course' },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
   {
-    icon: Bot,
-    label: 'Quản lý AI',
-    href: '#ai-management',
+    icon: Wallet,
+    label: "Ví và giao dịch",
+    href: "/admin/platform-wallet",
+  },
+  { icon: Users, label: "Quản lý người dùng", href: "/admin/user" },
+  { icon: FileCheck, label: "Duyệt giảng viên", href: "/admin/instructor-registration" },
+  {
+    icon: BookOpen,
+    label: "Khóa học",
+    href: "#course-management",
     children: [
-      { label: 'Tổng quan', href: '/admin/ai-management/overview', icon: LayoutList },
-      { label: 'Quản lý prompt', href: '/admin/ai-management/prompts', icon: MessageSquare },
+      { label: "Quản lý danh mục", href: "/admin/category", icon: LayoutList },
+      { label: "Quản lý khóa học", href: "/admin/course", icon: BookCheckIcon },
+      { label: "Quản lý khuyến mãi", href: "/admin/coupon", icon: Ticket },
     ],
   },
-  { icon: BarChart3, label: 'Báo cáo', href: '/admin/report' },
+
+  {
+    icon: Bot,
+    label: "Quản lý AI",
+    href: "#ai-management",
+    children: [
+      { label: "Tổng quan", href: "/admin/ai-management/overview", icon: LayoutList },
+      { label: "Quản lý prompt", href: "/admin/ai-management/prompts", icon: MessageSquare },
+    ],
+  },
 ];
 
 interface AdminSidebarProps {
@@ -69,6 +84,8 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
   const isMobile = useIsMobile();
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const { status: notificationStatus } = useNotificationStatus();
 
   const toggleMenu = (href: string) => {
     setExpandedMenu(expandedMenu === href ? null : href);
@@ -77,14 +94,14 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
       return userProfile.fullName
-        .split(' ')
+        .split(" ")
         .map((n) => n[0])
-        .join('')
+        .join("")
         .toUpperCase()
         .slice(0, 2);
     }
     if (userProfile?.email) return userProfile.email.charAt(0).toUpperCase();
-    return 'A';
+    return "A";
   };
 
   if (isMobile) {
@@ -100,8 +117,8 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex flex-col items-center justify-center p-2 rounded-lg transition-colors',
-                  isActive ? 'text-purple-700' : 'text-gray-500 hover:text-gray-900'
+                  "flex flex-col items-center justify-center p-2 rounded-lg transition-colors",
+                  isActive ? "text-purple-700" : "text-gray-500 hover:text-gray-900"
                 )}
               >
                 <Icon className={cn("w-6 h-6", isActive && "fill-current")} />
@@ -113,7 +130,10 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
             <DropdownMenuTrigger asChild>
               <div className="flex flex-col items-center justify-center p-2 cursor-pointer">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
+                  <AvatarImage
+                    src={formatImageUrl(userProfile?.avatarUrl)}
+                    alt={userProfile?.fullName}
+                  />
                   <AvatarFallback className="text-sm bg-purple-100 text-purple-700">
                     {getAvatarFallback()}
                   </AvatarFallback>
@@ -135,10 +155,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link
-                  href="/admin/admin-profile"
-                  className="cursor-pointer flex items-center"
-                >
+                <Link href="/admin/admin-profile" className="cursor-pointer flex items-center">
                   <User className="h-4 w-4 mr-2" />
                   Hồ sơ
                 </Link>
@@ -161,9 +178,9 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-40',
-        isCollapsed ? 'w-16' : 'w-56',
-        'md:translate-x-0'
+        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-40",
+        isCollapsed ? "w-16" : "w-56",
+        "md:translate-x-0"
       )}
     >
       <div className="flex flex-col h-full">
@@ -177,10 +194,12 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
               height={20}
               className="h-8 w-8 flex-shrink-0"
             />
-            <div className={cn(
-              "transition-opacity duration-200",
-              isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
-            )}>
+            <div
+              className={cn(
+                "transition-opacity duration-200",
+                isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+              )}
+            >
               <h2 className="font-bold text-base text-gray-900 whitespace-nowrap">Beyond8 Inc.</h2>
             </div>
           </Link>
@@ -190,7 +209,9 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = item.children ? item.children.some(child => pathname.startsWith(child.href)) : pathname === item.href;
+            const isActive = item.children
+              ? item.children.some((child) => pathname.startsWith(child.href))
+              : pathname === item.href;
             const hasChildren = item.children && item.children.length > 0;
             const isExpanded = expandedMenu === item.href;
 
@@ -201,27 +222,35 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                   <button
                     onClick={() => !isCollapsed && toggleMenu(item.href)}
                     className={cn(
-                      'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm w-full select-none',
+                      "flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm w-full select-none",
                       isActive || isExpanded
-                        ? 'bg-purple-50 text-purple-700 font-medium'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? "bg-purple-50 text-purple-700 font-medium"
+                        : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" />
-                    <div className={cn(
-                      "flex items-center justify-between flex-1 transition-opacity duration-200",
-                      isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
-                    )}>
+                    <div
+                      className={cn(
+                        "flex items-center justify-between flex-1 transition-opacity duration-200",
+                        isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                      )}
+                    >
                       <span className="whitespace-nowrap">{item.label}</span>
-                      {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
                     </div>
                   </button>
 
                   {/* Submenu */}
-                  <div className={cn(
-                    "overflow-hidden transition-all duration-300 ease-in-out",
-                    isExpanded && !isCollapsed ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"
-                  )}>
+                  <div
+                    className={cn(
+                      "overflow-hidden transition-all duration-300 ease-in-out",
+                      isExpanded && !isCollapsed ? "max-h-40 opacity-100 mt-1" : "max-h-0 opacity-0"
+                    )}
+                  >
                     <div className="flex flex-col space-y-1 pl-9">
                       {item.children?.map((child) => {
                         const isChildActive = pathname === child.href;
@@ -231,14 +260,14 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                             key={child.href}
                             href={child.href}
                             className={cn(
-                              'flex items-center gap-2 py-2 text-sm transition-colors hover:text-purple-700',
-                              isChildActive ? 'text-purple-700 font-medium' : 'text-gray-500'
+                              "flex items-center gap-2 py-2 text-sm transition-colors hover:text-purple-700",
+                              isChildActive ? "text-purple-700 font-medium" : "text-gray-500"
                             )}
                           >
                             {ChildIcon && <ChildIcon className="w-4 h-4" />}
                             <span>{child.label}</span>
                           </Link>
-                        )
+                        );
                       })}
                     </div>
                   </div>
@@ -252,17 +281,21 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm',
+                  "flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer text-sm",
                   isActive
-                    ? 'bg-purple-100 text-purple-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? "bg-purple-100 text-purple-700 font-medium"
+                    : "text-gray-700 hover:bg-gray-100"
                 )}
               >
                 <Icon className="w-4 h-4 flex-shrink-0" />
-                <span className={cn(
-                  "whitespace-nowrap transition-opacity duration-200",
-                  isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
-                )}>{item.label}</span>
+                <span
+                  className={cn(
+                    "whitespace-nowrap transition-opacity duration-200",
+                    isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                  )}
+                >
+                  {item.label}
+                </span>
               </Link>
             );
           })}
@@ -279,7 +312,10 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                       className="h-10 w-10 rounded-lg flex-shrink-0 cursor-pointer"
                       onClick={() => setIsTooltipOpen(!isTooltipOpen)}
                     >
-                      <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
+                      <AvatarImage
+                        src={formatImageUrl(userProfile?.avatarUrl)}
+                        alt={userProfile?.fullName}
+                      />
                       <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
                         {getAvatarFallback()}
                       </AvatarFallback>
@@ -289,8 +325,10 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                     <div className="flex flex-col">
                       {/* User Info */}
                       <div className="px-3 py-2 border-b">
-                        <p className="font-medium text-sm">{userProfile?.fullName || 'Admin'}</p>
-                        <p className="text-xs text-muted-foreground truncate">{userProfile?.email}</p>
+                        <p className="font-medium text-sm">{userProfile?.fullName || "Admin"}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {userProfile?.email}
+                        </p>
                       </div>
                       {/* Action Buttons */}
                       <div className="p-1">
@@ -304,8 +342,8 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                         </Link>
                         <button
                           onClick={() => {
-                            setIsTooltipOpen(false)
-                            mutateLogout()
+                            setIsTooltipOpen(false);
+                            mutateLogout();
                           }}
                           className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-red-50 text-red-600 cursor-pointer"
                         >
@@ -319,29 +357,33 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
               </TooltipProvider>
             ) : (
               <div className="relative flex items-center gap-2">
-                  <Avatar className="h-8 w-8 rounded-lg flex-shrink-0">
-                    <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
-                    <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
-                      {getAvatarFallback()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {userProfile?.isActive && (
-                    <span className="absolute bottom-0 -right-1 w-3 h-3 flex z-10">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
-                    </span>
-                  )}
+                <Avatar className="h-8 w-8 rounded-lg flex-shrink-0">
+                  <AvatarImage
+                    src={formatImageUrl(userProfile?.avatarUrl)}
+                    alt={userProfile?.fullName}
+                  />
+                  <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
+                    {getAvatarFallback()}
+                  </AvatarFallback>
+                </Avatar>
+                {userProfile?.isActive && (
+                  <span className="absolute bottom-0 -right-1 w-3 h-3 flex z-10">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
+                  </span>
+                )}
               </div>
-             
             )}
 
-            <div className={cn(
-              "flex items-center gap-2 flex-1 min-w-0 transition-opacity duration-200",
-              isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
-            )}>
+            <div
+              className={cn(
+                "flex items-center gap-2 flex-1 min-w-0 transition-opacity duration-200",
+                isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+              )}
+            >
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-gray-900 truncate">
-                  {userProfile?.fullName || 'Admin'}
+                  {userProfile?.fullName || "Admin"}
                 </p>
                 <p className="text-xs text-gray-500 truncate">{userProfile?.email}</p>
               </div>
@@ -366,6 +408,31 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                       Hồ sơ
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    asChild
+                    className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
+                    onSelect={() => setIsNotificationOpen(true)}
+                  >
+                    <div className="flex flex-row justify-between items-center gap-2 ">
+                      <div className="flex flex-row items-center gap-2">
+                        <div className="flex">
+                          <Bell className="h-4 w-4" />
+                        </div>
+                        Thông báo
+                      </div>
+                      <div>
+                        {notificationStatus && notificationStatus.unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
+                            <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white text-[10px] font-bold text-white">
+                              {notificationStatus.unreadCount > 99
+                                ? "99+"
+                                : notificationStatus.unreadCount}
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => mutateLogout()}
@@ -380,6 +447,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
           </div>
         </div>
       </div>
+      <AdminNotificationPanel open={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
     </aside>
   );
 }

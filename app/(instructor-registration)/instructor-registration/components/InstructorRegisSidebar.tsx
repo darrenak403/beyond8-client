@@ -25,6 +25,7 @@ export default function InstructorRegisSidebar({
   canProceedStep5,
   canProceedStep6,
 }: InstructorRegisSidebarProps) {
+  // Sidebar hiển thị đủ 7 bước, nhưng bước "Xác minh" (AI review) luôn bị disable
   const steps = [
     { number: 1, title: "Giấy tờ", icon: FileText },
     { number: 2, title: "Thông tin", icon: User },
@@ -48,6 +49,11 @@ export default function InstructorRegisSidebar({
   };
 
   const canAccessStep = (stepNumber: number) => {
+    // Bước 7 ("Xác minh") luôn hiển thị nhưng không cho click từ sidebar
+    if (stepNumber === 7) {
+      return false;
+    }
+
     if (stepNumber < currentStep) {
       return true;
     }

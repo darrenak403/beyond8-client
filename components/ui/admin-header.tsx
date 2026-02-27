@@ -18,6 +18,10 @@ const pageTitles: Record<string, string> = {
   '/admin/ai-management/overview': 'Tổng quan',
   '/admin/ai-management/prompts': 'Quản lý prompt',
   '/admin/category': 'Quản lý danh mục',
+  '/admin/instructor-wallet': 'Ví giảng viên',
+  '/admin/platform-wallet': 'Ví nền tảng',
+  '/admin/instructor-wallet/': 'Chi tiết ví giảng viên',
+  '/admin/coupon': 'Quản lý mã khuyến mãi',
 };
 
 export function AdminHeader({ onToggleSidebar }: AdminHeaderProps) {
