@@ -51,7 +51,6 @@ export function useBuySubscription(options?: UseBuySubscriptionOptions) {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      toast.success(data.message || "Mua gói thành công!");
       onSuccess?.(data.data);
     },
     onError: (error: Error) => {

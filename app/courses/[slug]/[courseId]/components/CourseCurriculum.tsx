@@ -204,6 +204,7 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                         ? lesson.duration
                         : '0m'
 
+
                     // Determine lock status
                     const isLocked = mode !== 'preview' && effectiveEnrollmentId && lockedLessonIds.has(lesson.id)
                     const isPreviewLesson = lesson.isPreview
