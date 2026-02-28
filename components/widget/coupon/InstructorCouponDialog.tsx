@@ -37,6 +37,7 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
 
 // Schema validation
 const formSchema = z
@@ -602,8 +604,11 @@ export function InstructorCouponDialog({
                                     )}
                                   </div>
                                   <span className="text-lg font-bold text-purple-600">
-                                    {field.value ?? 0}
-                                    {couponType === CouponType.Percentage ? "%" : "đ"}
+                                    {
+                                      couponType === CouponType.Percentage
+                                        ? `${field.value || 0}%`
+                                        : `${field.value ? formatCurrency(field.value) : "0"}`
+                                    }
                                   </span>
                                 </div>
                                 {couponType === CouponType.Percentage ? (
@@ -658,27 +663,11 @@ export function InstructorCouponDialog({
                                   </>
                                 ) : (
                                   <FormControl>
-                                    <div className="relative">
-                                      <Input
-                                        type="text"
-                                        inputMode="numeric"
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        onChange={(e) => {
-                                          let val = e.target.value.replace(/[^0-9]/g, "");
-                                          if (val.length > 1 && val.startsWith("0")) {
-                                            val = val.replace(/^0+/, "");
-                                            if (val === "") val = "0";
-                                          }
-                                          field.onChange(val);
-                                        }}
-                                        className="h-11 pr-12 font-medium bg-white border-gray-200 text-lg"
-                                        placeholder="0"
-                                      />
-                                      <div className="absolute inset-y-0 right-0 flex items-center justify-center w-12 pointer-events-none text-muted-foreground font-semibold">
-                                        đ
-                                      </div>
-                                    </div>
+                                    <CurrencyInput
+                                      value={Number(field.value) || 0}
+                                      onValueChange={(val) => field.onChange(val)}
+                                      className="h-11 bg-white border-gray-200"
+                                    />
                                   </FormControl>
                                 )}
                                 <FormMessage />
@@ -703,27 +692,11 @@ export function InstructorCouponDialog({
                                     </span>
                                   </div>
                                   <FormControl>
-                                    <div className="relative">
-                                      <Input
-                                        type="text"
-                                        inputMode="numeric"
-                                        {...field}
-                                        value={field.value ?? ""}
-                                        onChange={(e) => {
-                                          let val = e.target.value.replace(/[^0-9]/g, "");
-                                          if (val.length > 1 && val.startsWith("0")) {
-                                            val = val.replace(/^0+/, "");
-                                            if (val === "") val = "0";
-                                          }
-                                          field.onChange(val);
-                                        }}
-                                        className="h-11 bg-white border-gray-200 pr-10"
-                                        placeholder="Không giới hạn"
-                                      />
-                                      <div className="absolute inset-y-0 right-0 flex items-center justify-center w-10 pointer-events-none text-muted-foreground text-sm">
-                                        đ
-                                      </div>
-                                    </div>
+                                    <CurrencyInput
+                                      value={Number(field.value) || 0}
+                                      onValueChange={(val) => field.onChange(val)}
+                                      className="h-11 bg-white border-gray-200"
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -745,27 +718,11 @@ export function InstructorCouponDialog({
                                   </span>
                                 </div>
                                 <FormControl>
-                                  <div className="relative">
-                                    <Input
-                                      type="text"
-                                      inputMode="numeric"
-                                      {...field}
-                                      value={field.value ?? ""}
-                                      onChange={(e) => {
-                                        let val = e.target.value.replace(/[^0-9]/g, "");
-                                        if (val.length > 1 && val.startsWith("0")) {
-                                          val = val.replace(/^0+/, "");
-                                          if (val === "") val = "0";
-                                        }
-                                        field.onChange(val);
-                                      }}
-                                      className="h-11 bg-white border-gray-200 pr-10"
-                                      placeholder="0"
-                                    />
-                                    <div className="absolute inset-y-0 right-0 flex items-center justify-center w-10 pointer-events-none text-muted-foreground text-sm">
-                                      đ
-                                    </div>
-                                  </div>
+                                  <CurrencyInput
+                                    value={Number(field.value) || 0}
+                                    onValueChange={(val) => field.onChange(val)}
+                                    className="h-11 bg-white border-gray-200"
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>

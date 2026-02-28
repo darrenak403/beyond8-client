@@ -67,8 +67,6 @@ export function InstructorBottomNav() {
   const navItems = [
     { name: "Tổng quan", href: "/instructor/dashboard", icon: Home },
     { name: "Khóa học", href: "/instructor/courses", icon: BookOpen },
-    { name: "Học sinh", href: "/instructor/students", icon: Users },
-    { name: "Chấm bài", href: "/instructor/grading", icon: ClipboardCheck },
     { name: "Ví", href: "/instructor/wallet", icon: Wallet },
     { name: "Hồ sơ", href: "/mybeyond?tab=myprofile", icon: User },
   ];

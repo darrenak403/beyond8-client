@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { AlertCircle, RotateCcw } from 'lucide-react'
+import { AlertCircle, RotateCcw, Award, Percent } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Pagination } from '@/components/ui/custom-pagination'
@@ -12,10 +12,20 @@ import CourseGridItem from './components/CourseGridItem'
 import CourseListItem from './components/CourseListItem'
 import CourseGridItemSkeleton from './components/CourseGridItemSkeleton'
 import CourseListItemSkeleton from './components/CourseListItemSkeleton'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useIsMobile } from '@/hooks/useMobile'
-import { useGetCourseByInstructor, usePublishCourses } from '@/hooks/useCourse'
+import { useGetCourseByInstructor, usePublishCourses, useUpdateCourseCertificateConfig } from '@/hooks/useCourse'
 import { useAuth } from '@/hooks/useAuth'
-import { CourseLevel, CourseStatus } from '@/lib/api/services/fetchCourse'
+import { CourseLevel, CourseStatus, fetchCourse } from '@/lib/api/services/fetchCourse'
 
 export default function InstructorCoursesPage() {
   const [viewModePreference, setViewModePreference] = useState<'grid' | 'list'>('grid')
@@ -57,6 +67,12 @@ export default function InstructorCoursesPage() {
 
   // Bulk Publish Mutation
   const { publishCourses, isPending: isPublishingBulk } = usePublishCourses()
+  const { updateCourseCertificateConfig, isPending: isUpdatingBulkConfig } = useUpdateCourseCertificateConfig()
+
+  const [showBulkConfigDialog, setShowBulkConfigDialog] = useState(false)
+  const [isCheckingConfig, setIsCheckingConfig] = useState(false)
+  const [quizPercent, setQuizPercent] = useState('70')
+  const [assignmentPercent, setAssignmentPercent] = useState('50')
 
   // Ensure params exist in URL
   const router = useRouter()
@@ -134,12 +150,57 @@ export default function InstructorCoursesPage() {
 
   const handleBulkPublish = async () => {
     if (selectedCourseIds.length === 0) return
-    await publishCourses({ ids: selectedCourseIds })
+    setIsCheckingConfig(true)
+
+    try {
+      // Publish immediately
+      await publishCourses({ ids: selectedCourseIds })
+
+      const unconfiguredCourses: string[] = []
+      for (const id of selectedCourseIds) {
+        try {
+          const res = await fetchCourse.getCourseCertificateConfig(id)
+          const data = res.data
+          if (!data || (data.quizAverageMinPercent === null && data.assignmentAverageMinPercent === null)) {
+            unconfiguredCourses.push(id)
+          }
+        } catch (e) {
+          console.error("Error fetching config:", e)
+          unconfiguredCourses.push(id)
+        }
+      }
+
+      if (unconfiguredCourses.length > 0) {
+        setSelectedCourseIds(unconfiguredCourses)
+        setShowBulkConfigDialog(true)
+      } else {
+        setSelectedCourseIds([])
+        refetch()
+      }
+    } finally {
+      setIsCheckingConfig(false)
+    }
+  }
+
+  const handleBulkConfigSave = async () => {
+    const qPercent = parseInt(quizPercent)
+    const aPercent = parseInt(assignmentPercent)
+
+    await Promise.all(
+      selectedCourseIds.map(id => updateCourseCertificateConfig({
+        courseId: id,
+        data: {
+          quizAverageMinPercent: isNaN(qPercent) ? 70 : qPercent,
+          assignmentAverageMinPercent: isNaN(aPercent) ? 50 : aPercent
+        }
+      }))
+    )
+    setShowBulkConfigDialog(false)
     setSelectedCourseIds([])
-    // Optional: Exit selection mode after action?
-    // setIsSelectionMode(false)
     refetch()
   }
+
+
 
   return (
     <div className="flex flex-col h-full space-y-6 p-3">
@@ -189,7 +250,7 @@ export default function InstructorCoursesPage() {
             <Button
               size="sm"
               onClick={handleBulkPublish}
-              disabled={isPublishingBulk || selectedCourseIds.length === 0}
+              disabled={isPublishingBulk || isCheckingConfig || selectedCourseIds.length === 0}
               className={`
                         transition-all duration-300 rounded-full
                         ${selectedCourseIds.length > 0
@@ -197,7 +258,7 @@ export default function InstructorCoursesPage() {
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'}
                     `}
             >
-              {isPublishingBulk ? (
+              {isPublishingBulk || isCheckingConfig ? (
                 <>
                   <span className="animate-spin mr-2">⏳</span> Đang xử lý...
                 </>
@@ -273,6 +334,67 @@ export default function InstructorCoursesPage() {
           </>
         )}
       </div>
+
+      <AlertDialog open={showBulkConfigDialog}>
+        <AlertDialogContent className="sm:max-w-[500px] overflow-hidden p-0 border-0 shadow-2xl rounded-2xl">
+          <div className="bg-linear-to-br from-primary/10 to-primary/5 p-6 pb-4">
+            <AlertDialogHeader>
+              <div className="mx-auto bg-white p-3 rounded-full shadow-sm w-fit mb-2">
+                <Award className="w-8 h-8 text-primary" />
+              </div>
+              <AlertDialogTitle className="text-center text-xl text-primary">Điều kiện cấp chứng chỉ</AlertDialogTitle>
+              <AlertDialogDescription className="text-center text-slate-600">
+                Hệ thống yêu cầu thiết lập điểm đạt tối thiểu để học viên nhận được chứng chỉ. Cấu hình này sẽ được áp dụng cho tất cả các khóa học đã chọn.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </div>
+          <div className="px-6 py-4 space-y-4">
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 space-y-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="bulkQuizPercent" className="font-semibold text-slate-700 flex items-center gap-2">
+                  <Percent className="w-4 h-4 text-slate-400" />
+                  Bài kiểm tra (Quiz)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="bulkQuizPercent"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={quizPercent}
+                    onChange={(e) => setQuizPercent(e.target.value)}
+                    className="pr-8 font-medium text-slate-900 border-slate-200 focus-visible:ring-primary rounded-lg"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">%</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="bulkAssignmentPercent" className="font-semibold text-slate-700 flex items-center gap-2">
+                  <Percent className="w-4 h-4 text-slate-400" />
+                  Bài tập (Assignment)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="bulkAssignmentPercent"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={assignmentPercent}
+                    onChange={(e) => setAssignmentPercent(e.target.value)}
+                    className="pr-8 font-medium text-slate-900 border-slate-200 focus-visible:ring-primary rounded-lg"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <AlertDialogFooter className="p-6 pt-2 sm:justify-center">
+            <Button onClick={handleBulkConfigSave} disabled={isUpdatingBulkConfig} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 shadow-md shadow-primary/20 transition-all font-semibold">
+              {isUpdatingBulkConfig ? "Đang lưu..." : "Xác nhận & Hoàn tất"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -145,7 +145,7 @@ export function CreateAssignmentDialog({
                 attachmentUrls,
                 submissionType,
                 allowedFileTypes: (submissionType === SubmissionType.File || submissionType === SubmissionType.Both) ? allowedFileTypes : [],
-                maxTextLength: (submissionType === SubmissionType.Text || submissionType === SubmissionType.Both) ? maxTextLength : null,
+                maxTextLength: submissionType === SubmissionType.File ? 1 : maxTextLength,
                 gradingMode,
                 totalPoints,
                 passScorePercent,
@@ -332,7 +332,7 @@ export function CreateAssignmentDialog({
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value={SubmissionType.Text}>Văn bản (Text)</SelectItem>
+                                                <SelectItem value={SubmissionType.Text}>Văn bản</SelectItem>
                                                 <SelectItem value={SubmissionType.File}>Tệp tin (File)</SelectItem>
                                                 <SelectItem value={SubmissionType.Both}>Cả hai </SelectItem>
                                             </SelectContent>
@@ -392,7 +392,7 @@ export function CreateAssignmentDialog({
                                                 <Input
                                                     value={customFileType}
                                                     onChange={(e) => setCustomFileType(e.target.value)}
-                                                    placeholder="Thêm loại file khác (vd: .rar)"
+                                                    placeholder="Thêm loại file khác (vd: .rar)"    
                                                     className="h-9 bg-white text-sm"
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter') {
@@ -418,19 +418,11 @@ export function CreateAssignmentDialog({
 
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium text-gray-700">
-                                            Phương thức chấm điểm <span className="text-red-500">*</span>
+                                            Phương thức chấm điểm
                                         </Label>
-                                        <Select
-                                            value={gradingMode}
-                                            onValueChange={(value) => setGradingMode(value as GradingMode)}
-                                        >
-                                            <SelectTrigger className="h-10 bg-white">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value={GradingMode.AiAssisted}>AI hỗ trợ</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <div className="flex items-center h-10 px-3 border rounded-md bg-gray-50 text-sm text-gray-500">
+                                            AI hỗ trợ
+                                        </div>
                                     </div>
 
                                     <Separator />
@@ -488,19 +480,10 @@ export function CreateAssignmentDialog({
 
                                         <div className="space-y-2">
                                             <Label className="text-xs font-semibold text-gray-500 uppercase">Thời gian làm bài</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    type="number"
-                                                    min={1}
-                                                    value={timeLimitMinutes || ""}
-                                                    onChange={(e) => setTimeLimitMinutes(e.target.value ? Number(e.target.value) : null)}
-                                                    placeholder="Để trống nếu không giới hạn"
-                                                    className="pl-9 h-10 bg-white"
-                                                />
-                                                <Clock className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                                                <span className="absolute right-3 top-3 text-xs text-gray-400 font-medium">phút</span>
+                                            <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-gray-50 text-sm text-gray-500">
+                                                <Clock className="w-4 h-4 text-gray-400" />
+                                                Không giới hạn
                                             </div>
-                                            <p className="text-[10px] text-gray-500">Để trống nếu không giới hạn thời gian</p>
                                         </div>
                                     </div>
 

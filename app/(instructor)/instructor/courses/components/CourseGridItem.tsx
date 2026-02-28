@@ -5,7 +5,17 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { CoursePreviewDialog } from '@/components/widget/CoursePreviewDialog'
 import { ConfirmDialog } from '@/components/widget/confirm-dialog'
-import { useSubmitCourseForReview, usePublishCourse, useUnpublishCourse, useDeleteCourse } from '@/hooks/useCourse'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useSubmitCourseForReview, usePublishCourse, useUnpublishCourse, useDeleteCourse, useUpdateCourseCertificateConfig, useGetCourseCertificateConfig } from '@/hooks/useCourse'
 import { useGetCouponForInstructor } from '@/hooks/useCoupon'
 import { useGetSubmissionSumary } from '@/hooks/useAssignment'
 import {
@@ -18,7 +28,9 @@ import {
   ClipboardCheck,
   Ticket,
   Tag,
-  BookCheck
+  BookCheck,
+  Award,
+  Percent
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -105,10 +117,47 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
   const { publishCourse, isPending: isPublishing } = usePublishCourse()
   const { unpublishCourse, isPending: isUnpublishing } = useUnpublishCourse()
   const { deleteCourse, isPending: isDeleting } = useDeleteCourse()
+  const { updateCourseCertificateConfig, isPending: isUpdatingConfig } = useUpdateCourseCertificateConfig()
+  const [showConfigDialog, setShowConfigDialog] = useState(false)
+  const { refetch: refetchConfig, isFetching: isCheckingConfig } = useGetCourseCertificateConfig(course.id, { enabled: false })
+
+  const [quizPercent, setQuizPercent] = useState('70')
+  const [assignmentPercent, setAssignmentPercent] = useState('50')
   const { coupons } = useGetCouponForInstructor()
   const couponCount = coupons.filter(c => c.applicableCourseId === course.id).length
   const { submissions: submissionSummary } = useGetSubmissionSumary(course.id)
   const pendingGradingCount = submissionSummary?.sections?.reduce((sum, s) => sum + (s.ungradedSubmissions || 0), 0) ?? 0
+
+  const handlePublishClick = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    try {
+      // First publish the course
+      publishCourse({ id: course.id })
+
+      const { data: configRes } = await refetchConfig()
+      const data = configRes?.data
+      if (!data || (data.quizAverageMinPercent === null && data.assignmentAverageMinPercent === null)) {
+        setShowConfigDialog(true)
+      }
+    } catch (error) {
+      console.error("Error fetching config:", error)
+      setShowConfigDialog(true)
+    }
+  }
+
+  const handleSaveConfig = async () => {
+    const qPercent = parseInt(quizPercent)
+    const aPercent = parseInt(assignmentPercent)
+
+    await updateCourseCertificateConfig({
+      courseId: course.id,
+      data: {
+        quizAverageMinPercent: isNaN(qPercent) ? 70 : qPercent,
+        assignmentAverageMinPercent: isNaN(aPercent) ? 50 : aPercent
+      }
+    })
+    setShowConfigDialog(false)
+  }
 
   const handlePreview = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -258,13 +307,10 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
               variant="outline"
               size="default"
               className="flex-1 h-10 text-sm font-semibold rounded-xl text-green-600 border-green-200 bg-green-50 hover:bg-green-100 hover:border-green-300 transition-all hover:text-green-600"
-              onClick={(e) => {
-                e.stopPropagation()
-                publishCourse({ id: course.id })
-              }}
-              disabled={isPublishing}
+              onClick={handlePublishClick}
+              disabled={isPublishing || isCheckingConfig}
             >
-              {isPublishing ? "..." : "Công khai"}
+              {isPublishing || isCheckingConfig ? "..." : "Công khai"}
             </Button>
           ) : course.status === CourseStatus.Draft || course.status === CourseStatus.Rejected ? (
             <Button
@@ -363,6 +409,67 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
         onConfirm={() => deleteCourse({ id: course.id })}
         variant="destructive"
       />
+
+      <AlertDialog open={showConfigDialog}>
+        <AlertDialogContent className="sm:max-w-[500px] overflow-hidden p-0 border-0 shadow-2xl rounded-2xl">
+          <div className="bg-linear-to-br from-primary/10 to-primary/5 p-6 pb-4">
+            <AlertDialogHeader>
+              <div className="mx-auto bg-white p-3 rounded-full shadow-sm w-fit mb-2">
+                <Award className="w-8 h-8 text-primary" />
+              </div>
+              <AlertDialogTitle className="text-center text-xl text-primary">Điều kiện cấp chứng chỉ</AlertDialogTitle>
+              <AlertDialogDescription className="text-center text-slate-600">
+                Hệ thống yêu cầu thiết lập điểm đạt tối thiểu để học viên nhận được chứng chỉ sau khi hoàn thành khóa học.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </div>
+          <div className="px-6 py-4 space-y-4">
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 space-y-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="quizPercent" className="font-semibold text-slate-700 flex items-center gap-2">
+                  <Percent className="w-4 h-4 text-slate-400" />
+                  Bài kiểm tra (Quiz)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="quizPercent"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={quizPercent}
+                    onChange={(e) => setQuizPercent(e.target.value)}
+                    className="pr-8 font-medium text-slate-900 border-slate-200 focus-visible:ring-primary rounded-lg"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">%</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="assignmentPercent" className="font-semibold text-slate-700 flex items-center gap-2">
+                  <Percent className="w-4 h-4 text-slate-400" />
+                  Bài tập (Assignment)
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="assignmentPercent"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={assignmentPercent}
+                    onChange={(e) => setAssignmentPercent(e.target.value)}
+                    className="pr-8 font-medium text-slate-900 border-slate-200 focus-visible:ring-primary rounded-lg"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <AlertDialogFooter className="p-6 pt-2 sm:justify-center">
+            <Button onClick={handleSaveConfig} disabled={isUpdatingConfig} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 shadow-md shadow-primary/20 transition-all font-semibold">
+              {isUpdatingConfig ? "Đang lưu..." : "Xác nhận & Hoàn tất"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -17,7 +17,7 @@ interface ConfirmDialogProps {
     onConfirm: () => void
     onCancel?: () => void
     title: string
-    description: string
+    description: React.ReactNode
     confirmText?: string
     cancelText?: string
     variant?: "default" | "destructive" | "success" | "info"

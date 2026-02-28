@@ -103,7 +103,7 @@ export function useDeleteAssignment(courseId: string) {
         mutationFn: (id: string) => assignmentService.deleteAssignment(id),
         onSuccess: (_, id) => {
             queryClient.invalidateQueries({ queryKey: ["assignments"] })
-            queryClient.invalidateQueries({ queryKey: ["assignments", id] })
+            //queryClient.invalidateQueries({ queryKey: ["assignments", id] })
             queryClient.invalidateQueries({ queryKey: ["sections", courseId] })
             toast.success("Xóa bài tập thành công!")
         },

@@ -723,14 +723,14 @@ export function useUpdateCourseDiscount() {
   };
 }
 
-export function useGetCourseCertificateConfig(courseId: string) {
+export function useGetCourseCertificateConfig(courseId: string, options?: { enabled?: boolean }) {
   const { data, isLoading, refetch, isFetching, isError } = useQuery<
     CourseCertificateConfigResponse,
     Error
   >({
     queryKey: ["course-certificate-config", courseId],
     queryFn: () => fetchCourse.getCourseCertificateConfig(courseId),
-    enabled: !!courseId,
+    enabled: options?.enabled !== undefined ? options.enabled : !!courseId,
   });
 
   return {
