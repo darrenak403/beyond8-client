@@ -89,7 +89,7 @@ export function PlatformTransactionTable({
 
                                 return (
                                     <TableRow key={transaction.id}>
-                                        <TableCell className="font-medium max-w-[200px] truncate" title={transaction.description}>
+                                        <TableCell className="font-medium max-w-[350px] truncate" title={transaction.description}>
                                             {transaction.description || transaction.referenceType}
                                         </TableCell>
                                         <TableCell>
@@ -113,9 +113,28 @@ export function PlatformTransactionTable({
                                                     transaction.status === "Pending" ? "Đang xử lý" : "Thất bại"}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className={`text-right font-medium ${isPositive ? "text-green-600" : "text-gray-900"}`}>
-                                            {isPositive ? "+" : "-"}
-                                            {transaction.amount.toLocaleString()} VNĐ
+                                        <TableCell className="text-right align-middle">
+                                            <div className="flex flex-col items-end justify-center">
+                                                <span className={`font-medium [font-variant-numeric:tabular-nums] ${transaction.type === TransactionType.Sale && transaction.status === "Pending" ? "text-orange-600" :
+                                                    transaction.type === TransactionType.Sale && transaction.status === "Completed" ? "text-green-600" :
+                                                        transaction.type === TransactionType.TopUp || (transaction.type as string) === "Revenue" ? "text-green-600" :
+                                                            transaction.type === TransactionType.CouponHold || (transaction.type as string) === "CouponCost" ? "text-red-600" :
+                                                                transaction.type === TransactionType.CouponUsage ? "text-purple-600" :
+                                                                    isPositive ? "text-green-600" : "text-gray-900"
+                                                    }`}>
+                                                    {['CouponHold', 'CouponUsage', 'Payout', 'PlatformFee'].some(t => TransactionType[t as keyof typeof TransactionType] === transaction.type) || ['CouponCost', 'Settlement'].includes(transaction.type as string) ? "-" : "+"}
+                                                    {Math.abs(transaction.amount).toLocaleString()} VNĐ
+                                                </span>
+                                                <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+                                                    {transaction.type === TransactionType.Sale && transaction.status === "Pending" && "Cộng vào chờ xử lý"}
+                                                    {transaction.type === TransactionType.Sale && transaction.status === "Completed" && "Cộng vào số dư"}
+                                                    {transaction.type === TransactionType.TopUp && "Cộng vào số dư"}
+                                                    {transaction.type === TransactionType.CouponHold && "Giữ từ số dư"}
+                                                    {transaction.type === TransactionType.CouponUsage && "Trừ từ tạm giữ"}
+                                                    {(transaction.type as string) === "Revenue" && "Cộng vào doanh thu"}
+                                                    {(transaction.type as string) === "CouponCost" && "Trừ chi phí"}
+                                                </span>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 );

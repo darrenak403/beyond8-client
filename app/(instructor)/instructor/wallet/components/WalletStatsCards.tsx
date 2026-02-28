@@ -1,29 +1,37 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Clock, CreditCard, AlertCircle } from "lucide-react";
+import { DollarSign, Clock, AlertCircle, Wallet } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface WalletStatsCardsProps {
+  availableBalance: number;
   totalRevenue: number;
   pendingBalance: number;
   holdBalance: number;
-  totalWithdrawn: number;
   nextAvailableAt?: string | null;
   isLoading?: boolean;
 }
 
 export function WalletStatsCards({
+  availableBalance,
   totalRevenue,
   pendingBalance,
   holdBalance,
-  totalWithdrawn,
   nextAvailableAt,
   isLoading,
 }: WalletStatsCardsProps) {
   const fmt = (n: number) => new Intl.NumberFormat('vi-VN').format(n);
 
   const stats = [
+    {
+      title: "Số dư",
+      amount: availableBalance,
+      icon: Wallet,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      description: "Số dư hiện tại"
+    },
     {
       title: "Tổng doanh thu",
       amount: totalRevenue,
@@ -50,14 +58,6 @@ export function WalletStatsCards({
       bgColor: "bg-red-50",
       description: "Giữ do mã giảm giá"
     },
-    {
-      title: "Đã rút",
-      amount: totalWithdrawn,
-      icon: CreditCard,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      description: "Tổng số tiền đã thanh toán"
-    },
   ];
 
   return (
@@ -65,27 +65,30 @@ export function WalletStatsCards({
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
-          <Card key={index} className="hover:shadow-md transition-shadow">
+          <Card
+            key={index}
+            className={`transition-shadow ${index === 0 ? "border-violet-200 bg-brand-purple from-violet-600 to-violet-800 text-white dark:from-violet-700 dark:to-violet-900 shadow-md" : "hover:shadow-md"}`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className={`text-sm font-medium ${index === 0 ? "text-violet-100" : "text-muted-foreground"}`}>
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <Icon className={`h-4 w-4 ${stat.color}`} />
+              <div className={`p-2 rounded-lg ${index === 0 ? "bg-white/20" : stat.bgColor}`}>
+                <Icon className={`h-4 w-4 ${index === 0 ? "text-white" : stat.color}`} />
               </div>
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <Skeleton className="h-8 w-32 mb-2" />
+                <Skeleton className={`h-8 w-32 mb-2 ${index === 0 ? "bg-white/20" : ""}`} />
               ) : (
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold [font-variant-numeric:tabular-nums]">
+                  <span className={`text-2xl font-bold [font-variant-numeric:tabular-nums] ${index === 0 ? "text-white" : ""}`}>
                     {fmt(stat.amount)}
                   </span>
-                  <span className="text-xs font-medium text-muted-foreground">VNĐ</span>
+                  <span className={`text-xs font-medium ${index === 0 ? "text-violet-100" : "text-muted-foreground"}`}>VNĐ</span>
                 </div>
               )}
-              <p className="text-xs text-muted-foreground mt-1 truncate" title={stat.description}>
+              <p className={`text-xs mt-1 truncate ${index === 0 ? "text-violet-200" : "text-muted-foreground"}`} title={stat.description}>
                 {stat.description}
               </p>
             </CardContent>

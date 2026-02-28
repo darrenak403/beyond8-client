@@ -17,6 +17,26 @@ export interface Wallet {
     updatedAt: string | null
 }
 
+export interface PlatformWallet {
+    id: string
+    totalRevenue: number
+    pendingBalance: number
+    availableBalance: number
+    totalCouponCost: number
+    nextAvailableAt: string | null
+    currency: string
+    isActive: boolean
+    createdAt: string
+    updatedAt: string | null
+}
+
+export interface PlatformWalletResponse {
+    isSuccess: boolean
+    message: string
+    data: PlatformWallet
+    metadata: unknown
+}
+
 export enum TransactionType {
     Sale = "Sale",
     Payout = "Payout",
@@ -229,8 +249,8 @@ export const fetchWallet = {
     },
 
     //Lấy thông tin ví nền tảng (Admin only)
-    getPlatformWallet: async (): Promise<WalletResponse> => {
-        const response = await apiService.get<WalletResponse>("api/v1/platform-wallet");
+    getPlatformWallet: async (): Promise<PlatformWalletResponse> => {
+        const response = await apiService.get<PlatformWalletResponse>("api/v1/platform-wallet");
         return response.data;
     },
 
