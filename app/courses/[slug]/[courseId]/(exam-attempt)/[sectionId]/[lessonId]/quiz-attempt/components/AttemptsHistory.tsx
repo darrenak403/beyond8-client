@@ -5,22 +5,29 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, XCircle, FileQuestion } from 'lucide-react'
 import { QuizAttemptSummaryItem } from '@/lib/api/services/fetchQuiz'
 import { cn } from '@/lib/utils'
+import { quizResultUrl } from '@/utils/courseUrls'
+import { decodeCompoundId } from '@/utils/crypto'
 
 interface AttemptsHistoryProps {
   attempts: QuizAttemptSummaryItem[]
   quizId: string
+  courseId?: string
+  sectionId?: string
+  lessonId?: string
 }
 
-export default function AttemptsHistory({ attempts, quizId }: AttemptsHistoryProps) {
+export default function AttemptsHistory({ attempts, quizId, courseId: propCourseId, sectionId: propSectionId, lessonId: propLessonId }: AttemptsHistoryProps) {
   const params = useParams()
   const router = useRouter()
 
+  // Support both old params-based and new prop-based usage
+  const slug = params?.slug as string
+  const courseId = propCourseId || ''
+  const sectionId = propSectionId || ''
+  const lessonId = propLessonId || ''
+
   const handleViewResult = (attemptId: string) => {
-    const slug = params?.slug as string
-    const courseId = params?.courseId as string
-    const sectionId = params?.sectionId as string
-    const lessonId = params?.lessonId as string
-    router.push(`/courses/${slug}/${courseId}/${sectionId}/${lessonId}/quiz-attempt/result/${attemptId}?quizId=${quizId}`)
+    router.push(quizResultUrl(slug, courseId, sectionId, lessonId, quizId, attemptId))
   }
 
   if (attempts.length === 0) {

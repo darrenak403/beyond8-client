@@ -6,13 +6,14 @@ import SafeImage from '@/components/ui/SafeImage'
 import StarRating from './StarRating'
 import { useUserById } from '@/hooks/useUserProfile'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
+import { courseUrl as buildCourseUrl } from '@/utils/courseUrls'
 
 interface MyEnrollmentCardProps {
   enrollment: MyEnrollmentData
 }
 
 export default function MyEnrollmentCard({ enrollment }: MyEnrollmentCardProps) {
-  const courseUrl = `/courses/${enrollment.slug}/${enrollment.courseId}`
+  const courseUrl = buildCourseUrl(enrollment.slug, enrollment.courseId)
 
   const primaryInstructorId = Array.isArray(enrollment.instructorId)
     ? enrollment.instructorId[0] || ''

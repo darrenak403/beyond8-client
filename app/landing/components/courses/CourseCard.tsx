@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import SafeImage from "@/components/ui/SafeImage";
 import { formatCurrency, formatNumber } from "@/lib/utils/formatCurrency";
 import { generateSlug } from "@/lib/utils/generateSlug";
+import { courseUrl as buildCourseUrl } from "@/utils/courseUrls";
 import type { Course } from "@/lib/api/services/fetchCourse";
 import { useUserById } from "@/hooks/useUserProfile";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
@@ -19,7 +20,7 @@ interface CourseCardProps {
 
 export default function CourseCard({ course }: CourseCardProps) {
   const slug = course.slug || generateSlug(course.title);
-  const courseUrl = `/courses/${slug}/${course.id}`;
+  const courseCardUrl = buildCourseUrl(slug, course.id);
   const { user: instructorUser } = useUserById(course.instructorId);
   const { addToCart, isPending } = useAddToCart();
   const { isAuthenticated } = useAuth();
@@ -80,7 +81,7 @@ export default function CourseCard({ course }: CourseCardProps) {
   };
 
   return (
-    <Link href={courseUrl} target="_blank" className="block h-full">
+    <Link href={courseCardUrl} target="_blank" className="block h-full">
       <div className="group cursor-pointer h-full flex flex-col">
         {/* Image - Square aspect ratio */}
         <div className="relative w-full aspect-square mb-4 rounded-2xl overflow-hidden">

@@ -6,10 +6,13 @@ import { CheckCircle, PlayCircle, Lock } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { CourseDetail } from "@/lib/data/mockCourseDetail"
+import { watchUrl } from '@/utils/courseUrls'
+import { decodeId } from '@/utils/crypto'
 
 export default function LearningSidebar({ course }: { course: CourseDetail }) {
    const params = useParams() as { slug: string; courseId: string; sectionId: string; lessonId: string }
    const currentLessonId = params.lessonId
+   const decodedCourseId = decodeId(params.courseId) || ''
 
    // Find the section containing the current lesson
    const activeSectionId = course.sections.find(s =>
@@ -39,7 +42,7 @@ export default function LearningSidebar({ course }: { course: CourseDetail }) {
                            return (
                               <Link
                                  key={lesson.id}
-                                 href={isLocked ? '#' : `/courses/${params.slug}/${params.courseId}/${section.id}/${lesson.id}`}
+                                 href={isLocked ? '#' : watchUrl(params.slug, decodedCourseId, section.id, lesson.id)}
                                  className={cn(
                                     "flex items-start gap-3 px-4 py-3 border-l-2 transition-all duration-200 group relative",
                                     isActive

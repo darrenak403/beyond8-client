@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { CourseDetail } from '@/lib/api/services/fetchCourse'
+import { courseUrl } from '@/utils/courseUrls'
 
 interface LessonHeaderProps {
   course: CourseDetail
@@ -24,7 +25,7 @@ export default function LessonHeader({ course, params: initialParams, isSidebarO
     <header className="h-16 border-b border-gray-200 bg-white/90 backdrop-blur-md flex items-center justify-between px-4 shrink-0 z-50">
       <div className="flex items-center gap-4">
         <Link
-          href={`/courses/${urlParams.slug || initialParams.slug}/${urlParams.courseId || initialParams.courseId}`}
+          href={courseUrl(urlParams.slug || initialParams.slug, initialParams.courseId)}
           className="flex items-center gap-2 text-gray-600 hover:text-black transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />

@@ -1,21 +1,22 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Fireworks } from '@fireworks-js/react'
 import type { FireworksHandlers } from '@fireworks-js/react'
 import { getHubConnection } from '@/lib/realtime/signalr'
 import { HubConnectionState } from '@microsoft/signalr'
+import { decodeCompoundId } from '@/utils/crypto'
 
-export default function CourseLayout({ children }: { children: React.ReactNode }) {
-  const params = useParams()
-  const courseId = params?.courseId as string
+export default function CourseSlugLayout({ children }: { children: React.ReactNode }) {
+  const searchParams = useSearchParams()
+  const ids = decodeCompoundId(searchParams.get('id') || '')
+  const courseId = ids[0] || ''
 
   const fireworksRef = useRef<FireworksHandlers>(null)
   const [showCelebration, setShowCelebration] = useState(false)
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Start/stop fireworks imperatively
   useEffect(() => {
     if (showCelebration) {
       fireworksRef.current?.start()
@@ -30,7 +31,6 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
     dismissTimerRef.current = setTimeout(() => setShowCelebration(false), 8000)
   }, [])
 
-  // Listen for CourseCompleted SignalR event
   useEffect(() => {
     if (!courseId) return
     const connection = getHubConnection()
@@ -73,7 +73,6 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
     <>
       {children}
 
-      {/* Fireworks canvas — always mounted, controlled via ref */}
       <Fireworks
         ref={fireworksRef}
         autostart={false}
@@ -95,7 +94,6 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
         }}
       />
 
-      {/* Celebration card */}
       {showCelebration && (
         <div
           className="fixed inset-0 z-9998 flex items-center justify-center pointer-events-none bg-black/30 backdrop-blur-xs"
@@ -121,14 +119,6 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
           </div>
         </div>
       )}
-
-      {/* DEV ONLY: Test button — remove before production */}
-      {/* <button
-        className="fixed bottom-4 left-4 z-99999 px-3 py-1 bg-yellow-400 text-black text-xs rounded shadow"
-        onClick={triggerCelebration}
-      >
-        🎆 Test Fireworks
-      </button> */}
     </>
   )
 }

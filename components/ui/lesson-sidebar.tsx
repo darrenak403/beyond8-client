@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { CourseDetail, SectionDetail, LessonType } from '@/lib/api/services/fetchCourse'
 import { cn } from '@/lib/utils'
 import { useCheckEnrollment, useGetCurriculumProgress } from '@/hooks/useEnroll'
+import { lessonUrl as buildLessonUrl, asmAttemptUrl } from '@/utils/courseUrls'
 import { Lesson } from '@/lib/api/services/fetchLesson'
 import { Badge } from '@/components/ui/badge'
 import DocumentDownloadButton from './document-download-button'
@@ -164,13 +165,13 @@ export default function LessonSidebar({
   }
 
   const getLessonUrl = (section: SectionDetail, lesson: Lesson) => {
-    let baseUrl = `/courses/${slug}/${courseId}/${section.id}/${lesson.id}`
-
-    if (lesson.type === LessonType.Quiz) {
-      baseUrl += `/quiz-attempt?quizId=${lesson.quizId}`
-    }
-
-    return mode === 'preview' ? `${baseUrl}?source=summary` : baseUrl
+    return buildLessonUrl(
+      slug,
+      courseId,
+      section.id,
+      lesson as { id: string; type: string; quizId?: string | null },
+      mode === 'preview' ? 'preview' : undefined,
+    )
   }
 
   return (
@@ -454,7 +455,7 @@ export default function LessonSidebar({
                             return (
                               <Link
                                 key={`assignment-${section.assignmentId}`}
-                                href={`/courses/${slug}/${courseId}/${section.id}/asm-attempt/${section.assignmentId}`}
+                                href={asmAttemptUrl(slug, courseId, section.id, section.assignmentId!)}
                                 className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign"
                               >
                                 <div className="flex items-center gap-2">

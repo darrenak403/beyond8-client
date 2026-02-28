@@ -17,6 +17,9 @@ interface QuizOverviewProps {
   onStartQuiz: () => void
   isStarting: boolean
   quizId: string
+  courseId?: string
+  sectionId?: string
+  lessonId?: string
 }
 
 export default function QuizOverview({
@@ -26,6 +29,9 @@ export default function QuizOverview({
   onStartQuiz,
   isStarting,
   quizId,
+  courseId,
+  sectionId,
+  lessonId,
 }: QuizOverviewProps) {
   const [showRequestDialog, setShowRequestDialog] = useState(false)
   const { requestQuizReassign, isPending: isRequesting } = useRequestQuizReassign()
@@ -243,7 +249,7 @@ export default function QuizOverview({
               </div>
 
               {/* Attempts History */}
-              <AttemptsHistory attempts={myQuizAttempts.attempts} quizId={quizId} />
+              <AttemptsHistory attempts={myQuizAttempts.attempts} quizId={quizId} courseId={courseId} sectionId={sectionId} lessonId={lessonId} />
             </>
           ) : null}
         </motion.div>

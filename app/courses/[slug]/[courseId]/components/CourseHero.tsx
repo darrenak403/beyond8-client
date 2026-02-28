@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useState } from 'react'
+import { instructorUrl } from '@/utils/courseUrls'
+import { decodeId } from '@/utils/crypto'
 import {
   Star,
   Users,
@@ -50,8 +52,9 @@ export default function CourseHero({ course, instructor, enrollmentId }: CourseH
   const { user: instructorUser } = useUserById(course.instructorId)
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false)
   // Ensure we have params before constructing URL, fallback to '#' if not
-  const profileUrl = params?.slug && params?.courseId
-    ? `/courses/${params.slug}/${params.courseId}/instructor/${course.instructorId}`
+  const courseId = decodeId(params?.courseId as string) || course.id
+  const profileUrl = params?.slug
+    ? instructorUrl(params.slug as string, courseId, course.instructorId)
     : '#'
 
   const levelColors: Record<string, string> = {
