@@ -131,8 +131,10 @@ export function PlatformUpcomingSettlementsTable({
                   </TableCell>
                   <TableCell className="text-right align-middle">
                     <div className="flex flex-col items-end justify-center">
-                      <span className="font-medium [font-variant-numeric:tabular-nums] text-green-600">
-                        +{item.instructorAmount.toLocaleString()} VNĐ
+                      <span
+                        className={`font-medium [font-variant-numeric:tabular-nums] ${item.platformStatus === "Completed" ? "text-green-600" : "text-orange-600"}`}
+                      >
+                        +{item.platformAmount.toLocaleString()} VNĐ
                       </span>
                       <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
                         Doanh thu giảng viên
