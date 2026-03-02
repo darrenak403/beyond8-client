@@ -99,7 +99,7 @@ export default function TextLesson({ title, content, onScrollToBottom }: TextLes
         <div className={`w-full transition-all duration-300 ease-in-out ${isFullscreen ? 'fixed inset-0 z-50 bg-white/50 backdrop-blur-sm p-4 md:p-8 flex flex-col items-center justify-center' : ''}`}>
             <div
                 className={`
-                    relative bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]
+                    relative bg-white border border-gray-300 shadow-[0_8px_30px_rgb(0,0,0,0.04)]
                     transition-all duration-300 ease-in-out
                     ${isFullscreen
                         ? 'w-full h-full max-w-5xl rounded-2xl overflow-hidden flex flex-col'

@@ -759,6 +759,9 @@ export function useUpdateCourseCertificateConfig() {
       queryClient.invalidateQueries({
         queryKey: ["course-certificate-config"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["courses", "instructor", "instructor-stats"],
+      });
       toast.success("Cập nhật cấu hình điều kiện cấp chứng chỉ khóa học thành công!");
     },
     onError: (error: ApiError) => {

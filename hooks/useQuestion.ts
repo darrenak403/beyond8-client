@@ -109,7 +109,7 @@ export function useImportQuestionsFromAI() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["questions"] })
       queryClient.invalidateQueries({ queryKey: ["question-tags-count"] })
-      toast.success("Import câu hỏi từ AI thành công!")
+      //toast.success("Import câu hỏi từ AI thành công!")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Import câu hỏi từ AI thất bại!")
@@ -187,7 +187,7 @@ export function useGenerateQuestionsWithAI() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["questions"] })
       queryClient.invalidateQueries({ queryKey: ["question-tags-count"] })
-      toast.success("Tạo câu hỏi từ AI thành công!")
+      //toast.success("Tạo câu hỏi từ AI thành công!")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Tạo câu hỏi từ AI thất bại!")

@@ -318,7 +318,7 @@ export default function CourseListItem({ course, isSelected, onToggleSelect, isS
             <Button
               variant="outline"
               size="default"
-              className="h-10 px-5 text-sm font-semibold rounded-xl text-purple-600 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300 transition-all"
+              className="h-10 px-5 text-sm font-semibold rounded-xl text-purple-600 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300 transition-all hover:text-purple-600"
               onClick={(e) => {
                 e.stopPropagation()
                 submitCourseForReview({ id: course.id })

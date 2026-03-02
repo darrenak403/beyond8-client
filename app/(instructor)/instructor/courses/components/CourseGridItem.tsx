@@ -321,7 +321,7 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
             <Button
               variant="outline"
               size="default"
-              className="flex-1 h-10 text-sm font-semibold rounded-lg text-purple-600 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300 transition-all"
+              className="flex-1 h-10 text-sm font-semibold rounded-lg text-purple-600 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300 transition-all hover:text-purple-600"
               onClick={(e) => {
                 e.stopPropagation()
                 submitCourseForReview({ id: course.id })

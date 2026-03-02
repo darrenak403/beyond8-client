@@ -7,6 +7,7 @@ import type { FireworksHandlers } from '@fireworks-js/react'
 import { getHubConnection } from '@/lib/realtime/signalr'
 import { HubConnectionState } from '@microsoft/signalr'
 import { decodeCompoundId } from '@/utils/crypto'
+import { Button } from '@/components/ui/button'
 
 export default function CourseSlugLayout({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
@@ -88,7 +89,7 @@ export default function CourseSlugLayout({ children }: { children: React.ReactNo
           left: 0,
           width: '100%',
           height: '100%',
-          zIndex: 9997,
+          zIndex: 9999,
           pointerEvents: 'none',
           display: showCelebration ? 'block' : 'none',
         }}
@@ -119,6 +120,9 @@ export default function CourseSlugLayout({ children }: { children: React.ReactNo
           </div>
         </div>
       )}
+      {/* <div className="fixed bottom-4 left-4">
+        <Button onClick={() => setShowCelebration(true)}>Pháo hoa</Button>
+      </div> */}
     </>
   )
 }

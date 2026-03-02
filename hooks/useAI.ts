@@ -137,7 +137,7 @@ export function useEmbedFile() {
     mutationFn: async (data: EmbedFileRequest) => await fetchAI.embedFile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-embed-health'] });
-      toast.success('Embed file thành công');
+      //toast.success('Embed file thành công');
     },
     onError: (error: ApiError) => {
       toast.error(error.message || 'Có lỗi xảy ra khi embed file');
