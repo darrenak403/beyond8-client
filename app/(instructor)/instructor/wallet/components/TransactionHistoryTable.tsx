@@ -25,7 +25,7 @@ const TransactionTypeLabels: Record<string, string> = {
   [TransactionType.CouponHold]: "Tạm giữ (Coupon)",
   [TransactionType.CouponRelease]: "Hoàn trả (Coupon)",
   [TransactionType.CouponUsage]: "Sử dụng Coupon",
-  [TransactionType.Settlement]: "Thanh toán định kỳ"
+  [TransactionType.Settlement]: "Thanh toán định kỳ",
 };
 
 interface TransactionHistoryTableProps {
@@ -41,7 +41,7 @@ export function TransactionHistoryTable({
   isLoading,
   pagination,
   setPagination,
-  pageCount
+  pageCount,
 }: TransactionHistoryTableProps) {
   return (
     <div className="space-y-4">
@@ -60,11 +60,21 @@ export function TransactionHistoryTable({
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell><Skeleton className="h-5 w-50" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-25" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-25" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-30 ml-auto" /></TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-50" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-25" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-20" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-25" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-30 ml-auto" />
+                  </TableCell>
                 </TableRow>
               ))
             ) : transactions.length === 0 ? (
@@ -83,11 +93,24 @@ export function TransactionHistoryTable({
 
                 return (
                   <TableRow key={transaction.id}>
-                    <TableCell className="font-medium max-w-50 truncate" title={transaction.description}>
+                    <TableCell
+                      className="font-medium max-w-[200px] sm:max-w-[300px] lg:max-w-[500px] xl:max-w-[700px] truncate"
+                      title={transaction.description}
+                    >
                       {transaction.description || transaction.referenceType}
                     </TableCell>
                     <TableCell>
-                      {transaction.createdAt ? format(new Date(transaction.createdAt.endsWith('Z') ? transaction.createdAt : `${transaction.createdAt}Z`), "dd/MM/yyyy HH:mm", { locale: vi }) : "N/A"}
+                      {transaction.createdAt
+                        ? format(
+                          new Date(
+                            transaction.createdAt.endsWith("Z")
+                              ? transaction.createdAt
+                              : `${transaction.createdAt}Z`
+                          ),
+                          "dd/MM/yyyy HH:mm",
+                          { locale: vi }
+                        )
+                        : "N/A"}
                     </TableCell>
                     <TableCell>
                       <Badge variant={isPositive ? "default" : "secondary"}>
@@ -103,13 +126,53 @@ export function TransactionHistoryTable({
                           ${transaction.status === "Failed" ? "text-red-600 border-red-200 bg-red-50" : ""}
                         `}
                       >
-                        {transaction.status === "Completed" ? "Hoàn thành" :
-                          transaction.status === "Pending" ? "Đang xử lý" : "Thất bại"}
+                        {transaction.status === "Completed"
+                          ? "Hoàn thành"
+                          : transaction.status === "Pending"
+                            ? "Đang xử lý"
+                            : "Thất bại"}
                       </Badge>
                     </TableCell>
-                    <TableCell className={`text-right font-medium [font-variant-numeric:tabular-nums] ${isPositive ? "text-green-600" : "text-foreground"}`}>
-                      {isPositive ? "+" : "-"}
-                      {new Intl.NumberFormat('vi-VN').format(transaction.amount)} VNĐ
+                    <TableCell className="text-right align-middle">
+                      <div className="flex flex-col items-end justify-center">
+                        <span
+                          className={`font-medium [font-variant-numeric:tabular-nums] ${transaction.type === TransactionType.Sale &&
+                              transaction.status === "Pending"
+                              ? "text-orange-600"
+                              : transaction.type === TransactionType.Sale &&
+                                transaction.status === "Completed"
+                                ? "text-green-600"
+                                : transaction.type === TransactionType.TopUp
+                                  ? "text-green-600"
+                                  : transaction.type === TransactionType.CouponHold
+                                    ? "text-red-600"
+                                    : transaction.type === TransactionType.CouponUsage
+                                      ? "text-purple-600"
+                                      : isPositive
+                                        ? "text-green-600"
+                                        : "text-foreground"
+                            }`}
+                        >
+                          {["CouponHold", "CouponUsage", "Payout", "PlatformFee"].some(
+                            (t) =>
+                              TransactionType[t as keyof typeof TransactionType] === transaction.type
+                          )
+                            ? "-"
+                            : "+"}
+                          {new Intl.NumberFormat("vi-VN").format(transaction.amount)} VNĐ
+                        </span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+                          {transaction.type === TransactionType.Sale &&
+                            transaction.status === "Pending" &&
+                            "Cộng vào chờ xử lý"}
+                          {transaction.type === TransactionType.Sale &&
+                            transaction.status === "Completed" &&
+                            "Cộng vào số dư"}
+                          {transaction.type === TransactionType.TopUp && "Cộng vào số dư"}
+                          {transaction.type === TransactionType.CouponHold && "Giữ từ số dư"}
+                          {transaction.type === TransactionType.CouponUsage && "Trừ từ tạm giữ"}
+                        </span>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -128,7 +191,7 @@ export function TransactionHistoryTable({
             <Button
               variant="outline"
               className="h-8 w-8 p-0"
-              onClick={() => setPagination(p => ({ ...p, pageIndex: p.pageIndex - 1 }))}
+              onClick={() => setPagination((p) => ({ ...p, pageIndex: p.pageIndex - 1 }))}
               disabled={pagination.pageIndex === 0}
               aria-label="Trang trước"
             >
@@ -137,7 +200,7 @@ export function TransactionHistoryTable({
             <Button
               variant="outline"
               className="h-8 w-8 p-0"
-              onClick={() => setPagination(p => ({ ...p, pageIndex: p.pageIndex + 1 }))}
+              onClick={() => setPagination((p) => ({ ...p, pageIndex: p.pageIndex + 1 }))}
               disabled={pagination.pageIndex >= pageCount - 1}
               aria-label="Trang tiếp"
             >

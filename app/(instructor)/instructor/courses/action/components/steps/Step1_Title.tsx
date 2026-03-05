@@ -35,7 +35,7 @@ export default function Step1Title({ data, onChange, isEditMode }: Step1TitlePro
     }, [data.title, isExpanded])
 
     const handleExpand = () => {
-        if (data.title.trim().length >= 5) {
+        if (data.title.trim().length >= 50) {
             setIsExpanded(true)
         }
     }
@@ -93,13 +93,28 @@ export default function Step1Title({ data, onChange, isEditMode }: Step1TitlePro
                         autoFocus={!isExpanded}
                     />
 
+                    {isExpanded && (
+                        <div className="flex justify-between items-center mt-2">
+                            {data.title.length > 0 && data.title.length < 50 ? (
+                                <p className="text-xs text-red-500">Tiêu đề phải có ít nhất 50 ký tự</p>
+                            ) : <div></div>}
+                            <div className={`text-sm font-medium transition-colors ${data.title.length >= 100 ? 'text-red-500' : 'text-gray-400'}`}>
+                                {data.title.length}/100
+                            </div>
+                        </div>
+                    )}
+
                     {!isExpanded && (
                         <div className="mt-6 flex flex-col items-center gap-4">
                             <div className={`text-sm font-medium transition-colors ${data.title.length >= 100 ? 'text-red-500' : 'text-gray-400'}`}>
                                 {data.title.length}/100
                             </div>
 
-                            {data.title.length >= 5 && (
+                            {data.title.length > 0 && data.title.length < 50 && (
+                                <p className="text-sm text-red-500">Tiêu đề phải có ít nhất 50 ký tự</p>
+                            )}
+
+                            {data.title.length >= 50 && (
                                 <motion.button
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -135,31 +150,53 @@ export default function Step1Title({ data, onChange, isEditMode }: Step1TitlePro
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
                                     <Label className="text-base font-semibold">Mô tả ngắn <span className="text-red-500">*</span></Label>
-                                    <span className="text-xs text-muted-foreground">{data.shortDescription.length}/200</span>
+                                    <span className={`text-xs ${data.shortDescription.length > 100 || (data.shortDescription.length > 0 && data.shortDescription.length < 10) ? 'text-red-500' : 'text-muted-foreground'}`}>
+                                        {data.shortDescription.length}/100
+                                    </span>
                                 </div>
                                 <Textarea
                                     id="shortDescription"
                                     placeholder="Tóm tắt nội dung chính của khóa học trong vài câu..."
                                     value={data.shortDescription}
                                     onChange={(e) => {
-                                        if (e.target.value.length <= 200) {
+                                        if (e.target.value.length <= 100) {
                                             onChange({ shortDescription: e.target.value })
                                         }
                                     }}
-                                    className="h-24 resize-none text-base leading-relaxed bg-transparent border border-gray-500 rounded-lg focus-visible:ring-0 focus-visible:border-black transition-colors p-4"
-
+                                    className={`h-24 resize-none text-base leading-relaxed bg-transparent border rounded-lg focus-visible:ring-0 transition-colors p-4 ${data.shortDescription.length > 0 && data.shortDescription.length < 10
+                                            ? 'border-red-400 focus-visible:border-red-500'
+                                            : 'border-gray-500 focus-visible:border-black'
+                                        }`}
                                 />
+                                {data.shortDescription.length > 0 && data.shortDescription.length < 10 && (
+                                    <p className="text-xs text-red-500">Mô tả ngắn phải có ít nhất 10 ký tự</p>
+                                )}
                             </div>
 
                             <div className="space-y-4">
-                                <Label className="text-base font-semibold">Mô tả chi tiết <span className="text-red-500">*</span></Label>
+                                <div className="flex justify-between items-center">
+                                    <Label className="text-base font-semibold">Mô tả chi tiết <span className="text-red-500">*</span></Label>
+                                    <span className={`text-xs ${data.description.length > 500 || (data.description.length > 0 && data.description.length < 10) ? 'text-red-500' : 'text-muted-foreground'}`}>
+                                        {data.description.length}/500
+                                    </span>
+                                </div>
                                 <Textarea
                                     id="description"
                                     placeholder="Trình bày chi tiết về nội dung, mục tiêu và đối tượng của khóa học..."
                                     value={data.description}
-                                    onChange={(e) => onChange({ description: e.target.value })}
-                                    className="min-h-[200px] text-base leading-relaxed bg-transparent border border-gray-500 rounded-lg focus-visible:ring-0 focus-visible:border-black transition-colors p-4"
+                                    onChange={(e) => {
+                                        if (e.target.value.length <= 500) {
+                                            onChange({ description: e.target.value })
+                                        }
+                                    }}
+                                    className={`min-h-[200px] text-base leading-relaxed bg-transparent border rounded-lg focus-visible:ring-0 transition-colors p-4 ${data.description.length > 0 && data.description.length < 10
+                                            ? 'border-red-400 focus-visible:border-red-500'
+                                            : 'border-gray-500 focus-visible:border-black'
+                                        }`}
                                 />
+                                {data.description.length > 0 && data.description.length < 10 && (
+                                    <p className="text-xs text-red-500">Mô tả chi tiết phải có ít nhất 10 ký tự</p>
+                                )}
                             </div>
                         </div>
                     </motion.div>

@@ -24,7 +24,7 @@ const infoSteps = [
     },
     {
         id: 2,
-        title: 'Thông tin chi tiết',
+        title: 'Thông tin cơ bản',
         icon: BookOpen,
     },
     {

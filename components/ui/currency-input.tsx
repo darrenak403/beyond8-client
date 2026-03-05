@@ -77,7 +77,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
 
         return (
             <div className="relative">
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-medium text-muted-foreground underline">
+                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg font-semibold text-muted-foreground underline">
                     đ
                 </div>
                 <Input
@@ -86,7 +86,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
                     onChange={handleChange}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
-                    className={cn('pl-7 text-lg font-bold tracking-wider', className)}
+                    className={cn('pl-8 text-xl md:text-xl font-bold tracking-wider', className)}
                     placeholder="0"
                     ref={(node) => {
                         if (typeof ref === 'function') {

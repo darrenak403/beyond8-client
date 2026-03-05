@@ -53,7 +53,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const { deleteSection, isPending: isDeleting } = useDeleteSection(courseId);
         const { activationSection, isPending: isActivating } = useActivationSection(courseId);
         const { assignment } = useGetAssignmentById(section.assignmentId || "");
-        const { deleteAssignmentAsync } = useDeleteAssignment(courseId);
+        const { deleteAssignmentAsync } = useDeleteAssignment(courseId, section.id);
 
         const { createLesson } = useCreateLesson(courseId);
         const { lessons } = useGetLessonBySectionId(section.id);

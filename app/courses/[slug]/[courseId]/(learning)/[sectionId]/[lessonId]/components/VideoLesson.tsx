@@ -122,7 +122,7 @@ function VideoQualitySubmenu({
     // Vidstack auto mode
     hint = options.selectedValue !== 'auto' && currentQualityHeight
       ? `${currentQualityHeight}p`
-      : `Auto${currentQualityHeight ? ` (${currentQualityHeight}p)` : ''}`
+      : `Tự động${currentQualityHeight ? ` (${currentQualityHeight}p)` : ''}`
   }
 
 
@@ -167,7 +167,7 @@ function VideoQualitySubmenu({
                 key={value}
                 className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-checked:bg-brand-purple/20 data-checked:text-brand-purple"
               >
-                <span>{label}</span>
+                <span>{label === 'Auto' ? 'Tự động' : label}</span>
                 {bitrateText && <span className="text-xs text-white/50 ml-2">{bitrateText}</span>}
               </Menu.Radio>
             ))

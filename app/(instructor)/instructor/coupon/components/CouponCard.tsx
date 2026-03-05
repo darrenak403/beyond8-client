@@ -153,7 +153,7 @@ export function CouponCard({
                         <div className="space-y-1.5 flex-1">
                             <div className="flex items-center gap-2">
                                 <span className="font-semibold text-slate-900 w-24">Tối thiểu:</span>
-                                <span>{coupon.minOrderAmount ? formatCurrency(coupon.minOrderAmount) : "Không"}</span>
+                                <span>{coupon.minOrderAmount != null ? formatCurrency(coupon.minOrderAmount) : formatCurrency(0)}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="font-semibold text-slate-900 w-24">Giảm tối đa:</span>

@@ -14,6 +14,7 @@ import { LessonSummary } from '@/lib/api/services/fetchCourse'
 import { useState } from 'react'
 import DocumentViewDialog from '@/components/widget/document/DocumentViewDialog'
 import DocumentDownloadButton from '@/components/ui/document-download-button'
+import { nextLessonUrl, asmAttemptUrl, courseUrl } from '@/utils/courseUrls'
 
 interface LessonInfoProps {
   course: CourseDetail | CourseSummary
@@ -57,11 +58,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
   // Helper to generate lesson URL
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getLessonUrl = (lesson: any) => {
-    let baseUrl = `/courses/${slug}/${courseId}/${lesson.sectionId}/${lesson.id}`
-    if (lesson.type === LessonType.Quiz && lesson.quizId) {
-      baseUrl += `/quiz-attempt?quizId=${lesson.quizId}`
-    }
-    return baseUrl
+    return nextLessonUrl(slug, courseId, lesson)
   }
 
   return (
@@ -112,19 +109,19 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
 
               if (isLastLessonInCurrentSection && currentSectionAssignmentId) {
                 buttonText = "Bài tập Cuối Chương"
-                targetUrl = `/courses/${slug}/${courseId}/${currentLessonWithSection.sectionId}/asm-attempt/${currentSectionAssignmentId}`
+                targetUrl = asmAttemptUrl(slug, courseId, currentLessonWithSection.sectionId, currentSectionAssignmentId)
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 forceFullNav = true
               } else if (nextLesson.sectionId !== currentLessonWithSection.sectionId) {
                 buttonText = "Chương tiếp theo"
                 // Next lesson may be a Quiz in the next section — ensure correct URL
                 if (nextLesson.type === LessonType.Quiz && nextLesson.quizId) {
-                  targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${nextLesson.quizId}`
+                  targetUrl = nextLessonUrl(slug, courseId, nextLesson)
                   forceFullNav = true
                 }
               } else if (nextLesson.type === LessonType.Quiz) {
                 buttonText = "Bài kiểm tra"
-                targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${nextLesson.quizId}`
+                targetUrl = nextLessonUrl(slug, courseId, nextLesson)
                 forceFullNav = true
               }
 
@@ -165,7 +162,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                   && currentSection.lessons[currentSection.lessons.length - 1].id === currentLesson.id
 
                 if (isLastLessonInCurrentSection && currentSectionAssignmentId) {
-                  const asmUrl = `/courses/${slug}/${courseId}/${currentLessonWithSection.sectionId}/asm-attempt/${currentSectionAssignmentId}`
+                  const asmUrl = asmAttemptUrl(slug, courseId, currentLessonWithSection.sectionId, currentSectionAssignmentId)
                   if (onNavigate) {
                     return (
                       <Button
@@ -194,7 +191,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                     disabled={progressPercent !== 100}
                     onClick={() => {
                       if (progressPercent === 100) {
-                        window.location.href = `/courses/${slug}/${courseId}`
+                        window.location.href = courseUrl(slug, courseId)
                       }
                     }}
                   >

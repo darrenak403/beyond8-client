@@ -1,37 +1,35 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useGetCourseDetails, useGetCourseSummary } from '@/hooks/useCourse'
 import { useAuth } from '@/hooks/useAuth'
 import { useCheckEnrollment } from '@/hooks/useEnroll'
-import LearningLayoutClient from './components/LearningLayoutClient'
+import LearningLayoutClient from '../[courseId]/(learning)/[sectionId]/components/LearningLayoutClient'
 import { Skeleton } from '@/components/ui/skeleton'
+import { decodeCompoundId } from '@/utils/crypto'
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function LearningLayout({ children }: { children: React.ReactNode }) {
   const params = useParams()
+  const searchParams = useSearchParams()
   const router = useRouter()
-  const courseId = params?.courseId as string
   const slug = params?.slug as string
-  const sectionId = params?.sectionId as string
+
+  const ids = decodeCompoundId(searchParams.get('id') || '')
+  const courseId = ids[0] || ''
+  const sectionId = ids[1] || ''
+
   const { isAuthenticated } = useAuth()
 
-  // 1. Kiểm tra enrollment trước
   const {
     isEnrolled,
-    isLoading: isCheckingEnroll
+    isLoading: isCheckingEnroll,
   } = useCheckEnrollment(courseId, {
     enabled: !!courseId && isAuthenticated,
   })
 
-  // 2. Xác định mode dựa trên enrollment
-  // Nếu chưa login -> summary
-  // Nếu đang check enroll -> chưa quyết định (đợi)
-  // Nếu đã enroll -> details
-  // Nếu chưa enroll -> summary
   const shouldFetchDetails = isAuthenticated && !isCheckingEnroll && isEnrolled
   const shouldFetchSummary = !isAuthenticated || (!isCheckingEnroll && !isEnrolled)
 
-  // 3. Fetch data tương ứng
   const {
     courseDetails,
     isLoading: isLoadingDetails,
@@ -48,14 +46,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     enabled: !!courseId && shouldFetchSummary,
   })
 
-  // Check if params exist
   if (!courseId || !slug || !sectionId) {
     router.push('/courses')
     return null
   }
 
-  // 4. Determine final state
-  // Nếu đang check enroll hoặc đang fetch data tương ứng -> Loading
   const isLoading = isCheckingEnroll || (shouldFetchDetails ? isLoadingDetails : isLoadingSummary)
   const isError = shouldFetchDetails ? isErrorDetails : isErrorSummary
   const course = shouldFetchDetails ? courseDetails : courseSummary

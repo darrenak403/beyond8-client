@@ -11,7 +11,8 @@ import type {
     UpcomingSettlement,
     MyUpcomingParams,
     GetMyUpcomingSettlementsResponse,
-    MyUpcoming
+    MyUpcoming,
+    PlatformWallet
 } from "@/lib/api/services/fetchWallet";
 import { ApiError } from "@/types/api";
 import { toast } from "sonner";
@@ -130,7 +131,7 @@ export function useGetPlatformWallet() {
     });
 
     return {
-        wallet: (data?.data ?? null) as Wallet | null,
+        wallet: (data?.data ?? null) as PlatformWallet | null,
         isLoading,
         error,
         isError,

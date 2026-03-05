@@ -18,11 +18,11 @@ import { Question, QuestionDifficulty } from "@/lib/api/services/fetchQuestion";
 interface QuizDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    quizId: string;
+    quizId: string | null;
 }
 
 export const QuizDialog = ({ open, onOpenChange, quizId }: QuizDialogProps) => {
-    const { quiz, isLoading, isError } = useGetQuizById(quizId);
+    const { quiz, isLoading, isError } = useGetQuizById(quizId || "");
 
     const getDifficultyColor = (difficulty: QuestionDifficulty) => {
         switch (difficulty) {

@@ -3,22 +3,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Clock, CreditCard, Wallet } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Wallet as WalletType } from "@/lib/api/services/fetchWallet";
+import { PlatformWallet } from "@/lib/api/services/fetchWallet";
 
 interface PlatformWalletStatsProps {
-    wallet: WalletType | null;
+    wallet: PlatformWallet | null;
     isLoading?: boolean;
 }
 
 export function PlatformWalletStats({ wallet, isLoading }: PlatformWalletStatsProps) {
     const stats = [
         {
-            title: "Tổng thu nhập nền tảng",
-            value: `${(wallet?.totalEarnings || 0).toLocaleString()} VNĐ`,
+            title: "Tổng doanh thu",
+            value: `${(wallet?.totalRevenue || 0).toLocaleString()} VNĐ`,
             icon: DollarSign,
             color: "text-green-600",
             bgColor: "bg-green-50",
-            description: "Tổng doanh thu từ chiết khấu"
+            description: "Tổng doanh thu nền tảng",
         },
         {
             title: "Số dư khả dụng",
@@ -26,23 +26,23 @@ export function PlatformWalletStats({ wallet, isLoading }: PlatformWalletStatsPr
             icon: Wallet,
             color: "text-blue-600",
             bgColor: "bg-blue-50",
-            description: "Có thể rút/chuyển"
+            description: "Tổng số dư hiện hành",
         },
         {
-            title: "Số dư đang giữ",
-            value: `${(wallet?.holdBalance || 0).toLocaleString()} VNĐ`,
+            title: "Chờ xử lý",
+            value: `${(wallet?.pendingBalance || 0).toLocaleString()} VNĐ`,
             icon: Clock,
             color: "text-orange-600",
             bgColor: "bg-orange-50",
-            description: "Tiền đang chờ xử lý"
+            description: "Số tiền đang chờ xử lý",
         },
         {
-            title: "Đã chi trả",
-            value: `${(wallet?.totalWithdrawn || 0).toLocaleString()} VNĐ`,
+            title: "Chi phí Coupon",
+            value: `${(wallet?.totalCouponCost || 0).toLocaleString()} VNĐ`,
             icon: CreditCard,
-            color: "text-purple-600",
-            bgColor: "bg-purple-50",
-            description: "Tổng tiền đã thanh toán"
+            color: "text-red-600",
+            bgColor: "bg-red-50",
+            description: "Tổng chi phí mã giảm giá",
         },
     ];
 
@@ -66,9 +66,7 @@ export function PlatformWalletStats({ wallet, isLoading }: PlatformWalletStatsPr
                             ) : (
                                 <div className="text-2xl font-bold">{stat.value}</div>
                             )}
-                            <p className="text-xs text-muted-foreground mt-1">
-                                {stat.description}
-                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
                         </CardContent>
                     </Card>
                 );

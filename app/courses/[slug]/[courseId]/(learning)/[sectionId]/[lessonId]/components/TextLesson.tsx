@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface TextLessonProps {
     lessonId: string
@@ -19,16 +20,18 @@ export default function TextLesson({ title, content, onScrollToBottom }: TextLes
     // const router = useRouter()
 
     // Scroll detection
-    const contentRef = useRef<HTMLDivElement>(null)
+    const scrollAreaRef = useRef<HTMLDivElement>(null)
     const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
 
     // Check if content is short enough to not need scrolling
     useEffect(() => {
-        if (!contentRef.current) return
+        if (!scrollAreaRef.current) return
 
         const checkScroll = () => {
-            if (contentRef.current) {
-                const { scrollHeight, clientHeight } = contentRef.current
+            if (scrollAreaRef.current) {
+                const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
+                if (!viewport) return;
+                const { scrollHeight, clientHeight } = viewport
                 // If content is shorter than or equal to container, it's considered "read"
                 if (scrollHeight <= clientHeight + 50) {
                     setHasScrolledToBottom(true)
@@ -50,9 +53,11 @@ export default function TextLesson({ title, content, onScrollToBottom }: TextLes
         }
     }, [content, onScrollToBottom])
 
-    const handleScroll = () => {
-        if (!contentRef.current) return
-        const { scrollTop, scrollHeight, clientHeight } = contentRef.current
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const target = e.target as HTMLDivElement;
+        if (!target || !target.hasAttribute || !target.hasAttribute('data-radix-scroll-area-viewport')) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = target
 
         // Check if we are close to bottom
         const isBottom = scrollTop + clientHeight >= scrollHeight - 50
@@ -99,7 +104,7 @@ export default function TextLesson({ title, content, onScrollToBottom }: TextLes
         <div className={`w-full transition-all duration-300 ease-in-out ${isFullscreen ? 'fixed inset-0 z-50 bg-white/50 backdrop-blur-sm p-4 md:p-8 flex flex-col items-center justify-center' : ''}`}>
             <div
                 className={`
-                    relative bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]
+                    relative bg-white border border-gray-300 shadow-[0_8px_30px_rgb(0,0,0,0.04)]
                     transition-all duration-300 ease-in-out
                     ${isFullscreen
                         ? 'w-full h-full max-w-5xl rounded-2xl overflow-hidden flex flex-col'
@@ -120,14 +125,14 @@ export default function TextLesson({ title, content, onScrollToBottom }: TextLes
                 </div>
 
                 {/* Content Area */}
-                <div
-                    ref={contentRef}
-                    onScroll={handleScroll}
+                <ScrollArea
+                    ref={scrollAreaRef}
+                    onScrollCapture={handleScroll}
                     className={`
-                    p-4 h-full overflow-y-auto w-full scrollbar-auto-show
+                    h-full w-full
                     ${isFullscreen ? 'flex-1 h-full' : 'aspect-video flex flex-col'}
                 `}>
-                    <div className="space-y-4 max-w-none">
+                    <div className="space-y-4 max-w-none p-4">
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{
@@ -225,7 +230,7 @@ export default function TextLesson({ title, content, onScrollToBottom }: TextLes
                             )}
                         </div> */}
                     </div>
-                </div>
+                </ScrollArea>
             </div>
         </div>
     )

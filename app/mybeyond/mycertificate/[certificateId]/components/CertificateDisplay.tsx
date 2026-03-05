@@ -10,13 +10,13 @@ interface CertificateDisplayProps {
 }
 
 export default function CertificateDisplay({ certificate }: CertificateDisplayProps) {
-  const formattedIssueDate = certificate.issuedDate 
+  const formattedIssueDate = certificate.issuedDate
     ? format(new Date(certificate.issuedDate), 'dd/MM/yyyy', { locale: vi })
     : ''
 
   return (
     <div className="lg:col-span-2">
-      <div className="relative rounded-xl overflow-hidden border-2 border-gray-200 bg-white shadow-lg aspect-[1.414/1] select-none">
+      <div id="certificate-download-area" className="relative rounded-xl overflow-hidden border-2 border-gray-200 bg-white shadow-lg aspect-[1.414/1] select-none">
         {/* Background Certificate Image */}
         <Image
           src="/certificate.png"
@@ -25,7 +25,7 @@ export default function CertificateDisplay({ certificate }: CertificateDisplayPr
           className="object-contain pointer-events-none"
           priority
         />
-        
+
         {/* Overlay Data */}
         <div className="absolute inset-0 p-8 md:p-12 lg:p-16 select-none">
           {/* Top Section - Student Name */}
@@ -40,13 +40,13 @@ export default function CertificateDisplay({ certificate }: CertificateDisplayPr
 
           {/* Center-Left Section - Course Title (Purple Area) */}
           <div className="absolute top-80 right-1/10 text-center select-none max-w-[60%]">
-            <h2 className="text-xl md:text-1xl lg:text-2xl font-bold text-brand-purple leading-tight select-none break-words">
+            <h2 className="text-xl md:text-1xl lg:text-2xl font-bold text-brand-purple leading-tight select-none wrap-break-word">
               {certificate.courseTitle}
             </h2>
           </div>
 
           {/* Bottom Section - Certificate Number & Date */}
-          <div className="absolute bottom-[12%] left-[30%] grid grid-cols-2 gap-17 text-center flex justify-between select-none">
+          <div className="absolute bottom-[12%] left-[30%] grid grid-cols-2 gap-17 text-center justify-between select-none">
             {/* Certificate Number */}
             <div className="select-none">
               <p className="text-sm text-black font-bold mb-2 select-none">Mã chứng chỉ</p>

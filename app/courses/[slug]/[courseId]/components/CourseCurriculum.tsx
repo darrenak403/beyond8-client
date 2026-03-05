@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/accordion"
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { decodeId } from '@/utils/crypto'
+import { lessonUrl as buildLessonUrl, asmAttemptUrl } from '@/utils/courseUrls'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import React, { useMemo } from 'react'
 import { CourseSummary, CourseDetail as CourseDetailType, LessonType } from '@/lib/api/services/fetchCourse'
@@ -47,7 +49,7 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
   const totalDuration = formatDuration(course.totalDurationMinutes)
   const params = useParams()
   const slug = params?.slug as string || 'course-slug'
-  const courseId = params?.courseId as string || course.id
+  const courseId = decodeId(params?.courseId as string) || course.id
 
   // If enrollmentId is not passed, try to fetch it
   const { enrollmentId: fetchedEnrollmentId } = useCheckEnrollment(courseId, { enabled: !enrollmentId })
@@ -184,18 +186,14 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
               <AccordionContent className="px-0 pb-0 ">
                 <div className="divide-y">
                   {section.lessons.map((lesson) => {
-                    const baseUrl = `/courses/${slug}/${courseId}/${section.id}/${lesson.id}`
-
-                    // Handle Quiz lessons differently - route to quiz-attempt (without quizId first)
-                    let lessonUrl: string
-                    if (lesson.type === LessonType.Quiz && 'quizId' in lesson && lesson.quizId) {
-                      lessonUrl = `/courses/${slug}/${courseId}/${section.id}/${lesson.id}/quiz-attempt?quizId=${lesson.quizId}`
-                    } else {
-                      lessonUrl =
-                        mode === 'summary'
-                          ? `${baseUrl}?source=summary`
-                          : `${baseUrl}?source=details`
-                    }
+                    // Build URL using centralized helper
+                    const lessonHref = buildLessonUrl(
+                      slug,
+                      courseId,
+                      section.id,
+                      lesson as { id: string; type: string; quizId?: string | null },
+                      mode === 'summary' ? 'preview' : mode === 'preview' ? 'preview' : undefined,
+                    )
 
                     // Handle both Lesson (from summary) and LessonDetail (from details)
                     const lessonDuration = 'durationSeconds' in lesson && lesson.durationSeconds
@@ -313,7 +311,7 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                       ) : (
                         <Link
                           key={lesson.id}
-                          href={lessonUrl}
+                          href={lessonHref}
                           className="block cursor-pointer"
                         >
                           {content}
@@ -405,7 +403,7 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                     }
 
                     return (
-                      <Link href={`/courses/${slug}/${courseId}/${section.id}/asm-attempt/${section.assignmentId}`} className="block cursor-pointer">
+                      <Link href={asmAttemptUrl(slug, courseId, section.id, section.assignmentId!)} className="block cursor-pointer">
                         {AssignmentContent}
                       </Link>
                     )

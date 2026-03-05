@@ -82,6 +82,9 @@ const itemVariants = {
 interface NotificationItemProps {
   notification: Notification;
   onDelete: (id: string) => void;
+  isExpanded: boolean;
+  isDimmed: boolean;
+  onExpand: (id: string | null) => void;
 }
 
 const NotificationSkeleton = () => (
@@ -98,17 +101,22 @@ const NotificationSkeleton = () => (
   </div>
 );
 
-const NotificationItemComponent = ({ notification, onDelete }: NotificationItemProps) => (
+const NotificationItemComponent = ({ notification, onDelete, isExpanded, isDimmed, onExpand }: NotificationItemProps) => (
   <motion.div
     layout
     variants={itemVariants}
     exit={{ opacity: 0, x: 100, transition: { duration: 0.2 } }}
+    onClick={() => onExpand(isExpanded ? null : notification.id)}
     className={cn(
-      "group relative flex gap-4 p-4 rounded-2xl transition-all duration-300 mb-3",
-      notification.read
-        ? "bg-transparent hover:bg-gray-50/80 border border-transparent hover:border-gray-100"
-        : "bg-white shadow-sm border border-purple-100/60 shadow-purple-500/5"
+      "group relative flex gap-4 p-4 rounded-2xl transition-all duration-300 mb-3 cursor-pointer select-none overflow-hidden",
+      isExpanded
+        ? "bg-white shadow-lg border border-purple-200 shadow-purple-500/10 z-20"
+        : notification.read
+          ? "bg-transparent hover:bg-gray-50/80 border border-transparent hover:border-gray-100"
+          : "bg-white shadow-sm border border-purple-100/60 shadow-purple-500/5",
+      isDimmed && "opacity-30 pointer-events-none"
     )}
+    style={{ position: 'relative' }}
   >
     <div className={cn("relative flex h-11 w-11 shrink-0 select-none items-center justify-center rounded-2xl border transition-all duration-300 group-hover:scale-105 group-hover:rotate-3 shadow-sm", getGradient(notification.type))}>
       {notification.sender?.avatar ? (
@@ -127,22 +135,44 @@ const NotificationItemComponent = ({ notification, onDelete }: NotificationItemP
       )}
     </div>
 
-    <div className="flex-1 space-y-1.5 min-w-0">
+    <div className="flex-1 space-y-1.5 min-w-0 overflow-hidden">
       <div className="flex items-start justify-between gap-2">
-        <p className={cn("text-sm font-semibold leading-tight transition-colors truncate pr-6", notification.read ? "text-gray-600" : "text-gray-900")}>
+        <p className={cn("text-sm font-semibold leading-tight transition-colors min-w-0", isExpanded ? "whitespace-normal break-words" : "truncate", notification.read ? "text-gray-600" : "text-gray-900")}>
           {notification.title}
         </p>
-        <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium bg-gray-50/80 px-2 py-1 rounded-full whitespace-nowrap">
+        <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-medium bg-gray-50/80 px-2 py-1 rounded-full whitespace-nowrap shrink-0">
           {notification.time}
         </span>
       </div>
-      <p className={cn("text-xs leading-relaxed line-clamp-2", notification.read ? "text-muted-foreground/80" : "text-gray-600")}>
-        {notification.description}
-      </p>
+      <motion.div
+        layout
+        initial={false}
+        animate={{ height: "auto" }}
+        transition={{ type: "spring", stiffness: 400, damping: 35 }}
+        className="overflow-hidden"
+      >
+        <p className={cn(
+          "text-xs leading-relaxed break-words",
+          notification.read ? "text-muted-foreground/80" : "text-gray-600",
+          isExpanded ? "" : "line-clamp-2"
+        )}>
+          {notification.description}
+        </p>
+      </motion.div>
+      {isExpanded && (
+        <motion.span
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          className="inline-flex items-center gap-1 text-[10px] text-purple-500 font-medium mt-1"
+        >
+          Nhấn để thu gọn
+        </motion.span>
+      )}
     </div>
 
     {/* Hover Actions */}
-    <div className="absolute right-2 top-11 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-1 z-10 translate-x-2 group-hover:translate-x-0">
+    <div className={cn("absolute right-2 top-11 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-1 z-10 translate-x-2 group-hover:translate-x-0", isDimmed && "hidden")}>
       <Button
         variant="ghost"
         size="icon"
@@ -165,13 +195,29 @@ interface GroupedNotificationsProps {
 }
 
 const GroupedNotifications = ({ list, onDelete, isLoading, observerRef, isFetchingNextPage }: GroupedNotificationsProps) => {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
   if (isLoading) return <NotificationSkeleton />;
 
   const today = list.filter(n => n.date === "today");
   const earlier = list.filter(n => n.date === "earlier");
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="show" exit="hidden" className="px-5 pb-6 pt-2 space-y-6">
+    <motion.div variants={containerVariants} initial="hidden" animate="show" exit="hidden" className="relative px-5 pb-6 pt-2 space-y-6">
+      {/* Dim overlay when a notification is expanded */}
+      <AnimatePresence>
+        {expandedId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-10"
+            onClick={() => setExpandedId(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {list.length === 0 && (
         <motion.div
            initial={{ opacity: 0, scale: 0.9 }}
@@ -189,25 +235,43 @@ const GroupedNotifications = ({ list, onDelete, isLoading, observerRef, isFetchi
       )}
 
       {today.length > 0 && (
-        <div className="space-y-3">
-          <h5 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 flex items-center gap-2">
+        <div className="space-y-3 relative z-[11]">
+          <h5 className={cn("text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 flex items-center gap-2 transition-opacity duration-200", expandedId && "opacity-30")}>
             <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
             Hôm nay
           </h5>
           <AnimatePresence mode="popLayout">
-            {today.map(n => <NotificationItemComponent key={n.id} notification={n} onDelete={onDelete} />)}
+            {today.map(n => (
+              <NotificationItemComponent
+                key={n.id}
+                notification={n}
+                onDelete={onDelete}
+                isExpanded={expandedId === n.id}
+                isDimmed={expandedId !== null && expandedId !== n.id}
+                onExpand={setExpandedId}
+              />
+            ))}
           </AnimatePresence>
         </div>
       )}
 
       {earlier.length > 0 && (
-        <div className="space-y-3">
-          <h5 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 flex items-center gap-2">
+        <div className="space-y-3 relative z-[11]">
+          <h5 className={cn("text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 flex items-center gap-2 transition-opacity duration-200", expandedId && "opacity-30")}>
            <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
            Trước đó
          </h5>
          <AnimatePresence mode="popLayout">
-           {earlier.map(n => <NotificationItemComponent key={n.id} notification={n} onDelete={onDelete} />)}
+           {earlier.map(n => (
+             <NotificationItemComponent
+               key={n.id}
+               notification={n}
+               onDelete={onDelete}
+               isExpanded={expandedId === n.id}
+               isDimmed={expandedId !== null && expandedId !== n.id}
+               onExpand={setExpandedId}
+             />
+           ))}
          </AnimatePresence>
        </div>
       )}

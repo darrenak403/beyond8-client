@@ -723,14 +723,14 @@ export function useUpdateCourseDiscount() {
   };
 }
 
-export function useGetCourseCertificateConfig(courseId: string) {
+export function useGetCourseCertificateConfig(courseId: string, options?: { enabled?: boolean }) {
   const { data, isLoading, refetch, isFetching, isError } = useQuery<
     CourseCertificateConfigResponse,
     Error
   >({
     queryKey: ["course-certificate-config", courseId],
     queryFn: () => fetchCourse.getCourseCertificateConfig(courseId),
-    enabled: !!courseId,
+    enabled: options?.enabled !== undefined ? options.enabled : !!courseId,
   });
 
   return {
@@ -758,6 +758,9 @@ export function useUpdateCourseCertificateConfig() {
       });
       queryClient.invalidateQueries({
         queryKey: ["course-certificate-config"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["courses", "instructor", "instructor-stats"],
       });
       toast.success("Cập nhật cấu hình điều kiện cấp chứng chỉ khóa học thành công!");
     },

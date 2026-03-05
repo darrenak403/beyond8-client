@@ -1,14 +1,14 @@
 'use client'
 
 import { Label } from '@/components/ui/label'
-
-import { Image as ImageIcon } from 'lucide-react'
+import { Image as ImageIcon, Gift, BadgeDollarSign } from 'lucide-react'
 import { useMedia } from '@/hooks/useMedia'
 import { useRef, useState } from 'react'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
-import { Input } from '@/components/ui/input'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import SafeImage from '@/components/ui/SafeImage'
 import { AvatarCropperDialog } from '@/components/ui/cropper-image'
+import { cn } from '@/lib/utils'
 
 interface Step3MediaPricingProps {
     data: {
@@ -23,6 +23,12 @@ export default function Step4MediaPricing({ data, onChange }: Step3MediaPricingP
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [cropperOpen, setCropperOpen] = useState(false)
     const [selectedImage, setSelectedImage] = useState<string | null>(null)
+    const [isFree, setIsFree] = useState(data.price === 0)
+
+    const handlePricingToggle = (free: boolean) => {
+        setIsFree(free)
+        if (free) onChange({ price: 0 })
+    }
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -68,25 +74,57 @@ export default function Step4MediaPricing({ data, onChange }: Step3MediaPricingP
                         <p className="text-xs sm:text-sm text-muted-foreground">Xác định mức giá cho khóa học của bạn.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                        <div className="space-y-3 relative">
-                            <Input
-                                type="number"
-                                value={data.price === 0 ? '' : data.price}
-                                onChange={(e) => {
-                                    const val = parseFloat(e.target.value)
-                                    onChange({ price: isNaN(val) ? 0 : val })
-                                }}
-                                className="h-14 sm:h-16 text-2xl sm:text-3xl font-bold tracking-tight bg-transparent border border-gray-400 focus-visible:border-black rounded-lg w-full px-4"
-                                style={{ fontSize: '1.8rem' }} // Force font size
-                                placeholder="0"
-                                min={0}
-                            />
-                            <p className="text-base sm:text-lg text-muted-foreground font-medium">
-                                {data.price === 0 ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.price)}
-                            </p>
-                        </div>
+                    {/* Free / Paid Toggle */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            type="button"
+                            onClick={() => handlePricingToggle(true)}
+                            className={cn(
+                                'flex items-center gap-3 px-5 py-3 rounded-xl border-2 transition-all duration-200 w-full',
+                                isFree
+                                    ? 'border-primary bg-primary text-white shadow-md'
+                                    : 'border-gray-200 bg-white text-gray-600 hover:border-primary/50'
+                            )}
+                        >
+                            <Gift className="w-5 h-5 shrink-0" />
+                            <div className="text-left">
+                                <p className="font-semibold text-sm">Miễn phí</p>
+                                <p className={cn('text-xs', isFree ? 'text-primary-foreground/70' : 'text-muted-foreground')}>Học viên truy cập miễn phí</p>
+                            </div>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handlePricingToggle(false)}
+                            className={cn(
+                                'flex items-center gap-3 px-5 py-3 rounded-xl border-2 transition-all duration-200 w-full',
+                                !isFree
+                                    ? 'border-primary bg-primary text-white shadow-md'
+                                    : 'border-gray-200 bg-white text-gray-600 hover:border-primary/50'
+                            )}
+                        >
+                            <BadgeDollarSign className="w-5 h-5 shrink-0" />
+                            <div className="text-left">
+                                <p className="font-semibold text-sm">Có phí</p>
+                                <p className={cn('text-xs', !isFree ? 'text-primary-foreground/70' : 'text-muted-foreground')}>Thu phí học viên</p>
+                            </div>
+                        </button>
                     </div>
+
+                    {/* Price Input */}
+                    {!isFree && (
+                        <div className="space-y-2 pt-1">
+                            <CurrencyInput
+                                value={data.price}
+                                onValueChange={(val) => onChange({ price: val })}
+                                className="h-12 bg-transparent border border-gray-400 focus-visible:border-primary rounded-lg w-full"
+                            />
+                            {/* {data.price > 0 && (
+                                <p className="text-sm text-muted-foreground font-medium">
+                                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.price)}
+                                </p>
+                            )} */}
+                        </div>
+                    )}
                 </div>
 
                 <div className="h-px bg-gray-100" />

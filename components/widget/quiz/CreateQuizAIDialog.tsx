@@ -6,6 +6,7 @@ import { useCheckEmbedHealth, useEmbedFile } from "@/hooks/useAI"
 import { useGenerateQuestionsWithAI, useImportQuestionsFromAI } from "@/hooks/useQuestion"
 import { useGetLessonDocument, useCreateLessonDocument } from "@/hooks/useLesson"
 import { useMediaDocumentCourse } from "@/hooks/useMedia"
+import { useGetCourseDocument } from "@/hooks/useCourse"
 import { Quiz } from "@/lib/api/services/fetchQuiz"
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 import DocumentUploadDialog from "@/components/widget/document/DocumentUploadDialog"
@@ -67,8 +68,16 @@ export function CreateQuizAIDialog({
     const { generateQuestionsAsync } = useGenerateQuestionsWithAI()
     const { importQuestionsAsync } = useImportQuestionsFromAI()
     const { lessonDocuments, refetch: refetchDocs } = useGetLessonDocument(lessonId)
+    const { courseDocument: courseDocuments } = useGetCourseDocument(courseId)
     const { createLessonDocument, isPending: isCreatingDoc } = useCreateLessonDocument(courseId)
     const { uploadDocumentCourseAsync, isUploadingDocumentCourse } = useMediaDocumentCourse()
+
+    // Unified document list: lesson docs first, then course docs
+    type UnifiedDoc = { id: string; title: string; url: string; source: 'lesson' | 'course' }
+    const unifiedDocuments: UnifiedDoc[] = [
+        ...(lessonDocuments ?? []).map(d => ({ id: d.id, title: d.title, url: d.lessonDocumentUrl, source: 'lesson' as const })),
+        ...(courseDocuments ?? []).map(d => ({ id: `course_${d.id}`, title: d.title, url: d.courseDocumentUrl, source: 'course' as const })),
+    ]
 
     // Document upload state
     const documentInputRef = React.useRef<HTMLInputElement>(null)
@@ -112,15 +121,17 @@ export function CreateQuizAIDialog({
 
     const totalPercent = easyPercent + mediumPercent + hardPercent
     const isDistributionValid = totalPercent === 100
+    const isQuestionsValid = totalQuestions >= 5
 
     useEffect(() => {
-        if (open && lessonDocuments && lessonDocuments.length > 0 && !selectedDocumentId) {
-            setSelectedDocumentId(lessonDocuments[0].id)
+        if (open && unifiedDocuments.length > 0 && !selectedDocumentId) {
+            setSelectedDocumentId(unifiedDocuments[0].id)
         }
-    }, [open, lessonDocuments, selectedDocumentId, setSelectedDocumentId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, lessonDocuments, courseDocuments])
 
     const handleNextStep = () => {
-        if (step === 1 && title && isDistributionValid) {
+        if (step === 1 && title && isDistributionValid && isQuestionsValid) {
             setStep(2)
         }
     }
@@ -154,8 +165,8 @@ export function CreateQuizAIDialog({
                     isIndexedInVectorDb: true,
                 })
                 const result = await refetchDocs()
-                const firstDoc = result.data?.[0]
-                if (firstDoc) setSelectedDocumentId(firstDoc.id)
+                const newDoc = result.data?.find(d => d.title === documentMetadata.title) ?? result.data?.[0]
+                if (newDoc) setSelectedDocumentId(newDoc.id)
                 setIsDocumentDialogOpen(false)
                 setDocumentFileToUpload(null)
             }
@@ -165,11 +176,16 @@ export function CreateQuizAIDialog({
     }
 
     const executeFullFlow = async () => {
-        const selectedDoc = lessonDocuments.find(d => d.id === selectedDocumentId)
+        const selectedDoc = unifiedDocuments.find(d => d.id === selectedDocumentId)
         if (!selectedDoc) {
             toast.error("Vui lòng chọn tài liệu")
             return
         }
+
+        // Resolve actual document id (strip 'course_' prefix for course docs)
+        const actualDocumentId = selectedDoc.source === 'course'
+            ? selectedDoc.id.replace('course_', '')
+            : selectedDoc.id
 
         setErrorMsg(null)
 
@@ -183,10 +199,10 @@ export function CreateQuizAIDialog({
 
             setProcessStep('embedding')
             await embedFile({
-                cloudFrontUrl: selectedDoc.lessonDocumentUrl,
+                cloudFrontUrl: selectedDoc.url,
                 courseId,
                 lessonId,
-                documentId: selectedDoc.id
+                documentId: actualDocumentId
             })
 
             setProcessStep('generating')
@@ -385,7 +401,10 @@ export function CreateQuizAIDialog({
                                                         {totalQuestions} câu
                                                     </Badge>
                                                 </div>
-                                                <Input type="number" min={1} value={totalQuestions} onChange={(e) => setTotalQuestions(Number(e.target.value))} className="bg-white" />
+                                                <Input type="number" min={5} value={totalQuestions} onChange={(e) => setTotalQuestions(Number(e.target.value))} className={cn("bg-white", !isQuestionsValid && "border-red-400 focus:ring-red-400 focus:border-red-400")} />
+                                                {!isQuestionsValid && (
+                                                    <p className="text-xs text-red-500">Tổng số câu hỏi phải ≥ 5</p>
+                                                )}
                                             </div>
 
                                             <Separator />
@@ -479,43 +498,67 @@ export function CreateQuizAIDialog({
 
                                     <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <Label className="font-semibold text-gray-700">Tài liệu tham khảo</Label>
-                                            {lessonDocuments && lessonDocuments.length > 0 ? (
+                                            <div className="flex items-center justify-between">
+                                                <Label className="font-semibold text-gray-700">Tài liệu tham khảo</Label>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-1.5 h-8 rounded-full border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-900 text-xs px-3"
+                                                    onClick={() => documentInputRef.current?.click()}
+                                                    disabled={isUploadingDocumentCourse || isCreatingDoc}
+                                                >
+                                                    {isUploadingDocumentCourse || isCreatingDoc
+                                                        ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                        : <Upload className="w-3.5 h-3.5" />
+                                                    }
+                                                    Tải lên
+                                                </Button>
+                                                <input
+                                                    ref={documentInputRef}
+                                                    type="file"
+                                                    className="hidden"
+                                                    onChange={handleDocumentFileSelect}
+                                                />
+                                            </div>
+                                            {unifiedDocuments.length > 0 ? (
                                                 <Select value={selectedDocumentId} onValueChange={setSelectedDocumentId}>
                                                     <SelectTrigger className="h-12 bg-white border-gray-200">
                                                         <SelectValue placeholder="Chọn tài liệu..." />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {lessonDocuments.map(doc => (
-                                                            <SelectItem key={doc.id} value={doc.id}>
-                                                                <div className="flex items-center gap-2">
-                                                                    <FileText className="w-4 h-4 text-teal-500" />
-                                                                    <span className="truncate max-w-[300px]">{doc.title}</span>
-                                                                </div>
-                                                            </SelectItem>
-                                                        ))}
+                                                        {lessonDocuments && lessonDocuments.length > 0 && (
+                                                            <>
+                                                                <div className="px-2 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Tài liệu bài học</div>
+                                                                {lessonDocuments.map(doc => (
+                                                                    <SelectItem key={doc.id} value={doc.id}>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <FileText className="w-4 h-4 text-teal-500" />
+                                                                            <span className="truncate max-w-[280px]">{doc.title}</span>
+                                                                        </div>
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </>
+                                                        )}
+                                                        {courseDocuments && courseDocuments.length > 0 && (
+                                                            <>
+                                                                <div className="px-2 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide mt-1">Tài liệu khóa học</div>
+                                                                {courseDocuments.map(doc => (
+                                                                    <SelectItem key={`course_${doc.id}`} value={`course_${doc.id}`}>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <FileText className="w-4 h-4 text-purple-500" />
+                                                                            <span className="truncate max-w-[280px]">{doc.title}</span>
+                                                                        </div>
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </>
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             ) : (
                                                 <div className="flex flex-col items-center gap-3 p-5 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 text-center">
                                                     <FileText className="w-8 h-8 text-gray-300" />
-                                                    <p className="text-sm text-gray-500">Chưa có tài liệu nào cho bài học này</p>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="gap-2 rounded-full border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-900"
-                                                        onClick={() => documentInputRef.current?.click()}
-                                                    >
-                                                        <Upload className="w-4 h-4" />
-                                                        Tải tài liệu lên
-                                                    </Button>
-                                                    <input
-                                                        ref={documentInputRef}
-                                                        type="file"
-                                                        className="hidden"
-                                                        onChange={handleDocumentFileSelect}
-                                                    />
+                                                    <p className="text-sm text-gray-500">Chưa có tài liệu nào. Hãy tải lên bên trên.</p>
                                                 </div>
                                             )}
                                         </div>
@@ -577,7 +620,7 @@ export function CreateQuizAIDialog({
                     {step === 1 ? (
                         <>
                             <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full text-gray-500 hover:bg-gray-100 hover:text-black">Hủy bỏ</Button>
-                            <Button onClick={handleNextStep} disabled={!title || !isDistributionValid} className="rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-md px-6">
+                            <Button onClick={handleNextStep} disabled={!title || !isDistributionValid || !isQuestionsValid} className="rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-md px-6">
                                 Tổng quan & AI <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                         </>
@@ -590,7 +633,7 @@ export function CreateQuizAIDialog({
                                     </Button>
                                     <Button
                                         onClick={executeFullFlow}
-                                        disabled={!selectedDocumentId || (lessonDocuments?.length === 0)}
+                                        disabled={!selectedDocumentId || unifiedDocuments.length === 0}
                                         className="rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-200 px-8"
                                     >
                                         <Sparkles className="w-4 h-4 mr-2" />

@@ -86,9 +86,10 @@ export function CreateQuizDialog({
 
     const totalPercent = easyPercent + mediumPercent + hardPercent
     const isDistributionValid = totalPercent === 100
+    const isQuestionsValid = totalQuestions >= 5
 
     const handleNextStep = () => {
-        if (step === 1 && title && isDistributionValid) {
+        if (step === 1 && title && isDistributionValid && isQuestionsValid) {
             setStep(2)
         }
     }
@@ -302,11 +303,14 @@ export function CreateQuizDialog({
                                                 </div>
                                                 <Input
                                                     type="number"
-                                                    min={1}
+                                                    min={5}
                                                     value={totalQuestions}
                                                     onChange={(e) => setTotalQuestions(Number(e.target.value))}
-                                                    className="bg-white"
+                                                    className={cn("bg-white", !isQuestionsValid && "border-red-400 focus:ring-red-400 focus:border-red-400")}
                                                 />
+                                                {!isQuestionsValid && (
+                                                    <p className="text-xs text-red-500">Tổng số câu hỏi phải ≥ 5</p>
+                                                )}
                                             </div>
 
                                             <Separator />
@@ -547,7 +551,7 @@ export function CreateQuizDialog({
                             </Button>
                             <Button
                                 onClick={handleNextStep}
-                                disabled={!title || !isDistributionValid}
+                                disabled={!title || !isDistributionValid || !isQuestionsValid}
                                 className="rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-200 px-6"
                             >
                                 Tiếp tục <ArrowRight className="ml-2 h-4 w-4" />

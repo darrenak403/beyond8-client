@@ -8,8 +8,10 @@ import Link from 'next/link'
 import { CourseDetail, SectionDetail, LessonType } from '@/lib/api/services/fetchCourse'
 import { cn } from '@/lib/utils'
 import { useCheckEnrollment, useGetCurriculumProgress } from '@/hooks/useEnroll'
+import { lessonUrl as buildLessonUrl, asmAttemptUrl } from '@/utils/courseUrls'
 import { Lesson } from '@/lib/api/services/fetchLesson'
 import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import DocumentDownloadButton from './document-download-button'
 import DocumentViewDialog from '../widget/document/DocumentViewDialog'
 
@@ -164,13 +166,13 @@ export default function LessonSidebar({
   }
 
   const getLessonUrl = (section: SectionDetail, lesson: Lesson) => {
-    let baseUrl = `/courses/${slug}/${courseId}/${section.id}/${lesson.id}`
-
-    if (lesson.type === LessonType.Quiz) {
-      baseUrl += `/quiz-attempt?quizId=${lesson.quizId}`
-    }
-
-    return mode === 'preview' ? `${baseUrl}?source=summary` : baseUrl
+    return buildLessonUrl(
+      slug,
+      courseId,
+      section.id,
+      lesson as { id: string; type: string; quizId?: string | null },
+      mode === 'preview' ? 'preview' : undefined,
+    )
   }
 
   return (
@@ -184,7 +186,7 @@ export default function LessonSidebar({
             exit={isMobile ? { x: '100%' } : { width: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={cn(
-              "fixed inset-y-0 right-0 z-40 bg-white border-l border-gray-200 w-[85vw] sm:w-[500px] shadow-2xl lg:relative lg:block lg:shadow-none flex flex-col h-full",
+              "fixed inset-y-0 right-0 z-40 bg-white border-l border-gray-200 w-[85vw] sm:w-[500px] shadow-2xl lg:relative lg:shadow-none flex flex-col h-full",
               isMobile && "top-[64px]"
             )}
           >
@@ -192,9 +194,7 @@ export default function LessonSidebar({
               <h3 className="font-bold text-xl text-black">Nội dung khóa học</h3>
             </div>
 
-            <div
-              className="flex-1 overflow-y-auto px-4 pb-4"
-            >
+            <ScrollArea className="flex-1 px-4 pb-4">
               <div className="space-y-6">
                 {/* Course Documents */}
                 {course.documents && course.documents.length > 0 && (
@@ -285,13 +285,12 @@ export default function LessonSidebar({
                             const isActive = currentLessonId === lesson.id
                             const lessonUrl = getLessonUrl(section, lesson)
                             // Lesson is accessible if:
-                            // 1. It is preview (always accessible)
-                            // 2. It is NOT locked by progress (if enrolled)
-
+                            // 1. Mode is preview (Admin/Instructor override)
+                            // 2. It is a preview lesson (always accessible)
+                            // 3. User is enrolled AND the lesson is not locked by progress
                             const isProgressLocked = isEnrolled && lockedLessonIds.has(lesson.id)
-                            const isEnrollLocked = !isEnrolled && !lesson.isPreview
-                            const isLocked = isProgressLocked || isEnrollLocked
-                            const canAccessLesson = !isLocked
+
+                            const canAccessLesson = mode === 'preview' || lesson.isPreview || (isEnrolled && !isProgressLocked)
 
                             const renderLessonIcon = () => {
                               if (!canAccessLesson) return <Lock className="h-4 w-4 text-gray-400" />
@@ -396,7 +395,7 @@ export default function LessonSidebar({
 
                           {/* Section Assignment */}
                           {('assignmentId' in section && section.assignmentId) && (() => {
-                            const isAssignmentLocked = !isEnrolled || (isEnrolled && lockedLessonIds.has(section.assignmentId!))
+                            const isAssignmentLocked = mode !== 'preview' && (!isEnrolled || (isEnrolled && lockedLessonIds.has(section.assignmentId!)))
                             const assignmentProgress = completionMap.get(section.assignmentId!)
                             const isAssignmentPassed = assignmentProgress?.isPassed || false
 
@@ -454,7 +453,7 @@ export default function LessonSidebar({
                             return (
                               <Link
                                 key={`assignment-${section.assignmentId}`}
-                                href={`/courses/${slug}/${courseId}/${section.id}/asm-attempt/${section.assignmentId}`}
+                                href={asmAttemptUrl(slug, courseId, section.id, section.assignmentId!)}
                                 className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign"
                               >
                                 <div className="flex items-center gap-2">
@@ -486,7 +485,7 @@ export default function LessonSidebar({
                   ))}
                 </div>
               </div>
-            </div>
+            </ScrollArea>
           </motion.div>
         )}
       </AnimatePresence>

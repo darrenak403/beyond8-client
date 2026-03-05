@@ -29,7 +29,6 @@ import { NotificationPanel } from "../widget/notification-panel";
 const navItems = [
   { name: "Tổng quan", href: "/instructor/dashboard" },
   { name: "Khóa học của tôi", href: "/instructor/courses" },
-  { name: "Xử lý yêu cầu", href: "/instructor/request" },
   { name: "Ví của tôi", href: "/instructor/wallet" },
 ];
 

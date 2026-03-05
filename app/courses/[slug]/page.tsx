@@ -1,22 +1,27 @@
 'use client'
 
-import { useParams } from 'next/navigation'
-import CourseDetail from './components/CourseDetail'
-import NotFound from './not-found'
+import { useParams, useSearchParams } from 'next/navigation'
+import CourseDetail from './[courseId]/components/CourseDetail'
+import NotFound from './[courseId]/not-found'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { useGetCourseSummary, useGetCourseDetails } from '@/hooks/useCourse'
 import { useAuth } from '@/hooks/useAuth'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCheckEnrollment, useGetMyEnrollments } from '@/hooks/useEnroll'
+import { decodeCompoundId } from '@/utils/crypto'
 
 export default function CourseDetailPage() {
   const params = useParams()
-  const courseId = params?.courseId as string
+  const searchParams = useSearchParams()
   const slug = params?.slug as string
+
+  // Decode courseId from compound query param
+  const ids = decodeCompoundId(searchParams.get('id') || '')
+  const courseId = ids[0] || ''
+
   const { isAuthenticated } = useAuth()
 
-  // Nếu đã đăng nhập thì kiểm tra enrollment (hook luôn được gọi, nhưng chỉ thực sự fetch khi enabled = true)
   const {
     isEnrolled,
     isLoading: isCheckingEnroll,
@@ -24,12 +29,10 @@ export default function CourseDetailPage() {
     enabled: !!courseId && isAuthenticated,
   })
 
-  // Check if params exist
   if (!courseId || !slug) {
     return <NotFound />
   }
 
-  // Không đăng nhập: luôn dùng public summary
   if (!isAuthenticated) {
     return (
       <PageLayout>
@@ -46,8 +49,6 @@ export default function CourseDetailPage() {
     )
   }
 
-  // Đã đăng nhập + đã enroll => dùng course details
-  // Còn lại => dùng course summary
   const showDetails = isEnrolled
 
   return (
@@ -105,10 +106,6 @@ function CourseSummarySection({ courseId, slug }: { courseId: string; slug: stri
     return <NotFound />
   }
 
-  if (courseSummary.slug && courseSummary.slug !== slug) {
-    // Có thể redirect sang slug đúng nếu cần
-  }
-
   return <CourseDetail courseData={courseSummary} mode="summary" />
 }
 
@@ -129,10 +126,6 @@ function CourseDetailsSection({ courseId, slug }: { courseId: string; slug: stri
 
   if (isError || !courseDetails) {
     return <NotFound />
-  }
-
-  if (courseDetails.slug && courseDetails.slug !== slug) {
-    // Có thể redirect sang slug đúng nếu cần
   }
 
   return <CourseDetail courseData={courseDetails} mode="details" enrollmentId={enrollmentId} />
