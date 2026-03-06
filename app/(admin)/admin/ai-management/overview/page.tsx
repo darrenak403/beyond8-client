@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useAIUsageStatistics, useAIAllHistory } from '@/hooks/useAI';
 import { AIStats } from './components/AIStats';
-import { AIChart } from './components/AIChart';
 
 
 import { DataTable } from "@/components/ui/data-table";
@@ -78,12 +77,7 @@ export default function AIOverviewPage() {
     <div className="space-y-6">      
       {/* Statistics Cards */}
       <AIStats stats={stats} isLoading={isLoadingStats} />
-      
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4 lg:col-span-3">
-          <AIChart />
-        </div>
-        
+     
         <div className="col-span-4 lg:col-span-4 flex flex-col gap-6 h-full">
              <h3 className="text-2xl font-semibold leading-none tracking-tight pt-6 pb-2">Hoạt động gần đây</h3>
              {isLoadingHistory ? (
@@ -102,6 +96,5 @@ export default function AIOverviewPage() {
              )}
         </div>
       </div>
-    </div>
   );
 }

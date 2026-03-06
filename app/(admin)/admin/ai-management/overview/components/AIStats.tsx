@@ -3,7 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AIUsageStatistics } from '@/hooks/useAI';
-import { Activity, Coins, Database, Layers } from 'lucide-react';
+import { Activity, Coins, Database, LucideIcon } from 'lucide-react';
+import { ReactNode } from 'react';
 
 interface AIStatsProps {
   stats?: AIUsageStatistics;
@@ -21,7 +22,7 @@ export function AIStats({ stats, isLoading }: AIStatsProps) {
     return new Intl.NumberFormat('en-US').format(val);
   };
 
-  const cards = [
+  const cards: { title: string; value: string; icon: LucideIcon; description: ReactNode; iconColor: string }[] = [
     {
       title: 'Tổng lượt dùng',
       value: formatNumber(stats?.totalUsage),
@@ -33,27 +34,36 @@ export function AIStats({ stats, isLoading }: AIStatsProps) {
       title: 'Tổng chi phí',
       value: formatCurrency(stats?.totalCost),
       icon: Coins,
-      description: 'Ước tính tổng chi phí sử dụng',
+      description: (
+        <span>
+          <span className="text-green-600 font-medium">Đầu vào: </span>
+          {formatCurrency(stats?.totalInputCost)}
+          <span className="mx-2">|</span>
+          <span className="text-red-600 font-medium">Đầu ra: </span>
+          {formatCurrency(stats?.totalOutputCost)}
+        </span>
+      ),
       iconColor: 'text-yellow-500',
     },
     {
       title: 'Tổng Tokens',
       value: formatNumber(stats?.totalTokens),
       icon: Database,
-      description: 'Tổng số tokens đã tiêu thụ',
+      description: (
+        <span>
+          <span className="text-blue-600 font-medium">Đầu vào: </span>
+          {formatNumber(stats?.totalInputTokens)}
+          <span className="mx-2">|</span>
+          <span className="text-orange-600 font-medium">Đầu ra: </span>
+          {formatNumber(stats?.totalOutputTokens)}
+        </span>
+      ),
       iconColor: 'text-purple-500',
-    },
-    {
-      title: 'Tokens Vào/Ra',
-      value: `${formatNumber(stats?.totalInputTokens)} / ${formatNumber(stats?.totalOutputTokens)}`,
-      icon: Layers,
-      description: 'Phân phối tokens đầu vào và ra',
-      iconColor: 'text-pink-500',
     },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {cards.map((card, i) => (
         <Card key={i} className="shadow-sm border-gray-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -71,7 +81,7 @@ export function AIStats({ stats, isLoading }: AIStatsProps) {
             ) : (
               <>
                 <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   {card.description}
                 </p>
               </>
