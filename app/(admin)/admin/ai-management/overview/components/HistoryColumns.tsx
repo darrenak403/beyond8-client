@@ -5,6 +5,26 @@ import { AIUsageRecord } from "@/hooks/useAI"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 
+const operationLabels: Record<string, string> = {
+  ProfileReview: "Đánh giá hồ sơ",
+  QuizGeneration: "Tạo câu hỏi",
+  StudentAnswerReview: "Đánh giá câu trả lời",
+  StudentFeedbackGeneration: "Tạo phản hồi",
+  RubricBasedGrading: "Chấm điểm theo tiêu chí",
+  Translation: "Dịch thuật",
+  TextGeneration: "Tạo văn bản",
+  ChatCompletion: "Hoàn thành chat",
+  FormatQuizQuestions: "Định dạng câu hỏi",
+  AssignmentGrading: "Chấm bài tập",
+  ExplainQuizQuestion: "Giải thích câu hỏi",
+  Embedding: "Embedding",
+  Custom: "Tùy chỉnh",
+}
+
+const getOperationLabel = (operation: string): string => {
+  return operationLabels[operation] || operation
+}
+
 export const historyColumns: ColumnDef<AIUsageRecord>[] = [
   {
     accessorKey: "createdAt",
@@ -26,7 +46,7 @@ export const historyColumns: ColumnDef<AIUsageRecord>[] = [
     accessorKey: "operation",
     header: "Thao tác",
     cell: ({ row }) => (
-      <div>{row.getValue("operation")}</div>
+      <div>{getOperationLabel(row.getValue("operation"))}</div>
     ),
   },
   {
