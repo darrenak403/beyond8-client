@@ -1,21 +1,28 @@
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+
 /**
- * Format image URL to ensure it has proper protocol
- * @param url - Image URL from API
- * @returns Formatted URL with https:// protocol
+ * Format image URL to ensure it has proper protocol.
+ * Handles relative paths from the API by prepending NEXT_PUBLIC_API_URL.
  */
 export function formatImageUrl(url: string | null | undefined): string | undefined {
   if (!url) return undefined;
-  
-  // If URL already has protocol, return as is
-  if (url.startsWith('http://') || url.startsWith('https://')) {
+
+  // Already has protocol
+  if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
-  
-  // If URL starts with //, add https:
-  if (url.startsWith('//')) {
+
+  // Protocol-relative
+  if (url.startsWith("//")) {
     return `https:${url}`;
   }
-  
-  // Otherwise, add https://
+
+  // Relative path (e.g. "user/avatars/...") — prepend API base URL
+  const path = url.startsWith("/") ? url : `/${url}`;
+  if (API_BASE) {
+    return `${API_BASE}${path}`;
+  }
+
+  // Fallback (no API base configured)
   return `https://${url}`;
 }

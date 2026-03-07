@@ -3,7 +3,12 @@
 import * as React from "react";
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useInstructorStats } from "@/hooks/useDashboard";
 import { eachDayOfInterval, endOfMonth, format, startOfMonth } from "date-fns";
@@ -38,14 +43,14 @@ export function ChartLineInteractive() {
 
     // Deterministic pseudo-random distribution based on day
     const generateRandomDaily = (total: number, days: Date[]) => {
-       // Simple distribution: random weights, then normalize to total
-       const weights = days.map((_, i) => 1 + Math.sin(i * 0.5) * 0.5 + Math.random() * 0.5); 
-       const totalWeight = weights.reduce((a, b) => a + b, 0);
-       return weights.map(w => Math.floor(total * (w / totalWeight)));
+      // Simple distribution: random weights, then normalize to total
+      const weights = days.map((_, i) => 1 + Math.sin(i * 0.5) * 0.5 + Math.random() * 0.5);
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      return weights.map((w) => Math.floor(total * (w / totalWeight)));
     };
 
-    const revenues = generateRandomDaily(stats.revenueThisMonth, daysInMonth);
-    const students = generateRandomDaily(stats.studentsThisMonth, daysInMonth);
+    const revenues = generateRandomDaily(stats.revenueThisMonth ?? 0, daysInMonth);
+    const students = generateRandomDaily(stats.studentsThisMonth ?? 0, daysInMonth);
 
     return daysInMonth.map((date, index) => ({
       date: format(date, "yyyy-MM-dd"),
@@ -56,12 +61,12 @@ export function ChartLineInteractive() {
 
   const total = React.useMemo(
     () => ({
-      revenue: stats?.revenueThisMonth || 0,
-      students: stats?.studentsThisMonth || 0,
+      revenue: stats?.revenueThisMonth ?? 0,
+      students: stats?.studentsThisMonth ?? 0,
     }),
     [stats]
   );
-  
+
   if (!stats) return null;
 
   return (
@@ -83,13 +88,11 @@ export function ChartLineInteractive() {
                 className="data-[active=true]:bg-muted/50 flex flex-1 flex-col justify-center gap-1 border-t px-4 py-3 text-left even:border-l sm:border-t-0 sm:border-l sm:px-6 focus:outline-none"
                 onClick={() => setActiveChart(chart)}
               >
-                <span className="text-muted-foreground text-xs">
-                  {chartConfig[chart].label}
-                </span>
-                <span className={`${isMobile ? 'text-base' : 'text-xl'} leading-none font-bold`}>
+                <span className="text-muted-foreground text-xs">{chartConfig[chart].label}</span>
+                <span className={`${isMobile ? "text-base" : "text-xl"} leading-none font-bold`}>
                   {chart === "revenue"
-                    ? `${(total[chart] / 1000000).toFixed(1)}M`
-                    : total[chart].toLocaleString()}
+                    ? `${((total[chart] ?? 0) / 1000000).toFixed(1)}M`
+                    : (total[chart] ?? 0).toLocaleString()}
                 </span>
               </button>
             );
@@ -98,11 +101,7 @@ export function ChartLineInteractive() {
       </CardHeader>
       <CardContent className="px-2 py-3 sm:p-4">
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-          <LineChart
-            accessibilityLayer
-            data={chartData}
-            margin={{ left: 12, right: 12 }}
-          >
+          <LineChart accessibilityLayer data={chartData} margin={{ left: 12, right: 12 }}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="date"
