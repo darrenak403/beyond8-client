@@ -1,0 +1,29 @@
+# ===========================================
+# Beyond8 Frontend - Docker Compose (Development)
+# ===========================================
+
+services:
+  frontend:
+    image: ngothanhdatak/beyond8-frontend:latest
+    container_name: beyond8-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+      - PORT=5173
+      - HOSTNAME=0.0.0.0
+      # API URL cho client-side fetch (Browser)
+      - NEXT_PUBLIC_API_URL=http://api-gateway-beyond8.dev.localhost:8080/
+    networks:
+      - beyond8-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:5173/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  beyond8-network:
+    external: true
