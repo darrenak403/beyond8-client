@@ -39,7 +39,7 @@ export function MobileUserCard({ user, onEdit, onDelete, onChangeStatus }: Mobil
                     className={`${isActive
                         ? "bg-green-600 hover:bg-green-700"
                         : user.status === "Inactive" ? "bg-red-600 hover:bg-red-700" : "bg-gray-500"
-                        } whitespace-nowrap px-2 py-0.5 text-[10px]`}
+                        } whitespace-nowrap px-2 py-0.5 text-xs`}
                 >
                     {isActive ? "Hoạt động" : user.status === "Inactive" ? "Ngừng HĐ" : user.status}
                 </Badge>
@@ -52,7 +52,7 @@ export function MobileUserCard({ user, onEdit, onDelete, onChangeStatus }: Mobil
                     <div className="flex flex-wrap gap-1">
                         {user.roles && user.roles.length > 0 ? (
                             user.roles.map((role) => (
-                                <RoleBadgeItem key={role} role={role} variant="default" className="text-[10px] px-1.5 py-0 h-5" />
+                                <RoleBadgeItem key={role} role={role} variant="default" className="text-xs px-1.5 py-0 h-5" />
                             ))
                         ) : (
                             <span className="text-muted-foreground italic">Chưa có vai trò</span>

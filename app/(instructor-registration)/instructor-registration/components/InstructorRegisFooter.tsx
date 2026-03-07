@@ -13,6 +13,7 @@ interface InstructorRegisFooterProps {
   nextDisabled?: boolean;
   showBack?: boolean;
   isLastStep?: boolean;
+  isSubmitting?: boolean;
 }
 
 export default function InstructorRegisFooter({
@@ -24,6 +25,7 @@ export default function InstructorRegisFooter({
   nextDisabled = false,
   showBack = true,
   isLastStep = false,
+  isSubmitting = false,
 }: InstructorRegisFooterProps) {
   const progress = (currentStep / totalSteps) * 100;
 
@@ -52,7 +54,7 @@ export default function InstructorRegisFooter({
 
         {/* Next Button */}
         <div className="flex-1 flex justify-end">
-          {onNext && (
+          {onNext && !isSubmitting && (
             <Button
               onClick={onNext}
               disabled={nextDisabled}

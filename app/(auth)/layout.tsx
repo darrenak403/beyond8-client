@@ -35,7 +35,7 @@ export default function AuthLayout({
 
             {/* Left side - Form Content */}
             <div className="flex w-full flex-col justify-center px-8 lg:w-1/2 lg:px-12 xl:px-24">
-                <div className="mx-auto w-full max-w-[400px]">
+                <div className="mx-auto w-full max-w-[420px]">
                     <AnimatePresence mode='wait'>
                         <motion.div
                             key={pathname}

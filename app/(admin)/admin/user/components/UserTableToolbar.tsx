@@ -53,7 +53,7 @@ export function UserTableToolbar({
     }
 
     return (
-        <div className="flex items-center gap-2 w-full">
+        <div className="sticky top-0 md:top-[42px] z-20 bg-white/95 backdrop-blur pb-4 pt-2 flex items-center gap-2 w-full">
             {/* Search - Flexible width */}
             <div className="relative flex-1 min-w-0">
                 <Input

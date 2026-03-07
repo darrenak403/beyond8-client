@@ -1,11 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { BookOpen, Wallet, Settings } from "lucide-react";
+import { BookOpen, Settings, History, Award, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/useMobile";
-import { useAuth } from "@/hooks/useAuth";
-import { useMemo } from "react";
+import Link from "next/link";
 
 const sidebarMenuItems = [
   {
@@ -13,68 +12,65 @@ const sidebarMenuItems = [
     label: "Khóa học của tôi",
     icon: BookOpen,
     value: "mycourse",
-    roles: ["ROLE_STUDENT", "ROLE_INSTRUCTOR"],
+  },
+  {
+    id: "mycertificate",
+    label: "Chứng chỉ của tôi",
+    icon: Award,
+    value: "mycertificate",
   },
   {
     id: "myprofile",
     label: "Cài đặt tài khoản",
     icon: Settings,
     value: "myprofile",
-    roles: ["ROLE_STUDENT", "ROLE_INSTRUCTOR", "ROLE_ADMIN"],
   },
   {
-    id: "mywallet",
-    label: "Ví của tôi",
-    icon: Wallet,
-    value: "mywallet",
-    roles: ["ROLE_INSTRUCTOR"],
+    id: "myusage",
+    label: "Lịch sử dùng AI",
+    icon: History,
+    value: "myusage",
+  },
+  {
+    id: "payment-history",
+    label: "Lịch sử giao dịch",
+    icon: CreditCard,
+    value: "payment-history",
   },
 ];
 
 interface SidebarProfileProps {
   currentTab: string;
-  onTabChange: (tab: string) => void;
+  onTabChange?: (tab: string) => void; 
 }
 
-export default function SidebarProfile({ currentTab, onTabChange }: SidebarProfileProps) {
+export default function SidebarProfile({ currentTab }: SidebarProfileProps) {
   const isMobile = useIsMobile();
-  const { role } = useAuth();
-
-  // role is already a string[] array from useAuth
-  const userRoles = useMemo(() => role || [], [role]);
-
-  const visibleMenuItems = useMemo(() => {
-    return sidebarMenuItems.filter((item) => {
-      if (item.id === "mywallet" && userRoles.includes("ROLE_STUDENT")) {
-        return false;
-      }
-      return item.roles.some(requiredRole => userRoles.includes(requiredRole));
-    });
-  }, [userRoles]);
-
-  const handleMenuClick = (value: string) => {
-    onTabChange(value);
-  };
 
   if (isMobile) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 h-16 px-4 pb-safe">
         <nav className="flex items-center justify-around h-full">
-          {visibleMenuItems.map((item) => {
+          {sidebarMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.value;
 
+            const href =
+              item.value === "payment-history"
+                ? "/mybeyond/payment-history"
+                : `/mybeyond?tab=${item.value}`;
+
             return (
-              <button
+              <Link
                 key={item.id}
-                onClick={() => handleMenuClick(item.value)}
+                href={href}
                 className={cn(
                   'flex flex-col items-center justify-center p-2 rounded-lg transition-colors',
                   isActive ? 'text-purple-700' : 'text-gray-500 hover:text-gray-900'
                 )}
               >
                 <Icon className={cn("w-6 h-6", isActive && "fill-current")} />
-              </button>
+              </Link>
             );
           })}
         </nav>
@@ -85,12 +81,17 @@ export default function SidebarProfile({ currentTab, onTabChange }: SidebarProfi
   // Desktop Sidebar
   return (
     <aside className="w-64 flex-shrink-0">
-      <div className="p-4">
+      <div className="">
         <nav className="space-y-1">
-          {visibleMenuItems.map((item) => {
+          {sidebarMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.value;
             
+            const href =
+              item.value === "payment-history"
+                ? "/mybeyond/payment-history"
+                : `/mybeyond?tab=${item.value}`;
+
             return (
               <div key={item.id} className="relative">
                 {isActive && (
@@ -104,8 +105,8 @@ export default function SidebarProfile({ currentTab, onTabChange }: SidebarProfi
                     }}
                   />
                 )}
-                <button
-                  onClick={() => handleMenuClick(item.value)}
+                <Link
+                  href={href}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                     isActive
@@ -115,7 +116,7 @@ export default function SidebarProfile({ currentTab, onTabChange }: SidebarProfi
                 >
                   <Icon className="w-5 h-5" />
                   <span>{item.label}</span>
-                </button>
+                </Link>
               </div>
             );
           })}

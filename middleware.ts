@@ -54,6 +54,8 @@ export function middleware(request: NextRequest) {
     "/register",
     "/reset-password",
     "/forgot-password",
+    "/supscription",
+    "/courses"
   ];
 
   // Static files and XML sitemaps should always be accessible
@@ -73,7 +75,7 @@ export function middleware(request: NextRequest) {
 
   // If user is NOT authenticated
   if (!token || userRoles.length === 0) {
-    // Allow access to public routes only
+    // Allow access to public routes (includes /courses and /courses/[slug]/[courseId])
     if (isPublicRoute) {
       return NextResponse.next();
     }
@@ -150,7 +152,7 @@ export function middleware(request: NextRequest) {
     if (isMyBeyondRoute) {
       const tab = searchParams.get("tab");
       // Instructor can access: mycourse, myprofile, mywallet
-      if (!tab || tab === "mycourse" || tab === "myprofile" || tab === "mywallet") {
+      if (!tab || tab === "mycourse" || tab === "myprofile" || tab === "myusage" || tab === "mycertificate" || tab === "search-certificate" || tab === "payment-history" ) {
         return NextResponse.next();
       }
       // Redirect to myprofile if trying to access other tabs
@@ -198,7 +200,7 @@ export function middleware(request: NextRequest) {
       const tab = searchParams.get("tab");
       // Student can access mycourse, myprofile
       // If instructor, also allow mywallet
-      if (!tab || tab === "mycourse" || tab === "myprofile") {
+      if (!tab || tab === "mycourse" || tab === "myprofile" || tab === "myusage" || tab === "mycertificate" || tab === "search-certificate" || tab === "payment-history") {
         return NextResponse.next();
       }
       if (tab === "mywallet" && hasRole(userRoles, "ROLE_INSTRUCTOR")) {
@@ -236,6 +238,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (images, xml, etc.)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp4|xml)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp4|xml|glb)$).*)",
   ],
 };

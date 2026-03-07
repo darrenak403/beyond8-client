@@ -5,7 +5,7 @@ import { jwtDecode } from 'jwt-decode'
 import apiService from '@/lib/api/core'
 import { fetchAuth } from '@/lib/api/services/fetchAuth'
 import { getAuthCookieConfig } from '@/utils/cookieConfig'
-import type { RootState } from '../store'
+import type { RootState, AppDispatch } from '../store'
 
 // Types
 export interface User {
@@ -13,6 +13,12 @@ export interface User {
   email: string
   userNname: string
   role: string[]
+}
+
+export interface DecodedToken extends User {
+  nbf?: number
+  exp?: number
+  iat?: number
 }
 
 interface AuthState {
@@ -23,6 +29,9 @@ interface AuthState {
   isLoading: boolean
   error: string | null
 }
+
+// Global timer reference for auto-refresh
+let refreshTimer: NodeJS.Timeout | null = null
 
 // Initial state
 const initialState: AuthState = {
@@ -48,6 +57,67 @@ export const decodeToken = (token: string): User | null => {
   } catch (error) {
     console.error('Failed to decode token:', error)
     return null
+  }
+}
+
+// Helper to decode token with expiration info
+export const decodeTokenWithExpiry = (token: string): DecodedToken | null => {
+  try {
+    const decoded: any = jwtDecode(token)
+
+    // Normalize role to array if it is a string
+    if (decoded.role && !Array.isArray(decoded.role)) {
+      decoded.role = [decoded.role]
+    }
+
+    return {
+      ...decoded,
+      nbf: decoded.nbf,
+      exp: decoded.exp,
+      iat: decoded.iat,
+    } as DecodedToken
+  } catch (error) {
+    console.error('Failed to decode token:', error)
+    return null
+  }
+}
+
+// Helper to setup auto-refresh timer
+export const setupAutoRefresh = (token: string, dispatch: AppDispatch) => {
+  // Clear existing timer
+  if (refreshTimer) {
+    clearTimeout(refreshTimer)
+    refreshTimer = null
+  }
+
+  const decoded = decodeTokenWithExpiry(token)
+  if (!decoded || !decoded.exp || !decoded.nbf) {
+    console.warn('Token does not have expiration info')
+    return
+  }
+
+  // Calculate when to refresh (2 minutes before expiration)
+  const refreshTime = decoded.exp * 1000 - Date.now() - 2 * 60 * 1000 // 2 minutes in milliseconds
+
+  if (refreshTime <= 0) {
+    // Token expires in less than 2 minutes, refresh immediately
+    dispatch(refreshTokenAsync())
+    return
+  }
+
+  // Set timer to refresh token 2 minutes before expiration
+  refreshTimer = setTimeout(() => {
+    dispatch(refreshTokenAsync())
+  }, refreshTime)
+
+  console.log(`Auto-refresh scheduled in ${Math.round(refreshTime / 1000)} seconds`)
+}
+
+// Helper to clear auto-refresh timer
+export const clearAutoRefresh = () => {
+  if (refreshTimer) {
+    clearTimeout(refreshTimer)
+    refreshTimer = null
   }
 }
 
@@ -88,7 +158,7 @@ export const logoutAsync = createAsyncThunk('auth/logout', async (_, { rejectWit
 
 export const refreshTokenAsync = createAsyncThunk(
   'auth/refreshToken',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const response = await apiService.post<{
         status: boolean
@@ -101,6 +171,9 @@ export const refreshTokenAsync = createAsyncThunk(
 
         setCookie('authToken', token, getAuthCookieConfig())
         apiService.setAuthToken(token)
+
+        // Setup auto-refresh for the new token
+        setupAutoRefresh(token, dispatch as AppDispatch)
 
         return { token, user }
       }
@@ -152,6 +225,7 @@ const authSlice = createSlice({
       state.error = null
       deleteCookie('authToken', { path: '/' })
       apiService.setAuthToken(null)
+      clearAutoRefresh()
     },
     clearError: (state) => {
       state.error = null
@@ -170,6 +244,7 @@ const authSlice = createSlice({
         state.user = action.payload.user
         state.isAuthenticated = true
         state.error = null
+        // Setup auto-refresh will be handled by the component/hook that calls loginAsync
       })
       .addCase(loginAsync.rejected, (state, action) => {
         state.isLoading = false
@@ -198,11 +273,13 @@ const authSlice = createSlice({
         state.token = action.payload.token
         state.user = action.payload.user
         state.isAuthenticated = true
+        // Auto-refresh is already setup in the thunk
       })
       .addCase(refreshTokenAsync.rejected, (state) => {
         state.user = null
         state.token = null
         state.isAuthenticated = false
+        clearAutoRefresh()
       })
   },
 })

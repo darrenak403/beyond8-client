@@ -11,6 +11,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/useMobile";
 
 interface RegistrationTableToolbarProps {
     searchValue: string;
@@ -29,6 +30,7 @@ export function RegistrationTableToolbar({
     onRefresh,
     isFetching,
 }: RegistrationTableToolbarProps) {
+    const isMobile = useIsMobile();
     const [inputValue, setInputValue] = useState(searchValue);
 
     // Sync local state with parent state
@@ -47,9 +49,9 @@ export function RegistrationTableToolbar({
     };
 
     return (
-        <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+        <div className={`flex items-center gap-2 sticky top-0 md:top-[42px] z-20 bg-white/95 backdrop-blur pb-4 pt-2 ${isMobile ? "flex-nowrap" : "md:gap-4 flex-wrap"}`}>
             {/* Search */}
-            <div className="relative flex-1 min-w-[200px]">
+            <div className={`relative flex-1 ${isMobile ? "min-w-[120px]" : "min-w-[200px]"}`}>
                 <Input
                     placeholder="Tìm kiếm theo email..."
                     value={inputValue}
@@ -67,7 +69,7 @@ export function RegistrationTableToolbar({
             </div>
 
             {/* Status Filter */}
-            <div className="w-[180px]">
+            <div className={isMobile ? "w-[130px]" : "w-[180px]"}>
                 <Select
                     value={statusFilter === "" ? "ALL" : statusFilter}
                     onValueChange={(value) => onStatusChange(value === "ALL" ? "" : value)}

@@ -116,6 +116,9 @@ export function useAproveRegistration() {
     onSuccess: (data) => {
       toast.success("Duyệt đăng ký thành công!");
       queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },
     onError: (error: any) => {
       toast.error(error.data.value.message || "Duyệt đăng ký thất bại!");
@@ -147,6 +150,9 @@ export function useRejectRegistration() {
     onSuccess: (data) => {
       toast.success("Từ chối đăng ký thành công!");
       queryClient.invalidateQueries({ queryKey: ["instructor-registration"] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["instructor-check-apply"] });
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },
     onError: (error: any) => {
       toast.error(error.data.value.message || "Từ chối đăng ký thất bại!");

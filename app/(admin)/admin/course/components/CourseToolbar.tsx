@@ -1,133 +1,236 @@
 'use client'
 
+import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import {
     Search,
     LayoutGrid,
-    List as ListIcon,
-    SlidersHorizontal,
+    LayoutList,
     RotateCw,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from "@/components/ui/carousel"
+import { useDebounce } from '@/hooks/useDebounce'
+import { useCategory } from '@/hooks/useCategory'
+import { Skeleton } from '@/components/ui/skeleton'
+import { CourseFilterSheet } from '@/components/widget/CourseFilterSheet'
 
 interface CourseToolbarProps {
     viewMode: 'grid' | 'list'
     setViewMode: (mode: 'grid' | 'list') => void
-    searchQuery: string
-    setSearchQuery: (query: string) => void
-    totalCount: number
-    isMobile: boolean
-    onRefresh: () => void
-    isLoading: boolean
+    onRefresh?: () => void
+    isLoading?: boolean
 }
+
+
 
 export default function CourseToolbar({
     viewMode,
     setViewMode,
-    searchQuery,
-    setSearchQuery,
-    totalCount,
-    isMobile,
     onRefresh,
-    isLoading
+    isLoading = false,
 }: CourseToolbarProps) {
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const currentCategory = searchParams.get('categoryName') || ''
+
+    const [searchValue, setSearchValue] = useState(searchParams.get('keyword') || '')
+    const debouncedSearch = useDebounce(searchValue, 500)
+
+
+    const { categories: categoryData, isLoading: isLoadingCategories } = useCategory()
+
+    // Count active filters (excluding sort, pagination, keyword, and category)
+    const activeFilterCount = useMemo(() => {
+        let count = 0
+        const level = searchParams.get('level')
+        const status = searchParams.get('status')
+        const minPrice = searchParams.get('minPrice')
+        const maxPrice = searchParams.get('maxPrice')
+        const minRating = searchParams.get('minRating')
+        const language = searchParams.get('language')
+
+        if (level && level !== 'All') count++
+        if (status && status !== 'All') count++
+        if (minPrice && parseInt(minPrice) > 0) count++
+        if (maxPrice && parseInt(maxPrice) < 5000000) count++
+        if (minRating && minRating !== 'all') count++
+        if (language && language !== '') count++
+
+        return count
+    }, [searchParams])
+
+    const categories = useMemo(() => {
+        const apiCategories = categoryData?.data?.filter(c => c.isRoot).map(c => ({
+            id: c.id,
+            label: c.name,
+            value: c.name // Using name as the value for filtering
+        })) || []
+
+        return [
+            { id: 'all', label: 'Tất cả', value: '' },
+            ...apiCategories
+        ]
+    }, [categoryData])
+
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams.toString())
+        if (debouncedSearch) {
+            params.set('keyword', debouncedSearch)
+        } else {
+            params.delete('keyword')
+        }
+
+        // Only push if changed to avoid redundant navigation
+        if (params.toString() !== searchParams.toString()) {
+            router.push(`?${params.toString()}`)
+        }
+    }, [debouncedSearch, router, searchParams])
+
+    // Sync internal state if URL changes externally (e.g. back button)
+    useEffect(() => {
+        const currentKeyword = searchParams.get('keyword') || ''
+        if (currentKeyword !== searchValue && currentKeyword !== debouncedSearch) {
+            setSearchValue(currentKeyword)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams])
+
+    const handleCategoryChange = (categoryValue: string) => {
+        const params = new URLSearchParams(searchParams.toString())
+        if (categoryValue) {
+            params.set('categoryName', categoryValue)
+        } else {
+            params.delete('categoryName')
+        }
+        router.push(`?${params.toString()}`)
+    }
+
+
+    const getPlaceholder = (categoryId: string) => {
+        const selected = categories.find(c => c.value === categoryId)
+        return selected && selected.value !== '' ? `Tìm khóa học ${selected.label.toLowerCase()}...` : 'Tìm kiếm khóa học...'
+    }
+
     return (
-        <div className="flex items-center gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Tìm môi giới (theo tên, email, số điện thoại)..."
-                    className="pl-10 h-9 bg-white border-slate-200 rounded-full shadow-sm"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
+        <div className={`flex flex-col lg:flex-row items-center gap-4 lg:gap-0 lg:justify-between w-full`}>
+            {/* Category Tabs */}
+            <div className="w-full lg:w-[500px] lg:mx-10 relative order-2 lg:order-1">
+                {isLoadingCategories ? (
+                    <div className="flex gap-2 overflow-hidden">
+                        {[1, 2, 3, 4].map(i => (
+                            <Skeleton key={i} className="h-10 w-24 rounded-md" />
+                        ))}
+                    </div>
+                ) : (
+                    <Carousel
+                        opts={{
+                            align: "start",
+                            slidesToScroll: 4,
+                        }}
+                        className="w-full"
+                    >
+                        <CarouselContent className="-ml-1">
+                            {categories.map((category) => {
+                                const isActive = currentCategory === category.value
+                                return (
+                                    <CarouselItem key={category.id} className="basis-1/3 sm:basis-1/4 pl-1">
+                                        <button
+                                            onClick={() => handleCategoryChange(category.value)}
+                                            className={`
+                        relative w-full px-2 py-2 text-md font-medium whitespace-nowrap transition-colors cursor-pointer text-center
+                        ${isActive
+                                                    ? 'text-brand-magenta'
+                                                    : 'text-muted-foreground hover:text-foreground'
+                                                }
+                        `}
+                                        >
+                                            <span className="relative z-10 inline-block">
+                                                {category.label}
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="category-underline"
+                                                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-magenta"
+                                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                                    />
+                                                )}
+                                            </span>
+                                        </button>
+                                    </CarouselItem>
+                                )
+                            })}
+                        </CarouselContent>
+                        <CarouselPrevious className="hidden md:flex -left-9 h-8 w-8" />
+                        <CarouselNext className="hidden md:flex -right-9 h-8 w-8" />
+                    </Carousel>
+                )}
             </div>
 
-            {/* Filter Button */}
-            <Button variant="outline" className="h-9 px-4 gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-full shadow-sm">
-                <SlidersHorizontal className="w-4 h-4" />
-                Bộ lọc
-            </Button>
-
-            {/* View Toggle */}
-            {!isMobile && (
-                <div className="flex items-center p-1 bg-white rounded-full border border-slate-200 h-9 shadow-sm px-1 gap-1">
-                    <button
-                        onClick={() => setViewMode('grid')}
-                        className={`relative p-2 rounded-full transition-colors duration-200 ${viewMode === 'grid'
-                            ? 'text-white'
-                            : 'text-slate-400 hover:text-slate-600'
-                            }`}
-                    >
-                        {viewMode === 'grid' && (
-                            <motion.div
-                                layoutId="viewMode-active"
-                                className="absolute inset-0 bg-slate-900 rounded-full shadow-sm"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                        )}
-                        <span className="relative z-10">
-                            <LayoutGrid className="w-4 h-4" />
-                        </span>
-                    </button>
-
-                    <button
-                        onClick={() => setViewMode('list')}
-                        className={`relative p-2 rounded-full transition-colors duration-200 ${viewMode === 'list'
-                            ? 'text-white'
-                            : 'text-slate-400 hover:text-slate-600'
-                            }`}
-                    >
-                        {viewMode === 'list' && (
-                            <motion.div
-                                layoutId="viewMode-active"
-                                className="absolute inset-0 bg-slate-900 rounded-full shadow-sm"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                        )}
-                        <span className="relative z-10">
-                            <ListIcon className="w-4 h-4" />
-                        </span>
-                    </button>
+            {/* Search and Controls */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto order-1 lg:order-2">
+                {/* Search */}
+                <div className={`relative w-full sm:w-80 lg:w-96`}>
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder={getPlaceholder(currentCategory)}
+                        className="pl-10 h-10 bg-white rounded-2xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full"
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                    />
                 </div>
-            )}
 
-            {/* Count */}
-            <div className="text-sm font-medium text-slate-500 whitespace-nowrap px-2">
-                {totalCount} khóa học
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {/* Filter Sheet */}
+                    <CourseFilterSheet activeFilterCount={activeFilterCount} />
+
+                    {/* View Toggle (Hidden on Mobile/Tablet usually handled by parent but keeping as is for desktop) */}
+                    <div className="hidden lg:block">
+                        <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <Button
+                                variant="ghost"
+                                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                                className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full p-0 flex items-center justify-center shrink-0"
+                            >
+                                {viewMode === 'list' ? (
+                                    <LayoutGrid className="w-6 h-6 text-gray-700" />
+                                ) : (
+                                    <LayoutList className="w-6 h-6 text-gray-700" />
+                                )}
+                            </Button>
+                        </motion.div>
+                    </div>
+
+                    {/* Refresh Button */}
+                    {onRefresh && (
+                        <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <Button
+                                variant="ghost"
+                                onClick={onRefresh}
+                                disabled={isLoading}
+                                className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full p-0 flex items-center justify-center shrink-0"
+                            >
+                                <RotateCw className={`w-5 h-5 text-gray-700 ${isLoading ? "animate-spin" : ""}`} />
+                            </Button>
+                        </motion.div>
+                    )}
+                </div>
             </div>
-
-            {/* Sort */}
-            <Select defaultValue="newest">
-                <SelectTrigger className="w-[150px] h-9 bg-white border-slate-200 rounded-full shadow-sm">
-                    <SelectValue placeholder="Sắp xếp" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="newest">Ngày tạo</SelectItem>
-                    <SelectItem value="price-asc">Giá tăng dần</SelectItem>
-                    <SelectItem value="price-desc">Giá giảm dần</SelectItem>
-                </SelectContent>
-            </Select>
-
-            {/* Refresh Button - Moved to end */}
-            <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 rounded-full shrink-0 border-slate-200 shadow-sm bg-white"
-                onClick={onRefresh}
-                disabled={isLoading}
-            >
-                <RotateCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-            </Button>
         </div>
     )
 }

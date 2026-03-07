@@ -2,15 +2,24 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Icon } from "@iconify/react";
-import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell } from "lucide-react";
+import { Search, ChevronDown, Menu, GraduationCap, BookOpen, LogOut, User, Bell, Crown, Gem, Zap, DollarSign, ShoppingCart } from "lucide-react";
 import { useAuth, useLogout } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useQuery } from "@tanstack/react-query";
 import { instructorRegistrationService } from "@/lib/api/services/fetchInstructorRegistration";
+import { useStudentNotificationStatus } from "@/hooks/useNotification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useCategory } from "@/hooks/useCategory";
+import { Category } from "@/lib/api/services/fetchCategory";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Slider } from "@/components/ui/slider";
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { useRouter, usePathname } from "next/navigation";
+// import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,213 +29,516 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
-import gsap from "gsap";
+import { AnimatePresence, motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { StudentNotificationPanel } from "../widget/student-notification-panel";
+import { useSearchCourses } from "@/hooks/useCourse";
+import { useDebounce } from "@/hooks/useDebounce";
+import SafeImage from "../ui/SafeImage";
+import CartPopover from "../widget/CartPopover";
+import { useGetCart } from "@/hooks/useOrder";
+
+const CategoryMenu = ({
+  Content,
+  onSelect,
+  selected
+}: {
+  Content: Category[] | undefined,
+  onSelect: (name: string) => void,
+  selected: string
+}) => {
+  const [hoveredParent, setHoveredParent] = useState<Category | null>(null);
+
+  const handleMouseLeave = () => {
+    setHoveredParent(null);
+  };
+
+  const hasSubmenu = hoveredParent && hoveredParent.subCategories && hoveredParent.subCategories.length > 0;
+
+  return (
+    <motion.div
+      className="flex flex-col w-[300px] bg-background rounded-md py-2 relative border shadow-md"
+      onMouseLeave={handleMouseLeave}
+      animate={{ x: hasSubmenu ? -150 : 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    >
+      <ScrollArea className="h-auto max-h-[600px]">
+        <div className="flex flex-col">
+          <button
+            onClick={() => onSelect("Tất cả")}
+            onMouseEnter={() => setHoveredParent(null)}
+            className={cn(
+              "w-full text-left px-4 py-3 text-sm transition-colors flex items-center justify-between group",
+              selected === "Tất cả"
+                ? "bg-muted text-foreground font-medium"
+                : "hover:bg-muted/50 text-foreground/80 hover:text-foreground"
+            )}
+          >
+            <span>Tất cả</span>
+          </button>
+
+          {Content?.map((parent) => (
+            <div
+              key={parent.id}
+              className="relative"
+              onMouseEnter={() => setHoveredParent(parent)}
+            >
+              <button
+                onClick={() => {
+                  onSelect(parent.name)
+                }}
+                className={cn(
+                  "w-full text-left px-4 py-3 text-sm transition-colors flex items-center justify-between group",
+                  hoveredParent?.id === parent.id
+                    ? "bg-muted/50 text-foreground"
+                    : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                <span className="truncate">{parent.name}</span>
+                {parent.subCategories && parent.subCategories.length > 0 && (
+                  <ChevronDown className="h-4 w-4 -rotate-90 text-muted-foreground/50 group-hover:text-foreground/80" />
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+
+      <AnimatePresence>
+        {hasSubmenu && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-[100%] top-[-1px] h-[calc(100%+2px)] w-[300px] bg-background border rounded-md shadow-lg ml-1 overflow-hidden z-50"
+          >
+            <div className="px-5 py-3 font-semibold text-base text-foreground/70 border-b mx-5 mb-2 mt-2">
+              {hoveredParent!.name}
+            </div>
+            <ScrollArea className="h-[calc(100%-60px)] px-2">
+              <div className="flex flex-col py-2">
+
+                {hoveredParent!.subCategories!.map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => onSelect(sub.name)}
+                    className="flex items-center justify-between w-full px-5 py-3 text-sm text-foreground/80 hover:text-foreground hover:bg-muted/50 transition-colors group rounded-md"
+                  >
+                    <span>{sub.name}</span>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+// Search suggestions dropdown component
+const SearchSuggestions = ({
+  keyword,
+  isOpen,
+  onSelect,
+}: {
+  keyword: string;
+  isOpen: boolean;
+  onSelect: (keyword: string) => void;
+}) => {
+  const { courses, isLoading } = useSearchCourses(
+    {
+      keyword,
+      pageNumber: 1,
+      pageSize: 10,
+      isDescending: true,
+    }
+  );
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.15 }}
+          className="absolute left-0 right-0 top-full mt-2 bg-background border rounded-2xl shadow-xl z-50 max-h-[360px] overflow-hidden"
+        >
+          <div className="py-2">
+            {isLoading && (
+              <div className="px-4 py-3 text-sm text-muted-foreground">
+                Đang tìm kiếm khóa học...
+              </div>
+            )}
+
+            {!isLoading && courses.length === 0 && (
+              <div className="px-4 py-3 text-sm text-muted-foreground">
+                Không tìm thấy khóa học nào.
+              </div>
+            )}
+
+            {!isLoading && courses.length > 0 && (
+              <ul className="max-h-[320px] overflow-y-auto">
+                {courses.map((course) => (
+                  <li key={course.id}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        onSelect(course.title);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/70 transition-colors"
+                    >
+                      {/* Thumbnail */}
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                        <SafeImage
+                          src={formatImageUrl(course.thumbnailUrl) || "/bg-web.jpg"}
+                          alt={course.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+
+                      {/* Text info */}
+                      <div className="flex-1 flex flex-col items-start">
+                        <span className="text-sm font-medium line-clamp-1">
+                          {course.title}
+                        </span>
+                        <span className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {course.instructorName} • {course.categoryName}
+                        </span>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const PriceFilterMenu = ({
+  minPrice,
+  maxPrice,
+  onPriceChange,
+  onApply,
+  onClear,
+  onPriceDisplayChange
+}: {
+  minPrice: number;
+  maxPrice: number;
+  onPriceChange: (min: number, max: number) => void;
+  onApply: (min: number, max: number) => void;
+  onClear: () => void;
+  onPriceDisplayChange?: (display: string) => void;
+}) => {
+  const router = useRouter();
+  const MAX_PRICE = 5000000; // 5 triệu
+  const [localMinPrice, setLocalMinPrice] = useState(minPrice);
+  const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice);
+
+  // Mock data for price distribution chart
+  const priceDistributionData = [
+    { price: 0, count: 0 },
+    { price: 0.5, count: 150 },
+    { price: 1, count: 200 },
+    { price: 1.5, count: 180 },
+    { price: 2, count: 120 },
+    { price: 2.5, count: 80 },
+    { price: 3, count: 40 },
+    { price: 3.5, count: 20 },
+    { price: 4, count: 10 },
+    { price: 4.5, count: 5 },
+    { price: 5, count: 2 },
+  ];
+
+  const formatPrice = (price: number) => {
+    if (price >= 1000000) {
+      return `${(price / 1000000).toFixed(0)}tr`;
+    }
+    return `${price.toLocaleString()}`;
+  };
+
+  const formatPriceInput = (price: number) => {
+    if (price === 0) return '';
+    return price.toLocaleString('vi-VN');
+  };
+
+  const presetRanges = [
+    { label: 'Dưới 1tr', min: 0, max: 1000000 },
+    { label: '1-2tr', min: 1000000, max: 2000000 },
+    { label: '2-3tr', min: 2000000, max: 3000000 },
+    { label: '3-4tr', min: 3000000, max: 4000000 },
+    { label: '4-5tr', min: 4000000, max: 5000000 },
+    { label: 'Tất cả', min: 0, max: MAX_PRICE },
+  ];
+
+  const formatPriceDisplay = (min: number, max: number) => {
+    if (min === 0 && max === MAX_PRICE) {
+      return "Mức giá";
+    }
+    const formatPrice = (p: number) => {
+      if (p >= 1000000) return `${(p / 1000000).toFixed(0)}tr`;
+      return `${p.toLocaleString()}`;
+    };
+    return `${formatPrice(min)} - ${formatPrice(max)}`;
+  };
+
+  const handleSliderChange = (values: number[]) => {
+    const newMin = values[0];
+    const newMax = values[1];
+    setLocalMinPrice(newMin);
+    setLocalMaxPrice(newMax);
+    if (onPriceDisplayChange) {
+      onPriceDisplayChange(formatPriceDisplay(newMin, newMax));
+    }
+  };
+
+  const handlePresetClick = (min: number, max: number) => {
+    setLocalMinPrice(min);
+    setLocalMaxPrice(max);
+    if (onPriceDisplayChange) {
+      onPriceDisplayChange(formatPriceDisplay(min, max));
+    }
+  };
+
+  const handleApply = () => {
+    onPriceChange(localMinPrice, localMaxPrice);
+    onApply(localMinPrice, localMaxPrice);
+  };
+
+  const handleClear = () => {
+    setLocalMinPrice(0);
+    setLocalMaxPrice(MAX_PRICE);
+    onPriceChange(0, MAX_PRICE);
+    onClear();
+  };
+
+  const handleMinPriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value === '') {
+      const newMin = 0;
+      setLocalMinPrice(newMin);
+      if (onPriceDisplayChange) {
+        onPriceDisplayChange(formatPriceDisplay(newMin, localMaxPrice));
+      }
+      return;
+    }
+    const numValue = parseInt(value) || 0;
+    const clampedValue = Math.min(Math.max(numValue, 0), localMaxPrice);
+    setLocalMinPrice(clampedValue);
+    if (onPriceDisplayChange) {
+      onPriceDisplayChange(formatPriceDisplay(clampedValue, localMaxPrice));
+    }
+  };
+
+  const handleMaxPriceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value === '') {
+      const newMax = MAX_PRICE;
+      setLocalMaxPrice(newMax);
+      if (onPriceDisplayChange) {
+        onPriceDisplayChange(formatPriceDisplay(localMinPrice, newMax));
+      }
+      return;
+    }
+    const numValue = parseInt(value) || MAX_PRICE;
+    const clampedValue = Math.max(Math.min(numValue, MAX_PRICE), localMinPrice);
+    setLocalMaxPrice(clampedValue);
+    if (onPriceDisplayChange) {
+      onPriceDisplayChange(formatPriceDisplay(localMinPrice, clampedValue));
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      className="w-[400px] bg-background rounded-lg border shadow-lg p-6"
+    >
+      <h3 className="text-lg font-semibold mb-4 text-foreground">Mức giá</h3>
+
+      {/* Price Input Fields */}
+      <div className="flex flex-row gap-4 mb-6">
+        <div className="flex-1">
+          <label className="text-sm text-muted-foreground mb-2 block">Giá tối thiểu</label>
+          <div className="relative">
+            <Input
+              type="text"
+              value={formatPriceInput(localMinPrice)}
+              onChange={handleMinPriceInput}
+              className="pr-12"
+              placeholder="Từ"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground z-10">VND</span>
+          </div>
+        </div>
+
+        <div className="flex-1">
+          <label className="text-sm text-muted-foreground mb-2 block">Giá tối đa</label>
+          <div className="relative">
+            <Input
+              type="text"
+              value={formatPriceInput(localMaxPrice)}
+              onChange={handleMaxPriceInput}
+              className="pr-12"
+              placeholder="Đến"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground z-10">VND</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Price Distribution Chart */}
+      <div className="mb-6">
+        <div className="h-24 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={priceDistributionData}>
+              <defs>
+                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#9333ea" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="#9333ea"
+                fillOpacity={1}
+                fill="url(#colorPrice)"
+              />
+              <XAxis dataKey="price" hide />
+              <YAxis hide />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    const priceInMillion = data.price;
+                    const count = data.count;
+                    return (
+                      <div className="bg-background border rounded-lg shadow-lg p-3">
+                        <p className="text-sm font-semibold text-foreground">
+                          {priceInMillion} triệu VND
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Tổng số course: <span className="font-semibold text-foreground">{count}</span>
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Price Range Slider */}
+      <div className="mb-6">
+        <Slider
+          value={[localMinPrice, localMaxPrice]}
+          onValueChange={handleSliderChange}
+          min={0}
+          max={MAX_PRICE}
+          step={100000}
+          className="w-full"
+        />
+        <div className="flex justify-between text-xs text-muted-foreground mt-2">
+          <span>0</span>
+          <span>{formatPrice(MAX_PRICE)}</span>
+        </div>
+      </div>
+
+      {/* Preset Price Range Buttons */}
+      <div className="grid grid-cols-3 gap-2 mb-6">
+        {presetRanges.map((preset) => (
+          <Button
+            key={preset.label}
+            variant="outline"
+            size="sm"
+            onClick={() => handlePresetClick(preset.min, preset.max)}
+            className={cn(
+              "text-xs",
+              localMinPrice === preset.min && localMaxPrice === preset.max
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "hover:bg-gray-200 hover:text-black"
+            )}
+          >
+            {preset.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          onClick={handleClear}
+          className="flex-1 hover:bg-gray-200 hover:text-black"
+        >
+          Xóa tất cả
+        </Button>
+        <Button
+          onClick={handleApply}
+          className="flex-1 "
+        >
+          Áp dụng
+        </Button>
+      </div>
+    </motion.div>
+  );
+};
 
 export function Header() {
   const isMobile = useIsMobile();
   const { isAuthenticated } = useAuth();
   const { userProfile, isLoading } = useUserProfile();
+  const { subscription } = useSubscription();
+  const { status: notificationStatus } = useStudentNotificationStatus({ enabled: isAuthenticated });
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
-  const [tempCategory, setTempCategory] = useState("Tất cả");
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(5000000);
+  const [priceDisplay, setPriceDisplay] = useState("Mức giá");
+
   const [isOpen, setIsOpen] = useState(false);
+  const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const { mutateLogout } = useLogout();
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const { cart } = useGetCart({ enabled: isAuthenticated });
+  const pathname = usePathname();
+  const isCartPage = pathname === '/cart';
 
   const headerRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<HTMLAnchorElement>(null);
-  const searchFormRef = useRef<HTMLFormElement>(null);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-  const navRef = useRef<HTMLElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  useEffect(() => {
-    if (isMobile) return;
+  // Use framer-motion scroll detection similar to resizable-navbar
+  const { scrollY } = useScroll({
+    target: headerRef,
+    offset: ["start start", "end start"],
+  });
 
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const shouldCollapse = scrollY > 100;
-
-      if (shouldCollapse !== isScrolled) {
-        setIsScrolled(shouldCollapse);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isMobile, isScrolled]);
-
-  useEffect(() => {
-    if (isMobile) return;
-
-    const header = headerRef.current;
-    const container = containerRef.current;
-    const logo = logoRef.current;
-    const searchForm = searchFormRef.current;
-    const searchContainer = searchContainerRef.current;
-    const nav = navRef.current;
-
-    if (!header || !container || !logo || !searchForm || !searchContainer || !nav) return;
-
-    const tl = gsap.timeline({ defaults: { duration: 0.4, ease: "power2.out" } });
-
-    if (isScrolled) {
-      const containerRect = container.getBoundingClientRect();
-      const searchFormRect = searchForm.getBoundingClientRect();
-      const searchFormCenterX = searchFormRect.left + searchFormRect.width / 2 - containerRect.left;
-
-      const logoRect = logo.getBoundingClientRect();
-      const navRect = nav.getBoundingClientRect();
-      const logoCenterX = logoRect.left + logoRect.width / 2 - containerRect.left;
-      const navCenterX = navRect.left + navRect.width / 2 - containerRect.left;
-
-      const logoMoveX = searchFormCenterX - logoCenterX;
-      const navMoveX = searchFormCenterX - navCenterX;
-
-      tl.to(logo, {
-        x: logoMoveX,
-        scale: 0.2,
-        opacity: 0,
-        width: 0,
-        duration: 0.5,
-        ease: "power2.in",
-        pointerEvents: "none",
-        overflow: "hidden",
-      })
-        .to(nav, {
-          x: navMoveX,
-          scale: 0.2,
-          opacity: 0,
-          width: 0,
-          duration: 0.5,
-          ease: "power2.in",
-          pointerEvents: "none",
-          overflow: "hidden",
-        }, "<")
-        .to(
-          header,
-          {
-            padding: "8px 0",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<0.2"
-        )
-        .to(
-          container,
-          {
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "8px 0",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<0.1"
-        )
-        .to(
-          searchForm,
-          {
-            width: "auto",
-            maxWidth: "500px",
-            flex: "none",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<"
-        )
-        .to(
-          searchContainer,
-          {
-            width: "100%",
-            padding: "4px 4px 4px 16px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
-            duration: 0.4,
-            ease: "power2.out",
-          },
-          "<"
-        );
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (latest > 100) {
+      setIsScrolled(true);
     } else {
-      tl.to(
-        container,
-        {
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          justifyContent: "",
-          alignItems: "center",
-          padding: "",
-          duration: 0.4,
-          ease: "sine.out",
-        }
-      )
-        .to(
-          header,
-          {
-            padding: "",
-            duration: 0.5,
-            ease: "sine.out",
-          },
-          "<0.1"
-        )
-        .to(
-          logo,
-          {
-            x: 0,
-            width: "",
-            overflow: "",
-            opacity: 1,
-            scale: 1,
-            duration: 0.6,
-            ease: "power1.out",
-            pointerEvents: "auto",
-          },
-          "<0.2"
-        )
-        .to(
-          nav,
-          {
-            x: 0,
-            width: "",
-            overflow: "",
-            opacity: 1,
-            scale: 1,
-            duration: 0.6,
-            ease: "power1.out",
-            pointerEvents: "auto",
-          },
-          "<"
-        )
-        .to(
-          searchForm,
-          {
-            width: "",
-            maxWidth: "",
-            flex: "",
-            margin: "",
-            duration: 0.5,
-            ease: "sine.out",
-          },
-          "<0.1"
-        )
-        .to(
-          searchContainer,
-          {
-            width: "",
-            padding: "",
-            boxShadow: "",
-            duration: 0.5,
-            ease: "sine.out",
-          },
-          "<"
-        );
+      setIsScrolled(false);
     }
-
-    return () => {
-      tl.kill();
-    };
-  }, [isScrolled, isMobile]);
+  });
 
   const isInstructor = () => {
     if (!userProfile?.roles) return false;
@@ -250,7 +562,8 @@ export function Header() {
 
   const showRegisterInstructor = (!isCheckingApply && checkApplyData !== undefined && checkApplyData.isSuccess === false) ||
     (!isCheckingApply && checkApplyError);
-  console.log("Show Register Instructor:", showRegisterInstructor);
+
+  const { categories: categoryData } = useCategory();
 
   const getAvatarFallback = () => {
     if (userProfile?.fullName) {
@@ -262,249 +575,451 @@ export function Header() {
     return 'U';
   };
 
-  const categories = [
-    { name: "Tất cả", icon: "mdi:view-grid" },
-    { name: "Lập trình", icon: "mdi:code-tags" },
-    { name: "Thiết kế", icon: "mdi:palette" },
-    { name: "Kinh doanh", icon: "mdi:briefcase" },
-    { name: "Marketing", icon: "mdi:bullhorn" },
-    { name: "Ngoại ngữ", icon: "mdi:translate" },
-  ];
+  const getGradientStyle = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
+      case "PRO":
+        return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
+      case "STANDARD":
+      case "PLUS":
+        return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
+      default:
+        return null;
+    }
+  };
+
+  const getPlanIcon = (code?: string) => {
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return <Crown className="w-3 h-3 text-yellow-500 fill-yellow-500" />;
+      case "PRO":
+        return <Gem className="w-3 h-3 text-blue-500 fill-blue-500" />;
+      case "BASIC":
+      case "PLUS":
+        return <Zap className="w-3 h-3 text-purple-500 fill-purple-500" />;
+      default:
+        return null;
+    }
+  };
+
 
   const handleLogout = () => {
     mutateLogout();
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Searching for:", searchQuery, "Category:", selectedCategory);
+  const router = useRouter();
+
+  const performSearch = (options?: { category?: string; minPrice?: number; maxPrice?: number }) => {
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) {
+      params.set("search", searchQuery.trim());
+    }
+
+    const cat = options?.category !== undefined ? options.category : selectedCategory;
+    if (cat && cat !== "Tất cả") {
+      params.set("category", cat);
+    }
+
+    const min = options?.minPrice !== undefined ? options.minPrice : minPrice;
+    if (min > 0) {
+      params.set("minPrice", min.toString());
+    }
+
+    const max = options?.maxPrice !== undefined ? options.maxPrice : maxPrice;
+    if (max < 5000000) {
+      params.set("maxPrice", max.toString());
+    }
+
+    params.set("pageNumber", "1");
+    params.set("pageSize", "10");
+    params.set("isDescending", "true");
+    router.push(`/courses?${params.toString()}`);
   };
 
-  const handleApplyFilter = () => {
-    setSelectedCategory(tempCategory);
-    setIsOpen(false);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    performSearch();
   };
+
+  const handlePriceChange = (min: number, max: number) => {
+    setMinPrice(min);
+    setMaxPrice(max);
+
+    // Update display text
+    if (min === 0 && max === 5000000) {
+      setPriceDisplay("Mức giá");
+    } else {
+      const formatPrice = (p: number) => {
+        if (p >= 1000000) return `${(p / 1000000).toFixed(0)}tr`;
+        return `${p.toLocaleString()}`;
+      };
+      setPriceDisplay(`${formatPrice(min)} - ${formatPrice(max)}`);
+    }
+  };
+
+
 
   return (
     <header
       ref={headerRef}
-      className={`border-b bg-background/95 sticky top-0 z-50 transition-[border] duration-300 ${isScrolled && !isMobile ? 'border-transparent bg-transparent' : ''}`}
+      className="sticky inset-x-0 top-0 z-50 w-full"
     >
-      <div
+      <motion.div
         ref={containerRef}
-        className={`${isMobile ? 'px-3 py-2' : 'px-14 py-2'} ${isMobile ? 'flex items-center justify-between gap-2' : 'grid grid-cols-3 items-center gap-6'}`}
+        animate={{
+          backdropFilter: isScrolled && !isMobile ? "blur(10px)" : "none",
+          boxShadow: isScrolled && !isMobile
+            ? "0 0 24px rgba(34, 42, 53, 0.06), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(34, 42, 53, 0.04), 0 0 4px rgba(34, 42, 53, 0.08), 0 16px 68px rgba(47, 48, 55, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset"
+            : "none",
+          width: isScrolled && !isMobile ? "75%" : "100%",
+          y: isScrolled && !isMobile ? 20 : 0,
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 200,
+          damping: 50,
+        }}
+        style={{
+          minWidth: isMobile ? undefined : "800px",
+        }}
+        className={cn(
+          "relative z-[60] mx-auto w-full items-center rounded-full justify-between self-start bg-transparent px-4 py-2",
+          isScrolled && !isMobile && "bg-white/80 flex flex-row items-center justify-between px-14",
+          !isScrolled && !isMobile && "grid grid-cols-3 px-14",
+          isMobile ? "flex items-center justify-between gap-2 px-3 py-2" : "hidden lg:grid lg:flex"
+        )}
       >
-        <Link href="/" className="flex items-center" ref={logoRef}>
-          <Image
-            src="/white-text-logo.svg"
-            alt="Beyond 8"
-            width={isMobile ? 80 : 100}
-            height={isMobile ? 80 : 100}
-            className={`${isMobile ? 'h-8' : 'h-10'} w-auto`}
-          />
-        </Link>
+        <div className={cn(
+          "flex items-center gap-3 flex-shrink-0",
+          isScrolled && !isMobile && "mr-4"
+        )}>
+          <Link href="/" className="flex items-center flex-shrink-0">
+            <Image
+              src="/white-text-logo.svg"
+              alt="Beyond 8"
+              width={isMobile ? 80 : 100}
+              height={isMobile ? 80 : 100}
+              className={`${isMobile ? 'h-8' : 'h-10'} w-auto`}
+            />
+          </Link>
+
+          {!isMobile && (
+            <Link href="/supscription">
+              <div className="relative group cursor-pointer">
+                <Button
+                  className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
+                  variant="ghost"
+                >
+                  <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
+                </Button>
+              </div>
+            </Link>
+          )}
+        </div>
 
         {!isMobile && (
-          <form onSubmit={handleSearch} className="flex justify-center" id="search-form" ref={searchFormRef}>
-            <div ref={searchContainerRef} className="relative flex items-center rounded-full bg-background overflow-hidden shadow-lg">
-              <div className="w-1/2 flex items-center pl-4" id="search-input-section">
+          <form onSubmit={handleSearch} className={cn(
+            "flex justify-center",
+            isScrolled ? "flex-1 " : "col-start-2"
+          )} id="search-form">
+            <div className="relative flex items-center rounded-full bg-background shadow-lg overflow-visible w-full max-w-[500px]">
+              <div className="flex-1 flex items-center pl-4" id="search-input-section">
                 <Input
                   type="search"
                   placeholder="Tìm kiếm khóa học..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-0 bg-transparent"
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="text-sm border-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-0 bg-transparent"
                 />
               </div>
 
               <div className="h-8 w-px bg-border" />
 
-              <div className="w-1/2 flex items-center justify-between pr-1">
-                <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-                  <DropdownMenuTrigger className="flex items-center justify-between w-full px-3 py-2 text-sm focus:outline-none cursor-pointer">
-                    <span>Loại khóa học</span>
-                    <ChevronDown className="h-4 w-4 ml-2" />
+              <div className="flex items-center justify-between pr-1">
+                <DropdownMenu open={isOpen} onOpenChange={setIsOpen} modal={false}>
+                  <DropdownMenuTrigger
+                    className="flex items-center justify-between px-3 py-2 text-sm focus:outline-none cursor-pointer min-w-[120px]"
+                  >
+                    <span className="truncate max-w-[100px]">{selectedCategory}</span>
+                    <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
-                    align="start"
-                    className="p-4 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200"
-                    sideOffset={8}
-                    alignOffset={-200}
-                    style={{
-                      width: '395px'
-                    }}
+                    align="center"
+                    sideOffset={10}
+                    className="p-0 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200 !overflow-visible border-none bg-transparent shadow-none w-auto"
                   >
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      {categories.map((category, index) => {
-                        const isSelected = tempCategory === category.name;
-                        return (
-                          <div
-                            key={category.name}
-                            onClick={() => setTempCategory(category.name)}
-                            className={`p-2.5 border rounded-lg cursor-pointer transition-all flex items-center gap-2 animate-in fade-in-0 slide-in-from-bottom-2 ${isSelected
-                              ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/20'
-                              : 'border-border'
-                              }`}
-                            style={{
-                              animationDelay: `${index * 50}ms`,
-                              animationDuration: '300ms'
-                            }}
-                          >
-                            <Icon
-                              icon={category.icon}
-                              className={`text-lg flex-shrink-0 ${isSelected ? 'text-purple-600' : ''}`}
-                            />
-                            <span className={`text-xs font-medium ${isSelected ? 'text-purple-600' : ''}`}>
-                              {category.name}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <Button
-                      onClick={handleApplyFilter}
-                      className="w-full bg-purple-600 hover:bg-purple-700 animate-in fade-in-0 slide-in-from-bottom-2"
-                      size="sm"
-                      style={{
-                        animationDelay: '300ms',
-                        animationDuration: '300ms'
-                      }}
-                    >
-                      Áp dụng
-                    </Button>
+                    <CategoryMenu Content={categoryData?.data} onSelect={(name) => {
+                      setSelectedCategory(name);
+                      setIsOpen(false);
+                      performSearch({ category: name });
+                    }} selected={selectedCategory} />
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <Link href="/courses">
-                  <button
-                    type="button"
-                    className="p-2 rounded-full bg-purple-600 hover:bg-purple-700 transition-colors border border-purple-500 cursor-pointer"
+                <div className="h-8 w-px bg-border" />
+
+                <DropdownMenu open={isPriceOpen} onOpenChange={setIsPriceOpen} modal={false}>
+                  <DropdownMenuTrigger
+                    className="flex items-center justify-between px-3 py-2 text-sm focus:outline-none cursor-pointer min-w-[120px]"
                   >
-                    <Search className="h-4 w-4 text-white" />
-                  </button>
-                </Link>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <span className="truncate max-w-[100px]">{priceDisplay}</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="center"
+                    sideOffset={10}
+                    className="p-0 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200 !overflow-visible border-none bg-transparent shadow-none w-auto"
+                  >
+                    <PriceFilterMenu
+                      key={`${minPrice}-${maxPrice}`}
+                      minPrice={minPrice}
+                      maxPrice={maxPrice}
+                      onPriceChange={handlePriceChange}
+                      onApply={(min, max) => {
+                        setIsPriceOpen(false);
+                        performSearch({ minPrice: min, maxPrice: max });
+                      }}
+                      onClear={() => {
+                        setIsPriceOpen(false);
+                        performSearch({ minPrice: 0, maxPrice: 5000000 });
+                      }}
+                      onPriceDisplayChange={setPriceDisplay}
+                    />
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <button
+                  type="submit"
+                  className="p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border border-purple-500 cursor-pointer ml-1"
+                >
+                  <Search className="h-4 w-4 text-white" />
+                </button>
               </div>
+              {/* Search suggestions dropdown */}
+              <SearchSuggestions
+                keyword={debouncedSearch}
+                isOpen={isSearchFocused && !!debouncedSearch.trim()}
+                onSelect={(keyword) => {
+                  const params = new URLSearchParams();
+                  params.set("search", keyword);
+                  params.set("pageNumber", "1");
+                  params.set("pageSize", "10");
+                  params.set("isDescending", "true");
+                  router.push(`/courses?${params.toString()}`);
+                  setSearchQuery("");
+                }}
+              />
             </div>
           </form>
         )}
 
-        <nav ref={navRef} className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} ${isMobile ? '' : 'justify-end'}`}>
-          {isAuthenticated ? (
-            <>
-              {!isMobile && (
-                showInstructorDashboard ? (
-                  <Link href="/instructor/dashboard">
-                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
-                      <GraduationCap className="h-4 w-4" />
-                      Trang giảng viên
-                    </Button>
-                  </Link>
-                ) : showRegisterInstructor ? (
-                  <Link href="/instructor-registration">
-                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
-                      <GraduationCap className="h-4 w-4" />
-                      Đăng ký giảng viên
-                    </Button>
-                  </Link>
-                ) : null
-              )}
+        {!isMobile && (
+          <nav className={cn(
+            "flex items-center gap-3 flex-shrink-0",
+            isScrolled ? "" : "justify-end col-start-3"
+          )}>
+            {isAuthenticated ? (
+              <>
+                {!isMobile && (
+                  showInstructorDashboard ? (
+                    <Link href="/instructor/dashboard">
+                      <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
+                        <GraduationCap className="h-4 w-4" />
+                        Trang giảng viên
+                      </Button>
+                    </Link>
+                  ) : showRegisterInstructor ? (
+                    <Link href="/instructor-registration">
+                      <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
+                        <GraduationCap className="h-4 w-4" />
+                        Đăng ký giảng viên
+                      </Button>
+                    </Link>
+                  ) : null
+                )}
 
-              {isLoading ? (
-                <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
-              ) : (
-                <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
-                  <Avatar className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} border-2 border-purple-200 hover:border-purple-400 transition-colors`}>
-                    <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} />
-                    <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
-                      {getAvatarFallback()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-              )}
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
-                    <Menu className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {userProfile && (
-                    <>
-                      <div className="px-2 py-1.5 text-sm">
-                        <p className="font-medium">{userProfile.fullName}</p>
-                        <p className="text-xs text-muted-foreground truncate">{userProfile.email}</p>
-                      </div>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/mybeyond?tab=myprofile" className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      Hồ sơ
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/notifications" className="flex items-center gap-2">
-                      <Bell className="h-4 w-4" />
-                      Thông báo
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/mybeyond?tab=mycourse" className="flex items-center gap-2">
-                      <BookOpen className="h-4 w-4" />
-                      Khóa học của tôi
-                    </Link>
-                  </DropdownMenuItem>
-                  {/* <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/mybeyond?tab=mywallet" className="flex items-center gap-2">
-                      <Receipt className="h-4 w-4" />
-                      Ví của tôi
-                    </Link>
-                  </DropdownMenuItem> */}
-                  {isMobile && (showInstructorDashboard || showRegisterInstructor) && (
-                    <>
-                      <DropdownMenuSeparator />
-                      {showInstructorDashboard ? (
-                        <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                          <Link href="/instructor/dashboard" className="flex items-center gap-2">
-                            <GraduationCap className="h-4 w-4" />
-                            Trang giảng viên
-                          </Link>
-                        </DropdownMenuItem>
-                      ) : showRegisterInstructor ? (
-                        <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                          <Link href="/instructor-registration" className="flex items-center gap-2">
-                            <GraduationCap className="h-4 w-4" />
-                            Đăng ký giảng viên
-                          </Link>
-                        </DropdownMenuItem>
-                      ) : null}
-                    </>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="cursor-pointer text-red-600 focus:text-red-600 hover:bg-red-100 focus:bg-red-50"
+                {/* {subscription?.subscriptionPlan && !isMobile && (
+                <div className="flex items-center">
+                  <Badge 
+                    variant="outline" 
+                    className="border-purple-500 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-all duration-300 animate-in fade-in zoom-in duration-500 font-bold px-3 py-1 text-[12px] uppercase tracking-wider"
                   >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Đăng xuất
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <>
-              <Link href="/login">
-                <Button className="cursor-pointer rounded-xl hover:bg-gray-100 hover:text-black" variant="outline" size={isMobile ? "sm" : "sm"}>Đăng nhập</Button>
-              </Link>
-              <Link href="/register">
-                <Button className="cursor-pointer rounded-xl" size={isMobile ? "sm" : "sm"}>Đăng ký</Button>
-              </Link>
-            </>
-          )}
-        </nav>
-      </div>
+                    {subscription.subscriptionPlan.name}
+                  </Badge>
+                </div>
+              )} */}
+
+                {/* Cart Icon */}
+                {!isCartPage && (
+                  <div
+                    className="relative"
+                    onMouseEnter={() => setIsCartOpen(true)}
+                    onMouseLeave={() => setIsCartOpen(false)}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}
+                    >
+                      <ShoppingCart className={`${isMobile ? 'h-4 w-4' : 'h-7 w-7'}`} />
+                      {cart && cart.totalItems > 0 && (
+                        <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
+                          <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-brand-magenta to-brand-purple border-[2px] border-white text-[10px] font-bold text-white">
+                            {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                          </span>
+                        </span>
+                      )}
+                    </Button>
+                    <CartPopover
+                      isOpen={isCartOpen}
+                      onClose={() => setIsCartOpen(false)}
+                      onMouseEnter={() => setIsCartOpen(true)}
+                      onMouseLeave={() => setIsCartOpen(false)}
+                    />
+                  </div>
+                )}
+
+                {isLoading ? (
+                  <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
+                ) : (
+                  <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
+                    <div
+                      className={`relative p-[2px] rounded-full ${isMobile ? "w-9 h-9" : "w-11 h-11"} flex items-center justify-center transition-all duration-300 hover:scale-105`}
+                      style={{
+                        background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to gray-200 equivalent
+                      }}
+                    >
+                      <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'}`}>
+                        <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} className="object-cover" />
+                        <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
+                          {getAvatarFallback()}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      {/* Plan Icon */}
+                      {getPlanIcon(subscription?.subscriptionPlan?.code) && (
+                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm z-30 flex items-center justify-center border border-gray-100">
+                          {getPlanIcon(subscription?.subscriptionPlan?.code)}
+                        </div>
+                      )}
+                      {userProfile?.isActive && (
+                        <span className="absolute bottom-0 right-0 w-3 h-3 flex z-10">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                )}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
+                      <Menu className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                      {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-3 h-3 flex z-10">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {userProfile && (
+                      <>
+                        <div className="px-2 py-1.5 text-sm">
+                          <p className="font-medium">{userProfile.fullName}</p>
+                          <p className="text-xs text-muted-foreground truncate">{userProfile.email}</p>
+                        </div>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                      <Link href="/mybeyond?tab=myprofile" className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Hồ sơ
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
+                      onSelect={() => setIsNotificationOpen(true)}
+                    >
+                      <div className="flex flex-row justify-between items-center gap-2 ">
+                        <div className="flex flex-row items-center gap-2">
+                          <div className="flex">
+                            <Bell className="h-4 w-4" />
+                          </div>
+                          Thông báo
+                        </div>
+                        <div>
+                          {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
+                              <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white text-[10px] font-bold text-white">
+                                {notificationStatus.unreadCount > 99 ? '99+' : notificationStatus.unreadCount}
+                              </span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                      <Link href="/mybeyond?tab=mycourse" className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        Khóa học của tôi
+                      </Link>
+                    </DropdownMenuItem>
+                    {isMobile && (showInstructorDashboard || showRegisterInstructor) && (
+                      <>
+                        <DropdownMenuSeparator />
+                        {showInstructorDashboard ? (
+                          <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                            <Link href="/instructor/dashboard" className="flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4" />
+                              Trang giảng viên
+                            </Link>
+                          </DropdownMenuItem>
+                        ) : showRegisterInstructor ? (
+                          <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                            <Link href="/instructor-registration" className="flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4" />
+                              Đăng ký giảng viên
+                            </Link>
+                          </DropdownMenuItem>
+                        ) : null}
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="cursor-pointer text-red-600 focus:text-red-600 hover:bg-red-100 focus:bg-red-50"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Đăng xuất
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button className="cursor-pointer rounded-xl hover:bg-gray-100 hover:text-black" variant="outline" size={isMobile ? "sm" : "sm"}>Đăng nhập</Button>
+                </Link>
+                <Link href="/register">
+                  <Button className="cursor-pointer rounded-xl" size={isMobile ? "sm" : "sm"}>Đăng ký</Button>
+                </Link>
+              </>
+            )}
+          </nav>
+        )}
+      </motion.div>
+      <StudentNotificationPanel open={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
     </header>
   );
 }

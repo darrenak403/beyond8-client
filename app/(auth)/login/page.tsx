@@ -17,7 +17,7 @@ export default function LoginPage() {
 
             {/* Header */}
             <div className="space-y-2 text-center">
-                <h1 className="text-2xl font-bold text-primary">
+                <h1 className="text-2xl font-bold text-primary ">
                     Chào mừng bạn đến với Beyond8
                 </h1>
             </div>

@@ -29,7 +29,7 @@ export function OtpDialog({ open, onOpenChange, email, onVerify, onResend, isLoa
     // Reset timer when dialog opens
     useEffect(() => {
         if (open) {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+            // eslint-disable-next-line react-hooks/exhaustive-deps
             setTimeLeft(60);
             setOtp("");
         }
@@ -133,7 +133,7 @@ export function OtpDialog({ open, onOpenChange, email, onVerify, onResend, isLoa
                                         </Button>
                                     )}
 
-                                    <Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={() => onOpenChange?.(false)}>
+                                    <Button variant="ghost" className="w-full text-sm text-muted-foreground hover:bg-gray-200 hover:text-black" onClick={() => onOpenChange?.(false)}>
                                         Quay lại đăng nhập
                                     </Button>
                                 </div>

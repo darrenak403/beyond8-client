@@ -1,7 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import { CalendarIcon } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Card,
   CardContent,
@@ -24,191 +27,301 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useAIUsageChart } from '@/hooks/useAnalystic';
 import { useIsMobile } from '@/hooks/useMobile';
 
-const chartData = [
-  { date: '2024-04-01', desktop: 222, mobile: 150 },
-  { date: '2024-04-02', desktop: 97, mobile: 180 },
-  { date: '2024-04-03', desktop: 167, mobile: 120 },
-  { date: '2024-04-04', desktop: 242, mobile: 260 },
-  { date: '2024-04-05', desktop: 373, mobile: 290 },
-  { date: '2024-04-06', desktop: 301, mobile: 340 },
-  { date: '2024-04-07', desktop: 245, mobile: 180 },
-  { date: '2024-04-08', desktop: 409, mobile: 320 },
-  { date: '2024-04-09', desktop: 59, mobile: 110 },
-  { date: '2024-04-10', desktop: 261, mobile: 190 },
-  { date: '2024-04-11', desktop: 327, mobile: 350 },
-  { date: '2024-04-12', desktop: 292, mobile: 210 },
-  { date: '2024-04-13', desktop: 342, mobile: 380 },
-  { date: '2024-04-14', desktop: 137, mobile: 220 },
-  { date: '2024-04-15', desktop: 120, mobile: 170 },
-  { date: '2024-04-16', desktop: 138, mobile: 190 },
-  { date: '2024-04-17', desktop: 446, mobile: 360 },
-  { date: '2024-04-18', desktop: 364, mobile: 410 },
-  { date: '2024-04-19', desktop: 243, mobile: 180 },
-  { date: '2024-04-20', desktop: 89, mobile: 150 },
-  { date: '2024-04-21', desktop: 137, mobile: 200 },
-  { date: '2024-04-22', desktop: 224, mobile: 170 },
-  { date: '2024-04-23', desktop: 138, mobile: 230 },
-  { date: '2024-04-24', desktop: 387, mobile: 290 },
-  { date: '2024-04-25', desktop: 215, mobile: 250 },
-  { date: '2024-04-26', desktop: 75, mobile: 130 },
-  { date: '2024-04-27', desktop: 383, mobile: 420 },
-  { date: '2024-04-28', desktop: 122, mobile: 180 },
-  { date: '2024-04-29', desktop: 315, mobile: 240 },
-  { date: '2024-04-30', desktop: 454, mobile: 380 },
-  { date: '2024-05-01', desktop: 165, mobile: 220 },
-  { date: '2024-05-02', desktop: 293, mobile: 310 },
-  { date: '2024-05-03', desktop: 247, mobile: 190 },
-  { date: '2024-05-04', desktop: 385, mobile: 420 },
-  { date: '2024-05-05', desktop: 481, mobile: 390 },
-  { date: '2024-05-06', desktop: 498, mobile: 520 },
-  { date: '2024-05-07', desktop: 388, mobile: 300 },
-  { date: '2024-05-08', desktop: 149, mobile: 210 },
-  { date: '2024-05-09', desktop: 227, mobile: 180 },
-  { date: '2024-05-10', desktop: 293, mobile: 330 },
-  { date: '2024-05-11', desktop: 335, mobile: 270 },
-  { date: '2024-05-12', desktop: 197, mobile: 240 },
-  { date: '2024-05-13', desktop: 197, mobile: 160 },
-  { date: '2024-05-14', desktop: 448, mobile: 490 },
-  { date: '2024-05-15', desktop: 473, mobile: 380 },
-  { date: '2024-05-16', desktop: 338, mobile: 400 },
-  { date: '2024-05-17', desktop: 499, mobile: 420 },
-  { date: '2024-05-18', desktop: 315, mobile: 350 },
-  { date: '2024-05-19', desktop: 235, mobile: 180 },
-  { date: '2024-05-20', desktop: 177, mobile: 230 },
-  { date: '2024-05-21', desktop: 82, mobile: 140 },
-  { date: '2024-05-22', desktop: 81, mobile: 120 },
-  { date: '2024-05-23', desktop: 252, mobile: 290 },
-  { date: '2024-05-24', desktop: 294, mobile: 220 },
-  { date: '2024-05-25', desktop: 201, mobile: 250 },
-  { date: '2024-05-26', desktop: 213, mobile: 170 },
-  { date: '2024-05-27', desktop: 420, mobile: 460 },
-  { date: '2024-05-28', desktop: 233, mobile: 190 },
-  { date: '2024-05-29', desktop: 78, mobile: 130 },
-  { date: '2024-05-30', desktop: 340, mobile: 280 },
-  { date: '2024-05-31', desktop: 178, mobile: 230 },
-  { date: '2024-06-01', desktop: 178, mobile: 200 },
-  { date: '2024-06-02', desktop: 470, mobile: 410 },
-  { date: '2024-06-03', desktop: 103, mobile: 160 },
-  { date: '2024-06-04', desktop: 439, mobile: 380 },
-  { date: '2024-06-05', desktop: 88, mobile: 140 },
-  { date: '2024-06-06', desktop: 294, mobile: 250 },
-  { date: '2024-06-07', desktop: 323, mobile: 370 },
-  { date: '2024-06-08', desktop: 385, mobile: 320 },
-  { date: '2024-06-09', desktop: 438, mobile: 480 },
-  { date: '2024-06-10', desktop: 155, mobile: 200 },
-  { date: '2024-06-11', desktop: 92, mobile: 150 },
-  { date: '2024-06-12', desktop: 492, mobile: 420 },
-  { date: '2024-06-13', desktop: 81, mobile: 130 },
-  { date: '2024-06-14', desktop: 426, mobile: 380 },
-  { date: '2024-06-15', desktop: 307, mobile: 350 },
-  { date: '2024-06-16', desktop: 371, mobile: 310 },
-  { date: '2024-06-17', desktop: 475, mobile: 520 },
-  { date: '2024-06-18', desktop: 107, mobile: 170 },
-  { date: '2024-06-19', desktop: 341, mobile: 290 },
-  { date: '2024-06-20', desktop: 408, mobile: 450 },
-  { date: '2024-06-21', desktop: 169, mobile: 210 },
-  { date: '2024-06-22', desktop: 317, mobile: 270 },
-  { date: '2024-06-23', desktop: 480, mobile: 530 },
-  { date: '2024-06-24', desktop: 132, mobile: 180 },
-  { date: '2024-06-25', desktop: 141, mobile: 190 },
-  { date: '2024-06-26', desktop: 434, mobile: 380 },
-  { date: '2024-06-27', desktop: 448, mobile: 490 },
-  { date: '2024-06-28', desktop: 149, mobile: 200 },
-  { date: '2024-06-29', desktop: 103, mobile: 160 },
-  { date: '2024-06-30', desktop: 446, mobile: 400 },
-];
+const CLAUDE_SONET_COLOR = '#67178d';
+const HANGFIRE_COLOR = '#f4449b';
 
 const chartConfig = {
   visitors: {
     label: 'Lượt truy cập',
   },
   desktop: {
-    label: 'Desktop',
-    color: '#67178d',
+    label: 'claude-sonet',
+    color: CLAUDE_SONET_COLOR,
   },
   mobile: {
-    label: 'Mobile',
-    color: '#f4449b',
+    label: 'Hugging Face',
+    color: HANGFIRE_COLOR,
   },
 } satisfies ChartConfig;
 
+const CLAUDE_MODEL = 'anthropic.claude-3-5-sonnet-20240620-v1:0';
+const HANGFIRE_MODEL = 'sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction';
+
+const formatDateToISO = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const formatDateDisplay = (date?: Date) => {
+  if (!date) return '';
+  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  }).format(value);
+};
+
+const getMonthBoundaries = (date: Date) => {
+  const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return { startOfMonth, endOfMonth };
+};
+
 export function TrafficChart() {
   const isMobile = useIsMobile();
-  const [timeRange, setTimeRange] = React.useState('90d');
+  const [timeRange, setTimeRange] = React.useState('1');
+  const [currentDate, setCurrentDate] = React.useState(() => new Date());
 
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date);
-    const referenceDate = new Date('2024-06-30');
-    let daysToSubtract = 90;
-    if (timeRange === '30d') {
-      daysToSubtract = 30;
-    } else if (timeRange === '7d') {
-      daysToSubtract = 7;
+  const monthKey = React.useMemo(() => {
+    return `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
+  }, [currentDate]);
+
+  const [startDate, setStartDate] = React.useState<Date | undefined>(() => getMonthBoundaries(new Date()).startOfMonth);
+  const [endDate, setEndDate] = React.useState<Date | undefined>(() => getMonthBoundaries(new Date()).endOfMonth);
+
+  React.useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCurrentDate(new Date());
+    }, 60 * 60 * 1000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  React.useEffect(() => {
+    const { startOfMonth, endOfMonth } = getMonthBoundaries(currentDate);
+    setStartDate(startOfMonth);
+    setEndDate(endOfMonth);
+  }, [monthKey, currentDate]);
+
+  const { startOfMonth, endOfMonth } = React.useMemo(() => getMonthBoundaries(currentDate), [currentDate]);
+
+  const normalizedStartDate = startDate ?? startOfMonth;
+  const normalizedEndDate = endDate ?? endOfMonth;
+
+  const chartParams = React.useMemo(() => {
+    const start = normalizedStartDate <= normalizedEndDate ? normalizedStartDate : normalizedEndDate;
+    const end = normalizedStartDate <= normalizedEndDate ? normalizedEndDate : normalizedStartDate;
+
+    return {
+      PeriodMonths: Number(timeRange),
+      StartDate: formatDateToISO(start),
+      EndDate: formatDateToISO(end),
+    };
+  }, [normalizedEndDate, normalizedStartDate, timeRange]);
+
+  const { data } = useAIUsageChart(chartParams);
+
+  const chartData = React.useMemo(() => {
+    const usageByDate = new Map<
+      string,
+      {
+        desktop: number;
+        desktopTotalTokens: number;
+        desktopUsageCount: number;
+        desktopTotalCost: number;
+        mobile: number;
+        mobileTotalTokens: number;
+        mobileUsageCount: number;
+        mobileTotalCost: number;
+      }
+    >();
+
+    for (const snapshot of data?.data ?? []) {
+      const desktopTotalTokens = snapshot.models
+        .filter((model) => model.model === CLAUDE_MODEL || model.model.includes('claude-3-5-sonnet'))
+        .reduce((sum, model) => sum + model.totalTokens, 0);
+      const desktop = snapshot.models
+        .filter((model) => model.model === CLAUDE_MODEL || model.model.includes('claude-3-5-sonnet'))
+        .reduce((sum, model) => sum + model.totalCost, 0);
+      const desktopUsageCount = snapshot.models
+        .filter((model) => model.model === CLAUDE_MODEL || model.model.includes('claude-3-5-sonnet'))
+        .reduce((sum, model) => sum + model.usageCount, 0);
+      const desktopTotalCost = snapshot.models
+        .filter((model) => model.model === CLAUDE_MODEL || model.model.includes('claude-3-5-sonnet'))
+        .reduce((sum, model) => sum + model.totalCost, 0);
+
+      const mobileTotalTokens = snapshot.models
+        .filter((model) => model.model === HANGFIRE_MODEL || model.model.includes('all-MiniLM-L6-v2/pipeline/feature-extraction'))
+        .reduce((sum, model) => sum + model.totalTokens, 0);
+      const mobile = snapshot.models
+        .filter((model) => model.model === HANGFIRE_MODEL || model.model.includes('all-MiniLM-L6-v2/pipeline/feature-extraction'))
+        .reduce((sum, model) => sum + model.totalCost, 0);
+      const mobileUsageCount = snapshot.models
+        .filter((model) => model.model === HANGFIRE_MODEL || model.model.includes('all-MiniLM-L6-v2/pipeline/feature-extraction'))
+        .reduce((sum, model) => sum + model.usageCount, 0);
+      const mobileTotalCost = snapshot.models
+        .filter((model) => model.model === HANGFIRE_MODEL || model.model.includes('all-MiniLM-L6-v2/pipeline/feature-extraction'))
+        .reduce((sum, model) => sum + model.totalCost, 0);
+
+      usageByDate.set(snapshot.snapshotDate, {
+        desktop,
+        desktopTotalTokens,
+        desktopUsageCount,
+        desktopTotalCost,
+        mobile,
+        mobileTotalTokens,
+        mobileUsageCount,
+        mobileTotalCost,
+      });
     }
-    const startDate = new Date(referenceDate);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
-    return date >= startDate;
-  });
+
+    const dataPoints: {
+      date: string;
+      desktop: number;
+      desktopTotalTokens: number;
+      desktopUsageCount: number;
+      desktopTotalCost: number;
+      mobile: number;
+      mobileTotalTokens: number;
+      mobileUsageCount: number;
+      mobileTotalCost: number;
+    }[] = [];
+    const rangeStart = normalizedStartDate <= normalizedEndDate ? normalizedStartDate : normalizedEndDate;
+    const rangeEnd = normalizedStartDate <= normalizedEndDate ? normalizedEndDate : normalizedStartDate;
+
+    for (let d = new Date(rangeStart); d <= rangeEnd; d.setDate(d.getDate() + 1)) {
+      const key = formatDateToISO(d);
+      const usage = usageByDate.get(key);
+
+      dataPoints.push({
+        date: key,
+        desktop: usage?.desktop ?? 0,
+        desktopTotalTokens: usage?.desktopTotalTokens ?? 0,
+        desktopUsageCount: usage?.desktopUsageCount ?? 0,
+        desktopTotalCost: usage?.desktopTotalCost ?? 0,
+        mobile: usage?.mobile ?? 0,
+        mobileTotalTokens: usage?.mobileTotalTokens ?? 0,
+        mobileUsageCount: usage?.mobileUsageCount ?? 0,
+        mobileTotalCost: usage?.mobileTotalCost ?? 0,
+      });
+    }
+
+    return dataPoints;
+  }, [data, normalizedEndDate, normalizedStartDate]);
 
   return (
     <Card>
-      <CardHeader className={`flex items-center gap-2 space-y-0 border-b ${isMobile ? 'py-3 flex-col' : 'py-4 sm:flex-row'}`}>
+      <CardHeader className={`flex items-start gap-3 space-y-0 border-b ${isMobile ? 'py-3 flex-col' : 'py-4 sm:flex-row'}`}>
         <div className="grid flex-1 gap-1 w-full">
-          <CardTitle className={isMobile ? 'text-sm' : 'text-base'}>Lượt truy cập từ Desktop/Mobile</CardTitle>
-          <CardDescription className={isMobile ? 'text-[10px]' : 'text-xs'}>
-            {isMobile ? '3 tháng qua' : 'Hiển thị tổng lượt truy cập trong 3 tháng qua'}
+          <CardTitle className={isMobile ? 'text-sm' : 'text-base'}>Tổng chi phí sử dụng model AI</CardTitle>
+          <CardDescription className={isMobile ? 'text-xs' : 'text-xs'}>
+            {isMobile ? 'Chi phí sử dụng model' : 'Hiển thị tổng chi phí sử dụng model AI'}
           </CardDescription>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger
-            className={`${isMobile ? 'w-full text-xs' : 'w-[160px]'} rounded-lg sm:ml-auto`}
-            aria-label="Chọn khoảng thời gian"
-          >
-            <SelectValue placeholder="3 tháng qua" />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            <SelectItem value="90d" className="rounded-lg">
-              3 tháng qua
-            </SelectItem>
-            <SelectItem value="30d" className="rounded-lg">
-              30 ngày qua
-            </SelectItem>
-            <SelectItem value="7d" className="rounded-lg">
-              7 ngày qua
-            </SelectItem>
-          </SelectContent>
-        </Select>
+
+        <div className={`grid gap-2 w-full ${isMobile ? 'grid-cols-1' : 'grid-cols-3 max-w-[900px] sm:ml-auto'}`}>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger
+              className={`${isMobile ? 'w-full text-xs' : 'w-full text-sm'} rounded-lg`}
+              aria-label="Chon so thang"
+            >
+              <SelectValue placeholder="1 thang" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="1" className="rounded-lg">
+                1 tháng qua
+              </SelectItem>
+              <SelectItem value="3" className="rounded-lg">
+                3 tháng qua
+              </SelectItem>
+              <SelectItem value="6" className="rounded-lg">
+                6 tháng qua
+              </SelectItem>
+              <SelectItem value="9" className="rounded-lg">
+                9 tháng qua
+              </SelectItem>
+              <SelectItem value="12" className="rounded-lg">
+                12 tháng qua
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="justify-start text-left font-normal">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startDate ? formatDateDisplay(startDate) : 'Start date'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={(date) => {
+                  if (!date) return;
+                  const clampedDate = date < startOfMonth ? startOfMonth : date > endOfMonth ? endOfMonth : date;
+                  setStartDate(clampedDate);
+                }}
+                defaultMonth={startDate ?? startOfMonth}
+                disabled={(date) => date < startOfMonth || date > endOfMonth}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="justify-start text-left font-normal">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {endDate ? formatDateDisplay(endDate) : 'End date'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={(date) => {
+                  if (!date) return;
+                  const clampedDate = date < startOfMonth ? startOfMonth : date > endOfMonth ? endOfMonth : date;
+                  setEndDate(clampedDate);
+                }}
+                defaultMonth={endDate ?? endOfMonth}
+                disabled={(date) => date < startOfMonth || date > endOfMonth}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </CardHeader>
       <CardContent className={isMobile ? 'px-1 py-2' : 'px-2 pt-4 sm:px-6 sm:pt-6'}>
         <ChartContainer
           config={chartConfig}
           className={`aspect-auto ${isMobile ? 'h-[150px]' : 'h-[200px]'} w-full`}
         >
-          <AreaChart data={filteredData}>
+          <AreaChart data={chartData} margin={{ top: 14, right: 10, left: 10, bottom: 8 }}>
             <defs>
               <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-desktop)"
+                  stopColor={CLAUDE_SONET_COLOR}
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-desktop)"
+                  stopColor={CLAUDE_SONET_COLOR}
                   stopOpacity={0.1}
                 />
               </linearGradient>
               <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-mobile)"
+                  stopColor={HANGFIRE_COLOR}
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-mobile)"
+                  stopColor={HANGFIRE_COLOR}
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -238,22 +351,37 @@ export function TrafficChart() {
                       day: 'numeric',
                     });
                   }}
+                  formatter={(value, name, item) => {
+                    const isDesktop = name === 'desktop';
+                    const usageCount = isDesktop ? item.payload?.desktopUsageCount : item.payload?.mobileUsageCount;
+                    const totalTokens = isDesktop ? item.payload?.desktopTotalTokens : item.payload?.mobileTotalTokens;
+                    const totalCost = isDesktop ? item.payload?.desktopTotalCost : item.payload?.mobileTotalCost;
+
+                    return (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-foreground font-medium">{isDesktop ? 'claude-sonet' : 'hugging-face'}</span>
+                        <span className="text-muted-foreground">Tổng số lượt dùng: {Number(usageCount ?? 0).toLocaleString()}</span>
+                        <span className="text-muted-foreground">Tổng số token: {totalTokens.toLocaleString()}</span>
+                        <span className="text-muted-foreground">Tổng chi phí: {formatCurrency(Number(totalCost ?? 0))}</span>
+                      </div>
+                    );
+                  }}
                   indicator="dot"
                 />
               }
             />
             <Area
               dataKey="mobile"
-              type="natural"
+              type="monotone"
               fill="url(#fillMobile)"
-              stroke="var(--color-mobile)"
+              stroke={HANGFIRE_COLOR}
               stackId="a"
             />
             <Area
               dataKey="desktop"
-              type="natural"
+              type="monotone"
               fill="url(#fillDesktop)"
-              stroke="var(--color-desktop)"
+              stroke={CLAUDE_SONET_COLOR}
               stackId="a"
             />
             <ChartLegend content={<ChartLegendContent />} />

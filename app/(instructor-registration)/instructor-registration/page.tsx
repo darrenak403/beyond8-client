@@ -47,6 +47,8 @@ interface InstructorFormData {
     id_number: string | null;
     issue_date: string | null;
   };
+  frontEkycImg?: string | null;
+  facePhoto?: string;
   bio: string;
   headline: string;
   expertiseAreas: string[];
@@ -185,7 +187,8 @@ export default function InstructorRegistrationPage() {
     formData.frontImg &&
     formData.backImg &&
     formData.frontFileId &&
-    formData.backFileId
+    formData.backFileId &&
+    formData.facePhoto
   );
   const canProceedStep2 = !!(
     formData.bio &&
@@ -207,7 +210,8 @@ export default function InstructorRegistrationPage() {
   const canProceedStep6 = !!(
     formData.bankInfo.bankName &&
     formData.bankInfo.accountNumber &&
-    formData.bankInfo.accountHolderName
+    formData.bankInfo.accountHolderName &&
+    formData.teachingLanguages.length > 0
   );
   const canProceedStep7 = reviewResult?.isAccepted === true;
 
@@ -293,7 +297,10 @@ export default function InstructorRegistrationPage() {
   };
 
   const handleUseAI = () => {
+    // Mỗi lần vào lại bước AI review thì reset kết quả review
+    // để tránh việc nút "Nộp hồ sơ" vẫn hiện từ lần review trước
     setShowAIDialog(false);
+    setReviewResult(null);
     setCurrentStep(7);
   };
 
@@ -312,7 +319,7 @@ export default function InstructorRegistrationPage() {
       <InstructorRegisHeader />
 
       <main className="flex-1 min-h-0">
-        <div className="flex flex-row px-4 md:px-6 lg:px-8 py-6 md:py-10 h-full">
+        <div className="flex flex-row px-6 h-full">
           {/* Sidebar Navigation - Desktop Only */}
           {!isMobile && (
             <InstructorRegisSidebar
@@ -328,8 +335,8 @@ export default function InstructorRegistrationPage() {
           )}
 
           {/* Main Content */}
-          <div className={`flex-1 ${isMobile ? "" : ""} min-h-0 overflow-hidden`}>
-            <div className="max-w-5xl mx-auto px-4 h-full">
+          <div className={`flex-1 space-y-4 h-full overflow-hidden`}>
+            <div className="max-w-5xl mx-auto p-2 h-full">
               <AnimatePresence mode="wait">
                 {currentStep === 1 && (
                   <motion.div
@@ -339,6 +346,7 @@ export default function InstructorRegistrationPage() {
                     exit="out"
                     variants={pageVariants}
                     transition={pageTransition}
+                    className="h-full"
                   >
                     <Step1UploadDocuments
                       data={{
@@ -348,6 +356,8 @@ export default function InstructorRegistrationPage() {
                         backFileId: formData.backFileId,
                         frontClassifyResult: formData.frontClassifyResult,
                         backClassifyResult: formData.backClassifyResult,
+                        frontEkycImg: formData.frontEkycImg,
+                        facePhoto: formData.facePhoto
                       }}
                       onChange={(data) => {
                         if (data.frontClassifyResult) {
@@ -473,7 +483,11 @@ export default function InstructorRegistrationPage() {
                   >
                     <Step6AIVerification
                       onSubmit={handleSubmit}
-                      onBack={() => setCurrentStep(6)}
+                      onBack={() => {
+                        // Khi quay lại chỉnh sửa thông tin, bỏ kết quả review cũ
+                        setReviewResult(null);
+                        setCurrentStep(6);
+                      }}
                       formData={{
                         bio: formData.bio,
                         headline: formData.headline,
@@ -522,6 +536,7 @@ export default function InstructorRegistrationPage() {
         nextDisabled={!getCanProceed() || (currentStep === 7 && isRegistering)}
         showBack={currentStep > 1}
         isLastStep={currentStep === 7}
+        isSubmitting={currentStep === 7 && isRegistering}
       />
 
       {/* AI Review Dialog */}

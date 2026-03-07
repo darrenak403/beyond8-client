@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { FormikForm, FormikField, Yup } from '@/components/ui/formik-form';
-import { useLogin, useForgotPassword, useVerifyOtpForgotPassword, useResendOtp, useVerifyOtpRegister } from '@/hooks/useAuth';
+import { useLogin, useQuickLogin, useForgotPassword, useVerifyOtpForgotPassword, useResendOtp, useVerifyOtpRegister } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ForgotPasswordDialog } from '@/components/widget/auth/ForgotPasswordDialog';
 import { OtpDialog } from '@/components/widget/auth/OtpDialog';
 import { toast } from 'sonner';
+import { ApiError } from '@/types/api';
 
 const loginSchema = Yup.object({
     email: Yup.string()
@@ -26,10 +27,13 @@ interface LoginValues {
     [key: string]: unknown;
 }
 
-export function LoginForm() {
-    const { mutateLogin, isLoading: isLoginLoading } = useLogin();
+export function LoginForm({ isDialog = false }: { isDialog?: boolean }) {
+    const { mutateLogin: mutateNormal, isLoading: isNormalLoading } = useLogin();
+    const { mutateLogin: mutateQuick, isLoading: isQuickLoading } = useQuickLogin();
+    const mutateLogin = isDialog ? mutateQuick : mutateNormal;
+    const isLoginLoading = isDialog ? isQuickLoading : isNormalLoading;
     const { mutateForgotPassword, isLoading: isForgotLoading } = useForgotPassword();
-    const { mutateResendOtp, isLoading: isResendLoading } = useResendOtp();
+    const { mutateResendOtp } = useResendOtp();
     const { mutateVerifyOtpForgotPassword, isLoading: isVerifyForgotLoading } = useVerifyOtpForgotPassword();
     const { mutateVerifyOtpRegister, isLoading: isVerifyRegisterLoading } = useVerifyOtpRegister();
     const router = useRouter();
@@ -41,7 +45,7 @@ export function LoginForm() {
 
     const handleSubmit = (values: LoginValues) => {
         mutateLogin(values, {
-            onError: (error: any) => {
+            onError: (error: ApiError) => {
                 if (error.message === "Tài khoản của bạn chưa được xác thực, vui lòng kiểm tra email để xác thực.") {
                     setEmailForOtp(values.email);
                     setOtpType('register');

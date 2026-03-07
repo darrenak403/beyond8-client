@@ -31,7 +31,7 @@ export const getColumns = ({
                 const user = row.original.user;
                 return (
                     <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-10 w-10">
                             <AvatarImage src={formatImageUrl(user.avatarUrl) || ""} alt={user.fullName} />
                             <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
                                 {user.fullName.charAt(0).toUpperCase()}
@@ -39,7 +39,7 @@ export const getColumns = ({
                         </Avatar>
                         <div className="flex flex-col">
                             <span className="font-medium">{user.fullName}</span>
-                            <span className="text-xs text-muted-foreground">{user.email}</span>
+                            <span className="text-sm text-muted-foreground">{user.email}</span>
                         </div>
                     </div>
                 );
@@ -53,15 +53,38 @@ export const getColumns = ({
             cell: ({ row }) => {
                 const areas = row.original.expertiseAreas || [];
                 return (
-                    <div className="flex flex-wrap gap-1 max-w-50">
+                    <div className="flex flex-wrap gap-1 max-w-75">
                         {areas.slice(0, 2).map((area, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
+                            <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-xs max-w-37.5 truncate">
                                 {area}
                             </Badge>
                         ))}
                         {areas.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 text-xs shrink-0">
                                 +{areas.length - 2}
+                            </Badge>
+                        )}
+                    </div>
+                );
+            },
+        },
+        {
+            accessorKey: "teachingLanguages",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Ngôn ngữ giảng dạy" />
+            ),
+            cell: ({ row }) => {
+                const languages = row.original.teachingLanguages || [];
+                return (
+                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                        {languages.slice(0, 2).map((lang, index) => (
+                            <Badge key={index} variant="outline" className="border-blue-200 text-blue-700 bg-blue-50 text-xs max-w-[120px] truncate">
+                                {lang}
+                            </Badge>
+                        ))}
+                        {languages.length > 2 && (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 text-xs flex-shrink-0">
+                                +{languages.length - 2}
                             </Badge>
                         )}
                     </div>
