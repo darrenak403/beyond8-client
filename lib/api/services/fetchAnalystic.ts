@@ -35,8 +35,6 @@ export interface InstructorAnalytics {
   approvedCourses: number;
   publishedCourses: number;
   rejectedCourses: number;
-  archivedCourses: number;
-  suspendedCourses: number;
   totalStudents: number;
   totalInstructorEarnings: number;
   availableBalance: number;

@@ -14,6 +14,7 @@ export function ChartRadialSimple({ stats }: ChartRadialSimpleProps) {
 
   const chartData = [
     { status: "Đã xuất bản", count: stats.publishedCourses, fill: "#22c55e" }, // Green
+    { status: "Đã duyệt", count: stats.approvedCourses, fill: "#3b82f6" }, // Blue
     { status: "Chờ duyệt", count: stats.pendingApprovalCourses, fill: "#eab308" }, // Yellow
     { status: "Bản nháp", count: stats.draftCourses, fill: "#a855f7" }, // Purple
     { status: "Từ chối", count: stats.rejectedCourses, fill: "#ef4444" }, // Red
@@ -26,6 +27,10 @@ export function ChartRadialSimple({ stats }: ChartRadialSimpleProps) {
     published: {
       label: "Đã xuất bản",
       color: "#22c55e",
+    },
+    approved: {
+      label: "Đã duyệt",
+      color: "#3b82f6",
     },
     pending: {
       label: "Chờ duyệt",
@@ -50,7 +55,7 @@ export function ChartRadialSimple({ stats }: ChartRadialSimpleProps) {
       <CardContent className="flex-1 pb-3">
         <div className="flex items-center gap-4">
           {/* Chart on the left */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <ChartContainer
               config={chartConfig}
               className="mx-auto aspect-square h-[180px] w-[180px]"

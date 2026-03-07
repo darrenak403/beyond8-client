@@ -45,7 +45,7 @@ export default function InstructorDashboard() {
         <p className="text-muted-foreground">Dưới đây là tổng quan về các khóa học của bạn</p>
       </div>
       {/* Stats Cards */}
-      <StatsCards stats={stats} />
+      <StatsCards />
 
       {/* Charts Grid - All in one row on desktop */}
       <div className={`grid gap-4 m-0 ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>

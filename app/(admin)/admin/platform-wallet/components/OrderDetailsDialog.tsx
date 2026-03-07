@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { OrderItem } from "@/lib/api/services/fetchOrder";
+import SafeImage from "@/components/ui/SafeImage";
+import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 
 interface OrderDetailsDialogProps {
     orderId: string | null;
@@ -184,31 +186,20 @@ export function OrderDetailsDialog({
                                         key={item.id || item.courseId}
                                         className="flex flex-col sm:flex-row gap-4 border rounded-lg p-3"
                                     >
-                                        <div className="w-full sm:w-28 h-16 bg-muted rounded-md shrink-0 overflow-hidden">
-                                            {item.courseThumbnail ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img
-                                                    src={item.courseThumbnail}
+                                        <div className="w-full sm:w-28 h-16 bg-muted rounded-md shrink-0 overflow-hidden">                       
+                                                <SafeImage
+                                                    src={formatImageUrl(item.courseThumbnail || '') || '/bg-web.jpg'}
                                                     alt={item.courseTitle}
+                                                   width={100}
+                                                   height={100}
                                                     className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).src =
-                                                            "https://placehold.co/400x200?text=Course";
-                                                    }}
                                                 />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground bg-slate-100">
-                                                    No Image
-                                                </div>
-                                            )}
                                         </div>
                                         <div className="flex-1 space-y-1">
                                             <p className="font-medium text-sm line-clamp-2">
                                                 {item.courseTitle}
                                             </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                Mã khóa: {item.courseId}
-                                            </p>
+                                            
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="font-semibold text-sm">
                                                     {(item.unitPrice ?? item.finalPrice ?? 0).toLocaleString()} VNĐ
