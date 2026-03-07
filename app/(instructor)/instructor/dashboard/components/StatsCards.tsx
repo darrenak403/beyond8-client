@@ -2,13 +2,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, Star, DollarSign } from "lucide-react";
-import { InstructorStats } from "@/lib/api/services/fetchDashboard";
+import { useInstructorAnalytics } from "@/hooks/useAnalystic";
+import { formatCurrency } from "@/lib/utils/formatCurrency";
+export function StatsCards() {
+  const { data: stats, isLoading } = useInstructorAnalytics();
 
-interface StatsCardsProps {
-  stats: InstructorStats;
-}
+  if (isLoading || !stats) return null;
 
-export function StatsCards({ stats }: StatsCardsProps) {
   const statItems = [
     {
       title: "Tổng số học sinh",
@@ -16,7 +16,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      subValue: `+${stats.studentsThisMonth} tháng này`,
+      subValue: "Tổng học sinh",
       isPositive: true,
     },
     {
@@ -25,12 +25,12 @@ export function StatsCards({ stats }: StatsCardsProps) {
       icon: BookOpen,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      subValue: `+${stats.coursesThisMonth} tháng này`,
+      subValue: `${stats.approvedCourses} đã duyệt`,
       isPositive: true,
     },
     {
       title: "Đánh giá trung bình",
-      value: `${stats.averageRating.toFixed(1)}/5`,
+      value: `${stats.avgCourseRating.toFixed(1)}/5`,
       icon: Star,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
@@ -38,12 +38,12 @@ export function StatsCards({ stats }: StatsCardsProps) {
       isPositive: true,
     },
     {
-      title: "Tổng doanh thu",
-      value: `${stats.totalRevenue.toLocaleString()} VNĐ`,
+      title: "Tổng số tiền nhận được",
+      value: formatCurrency(stats.availableBalance),
       icon: DollarSign,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
-      subValue: `+${stats.revenueThisMonth.toLocaleString()} VNĐ tháng này`,
+      subValue: `Tổng: ${formatCurrency(stats.totalInstructorEarnings)}`,
       isPositive: true,
     },
   ];
