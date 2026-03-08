@@ -3,6 +3,7 @@
 import { StatsCards } from "./components/StatsCards";
 // import { ChartBarHorizontal } from "./components/ChartBarHorizontal";
 import { ChartRadialSimple } from "./components/ChartRadialSimple";
+import { ApprovedCourses } from "./components/ApprovedCourses";
 // import { ChartLineInteractive } from "./components/ChartLineInteractive";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useInstructorStats } from "@/hooks/useDashboard";
@@ -54,6 +55,7 @@ export default function InstructorDashboard() {
       {/* Charts Grid - All in one row on desktop */}
       <div className={`grid gap-4 m-0 flex-1 ${isMobile ? "grid-cols-1" : "lg:grid-cols-2"}`}>
         <ChartRadialSimple stats={analytics} />
+        <ApprovedCourses />
       </div>
 
       {/* Bottom Chart */}
