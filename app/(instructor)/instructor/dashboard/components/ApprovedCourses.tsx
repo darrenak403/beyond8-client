@@ -9,12 +9,17 @@ import { CourseStatus, CourseLevel } from "@/lib/api/services/fetchCourse";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Globe, CheckCircle2 } from "lucide-react";
+import { Pagination } from "@/components/ui/custom-pagination";
 
 export function ApprovedCourses() {
-    const { courses, isLoading } = useGetCourseByInstructor({
+    const [pageNumber, setPageNumber] = useState(1);
+    const pageSize = 10;
+
+    const { courses, isLoading, hasNextPage, hasPreviousPage, totalPages } = useGetCourseByInstructor({
         status: CourseStatus.Approved,
         level: CourseLevel.All,
-        pageSize: 50, // fetching a good number of approved courses
+        pageSize,
+        pageNumber,
     });
 
     const { publishCourse, isPending: isPublishingSingle } = usePublishCourse();
@@ -61,7 +66,7 @@ export function ApprovedCourses() {
     const isPending = isPublishingSingle || isPublishingBulk;
 
     return (
-        <Card className="flex flex-col border-2 shadow-sm h-full max-h-[400px]">
+        <Card className="flex flex-col border-2 shadow-sm h-full min-h-[200px]">
             <CardHeader className="pb-3 flex-row items-center justify-between space-y-0">
                 <div>
                     <CardTitle className="text-base flex items-center gap-2">
@@ -147,6 +152,13 @@ export function ApprovedCourses() {
                                 </div>
                             ))}
                         </div>
+                        <Pagination
+                            currentPage={pageNumber}
+                            totalPages={totalPages}
+                            onPageChange={setPageNumber}
+                            hasNextPage={hasNextPage}
+                            hasPreviousPage={hasPreviousPage}
+                        />
                     </div>
                 )}
             </CardContent>

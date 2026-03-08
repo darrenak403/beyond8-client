@@ -26,8 +26,8 @@ export function StatsCards() {
       icon: Users,
     },
     {
-      title: 'Học viên hoàn thành',
-      value: isLoading ? '...' : formatNumber(data?.totalCompletedEnrollments ?? 0),
+      title: 'Tổng số học viên',
+      value: isLoading ? '...' : formatNumber(data?.totalStudents ?? 0),
       icon: GraduationCap,
     },
     {
