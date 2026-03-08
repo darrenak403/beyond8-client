@@ -3,38 +3,42 @@
 import { Users, GraduationCap, TrendingUp, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/useMobile';
+import { useSystemDashboardAnalytics } from '@/hooks/useAnalystic';
 
 export function StatsCards() {
   const isMobile = useIsMobile();
+  const { data, isLoading, isError } = useSystemDashboardAnalytics();
+  const statusText = isError ? 'Không tải được dữ liệu' : isLoading ? 'Đang tải dữ liệu' : 'Dữ liệu hệ thống';
+  const statusColorClass = isError ? 'text-red-600' : isLoading ? 'text-amber-600' : 'text-emerald-600';
+
+  const formatNumber = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      maximumFractionDigits: 0,
+    }).format(value);
 
   const stats = [
     {
       title: 'Tổng người dùng',
-      value: '12,345',
+      value: isLoading ? '...' : formatNumber(data?.totalUsers ?? 0),
       icon: Users,
-      change: '+12.5%',
-      changeType: 'increase' as const,
     },
     {
       title: 'Học viên hoàn thành',
-      value: '8,234',
+      value: isLoading ? '...' : formatNumber(data?.totalCompletedEnrollments ?? 0),
       icon: GraduationCap,
-      change: '+8.2%',
-      changeType: 'increase' as const,
     },
     {
-      title: 'Khóa học bán chạy',
-      value: '156',
+      title: 'Tổng khóa học',
+      value: isLoading ? '...' : formatNumber(data?.totalCourses ?? 0),
       icon: TrendingUp,
-      change: '+23.1%',
-      changeType: 'increase' as const,
     },
     {
       title: 'Tổng doanh thu',
-      value: '₫2.4B',
+      value: isLoading ? '...' : formatCurrency(data?.totalPlatformFee ?? 0),
       icon: DollarSign,
-      change: '+15.3%',
-      changeType: 'increase' as const,
     },
   ];
 
@@ -50,9 +54,7 @@ export function StatsCards() {
             </CardHeader>
             <CardContent>
               <div className={`${isMobile ? 'text-base' : 'text-xl'} font-bold`}>{stat.value}</div>
-              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>
-                <span className="text-green-600 font-medium">{stat.change}</span> {!isMobile && 'so với tháng trước'}
-              </p>
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'} mt-1 ${statusColorClass}`}>{statusText}</p>
             </CardContent>
           </Card>
         );

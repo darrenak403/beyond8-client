@@ -12,6 +12,9 @@ Tài liệu này chứa toàn bộ code của tất cả UI components, có th�
 6. [Data Display Components](#data-display-components)
 7. [Custom Components](#custom-components)
 8. [Usage Examples](#usage-examples)
+9. [Dark Mode (next-themes)](#dark-mode-next-themes)
+10. [Widget Components](#widget-components)
+11. [Video Player (HLS)](#video-player-hls)
 
 ---
 
@@ -20,10 +23,12 @@ Tài liệu này chứa toàn bộ code của tất cả UI components, có th�
 Project sử dụng **53 UI components** được build trên:
 - **Radix UI** - Unstyled, accessible primitives
 - **ShadCN UI** - Pre-built component library
-- **Tailwind CSS** - Utility-first styling
+- **Tailwind CSS v4** - Utility-first styling (NO `tailwind.config.ts`)
 - **Class Variance Authority (CVA)** - Component variants
 - **React Hook Form** - Form management
 - **TanStack Table** - Data tables
+
+> ⚠️ **Tailwind CSS v4**: Project này dùng Tailwind v4. KHÔNG có `tailwind.config.ts`. Theme được define trong `globals.css` với `@theme {}`. PostCSS chỉ cần `@tailwindcss/postcss`.
 
 ### Component Structure
 
@@ -46,6 +51,45 @@ components/
 ---
 
 ## Setup & Dependencies
+
+### Tailwind v4 Setup
+
+> Project này dùng **Tailwind CSS v4** — khác hoàn toàn với v3.
+
+**`postcss.config.mjs`** (chỉ cần 1 plugin):
+```js
+const config = {
+  plugins: {
+    '@tailwindcss/postcss': {},
+  },
+}
+export default config
+```
+
+**`app/globals.css`** (không `@tailwind base/components/utilities`):
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-primary: oklch(0.6 0.2 250);
+  --color-background: oklch(1 0 0);
+  --font-sans: 'Open Sans', sans-serif;
+  /* ...thêm custom tokens ở đây */
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
+```
+
+Install:
+```bash
+npm install tailwindcss @tailwindcss/postcss
+# Không cần autoprefixer khi dùng Tailwind v4
+```
+
+---
 
 ### Required Packages
 
@@ -2557,4 +2601,440 @@ import {
 ---
 
 *Document được tạo từ phân tích codebase thực tế - Áp dụng cho tất cả project*
+
+---
+
+## Dark Mode (next-themes)
+
+### Install
+
+```bash
+npm install next-themes
+```
+
+### `components/ui/sonner.tsx`
+
+```typescript
+'use client'
+
+import { useTheme } from 'next-themes'
+import { Toaster as Sonner, type ToasterProps } from 'sonner'
+
+const Toaster = ({ ...props }: ToasterProps) => {
+  const { theme = 'system' } = useTheme()
+
+  return (
+    <Sonner
+      theme={theme as ToasterProps['theme']}
+      className="toaster group"
+      toastOptions={{
+        classNames: {
+          toast:
+            'group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
+          description: 'group-[.toast]:text-muted-foreground',
+          actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
+          cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
+        },
+      }}
+      {...props}
+    />
+  )
+}
+
+export { Toaster }
+```
+
+### Setup trong `lib/providers/index.tsx`
+
+```typescript
+import { ThemeProvider } from 'next-themes'
+
+export default function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <ReduxProvider>
+      <QueryProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
+      </QueryProvider>
+    </ReduxProvider>
+  )
+}
+```
+
+### Theme Toggle Component
+
+```typescript
+'use client'
+
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { Button } from '@/components/ui/button'
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+    >
+      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  )
+}
+```
+
+---
+
+## Widget Components
+
+Các widget components phức tạp sử dụng trong Beyond8:
+
+### `components/widget/confirm-dialog.tsx`
+
+```typescript
+'use client'
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+
+interface ConfirmDialogProps {
+  trigger: React.ReactNode
+  title: string
+  description: string
+  onConfirm: () => void | Promise<void>
+  confirmLabel?: string
+  cancelLabel?: string
+  variant?: 'default' | 'destructive'
+  isLoading?: boolean
+}
+
+export function ConfirmDialog({
+  trigger,
+  title,
+  description,
+  onConfirm,
+  confirmLabel = 'Xác nhận',
+  cancelLabel = 'Hủy',
+  variant = 'default',
+  isLoading,
+}: ConfirmDialogProps) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className={variant === 'destructive' ? 'bg-destructive hover:bg-destructive/90' : ''}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Đang xử lý...' : confirmLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+```
+
+**Usage:**
+```typescript
+<ConfirmDialog
+  trigger={<Button variant="destructive">Xóa khóa học</Button>}
+  title="Xác nhận xóa"
+  description="Hành động này không thể hoàn tác."
+  onConfirm={() => deleteMutation.mutate(id)}
+  variant="destructive"
+  isLoading={deleteMutation.isPending}
+/>
+```
+
+### Cart Popover Pattern
+
+```typescript
+'use client'
+
+import { ShoppingCart } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+
+export function CartPopover() {
+  const { items } = useCartContext() // your cart context
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <ShoppingCart className="h-5 w-5" />
+          {items.length > 0 && (
+            <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+              {items.length}
+            </Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="end">
+        {/* Cart items list */}
+        <div className="p-4">
+          {items.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Giỏ hàng trống</p>
+          ) : (
+            items.map(item => (
+              <div key={item.id} className="flex items-center gap-3 py-2">
+                {/* item content */}
+              </div>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+```
+
+### Notification Popover Pattern
+
+```typescript
+'use client'
+
+import { Bell } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+
+export function NotificationPopover() {
+  const { notifications, unreadCount, markAsRead } = useNotifications()
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Badge>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-96 p-0" align="end">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h4 className="font-semibold">Thông báo</h4>
+          <Button variant="ghost" size="sm" onClick={() => markAsRead()}>Đánh dấu đã đọc</Button>
+        </div>
+        <ScrollArea className="h-80">
+          {notifications.map(n => (
+            <div
+              key={n.id}
+              className={cn(
+                'flex gap-3 p-4 border-b cursor-pointer hover:bg-muted/50 transition-colors',
+                !n.isRead && 'bg-blue-50 dark:bg-blue-950/20'
+              )}
+              onClick={() => markAsRead(n.id)}
+            >
+              <div className="flex-1">
+                <p className="text-sm font-medium">{n.title}</p>
+                <p className="text-xs text-muted-foreground">{n.message}</p>
+              </div>
+              {!n.isRead && <div className="h-2 w-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />}
+            </div>
+          ))}
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  )
+}
+```
+
+---
+
+## Video Player (HLS)
+
+### Install
+
+```bash
+npm install hls.js @vidstack/react
+```
+
+### Pattern với hls.js (bare-metal)
+
+```typescript
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import Hls from 'hls.js'
+
+interface VideoPlayerProps {
+  src: string
+  poster?: string
+  className?: string
+  onEnded?: () => void
+  onTimeUpdate?: (currentTime: number, duration: number) => void
+}
+
+export function HlsVideoPlayer({ src, poster, className, onEnded, onTimeUpdate }: VideoPlayerProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const hlsRef = useRef<Hls | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !src) return
+
+    // Cleanup previous instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy()
+      hlsRef.current = null
+    }
+
+    if (Hls.isSupported()) {
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        backBufferLength: 90,
+      })
+      hlsRef.current = hls
+
+      hls.loadSource(src)
+      hls.attachMedia(video)
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch(() => { /* autoplay blocked */ })
+      })
+
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal) setError('Không thể tải video. Vui lòng thử lại.')
+      })
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari native HLS
+      video.src = src
+    } else {
+      setError('Trình duyệt không hỗ trợ HLS.')
+    }
+
+    return () => {
+      hlsRef.current?.destroy()
+      hlsRef.current = null
+    }
+  }, [src])
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center bg-black text-white p-8">
+        <p>{error}</p>
+      </div>
+    )
+  }
+
+  return (
+    <video
+      ref={videoRef}
+      className={cn('w-full h-full', className)}
+      poster={poster}
+      controls
+      playsInline
+      onEnded={onEnded}
+      onTimeUpdate={() => {
+        const video = videoRef.current
+        if (video && onTimeUpdate) onTimeUpdate(video.currentTime, video.duration)
+      }}
+    />
+  )
+}
+```
+
+### Pattern với @vidstack/react (recommended)
+
+```typescript
+'use client'
+
+import '@vidstack/react/player/styles/default/theme.css'
+import '@vidstack/react/player/styles/default/layouts/video.css'
+import { MediaPlayer, MediaProvider, Track } from '@vidstack/react'
+import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default'
+
+interface VidstackPlayerProps {
+  src: string
+  title?: string
+  poster?: string
+  subtitles?: { src: string; label: string; language: string }[]
+  onEnded?: () => void
+}
+
+export function VidstackPlayer({ src, title, poster, subtitles, onEnded }: VidstackPlayerProps) {
+  return (
+    <MediaPlayer
+      title={title}
+      src={src}
+      poster={poster}
+      onEnded={onEnded}
+      className="w-full aspect-video"
+    >
+      <MediaProvider>
+        {subtitles?.map(sub => (
+          <Track
+            key={sub.src}
+            src={sub.src}
+            kind="subtitles"
+            label={sub.label}
+            lang={sub.language}
+          />
+        ))}
+      </MediaProvider>
+      <DefaultVideoLayout icons={defaultLayoutIcons} />
+    </MediaPlayer>
+  )
+}
+```
+
+**Usage:**
+```typescript
+// HLS stream
+<VidstackPlayer
+  src="https://cdn.example.com/course/lesson1/index.m3u8"
+  title="Bài 1: Giới thiệu"
+  poster="https://cdn.example.com/thumbnail.jpg"
+  onEnded={() => handleLessonComplete()}
+/>
+
+// MP4 file
+<VidstackPlayer
+  src="https://cdn.example.com/video.mp4"
+  title="Video bài giảng"
+/>
+```
+
+**Notes:**
+- `@vidstack/react` handles HLS, DASH, MP4 automatically
+- Import CSS files là bắt buộc cho default layout
+- Custom layout: dùng `VideoLayout` từ vidstack
+- Supports subtitles/captions qua `<Track />`
 
