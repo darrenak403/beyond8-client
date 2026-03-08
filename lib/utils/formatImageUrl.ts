@@ -5,17 +5,17 @@
  */
 export function formatImageUrl(url: string | null | undefined): string | undefined {
   if (!url) return undefined;
-  
+
   // If URL already has protocol, return as is
-  if (url.startsWith('http://') || url.startsWith('https://')) {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
-  
+
   // If URL starts with //, add https:
-  if (url.startsWith('//')) {
+  if (url.startsWith("//")) {
     return `https:${url}`;
   }
-  
+
   // Otherwise, add https://
   return `https://${url}`;
 }

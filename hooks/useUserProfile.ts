@@ -44,7 +44,7 @@ export function useUserProfile() {
           ...old,
           ...data,
           // Preserve roles if they are missing or empty in the response
-          roles: (data.roles && data.roles.length > 0) ? data.roles : old.roles
+          roles: data.roles && data.roles.length > 0 ? data.roles : old.roles,
         };
       });
       toast.success("Cập nhật thông tin thành công!");
@@ -67,7 +67,7 @@ export function useUserProfile() {
       // Update the cached user profile with new avatar
       queryClient.setQueryData(["userProfile"], (old: UserProfile | undefined) => {
         if (!old) return old;
-        return { ...old, avatarUrl: data.avatarUrl };
+        return { ...old, avatarUrl: data };
       });
       toast.success("Cập nhật ảnh đại diện thành công!");
     },
@@ -90,12 +90,7 @@ export function useUserProfile() {
 
 // Public instructor (by id)
 export function useInstructorById(id: string | undefined) {
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["instructor", id],
     enabled: !!id,
     queryFn: async () => {
@@ -121,12 +116,7 @@ export function useInstructorById(id: string | undefined) {
 
 // Get user by id
 export function useUserById(id: string | undefined) {
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["user", id],
     enabled: !!id,
     queryFn: async () => {
@@ -152,12 +142,7 @@ export function useUserById(id: string | undefined) {
 
 // Get instructor profile by userId
 export function useInstructorByUserId(userId: string | undefined) {
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["instructor", "user", userId],
     enabled: !!userId,
     queryFn: async () => {

@@ -25,6 +25,7 @@ export function useUploadImage() {
         if (!old) return old;
         return { ...old, avatarUrl };
       });
+      queryClient.invalidateQueries({ queryKey: ["userProfile"], refetchType: "none" });
       toast.success("Cập nhật ảnh đại diện thành công!");
     },
     onError: (error: Error) => {
@@ -50,6 +51,7 @@ export function useUploadImage() {
         if (!old) return old;
         return { ...old, coverUrl };
       });
+      queryClient.invalidateQueries({ queryKey: ["userProfile"], refetchType: "none" });
       toast.success("Cập nhật ảnh bìa thành công!");
     },
     onError: (error: Error) => {
