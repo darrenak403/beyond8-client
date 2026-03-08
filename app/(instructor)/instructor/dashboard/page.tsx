@@ -1,9 +1,9 @@
 "use client";
 
 import { StatsCards } from "./components/StatsCards";
-import { ChartBarHorizontal } from "./components/ChartBarHorizontal";
+// import { ChartBarHorizontal } from "./components/ChartBarHorizontal";
 import { ChartRadialSimple } from "./components/ChartRadialSimple";
-import { ChartLineInteractive } from "./components/ChartLineInteractive";
+// import { ChartLineInteractive } from "./components/ChartLineInteractive";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useInstructorStats } from "@/hooks/useDashboard";
 import { useInstructorAnalytics } from "@/hooks/useAnalystic";
@@ -12,7 +12,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function InstructorDashboard() {
   const isMobile = useIsMobile();
   const { data: stats, isLoading, error } = useInstructorStats();
-  const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useInstructorAnalytics();
+  const {
+    data: analytics,
+    isLoading: analyticsLoading,
+    error: analyticsError,
+  } = useInstructorAnalytics();
 
   if (isLoading || analyticsLoading) {
     return (
@@ -35,11 +39,11 @@ export default function InstructorDashboard() {
       <div className="space-y-6 sm:space-y-8 mx-auto max-w-[1650px] flex flex-col gap-3">
         <div className="text-red-500">Failed to load dashboard data.</div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8 mx-auto max-w-[1650px] flex flex-col gap-3">
+    <div className="space-y-6 sm:space-y-8 mx-auto max-w-[1650px] flex flex-col gap-3 min-h-[calc(100vh-140px)]">
       <div className="flex flex-col gap-2 m-0">
         <h1 className="text-2xl font-bold">Chào mừng bạn quay trở lại</h1>
         <p className="text-muted-foreground">Dưới đây là tổng quan về các khóa học của bạn</p>
@@ -48,16 +52,14 @@ export default function InstructorDashboard() {
       <StatsCards />
 
       {/* Charts Grid - All in one row on desktop */}
-      <div className={`grid gap-4 m-0 ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
+      <div className={`grid gap-4 m-0 flex-1 ${isMobile ? "grid-cols-1" : "lg:grid-cols-2"}`}>
         <ChartRadialSimple stats={analytics} />
-        <ChartBarHorizontal />
       </div>
 
       {/* Bottom Chart */}
-      <div className="w-full">
+      {/* <div className="w-full">
         <ChartLineInteractive />
-
-      </div>
+      </div> */}
     </div>
   );
 }

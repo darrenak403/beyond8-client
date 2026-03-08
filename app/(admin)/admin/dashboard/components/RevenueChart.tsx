@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { SlidersHorizontal } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 import {
   Card,
@@ -15,22 +16,12 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useIsMobile } from '@/hooks/useMobile';
-
-const chartData = [
-  { date: '2024-01', revenue: 45000000, profit: 32000000 },
-  { date: '2024-02', revenue: 52000000, profit: 38000000 },
-  { date: '2024-03', revenue: 48000000, profit: 35000000 },
-  { date: '2024-04', revenue: 61000000, profit: 45000000 },
-  { date: '2024-05', revenue: 73000000, profit: 54000000 },
-  { date: '2024-06', revenue: 68000000, profit: 50000000 },
-  { date: '2024-07', revenue: 82000000, profit: 62000000 },
-  { date: '2024-08', revenue: 76000000, profit: 58000000 },
-  { date: '2024-09', revenue: 91000000, profit: 70000000 },
-  { date: '2024-10', revenue: 88000000, profit: 68000000 },
-  { date: '2024-11', revenue: 95000000, profit: 74000000 },
-  { date: '2024-12', revenue: 102000000, profit: 80000000 },
-];
+import { useSystemRevenueTrend, type GetSystemRevenueTrendParams, type RevenueTrendGroupBy } from '@/hooks/useAnalystic';
 
 const chartConfig = {
   revenue: {
@@ -45,41 +36,161 @@ const chartConfig = {
 
 export function RevenueChart() {
   const isMobile = useIsMobile();
+  const currentYear = React.useMemo(() => new Date().getFullYear(), []);
+  const [isFilterOpen, setIsFilterOpen] = React.useState(false);
+  const [filterError, setFilterError] = React.useState('');
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>('revenue');
+  const [draftFilters, setDraftFilters] = React.useState<GetSystemRevenueTrendParams>({
+    GroupBy: 'Year',
+    Year: currentYear,
+  });
+  const [appliedFilters, setAppliedFilters] = React.useState<GetSystemRevenueTrendParams>({
+    GroupBy: 'Year',
+    Year: currentYear,
+  });
 
-  const total = React.useMemo(
-    () => ({
-      revenue: chartData.reduce((acc, curr) => acc + curr.revenue, 0),
-      profit: chartData.reduce((acc, curr) => acc + curr.profit, 0),
-    }),
-    []
+  const { data, isLoading, isError } = useSystemRevenueTrend(appliedFilters);
+
+  const chartData = React.useMemo(
+    () => (data?.dataPoints ?? []).map((item) => ({ label: item.label, revenue: item.revenue, profit: item.profit })),
+    [data?.dataPoints]
   );
+
+  const total = React.useMemo(() => ({ revenue: data?.totalRevenue ?? 0, profit: data?.totalProfit ?? 0 }), [data]);
+
+  const handleGroupByChange = (value: RevenueTrendGroupBy) => {
+    setFilterError('');
+    setDraftFilters((prev) => {
+      const next: GetSystemRevenueTrendParams = { GroupBy: value };
+      if (value === 'Year') {
+        next.Year = prev.Year ?? currentYear;
+      }
+      if (value === 'Quarter') {
+        next.Year = prev.Year ?? currentYear;
+        next.Quarter = prev.Quarter ?? 1;
+      }
+      return next;
+    });
+  };
+
+  const applyFilters = () => {
+    if (draftFilters.GroupBy === 'Quarter' && !draftFilters.Year) {
+      setFilterError('Khi nhóm theo quý, bạn cần chọn năm.');
+      return;
+    }
+    setFilterError('');
+    setAppliedFilters({
+      GroupBy: draftFilters.GroupBy,
+      Year: draftFilters.Year ?? currentYear,
+      Quarter: draftFilters.GroupBy === 'Quarter' ? (draftFilters.Quarter ?? 1) : undefined,
+    });
+    setIsFilterOpen(false);
+  };
 
   return (
     <Card>
       <CardHeader className="flex flex-col items-stretch border-b p-0 sm:flex-row">
         <div className={`flex flex-1 flex-col justify-center gap-1 ${isMobile ? 'px-3 py-3' : 'px-4 py-4'}`}>
-          <CardTitle className={isMobile ? 'text-sm' : 'text-base'}>Phân tích doanh thu</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className={isMobile ? 'text-sm' : 'text-base'}>Phân tích doanh thu</CardTitle>
+            <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={isMobile ? 'h-8 px-2' : 'h-8 px-3'}>
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {!isMobile && 'Bộ lọc'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-[300px]">
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold">Bộ lọc doanh thu</p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Nhóm theo</p>
+                    <Select value={draftFilters.GroupBy} onValueChange={(value) => handleGroupByChange(value as RevenueTrendGroupBy)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn kiểu nhóm" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Year">Năm</SelectItem>
+                        <SelectItem value="Quarter">Quý</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Năm</p>
+                    <Input
+                      type="number"
+                      placeholder="VD: 2026"
+                      value={draftFilters.Year ?? ''}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setDraftFilters((prev) => ({ ...prev, Year: next ? Number(next) : undefined }));
+                        setFilterError('');
+                      }}
+                    />
+                  </div>
+
+                  {draftFilters.GroupBy === 'Quarter' && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Quý</p>
+                      <Select
+                        value={String(draftFilters.Quarter ?? 1)}
+                        onValueChange={(value) => {
+                          setDraftFilters((prev) => ({ ...prev, Quarter: Number(value) }));
+                          setFilterError('');
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn quý" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Quý 1</SelectItem>
+                          <SelectItem value="2">Quý 2</SelectItem>
+                          <SelectItem value="3">Quý 3</SelectItem>
+                          <SelectItem value="4">Quý 4</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {filterError && <p className="text-xs text-red-600">{filterError}</p>}
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setDraftFilters({ GroupBy: 'Year', Year: currentYear });
+                        setFilterError('');
+                      }}
+                    >
+                      Đặt lại
+                    </Button>
+                    <Button onClick={applyFilters}>Áp dụng</Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
           <CardDescription className={isMobile ? 'text-xs' : 'text-xs'}>
-            {isMobile ? '12 tháng qua' : 'Hiển thị doanh thu và lợi nhuận trong 12 tháng qua'}
+            {data?.periodLabel ?? (isMobile ? 'Năm hiện tại' : 'Hiển thị doanh thu và lợi nhuận theo bộ lọc')}
           </CardDescription>
         </div>
-        <div className="flex">
+        <div className="flex overflow-x-auto">
           {(['revenue', 'profit'] as const).map((key) => {
             const chart = key as keyof typeof chartConfig;
             return (
               <button
                 key={chart}
                 data-active={activeChart === chart}
-                className={`data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t ${isMobile ? 'px-3 py-2' : 'px-4 py-3'} text-left even:border-l sm:border-l sm:border-t-0 cursor-pointer hover:bg-muted/30 transition-colors`}
+                className={`data-[active=true]:bg-muted/50 relative z-30 flex min-w-[150px] flex-1 flex-col justify-center gap-1 border-t ${isMobile ? 'px-3 py-2' : 'px-4 py-3'} text-left even:border-l sm:min-w-[170px] sm:border-l sm:border-t-0 cursor-pointer hover:bg-muted/30 transition-colors`}
                 onClick={() => setActiveChart(chart)}
               >
-                <span className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
+                <span className={`${isMobile ? 'text-xs' : 'text-xs'} whitespace-nowrap text-muted-foreground`}>
                   {chartConfig[chart].label}
                 </span>
                 <span className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold leading-none`}>
-                  ₫{(total[key] / 1000000).toFixed(1)}M
+                  {(total[key] / 1000000).toFixed(1)}M
                 </span>
               </button>
             );
@@ -101,29 +212,18 @@ export function RevenueChart() {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="date"
+              dataKey="label"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value: string) => {
-                const date = new Date(value);
-                return date.toLocaleDateString('vi-VN', {
-                  month: 'short',
-                });
-              }}
             />
             <ChartTooltip
               content={
                 <ChartTooltipContent
                   className="w-[180px]"
-                  nameKey="views"
-                  labelFormatter={(value: string) => {
-                    return new Date(value).toLocaleDateString('vi-VN', {
-                      month: 'long',
-                      year: 'numeric',
-                    });
-                  }}
+                  nameKey={activeChart}
+                  labelFormatter={(value: string) => value}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   formatter={(value: any) => `₫${Number(value).toLocaleString('vi-VN')}`}
                 />
@@ -132,6 +232,8 @@ export function RevenueChart() {
             <Bar dataKey={activeChart} fill={`var(--color-${String(activeChart)})`} radius={4} />
           </BarChart>
         </ChartContainer>
+        {isLoading && <p className="px-2 text-xs text-amber-600">Đang tải dữ liệu biểu đồ...</p>}
+        {isError && <p className="px-2 text-xs text-red-600">Không tải được dữ liệu biểu đồ.</p>}
       </CardContent>
     </Card>
   );
