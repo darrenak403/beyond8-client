@@ -19,7 +19,7 @@ interface Step3MediaPricingProps {
 }
 
 export default function Step4MediaPricing({ data, onChange }: Step3MediaPricingProps) {
-    const { uploadAvatarAsync, isUploading } = useMedia()
+    const { uploadCourseThumbnailAsync, isUploadingCourseThumbnail } = useMedia()
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [cropperOpen, setCropperOpen] = useState(false)
     const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -48,7 +48,7 @@ export default function Step4MediaPricing({ data, onChange }: Step3MediaPricingP
 
     const handleCropped = async (file: File) => {
         try {
-            const result = await uploadAvatarAsync(file)
+            const result = await uploadCourseThumbnailAsync(file)
             if (result?.fileUrl) {
                 onChange({ thumbnailUrl: result.fileUrl })
             }
@@ -172,7 +172,7 @@ export default function Step4MediaPricing({ data, onChange }: Step3MediaPricingP
                             </div>
                         )}
 
-                        {isUploading && (
+                        {isUploadingCourseThumbnail && (
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
                             </div>

@@ -20,6 +20,21 @@ export function useMedia() {
     },
   });
 
+  // Upload course thumbnail mutation
+  const uploadCourseThumbnailMutation = useMutation({
+    mutationFn: async (file: File) => {
+      return await mediaService.uploadCourseThumbnail(file);
+    },
+    onSuccess: (data: MediaFile) => {
+      toast.success("Upload ảnh bìa khóa học thành công!");
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      return data;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Upload ảnh bìa khóa học thất bại!");
+    },
+  });
+
   // Upload certificate mutation
   const uploadCertificateMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -51,6 +66,13 @@ export function useMedia() {
   });
 
   return {
+    // Course Thumbnail
+    uploadCourseThumbnail: uploadCourseThumbnailMutation.mutate,
+    uploadCourseThumbnailAsync: uploadCourseThumbnailMutation.mutateAsync,
+    isUploadingCourseThumbnail: uploadCourseThumbnailMutation.isPending,
+    uploadCourseThumbnailError: uploadCourseThumbnailMutation.error,
+    uploadedCourseThumbnail: uploadCourseThumbnailMutation.data,
+
     // Avatar
     uploadAvatar: uploadAvatarMutation.mutate,
     uploadAvatarAsync: uploadAvatarMutation.mutateAsync,
