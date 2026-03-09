@@ -51,6 +51,12 @@ export default function InstructorCoursesPage() {
   const isDescendingPrice = searchParams.get('isDescendingPrice') !== 'false'
   const level = searchParams.get('level') || 'All'
   const categoryName = searchParams.get('categoryName') || ''
+  const status = searchParams.get('status') || ''
+  const minPrice = searchParams.get('minPrice') ? parseInt(searchParams.get('minPrice')!) : undefined
+  const maxPrice = searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : undefined
+  const minRating = searchParams.get('minRating') ? parseFloat(searchParams.get('minRating')!) : undefined
+  const language = searchParams.get('language') || undefined
+  const sortBy = searchParams.get('sortBy') || 'createdDate'
 
 
   // Fetch Data
@@ -60,9 +66,14 @@ export default function InstructorCoursesPage() {
     categoryName: categoryName || undefined,
     pageNumber: pageNumber,
     pageSize: pageSize,
-    isDescending: isDescending,
-    isDescendingPrice: isDescendingPrice,
-    level: level as CourseLevel
+    isDescending: sortBy === 'createdDate' ? isDescending : undefined,
+    isDescendingPrice: sortBy === 'price' ? isDescendingPrice : undefined,
+    level: level as CourseLevel,
+    status: status as CourseStatus | undefined,
+    minPrice,
+    maxPrice,
+    minRating: minRating && minRating > 0 ? minRating : undefined,
+    language: language || undefined,
   })
 
   // Bulk Publish Mutation
@@ -92,12 +103,16 @@ export default function InstructorCoursesPage() {
       params.set('isDescending', 'true')
       hasChanged = true
     }
+    if (!searchParams.has('isDescendingPrice')) {
+      params.set('isDescendingPrice', 'true')
+      hasChanged = true
+    }
     if (!searchParams.has('level')) {
       params.set('level', 'All')
       hasChanged = true
     }
     if (!searchParams.has('sortBy')) {
-      params.set('sortBy', 'createdAt')
+      params.set('sortBy', 'createdDate')
       hasChanged = true
     }
 

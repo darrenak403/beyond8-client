@@ -1,25 +1,21 @@
 "use client";
 
 import { StatsCards } from "./components/StatsCards";
-// import { ChartBarHorizontal } from "./components/ChartBarHorizontal";
 import { ChartRadialSimple } from "./components/ChartRadialSimple";
 import { ApprovedCourses } from "./components/ApprovedCourses";
-// import { ChartLineInteractive } from "./components/ChartLineInteractive";
 import { useIsMobile } from "@/hooks/useMobile";
-import { useInstructorStats } from "@/hooks/useDashboard";
 import { useInstructorAnalytics } from "@/hooks/useAnalystic";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function InstructorDashboard() {
   const isMobile = useIsMobile();
-  const { data: stats, isLoading, error } = useInstructorStats();
   const {
     data: analytics,
     isLoading: analyticsLoading,
     error: analyticsError,
   } = useInstructorAnalytics();
 
-  if (isLoading || analyticsLoading) {
+  if (analyticsLoading ) {
     return (
       <div className="space-y-6 sm:space-y-8 mx-auto max-w-[1650px] flex flex-col gap-3">
         <div className="flex flex-col gap-2 m-0">
@@ -35,7 +31,7 @@ export default function InstructorDashboard() {
     );
   }
 
-  if (error || !stats || analyticsError || !analytics) {
+  if (analyticsError) {
     return (
       <div className="space-y-6 sm:space-y-8 mx-auto max-w-[1650px] flex flex-col gap-3">
         <div className="text-red-500">Failed to load dashboard data.</div>

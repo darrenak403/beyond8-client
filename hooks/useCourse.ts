@@ -442,6 +442,9 @@ export function useSubmitCourseForReview() {
       queryClient.invalidateQueries({
         queryKey: ["courses"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["instructor-analytics"],
+      });
       toast.success("Nộp duyệt khóa học thành công!");
       router.push(`/instructor/courses`);
     },
