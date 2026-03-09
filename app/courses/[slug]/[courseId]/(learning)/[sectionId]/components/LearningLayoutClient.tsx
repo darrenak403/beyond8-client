@@ -65,7 +65,7 @@ export default function LearningLayoutClient({ course, isEnrolled, params: initi
         isMobile={isMobile}
         onClose={() => setIsSidebarOpen(false)}
         onOpen={() => setIsSidebarOpen(true)}
-        mode={!isEnrolled ? 'preview' : 'default'}
+        mode="default"
       />
     </div>
   )

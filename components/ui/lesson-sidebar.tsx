@@ -257,7 +257,7 @@ export default function LessonSidebar({
 
                 {/* Sections List */}
                 <div className="space-y-2">
-                  {course.sections.map((section) => (
+                  {course.sections.map((section, sectionIndex) => (
                     <div key={section.id} className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm bg-white">
                       <button
                         onClick={() => toggleSection(section.id)}
@@ -265,7 +265,7 @@ export default function LessonSidebar({
                       >
                         <div className="flex items-center gap-2 flex-1 text-left">
                           <span className="text-sm font-medium text-gray-900">
-                            {section.orderIndex}. {section.title}
+                            Chương {sectionIndex + 1}: {section.title}
                           </span>
                           <span className="text-xs text-gray-500">
                             ({section.lessons.length} bài)
