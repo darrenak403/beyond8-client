@@ -137,20 +137,20 @@ export function TransactionHistoryTable({
                       <div className="flex flex-col items-end justify-center">
                         <span
                           className={`font-medium [font-variant-numeric:tabular-nums] ${transaction.type === TransactionType.Sale &&
-                              transaction.status === "Pending"
-                              ? "text-orange-600"
-                              : transaction.type === TransactionType.Sale &&
-                                transaction.status === "Completed"
+                            transaction.status === "Pending"
+                            ? "text-orange-600"
+                            : transaction.type === TransactionType.Sale &&
+                              transaction.status === "Completed"
+                              ? "text-green-600"
+                              : transaction.type === TransactionType.TopUp
                                 ? "text-green-600"
-                                : transaction.type === TransactionType.TopUp
-                                  ? "text-green-600"
-                                  : transaction.type === TransactionType.CouponHold
-                                    ? "text-red-600"
-                                    : transaction.type === TransactionType.CouponUsage
-                                      ? "text-purple-600"
-                                      : isPositive
-                                        ? "text-green-600"
-                                        : "text-foreground"
+                                : transaction.type === TransactionType.CouponHold
+                                  ? "text-red-600"
+                                  : transaction.type === TransactionType.CouponUsage
+                                    ? "text-purple-600"
+                                    : isPositive
+                                      ? "text-green-600"
+                                      : "text-foreground"
                             }`}
                         >
                           {["CouponHold", "CouponUsage", "Payout", "PlatformFee"].some(

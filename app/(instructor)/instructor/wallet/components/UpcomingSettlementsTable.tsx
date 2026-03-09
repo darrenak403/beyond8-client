@@ -62,8 +62,8 @@ export function UpcomingSettlementsTable({
                         ) : (
                             settlements.map((item) => (
                                 <TableRow key={item.transactionId}>
-                                    <TableCell className="font-medium max-w-40 truncate" title={item.orderId || item.transactionId}>
-                                        {item.orderId || item.transactionId}
+                                    <TableCell className="font-medium max-w-40 truncate" title={item.orderNumber}>
+                                        {item.orderNumber}
                                     </TableCell>
                                     <TableCell>
                                         {item.availableAt ? format(new Date(item.availableAt.endsWith('Z') ? item.availableAt : `${item.availableAt}Z`), "dd/MM/yyyy HH:mm", { locale: vi }) : "N/A"}

@@ -119,6 +119,7 @@ export interface MyUpcoming {
     transactionId: string
     walletId: string
     orderId: string
+    orderNumber: string
     amount: number
     currency: string
     availableAt: string | null
