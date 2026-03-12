@@ -68,3 +68,6 @@ jobs:
           build-args: |
             BUILDKIT_INLINE_CACHE=1
             NEXT_PUBLIC_API_URL=https://api.beyond8.io.vn
+
+      - name: Trigger Dokploy Deployment
+        run: curl -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" --fail -s
