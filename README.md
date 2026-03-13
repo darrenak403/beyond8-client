@@ -1,7 +1,7 @@
 # Beyond8 — AI-Powered Learning Management System
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/darrenak403/beyond8-client/main/public/icon-logo.png" alt="Beyond8 Logo" width="200" />
+  <img src="https://raw.githubusercontent.com/darrenak403/beyond8-client/main/public/icon-logo.png" alt="Beyond8 Logo" width="800" />
 </p>
 
 
